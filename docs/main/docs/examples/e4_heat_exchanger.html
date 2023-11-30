@@ -230,14 +230,7 @@ which is, by default 1 Pa.</p>
 <section id="implement-your-own-iteration">
 <h2>Implement your own iteration<a class="headerlink" href="#implement-your-own-iteration" title="Permalink to this heading"></a></h2>
 <p>As the result is still not good, let’s implement this really basic iteration logic.
-We will define a function which takes the pressure as an input:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">iterate_evaporator</span><span class="p">(</span><span class="n">p_eva</span><span class="p">,</span> <span class="n">eva</span><span class="p">,</span> <span class="n">h_inlet</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">):</span>
-    <span class="n">eva</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PH&quot;</span><span class="p">,</span> <span class="n">p_eva</span><span class="p">,</span> <span class="n">h_inlet</span><span class="p">)</span>
-    <span class="n">T_eva</span> <span class="o">=</span> <span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_eva</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
-    <span class="n">eva</span><span class="o">.</span><span class="n">state_outlet</span> <span class="o">=</span> <span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="n">p_eva</span><span class="p">,</span> <span class="n">T_eva</span> <span class="o">+</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dT_eva_superheating&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>For iterating, we use a while-loop. Let’s define a max-iteration
+For iterating, we use a while-loop. Let’s define a max-iteration
 counter to avoid an infinite iteration.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">max_iterations</span> <span class="o">=</span> <span class="mi">100</span>
 <span class="n">n_iteration</span> <span class="o">=</span> <span class="mi">0</span>
@@ -247,10 +240,10 @@ counter to avoid an infinite iteration.</p>
 <span class="n">min_error</span> <span class="o">=</span> <span class="mf">0.1</span>  <span class="c1"># 0.1 % maximal error</span>
 <span class="n">errors</span><span class="p">,</span> <span class="n">dT_mins</span><span class="p">,</span> <span class="n">p_evaporations</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>  <span class="c1"># Store for later plotting</span>
 <span class="k">while</span> <span class="n">n_iteration</span> <span class="o">&lt;</span> <span class="n">max_iterations</span><span class="p">:</span>
-    <span class="n">error</span><span class="p">,</span> <span class="n">dT_min</span> <span class="o">=</span> <span class="n">iterate_evaporator</span><span class="p">(</span>
-        <span class="n">p_eva</span><span class="o">=</span><span class="n">p_eva_next</span><span class="p">,</span> <span class="n">eva</span><span class="o">=</span><span class="n">evaporator</span><span class="p">,</span> <span class="n">h_inlet</span><span class="o">=</span><span class="n">state_condenser_outlet</span><span class="o">.</span><span class="n">h</span><span class="p">,</span>
-        <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span>
-    <span class="p">)</span>
+    <span class="n">evaporator</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PH&quot;</span><span class="p">,</span> <span class="n">p_eva_next</span><span class="p">,</span> <span class="n">state_condenser_outlet</span><span class="o">.</span><span class="n">h</span><span class="p">)</span>
+    <span class="n">T_eva</span> <span class="o">=</span> <span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_eva_next</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">evaporator</span><span class="o">.</span><span class="n">state_outlet</span> <span class="o">=</span> <span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="n">p_eva_next</span><span class="p">,</span> <span class="n">T_eva</span> <span class="o">+</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dT_eva_superheating&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+    <span class="n">error</span><span class="p">,</span> <span class="n">dT_min</span> <span class="o">=</span> <span class="n">evaporator</span><span class="o">.</span><span class="n">calc</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
     <span class="c1"># Store for later plotting</span>
     <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error</span><span class="p">)</span>
     <span class="n">dT_mins</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dT_min</span><span class="p">)</span>
@@ -315,10 +308,7 @@ those:</p>
     <span class="p">[</span><span class="n">T_eva_in</span><span class="p">,</span> <span class="n">T_eva_out</span><span class="p">],</span>
     <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span>
 <span class="p">)</span>
-</pre></div>
-</div>
-<p>Set some limits and labels:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;$T$ in °C&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;$T$ in °C&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;$h$ in kJ/kgK&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="mf">275.15</span><span class="p">,</span> <span class="n">T_eva_in</span> <span class="o">+</span> <span class="mi">2</span><span class="p">])</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
