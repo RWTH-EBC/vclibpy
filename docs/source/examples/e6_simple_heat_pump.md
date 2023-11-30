@@ -117,7 +117,7 @@ One file should be: `Standard_Propane.csv`. We can load this file and plot
 ```python
 import pandas as pd
 df = pd.read_csv(save_path_csv, index_col=0)
-print(df.to_string())
+df
 ```
 
 Now, we can plot variables, for example as a scatter plot using matplotlib.
