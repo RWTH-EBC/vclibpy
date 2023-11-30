@@ -36,7 +36,10 @@ dependencies = [
     "ctREFPROP"
 ]
 dynamic = ["version"]
+
+[tool.setuptools]
 packages = ["vclibpy", "vclibpy.media", "vclibpy.utils", "vclibpy.components", "vclibpy.flowsheets", "vclibpy.components.expansion_valves", "vclibpy.components.heat_exchangers", "vclibpy.components.compressors", "vclibpy.components.heat_exchangers.heat_transfer"]
+
 [package.urls]
 homepage = "https://github.com/RWTH-EBC/vclibpy"
 documentation = "https://github.com/RWTH-EBC/vclibpy"
