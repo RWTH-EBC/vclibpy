@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.utils.nominal_design &mdash; vclibpy 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/autodoc_pydantic.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">vclibpy.utils.nominal_design</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for vclibpy.utils.nominal_design</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="kn">from</span> <span class="nn">vclibpy</span> <span class="kn">import</span> <span class="n">Inputs</span>
+<span class="kn">from</span> <span class="nn">vclibpy.flowsheets</span> <span class="kn">import</span> <span class="n">BaseCycle</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="nominal_hp_design"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.nominal_design.nominal_hp_design">[docs]</a><span class="k">def</span> <span class="nf">nominal_hp_design</span><span class="p">(</span>
+        <span class="n">heat_pump</span><span class="p">:</span> <span class="n">BaseCycle</span><span class="p">,</span> 
+        <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> 
+        <span class="n">fluid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">dT_con</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">dT_eva</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to calculate the heat pump design</span>
+<span class="sd">    at a given nominal point. </span>
+<span class="sd">    Args:</span>
+<span class="sd">        heat_pump (BaseCycle): A supported flowsheet</span>
+<span class="sd">        inputs (Inputs):</span>
+<span class="sd">            The input values at the nominal point.</span>
+<span class="sd">            If the mass flow rates are not given, you</span>
+<span class="sd">            can use dT_con and dT_eva to iteratively calculate</span>
+<span class="sd">            the mass flow rates in order to achieve the required</span>
+<span class="sd">            temperature differences at the nominal point.</span>
+<span class="sd">        dT_con (float):</span>
+<span class="sd">            Condenser temperature difference to calculate mass flow rate</span>
+<span class="sd">        dT_eva (float):</span>
+<span class="sd">            Evaporator temperature difference to calculate mass flow rate</span>
+<span class="sd">        fluid (str): Fluid to be used.</span>
+<span class="sd">        **kwargs: </span>
+<span class="sd">            m_flow_eva_start: Guess start-value for iteration. Default 0.2</span>
+<span class="sd">            m_flow_con_start: Guess start-value for iteration. Default 1</span>
+<span class="sd">            accuracy: Minimal accuracy for mass flow rate iteration (in kg/s). </span>
+<span class="sd">                Default 0.001 kg/s</span>
+<span class="sd">             </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary with all flowsheet states and inputs containing</span>
+<span class="sd">              information about the nominal design.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t0</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="c1"># Define nominal values:</span>
+    <span class="n">m_flow_con_start</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;m_flow_con_start&quot;</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">)</span>
+    <span class="n">m_flow_eva_start</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;m_flow_eva_start&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">accuracy</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;accuracy&quot;</span><span class="p">,</span> <span class="mf">0.001</span><span class="p">)</span>
+    <span class="n">calculate_m_flow</span> <span class="o">=</span> <span class="n">dT_eva</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">dT_con</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">calculate_m_flow</span><span class="p">:</span>
+        <span class="c1"># Get nominal value:</span>
+        <span class="n">fs_state</span> <span class="o">=</span> <span class="n">heat_pump</span><span class="o">.</span><span class="n">calc_steady_state</span><span class="p">(</span><span class="n">fluid</span><span class="o">=</span><span class="n">fluid</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fs_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Given configuration is infeasible at nominal point.&quot;</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># We have to iterate to match the m_flows to the Q_cons:</span>
+        <span class="n">m_flow_eva_next</span> <span class="o">=</span> <span class="n">m_flow_eva_start</span>
+        <span class="n">m_flow_con_next</span> <span class="o">=</span> <span class="n">m_flow_con_start</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># Set values</span>
+            <span class="n">m_flow_eva</span> <span class="o">=</span> <span class="n">m_flow_eva_next</span>
+            <span class="n">m_flow_con</span> <span class="o">=</span> <span class="n">m_flow_con_next</span>
+            <span class="n">inputs</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;m_flow_con&quot;</span><span class="p">,</span> <span class="n">m_flow_con</span><span class="p">)</span>
+            <span class="n">inputs</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;m_flow_eva&quot;</span><span class="p">,</span> <span class="n">m_flow_eva</span><span class="p">)</span>
+            <span class="c1"># Get nominal value:</span>
+            <span class="n">fs_state</span> <span class="o">=</span> <span class="n">heat_pump</span><span class="o">.</span><span class="n">calc_steady_state</span><span class="p">(</span><span class="n">fluid</span><span class="o">=</span><span class="n">fluid</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">fs_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Given configuration is infeasible at nominal point.&quot;</span><span class="p">)</span>
+            <span class="n">cp_eva</span> <span class="o">=</span> <span class="n">heat_pump</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">_secondary_cp</span>
+            <span class="n">cp_con</span> <span class="o">=</span> <span class="n">heat_pump</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">_secondary_cp</span>
+            <span class="n">m_flow_con_next</span> <span class="o">=</span> <span class="n">fs_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Q_con&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">dT_con</span> <span class="o">*</span> <span class="n">cp_con</span><span class="p">)</span>
+            <span class="n">m_flow_eva_next</span> <span class="o">=</span> <span class="p">(</span><span class="n">fs_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;Q_con&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">fs_state</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;COP&quot;</span><span class="p">)))</span> <span class="o">/</span> <span class="p">(</span><span class="n">dT_eva</span> <span class="o">*</span> <span class="n">cp_eva</span><span class="p">)</span>
+            <span class="c1"># Check convergence:</span>
+            <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">m_flow_eva_next</span> <span class="o">-</span> <span class="n">m_flow_eva</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">accuracy</span> <span class="ow">and</span> <span class="nb">abs</span><span class="p">(</span><span class="n">m_flow_con</span><span class="o">-</span><span class="n">m_flow_con_next</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">accuracy</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="n">nominal_design_info</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="o">**</span><span class="n">inputs</span><span class="o">.</span><span class="n">convert_to_str_value_format</span><span class="p">(</span><span class="n">with_unit_and_description</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="o">**</span><span class="n">fs_state</span><span class="o">.</span><span class="n">convert_to_str_value_format</span><span class="p">(</span><span class="n">with_unit_and_description</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+        <span class="s2">&quot;dT_con&quot;</span><span class="p">:</span> <span class="n">dT_con</span><span class="p">,</span>
+        <span class="s2">&quot;dT_eva&quot;</span><span class="p">:</span> <span class="n">dT_eva</span>
+    <span class="p">}</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Auto-generation of nominal values took </span><span class="si">%s</span><span class="s2"> seconds&quot;</span><span class="p">,</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span><span class="o">-</span><span class="n">t0</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Nominal values: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">nominal_design_info</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">nominal_design_info</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
