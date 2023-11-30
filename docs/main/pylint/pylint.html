@@ -3982,18 +3982,8 @@
         fs_state.set(name=&#34;p_con&#34;, value=p_2, unit=&#34;Pa&#34;, description=&#34;Condensation pressure&#34;)
         fs_state.set(name=&#34;p_eva&#34;, value=p_1, unit=&#34;Pa&#34;, description=&#34;Evaporation pressure&#34;)
 
-    def calc_injection(self) -&gt; (float, float, ThermodynamicState):
-        &#34;&#34;&#34;
-        Calculate the injection component, e.g. phase separator
-        or heat exchanger.
-        In this function, child classes must set inlets
-        and calculate outlets of additional components.
-
-        Returns:
-            float: Portion of vapor injected (x)
-            float: Enthalpy of vapor injected
-            ThermodynamicState: Inlet state of low pressure expansion valve
-        &#34;&#34;&#34;</pre></td>
+    def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
+        &#34;&#34;&#34;Based on simple energy balance - Adiabatic&#34;&#34;&#34;</pre></td>
             </tr>
             
             <tr>

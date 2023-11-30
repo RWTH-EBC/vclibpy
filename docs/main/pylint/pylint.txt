@@ -826,16 +826,26 @@ vclibpy/flowsheets/base.py:1:0: R0801: Similar lines in 2 files
         fs_state.set(name="p_con", value=p_2, unit="Pa", description="Condensation pressure")
         fs_state.set(name="p_eva", value=p_1, unit="Pa", description="Evaporation pressure")
 
-    def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
-        """Based on simple energy balance - Adiabatic""" (duplicate-code)
-vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.media) (cyclic-import)
+    def calc_injection(self) -> (float, float, ThermodynamicState):
+        """
+        Calculate the injection component, e.g. phase separator
+        or heat exchanger.
+        In this function, child classes must set inlets
+        and calculate outlets of additional components.
+
+        Returns:
+            float: Portion of vapor injected (x)
+            float: Enthalpy of vapor injected
+            ThermodynamicState: Inlet state of low pressure expansion valve
+        """ (duplicate-code)
 vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.cool_prop -> vclibpy.media.media) (cyclic-import)
 vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.ref_prop) (cyclic-import)
+vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.media) (cyclic-import)
 vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.components.expansion_valves -> vclibpy.components.expansion_valves.bernoulli) (cyclic-import)
-vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
+vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
 vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.utils -> vclibpy.utils.automation) (cyclic-import)
 vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.standard) (cyclic-import)
-vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
+vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
 
 -----------------------------------
 Your code has been rated at 6.60/10
