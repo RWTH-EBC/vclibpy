@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy package &mdash; vclibpy 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="vclibpy.components package" href="vclibpy.components.html" />
+    <link rel="prev" title="vclibpy" href="modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">vclibpy</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">vclibpy package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html">vclibpy.components package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html">vclibpy.flowsheets package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html">vclibpy.media package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.utils.html">vclibpy.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-vclibpy.datamodels">vclibpy.datamodels module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#vclibpy.datamodels.FlowsheetState"><code class="docutils literal notranslate"><span class="pre">FlowsheetState</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#vclibpy.datamodels.Inputs"><code class="docutils literal notranslate"><span class="pre">Inputs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#vclibpy.datamodels.Variable"><code class="docutils literal notranslate"><span class="pre">Variable</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#vclibpy.datamodels.VariableContainer"><code class="docutils literal notranslate"><span class="pre">VariableContainer</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#module-vclibpy.heat_pumps">vclibpy.heat_pumps module</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo"><code class="docutils literal notranslate"><span class="pre">HPLoader_kbr_pwo</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">vclibpy</a></li>
+      <li class="breadcrumb-item active">vclibpy package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/code/vclibpy.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-vclibpy">
+<span id="vclibpy-package"></span><h1>vclibpy package<a class="headerlink" href="#module-vclibpy" title="Permalink to this heading"></a></h1>
+<p>Package for stationary vapor compression models and their analysis</p>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="vclibpy.components.html">vclibpy.components package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.components.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.compressors.html">vclibpy.components.compressors package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.compressors.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.compressors.html#module-vclibpy.components.compressors.compressor">vclibpy.components.compressors.compressor module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.compressors.html#module-vclibpy.components.compressors.constant_effectivness">vclibpy.components.compressors.constant_effectivness module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.compressors.html#module-vclibpy.components.compressors.rotary">vclibpy.components.compressors.rotary module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.compressors.html#module-vclibpy.components.compressors.ten_coefficient">vclibpy.components.compressors.ten_coefficient module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.expansion_valves.html">vclibpy.components.expansion_valves package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.expansion_valves.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.expansion_valves.html#module-vclibpy.components.expansion_valves.bernoulli">vclibpy.components.expansion_valves.bernoulli module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.expansion_valves.html#module-vclibpy.components.expansion_valves.expansion_valve">vclibpy.components.expansion_valves.expansion_valve module</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.html">vclibpy.components.heat_exchangers package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.html#module-vclibpy.components.heat_exchangers.economizer">vclibpy.components.heat_exchangers.economizer module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.html#module-vclibpy.components.heat_exchangers.heat_exchanger">vclibpy.components.heat_exchangers.heat_exchanger module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.html#module-vclibpy.components.heat_exchangers.moving_boundary_ntu">vclibpy.components.heat_exchangers.moving_boundary_ntu module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.html#module-vclibpy.components.heat_exchangers.ntu">vclibpy.components.heat_exchangers.ntu module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.components.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.components.html#module-vclibpy.components.component">vclibpy.components.component module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.component.BaseComponent"><code class="docutils literal notranslate"><span class="pre">BaseComponent</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.component.BaseComponent.m_flow"><code class="docutils literal notranslate"><span class="pre">BaseComponent.m_flow</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.component.BaseComponent.med_prop"><code class="docutils literal notranslate"><span class="pre">BaseComponent.med_prop</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.component.BaseComponent.start_secondary_med_prop"><code class="docutils literal notranslate"><span class="pre">BaseComponent.start_secondary_med_prop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.component.BaseComponent.state_inlet"><code class="docutils literal notranslate"><span class="pre">BaseComponent.state_inlet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.component.BaseComponent.state_outlet"><code class="docutils literal notranslate"><span class="pre">BaseComponent.state_outlet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.component.BaseComponent.terminate_secondary_med_prop"><code class="docutils literal notranslate"><span class="pre">BaseComponent.terminate_secondary_med_prop()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.components.html#module-vclibpy.components.phase_separator">vclibpy.components.phase_separator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.phase_separator.PhaseSeparator"><code class="docutils literal notranslate"><span class="pre">PhaseSeparator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.phase_separator.PhaseSeparator.state_inlet"><code class="docutils literal notranslate"><span class="pre">PhaseSeparator.state_inlet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.phase_separator.PhaseSeparator.state_outlet"><code class="docutils literal notranslate"><span class="pre">PhaseSeparator.state_outlet</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.phase_separator.PhaseSeparator.state_outlet_liquid"><code class="docutils literal notranslate"><span class="pre">PhaseSeparator.state_outlet_liquid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html#vclibpy.components.phase_separator.PhaseSeparator.state_outlet_vapor"><code class="docutils literal notranslate"><span class="pre">PhaseSeparator.state_outlet_vapor</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vclibpy.flowsheets.html">vclibpy.flowsheets package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#module-vclibpy.flowsheets.base">vclibpy.flowsheets.base module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle"><code class="docutils literal notranslate"><span class="pre">BaseCycle</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.calc_electrical_power"><code class="docutils literal notranslate"><span class="pre">BaseCycle.calc_electrical_power()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.calc_states"><code class="docutils literal notranslate"><span class="pre">BaseCycle.calc_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.calc_steady_state"><code class="docutils literal notranslate"><span class="pre">BaseCycle.calc_steady_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.flowsheet_name"><code class="docutils literal notranslate"><span class="pre">BaseCycle.flowsheet_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.get_all_components"><code class="docutils literal notranslate"><span class="pre">BaseCycle.get_all_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.get_states_in_order_for_plotting"><code class="docutils literal notranslate"><span class="pre">BaseCycle.get_states_in_order_for_plotting()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.plot_cycle"><code class="docutils literal notranslate"><span class="pre">BaseCycle.plot_cycle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.set_condenser_outlet_based_on_subcooling"><code class="docutils literal notranslate"><span class="pre">BaseCycle.set_condenser_outlet_based_on_subcooling()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.set_evaporator_outlet_based_on_superheating"><code class="docutils literal notranslate"><span class="pre">BaseCycle.set_evaporator_outlet_based_on_superheating()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.setup_new_fluid"><code class="docutils literal notranslate"><span class="pre">BaseCycle.setup_new_fluid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.terminate"><code class="docutils literal notranslate"><span class="pre">BaseCycle.terminate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#module-vclibpy.flowsheets.standard">vclibpy.flowsheets.standard module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle"><code class="docutils literal notranslate"><span class="pre">StandardCycle</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.calc_electrical_power"><code class="docutils literal notranslate"><span class="pre">StandardCycle.calc_electrical_power()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.calc_states"><code class="docutils literal notranslate"><span class="pre">StandardCycle.calc_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.flowsheet_name"><code class="docutils literal notranslate"><span class="pre">StandardCycle.flowsheet_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.fluid"><code class="docutils literal notranslate"><span class="pre">StandardCycle.fluid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.get_all_components"><code class="docutils literal notranslate"><span class="pre">StandardCycle.get_all_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.get_states_in_order_for_plotting"><code class="docutils literal notranslate"><span class="pre">StandardCycle.get_states_in_order_for_plotting()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#module-vclibpy.flowsheets.vapor_injection">vclibpy.flowsheets.vapor_injection module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_electrical_power"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.calc_electrical_power()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_injection"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.calc_injection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_states"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.calc_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.flowsheet_name"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.flowsheet_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.fluid"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.fluid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.get_all_components"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.get_all_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.get_states_in_order_for_plotting"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.get_states_in_order_for_plotting()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#module-vclibpy.flowsheets.vapor_injection_economizer">vclibpy.flowsheets.vapor_injection_economizer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.calc_injection"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer.calc_injection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.flowsheet_name"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer.flowsheet_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.fluid"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer.fluid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_all_components"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer.get_all_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_states_in_order_for_plotting"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer.get_states_in_order_for_plotting()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#module-vclibpy.flowsheets.vapor_injection_phase_separator">vclibpy.flowsheets.vapor_injection_phase_separator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.calc_injection"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator.calc_injection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.flowsheet_name"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator.flowsheet_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.fluid"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator.fluid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_all_components"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator.get_all_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_states_in_order_for_plotting"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator.get_states_in_order_for_plotting()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vclibpy.media.html">vclibpy.media package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.CoolProp"><code class="docutils literal notranslate"><span class="pre">CoolProp</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.CoolProp.calc_state"><code class="docutils literal notranslate"><span class="pre">CoolProp.calc_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.CoolProp.calc_transport_properties"><code class="docutils literal notranslate"><span class="pre">CoolProp.calc_transport_properties()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.CoolProp.get_critical_point"><code class="docutils literal notranslate"><span class="pre">CoolProp.get_critical_point()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.CoolProp.get_molar_mass"><code class="docutils literal notranslate"><span class="pre">CoolProp.get_molar_mass()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.MedProp"><code class="docutils literal notranslate"><span class="pre">MedProp</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.MedProp.calc_mean_transport_properties"><code class="docutils literal notranslate"><span class="pre">MedProp.calc_mean_transport_properties()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.MedProp.calc_state"><code class="docutils literal notranslate"><span class="pre">MedProp.calc_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.MedProp.calc_transport_properties"><code class="docutils literal notranslate"><span class="pre">MedProp.calc_transport_properties()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.MedProp.get_critical_point"><code class="docutils literal notranslate"><span class="pre">MedProp.get_critical_point()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.MedProp.get_molar_mass"><code class="docutils literal notranslate"><span class="pre">MedProp.get_molar_mass()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.MedProp.get_two_phase_limits"><code class="docutils literal notranslate"><span class="pre">MedProp.get_two_phase_limits()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.MedProp.terminate"><code class="docutils literal notranslate"><span class="pre">MedProp.terminate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp"><code class="docutils literal notranslate"><span class="pre">RefProp</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.calc_satliq_state"><code class="docutils literal notranslate"><span class="pre">RefProp.calc_satliq_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.calc_state"><code class="docutils literal notranslate"><span class="pre">RefProp.calc_state()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.calc_transport_properties"><code class="docutils literal notranslate"><span class="pre">RefProp.calc_transport_properties()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_available_substances"><code class="docutils literal notranslate"><span class="pre">RefProp.get_available_substances()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_comp_names"><code class="docutils literal notranslate"><span class="pre">RefProp.get_comp_names()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_critical_point"><code class="docutils literal notranslate"><span class="pre">RefProp.get_critical_point()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_def_limits"><code class="docutils literal notranslate"><span class="pre">RefProp.get_def_limits()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_dll_path"><code class="docutils literal notranslate"><span class="pre">RefProp.get_dll_path()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_fluid_name"><code class="docutils literal notranslate"><span class="pre">RefProp.get_fluid_name()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_gwp"><code class="docutils literal notranslate"><span class="pre">RefProp.get_gwp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_longname"><code class="docutils literal notranslate"><span class="pre">RefProp.get_longname()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_mass_fraction"><code class="docutils literal notranslate"><span class="pre">RefProp.get_mass_fraction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_mol_fraction"><code class="docutils literal notranslate"><span class="pre">RefProp.get_mol_fraction()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_molar_composition"><code class="docutils literal notranslate"><span class="pre">RefProp.get_molar_composition()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_molar_mass"><code class="docutils literal notranslate"><span class="pre">RefProp.get_molar_mass()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_nbp"><code class="docutils literal notranslate"><span class="pre">RefProp.get_nbp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_odp"><code class="docutils literal notranslate"><span class="pre">RefProp.get_odp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_safety"><code class="docutils literal notranslate"><span class="pre">RefProp.get_safety()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_sat_vap_pressure"><code class="docutils literal notranslate"><span class="pre">RefProp.get_sat_vap_pressure()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_triple_point"><code class="docutils literal notranslate"><span class="pre">RefProp.get_triple_point()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.get_version"><code class="docutils literal notranslate"><span class="pre">RefProp.get_version()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.is_mixture"><code class="docutils literal notranslate"><span class="pre">RefProp.is_mixture()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.set_error_flag"><code class="docutils literal notranslate"><span class="pre">RefProp.set_error_flag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.set_warning_flag"><code class="docutils literal notranslate"><span class="pre">RefProp.set_warning_flag()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.RefProp.terminate"><code class="docutils literal notranslate"><span class="pre">RefProp.terminate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ThermodynamicState"><code class="docutils literal notranslate"><span class="pre">ThermodynamicState</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ThermodynamicState.get_pretty_print"><code class="docutils literal notranslate"><span class="pre">ThermodynamicState.get_pretty_print()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.TransportProperties"><code class="docutils literal notranslate"><span class="pre">TransportProperties</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.TransportProperties.get_pretty_print"><code class="docutils literal notranslate"><span class="pre">TransportProperties.get_pretty_print()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.media.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.media.html#module-vclibpy.media.cool_prop">vclibpy.media.cool_prop module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.cool_prop.CoolProp"><code class="docutils literal notranslate"><span class="pre">CoolProp</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.cool_prop.CoolProp.calc_state"><code class="docutils literal notranslate"><span class="pre">CoolProp.calc_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.cool_prop.CoolProp.calc_transport_properties"><code class="docutils literal notranslate"><span class="pre">CoolProp.calc_transport_properties()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.cool_prop.CoolProp.get_critical_point"><code class="docutils literal notranslate"><span class="pre">CoolProp.get_critical_point()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.cool_prop.CoolProp.get_molar_mass"><code class="docutils literal notranslate"><span class="pre">CoolProp.get_molar_mass()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.media.html#module-vclibpy.media.media">vclibpy.media.media module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.media.MedProp"><code class="docutils literal notranslate"><span class="pre">MedProp</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.media.MedProp.calc_mean_transport_properties"><code class="docutils literal notranslate"><span class="pre">MedProp.calc_mean_transport_properties()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.media.MedProp.calc_state"><code class="docutils literal notranslate"><span class="pre">MedProp.calc_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.media.MedProp.calc_transport_properties"><code class="docutils literal notranslate"><span class="pre">MedProp.calc_transport_properties()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.media.MedProp.get_critical_point"><code class="docutils literal notranslate"><span class="pre">MedProp.get_critical_point()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.media.MedProp.get_molar_mass"><code class="docutils literal notranslate"><span class="pre">MedProp.get_molar_mass()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.media.MedProp.get_two_phase_limits"><code class="docutils literal notranslate"><span class="pre">MedProp.get_two_phase_limits()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.media.MedProp.terminate"><code class="docutils literal notranslate"><span class="pre">MedProp.terminate()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.media.get_two_phase_limits"><code class="docutils literal notranslate"><span class="pre">get_two_phase_limits()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.media.html#module-vclibpy.media.ref_prop">vclibpy.media.ref_prop module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp"><code class="docutils literal notranslate"><span class="pre">RefProp</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.calc_satliq_state"><code class="docutils literal notranslate"><span class="pre">RefProp.calc_satliq_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.calc_state"><code class="docutils literal notranslate"><span class="pre">RefProp.calc_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.calc_transport_properties"><code class="docutils literal notranslate"><span class="pre">RefProp.calc_transport_properties()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_available_substances"><code class="docutils literal notranslate"><span class="pre">RefProp.get_available_substances()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_comp_names"><code class="docutils literal notranslate"><span class="pre">RefProp.get_comp_names()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_critical_point"><code class="docutils literal notranslate"><span class="pre">RefProp.get_critical_point()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_def_limits"><code class="docutils literal notranslate"><span class="pre">RefProp.get_def_limits()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_dll_path"><code class="docutils literal notranslate"><span class="pre">RefProp.get_dll_path()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_fluid_name"><code class="docutils literal notranslate"><span class="pre">RefProp.get_fluid_name()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_gwp"><code class="docutils literal notranslate"><span class="pre">RefProp.get_gwp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_longname"><code class="docutils literal notranslate"><span class="pre">RefProp.get_longname()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_mass_fraction"><code class="docutils literal notranslate"><span class="pre">RefProp.get_mass_fraction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_mol_fraction"><code class="docutils literal notranslate"><span class="pre">RefProp.get_mol_fraction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_molar_composition"><code class="docutils literal notranslate"><span class="pre">RefProp.get_molar_composition()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_molar_mass"><code class="docutils literal notranslate"><span class="pre">RefProp.get_molar_mass()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_nbp"><code class="docutils literal notranslate"><span class="pre">RefProp.get_nbp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_odp"><code class="docutils literal notranslate"><span class="pre">RefProp.get_odp()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_safety"><code class="docutils literal notranslate"><span class="pre">RefProp.get_safety()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_sat_vap_pressure"><code class="docutils literal notranslate"><span class="pre">RefProp.get_sat_vap_pressure()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_triple_point"><code class="docutils literal notranslate"><span class="pre">RefProp.get_triple_point()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.get_version"><code class="docutils literal notranslate"><span class="pre">RefProp.get_version()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.is_mixture"><code class="docutils literal notranslate"><span class="pre">RefProp.is_mixture()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.set_error_flag"><code class="docutils literal notranslate"><span class="pre">RefProp.set_error_flag()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.set_warning_flag"><code class="docutils literal notranslate"><span class="pre">RefProp.set_warning_flag()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.ref_prop.RefProp.terminate"><code class="docutils literal notranslate"><span class="pre">RefProp.terminate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.media.html#module-vclibpy.media.states">vclibpy.media.states module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.states.ThermodynamicState"><code class="docutils literal notranslate"><span class="pre">ThermodynamicState</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.states.ThermodynamicState.get_pretty_print"><code class="docutils literal notranslate"><span class="pre">ThermodynamicState.get_pretty_print()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.states.TransportProperties"><code class="docutils literal notranslate"><span class="pre">TransportProperties</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.states.TransportProperties.get_pretty_print"><code class="docutils literal notranslate"><span class="pre">TransportProperties.get_pretty_print()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="vclibpy.utils.html">vclibpy.utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.utils.html#module-vclibpy.utils.automation">vclibpy.utils.automation module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.utils.html#vclibpy.utils.automation.calc_multiple_states"><code class="docutils literal notranslate"><span class="pre">calc_multiple_states()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.utils.html#vclibpy.utils.automation.full_factorial_map_generation"><code class="docutils literal notranslate"><span class="pre">full_factorial_map_generation()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.utils.html#module-vclibpy.utils.nominal_design">vclibpy.utils.nominal_design module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.utils.html#vclibpy.utils.nominal_design.nominal_hp_design"><code class="docutils literal notranslate"><span class="pre">nominal_hp_design()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.utils.html#module-vclibpy.utils.plotting">vclibpy.utils.plotting module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.utils.html#vclibpy.utils.plotting.plot_sdf_map"><code class="docutils literal notranslate"><span class="pre">plot_sdf_map()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.utils.html#vclibpy.utils.plotting.set_axis_style"><code class="docutils literal notranslate"><span class="pre">set_axis_style()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.utils.html#module-vclibpy.utils.sdf_">vclibpy.utils.sdf_ module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.utils.html#vclibpy.utils.sdf_.merge_sdfs"><code class="docutils literal notranslate"><span class="pre">merge_sdfs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.utils.html#vclibpy.utils.sdf_.save_to_sdf"><code class="docutils literal notranslate"><span class="pre">save_to_sdf()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.utils.html#vclibpy.utils.sdf_.sdf_to_csv"><code class="docutils literal notranslate"><span class="pre">sdf_to_csv()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.utils.html#vclibpy-utils-ten-coefficient-compressor-reqression-module">vclibpy.utils.ten_coefficient_compressor_reqression module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-vclibpy.datamodels">
+<span id="vclibpy-datamodels-module"></span><h2>vclibpy.datamodels module<a class="headerlink" href="#module-vclibpy.datamodels" title="Permalink to this heading"></a></h2>
+<p>Module which contains datamodels which are used in this library.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.datamodels.FlowsheetState">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.datamodels.</span></span><span class="sig-name descname"><span class="pre">FlowsheetState</span></span><a class="reference internal" href="../_modules/vclibpy/datamodels.html#FlowsheetState"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.datamodels.FlowsheetState" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#vclibpy.datamodels.VariableContainer" title="vclibpy.datamodels.VariableContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">VariableContainer</span></code></a></p>
+<p>This class is used to define the unique states of the flowsheet
+in the heat pump.</p>
+<p>The class is dynamic in the sense that attributes may be
+added during calculation of new flowsheet. This enables
+the easy adding of custom values to analyze the whole flowsheet
+and not restrict to a certain naming convention.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.datamodels.Inputs">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.datamodels.</span></span><span class="sig-name descname"><span class="pre">Inputs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_eva_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_con_in</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_flow_eva</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_flow_con</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dT_eva_superheating</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dT_con_subcooling</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_ambient</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/datamodels.html#Inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.datamodels.Inputs" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#vclibpy.datamodels.VariableContainer" title="vclibpy.datamodels.VariableContainer"><code class="xref py py-class docutils literal notranslate"><span class="pre">VariableContainer</span></code></a></p>
+<p>Class defining inputs to calculate the FlowsheetState.</p>
+<p>While the inputs are pre-defined, you may add further ones
+using the <cite>set</cite> method.</p>
+<dl class="simple">
+<dt>Attributes:</dt><dd><p>n (float): Relative compressor speed between 0 and 1.
+T_eva_in (float): Secondary side evaporator inlet temperature.
+T_con_in (float): Secondary side condenser inlet temperature.
+m_flow_eva (float): Secondary side evaporator mass flow rate.
+m_flow_con (float): Secondary side condenser mass flow rate.
+dT_eva_superheating (float): Super-heating after evaporator.
+dT_con_subcooling (float): Subcooling after condenser.
+T_ambient (float): Ambient temperature of the machine.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.datamodels.Variable">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.datamodels.</span></span><span class="sig-name descname"><span class="pre">Variable</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/datamodels.html#Variable"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.datamodels.Variable" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class for a variable used in analysis.</p>
+<dl class="simple">
+<dt>Attributes:</dt><dd><p>name (str): The name of the variable.
+value (float): The numerical value of the variable.
+unit (str): The unit of measurement for the variable (optional).
+description (str): A description of the variable (optional).</p>
+</dd>
+</dl>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.datamodels.Variable.description">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#vclibpy.datamodels.Variable.description" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.datamodels.Variable.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#vclibpy.datamodels.Variable.name" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.datamodels.Variable.unit">
+<span class="sig-name descname"><span class="pre">unit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#vclibpy.datamodels.Variable.unit" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.datamodels.Variable.value">
+<span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></em><a class="headerlink" href="#vclibpy.datamodels.Variable.value" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.datamodels.VariableContainer">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.datamodels.</span></span><span class="sig-name descname"><span class="pre">VariableContainer</span></span><a class="reference internal" href="../_modules/vclibpy/datamodels.html#VariableContainer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.datamodels.VariableContainer" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<p>Class which holds Variables to be used anywhere in the models.</p>
+<p>This class enables dynamic addition of Variables.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.datamodels.VariableContainer.convert_to_str_value_format">
+<span class="sig-name descname"><span class="pre">convert_to_str_value_format</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">with_unit_and_description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Dict" title="(in Python v3.12)"><span class="pre">Dict</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/vclibpy/datamodels.html#VariableContainer.convert_to_str_value_format"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.datamodels.VariableContainer.convert_to_str_value_format" title="Permalink to this definition"></a></dt>
+<dd><p>Returns a dictionary with a str: float format which is handy when storing results
+in files like .csv or .xlsx.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>with_unit_and_description (bool): When False, only the name is in the string.</p>
+</dd>
+<dt>Returns:</dt><dd><p>dict: Containing all variables and values.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.datamodels.VariableContainer.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/datamodels.html#VariableContainer.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.datamodels.VariableContainer.copy" title="Permalink to this definition"></a></dt>
+<dd><p>Return a deepcopy of the instance as the variable dict is mutable.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>VariableContainer: A deepcopy of the VariableContainer instance.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.datamodels.VariableContainer.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Any" title="(in Python v3.12)"><span class="pre">Any</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/datamodels.html#VariableContainer.get"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.datamodels.VariableContainer.get" title="Permalink to this definition"></a></dt>
+<dd><p>Get the Variable with the specified name.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>name (str): The name of the variable.
+default (Any): Default value to return if the variable is not found.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Variable: The Variable object.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.datamodels.VariableContainer.get_variable_names">
+<span class="sig-name descname"><span class="pre">get_variable_names</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/datamodels.html#VariableContainer.get_variable_names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.datamodels.VariableContainer.get_variable_names" title="Permalink to this definition"></a></dt>
+<dd><p>Get the names of all variables in the container.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>list: A list of variable names.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.datamodels.VariableContainer.get_variables">
+<span class="sig-name descname"><span class="pre">get_variables</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/datamodels.html#VariableContainer.get_variables"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.datamodels.VariableContainer.get_variables" title="Permalink to this definition"></a></dt>
+<dd><p>Get all variables in the container.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>Dict[str, Variable]: A dictionary of variable names and Variable objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.datamodels.VariableContainer.items">
+<span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/datamodels.html#VariableContainer.items"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.datamodels.VariableContainer.items" title="Permalink to this definition"></a></dt>
+<dd><p>Get items from the container.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>Dict[str, Variable]: A dictionary of variable names and Variable objects.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.datamodels.VariableContainer.set">
+<span class="sig-name descname"><span class="pre">set</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">unit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/datamodels.html#VariableContainer.set"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.datamodels.VariableContainer.set" title="Permalink to this definition"></a></dt>
+<dd><p>Add or update a Variable in the container.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>name (str): The name of the variable.
+value (float): The numerical value of the variable.
+unit (str): The unit of measurement for the variable (optional).
+description (str): A description of the variable (optional).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-vclibpy.heat_pumps">
+<span id="vclibpy-heat-pumps-module"></span><h2>vclibpy.heat_pumps module<a class="headerlink" href="#module-vclibpy.heat_pumps" title="Permalink to this heading"></a></h2>
+<p>Module to load specific real existing heat
+pumps based on their parameter configuration</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.heat_pumps.</span></span><span class="sig-name descname"><span class="pre">HPLoader_kbr_pwo</span></span><a class="reference internal" href="../_modules/vclibpy/heat_pumps.html#HPLoader_kbr_pwo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.HP_type">
+<span class="sig-name descname"><span class="pre">HP_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'AW'</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.HP_type" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.N_max">
+<span class="sig-name descname"><span class="pre">N_max</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">120</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.N_max" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.T_sc">
+<span class="sig-name descname"><span class="pre">T_sc</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8.3</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.T_sc" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.T_sh">
+<span class="sig-name descname"><span class="pre">T_sh</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">11.1</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.T_sh" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.V_h">
+<span class="sig-name descname"><span class="pre">V_h</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.09e-05</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.V_h" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.assumed_eta_mech">
+<span class="sig-name descname"><span class="pre">assumed_eta_mech</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.98</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.assumed_eta_mech" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.capacity_definition">
+<span class="sig-name descname"><span class="pre">capacity_definition</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cooling'</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.capacity_definition" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.com_type">
+<span class="sig-name descname"><span class="pre">com_type</span></span><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.com_type" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.TenCoefficientCompressor" title="vclibpy.components.compressors.ten_coefficient.TenCoefficientCompressor"><code class="xref py py-class docutils literal notranslate"><span class="pre">TenCoefficientCompressor</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.con_paras">
+<span class="sig-name descname"><span class="pre">con_paras</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'A':</span> <span class="pre">6.1,</span> <span class="pre">'A_cross':</span> <span class="pre">5,</span> <span class="pre">'char_len_pri':</span> <span class="pre">0,</span> <span class="pre">'char_len_sec':</span> <span class="pre">0,</span> <span class="pre">'const_alpha_pri':</span> <span class="pre">50000,</span> <span class="pre">'const_alpha_sec':</span> <span class="pre">50000,</span> <span class="pre">'secondary_medium':</span> <span class="pre">'water',</span> <span class="pre">'wall':</span> <span class="pre">{'lambda':</span> <span class="pre">236,</span> <span class="pre">'thickness':</span> <span class="pre">0.0021}}</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.con_paras" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.con_type">
+<span class="sig-name descname"><span class="pre">con_type</span></span><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.con_type" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger" title="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeatExchanger</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.datasheet">
+<span class="sig-name descname"><span class="pre">datasheet</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">PosixPath('/builds/EBC/EBC_all/github_ci/vclibpy/vclibpy/data/coefficients_2.xlsx')</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.datasheet" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.eva_paras">
+<span class="sig-name descname"><span class="pre">eva_paras</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'A':</span> <span class="pre">11.7,</span> <span class="pre">'A_cross':</span> <span class="pre">5,</span> <span class="pre">'char_len_pri':</span> <span class="pre">0,</span> <span class="pre">'char_len_sec':</span> <span class="pre">0,</span> <span class="pre">'const_alpha_pri':</span> <span class="pre">50000,</span> <span class="pre">'const_alpha_sec':</span> <span class="pre">5000,</span> <span class="pre">'secondary_medium':</span> <span class="pre">'air',</span> <span class="pre">'wall':</span> <span class="pre">{'lambda':</span> <span class="pre">236,</span> <span class="pre">'thickness':</span> <span class="pre">0.00018}}</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.eva_paras" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.eva_type">
+<span class="sig-name descname"><span class="pre">eva_type</span></span><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.eva_type" title="Permalink to this definition"></a></dt>
+<dd><p>alias of <a class="reference internal" href="vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger" title="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeatExchanger</span></code></a></p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.nominal_values">
+<span class="sig-name descname"><span class="pre">nominal_values</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'Propane_StandardFlowsheet':</span> <span class="pre">{'dT_con_subcooling':</span> <span class="pre">8,</span> <span class="pre">'dT_eva_superheating':</span> <span class="pre">6.1,</span> <span class="pre">'delta_T_con':</span> <span class="pre">8,</span> <span class="pre">'delta_T_eva':</span> <span class="pre">5,</span> <span class="pre">'m_flow_con':</span> <span class="pre">0.3337946666666667,</span> <span class="pre">'m_flow_eva':</span> <span class="pre">0.35894444444444445}}</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.nominal_values" title="Permalink to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>“Propane_StandardFlowsheet”: {</dt><dd><p>‘Q_con’: 4407.787307356876,
+‘COP’: 2.1397221180625285,
+‘m_flow_con’: 0.13170689122288656,
+‘m_flow_eva’: 0.4698166163310231,
+‘delta_T_con’: 8,
+‘delta_T_eva’: 5,
+‘dT_eva_superheating’: 5,
+‘dT_con_subcooling’: 0}</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="modules.html" class="btn btn-neutral float-left" title="vclibpy" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="vclibpy.components.html" class="btn btn-neutral float-right" title="vclibpy.components package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
