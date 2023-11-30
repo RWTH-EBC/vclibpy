@@ -19,24 +19,24 @@ keywords = [
 ]
 license = { text = "BSD-3-Clause" }
 classifiers = [
-    'Development Status :: 3 - Alpha',
-    'Topic :: Scientific/Engineering/Education',
-    'Intended Audience :: Science/Research',
-    'Programming Language :: Python :: 3.8',
-    'Programming Language :: Python :: 3.9',
-    'Programming Language :: Python :: 3.10',
-    'Programming Language :: Python :: 3.11',
+    "Development Status :: 3 - Alpha",
+    "Topic :: Scientific/Engineering/Education",
+    "Intended Audience :: Science/Research",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
 ]
 dependencies = [
-    'numpy',
-    'coolprop',
-    'matplotlib',
-    'pandas',
-    'sdf',
-    'ctREFPROP'
+    "numpy",
+    "coolprop",
+    "matplotlib",
+    "pandas",
+    "sdf",
+    "ctREFPROP"
 ]
 dynamic = ["version"]
-
+packages = ["vclibpy", "vclibpy.media", "vclibpy.utils", "vclibpy.components", "vclibpy.flowsheets", "vclibpy.components.expansion_valves", "vclibpy.components.heat_exchangers", "vclibpy.components.compressors", "vclibpy.components.heat_exchangers.heat_transfer"]
 [package.urls]
 homepage = "https://github.com/RWTH-EBC/vclibpy"
 documentation = "https://github.com/RWTH-EBC/vclibpy"
