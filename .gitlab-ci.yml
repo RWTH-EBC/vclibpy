@@ -14,7 +14,7 @@ variables:
   PYTHON_VERSION: "registry.git.rwth-aachen.de/ebc/ebc_all/gitlab_ci/templates:python_3.9"
   PYTHON_PACKAGE_NAME: "vclibpy"
   TEST_ENGINE: "PYTEST"
-  #GIT_REPO: "RWTH-EBC/VCLibPy"
+  GIT_REPO: "RWTH-EBC/vclibpy"
   EXAMPLE_CONVERTER_CONFIG: examples/converter.toml
 
 include:
@@ -26,8 +26,8 @@ include:
     file: 'python/build/build.gitlab-ci.yml'
   - project: 'ebc/ebc-general/templates/gitlab-ci'
     file: 'pages/gl-pages.gitlab-ci.yml'
-  #- project: 'ebc/ebc-general/templates/gitlab-ci'
-  #  file: 'pages/gh-pages.gitlab-ci.yml'
+  - project: 'ebc/ebc-general/templates/gitlab-ci'
+    file: 'pages/gh-pages.gitlab-ci.yml'
   - project: 'ebc/ebc-general/templates/gitlab-ci'
     file: 'python/tests/tests.gitlab-ci.yml'
   - project: 'ebc/ebc-general/templates/gitlab-ci'
