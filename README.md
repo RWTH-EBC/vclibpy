@@ -2,7 +2,6 @@
 
 [![pylint](https://rwth-ebc.github.io/vclibpy/main/pylint/pylint.svg )](https://rwth-ebc.github.io/vclibpy/main/pylint/pylint.html)
 [![documentation](https://rwth-ebc.github.io/vclibpy/main/docs/doc.svg)](https://rwth-ebc.github.io/vclibpy/main/docs/index.html)
-[![coverage](https://rwth-ebc.github.io/vclibpy/main/coverage/badge.svg)](https://rwth-ebc.github.io/vclibpy/main/coverage)
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![build](https://rwth-ebc.github.io/vclibpy/main/build/build.svg)](https://rwth-ebc.github.io/vclibpy/main/build/build.svg)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/RWTH-EBC/vclibpy/main?labpath=docs%2Fjupyter_notebooks)
