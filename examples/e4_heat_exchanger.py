@@ -145,7 +145,7 @@ def main():
         evaporator.state_inlet = med_prop.calc_state("PH", p_eva_next, state_condenser_outlet.h)
         T_eva = med_prop.calc_state("PQ", p_eva_next, 1).T
         evaporator.state_outlet = med_prop.calc_state("PT", p_eva_next, T_eva + inputs.get("dT_eva_superheating").value)
-        error, dT_min evaporator.calc(inputs=inputs, fs_state=fs_state)
+        error, dT_min = evaporator.calc(inputs=inputs, fs_state=fs_state)
         # Store for later plotting
         errors.append(error)
         dT_mins.append(dT_min)
