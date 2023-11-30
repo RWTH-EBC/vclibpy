@@ -1,0 +1,20 @@
+  [run]
+omit =
+    # omit all test directories
+    */test*
+    # omit the gui
+	*_io*
+	# omit examples
+	*/examples*
+source = 
+	vclibpy
+[report]
+exclude_lines = 
+	raise NotImplementedError
+	if __name__ == "__main__":
+	if __name__ == '__main__':
+	raise ImportError
+	except Exception as error:
+	except ImportError as error:
+    except ImportError:
+    except (KeyboardInterrupt, Exception) as error:

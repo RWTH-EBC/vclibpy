@@ -1,0 +1,41 @@
+[[ExampleFile]]
+filename = "examples/e1_refrigerant_data.py"
+func_name = "main"
+md_path = "docs/source/examples"
+ipynb_path = "docs/jupyter_notebooks"
+
+[[ExampleFile]]
+filename = "examples/e2_compressor.py"
+func_name = "main"
+md_path = "docs/source/examples"
+ipynb_path = "docs/jupyter_notebooks"
+
+[[ExampleFile]]
+filename = "examples/e3_inputs_and_flowsheet_state.py"
+func_name = "main"
+md_path = "docs/source/examples"
+ipynb_path = "docs/jupyter_notebooks"
+
+[[ExampleFile]]
+filename = "examples/e4_heat_exchanger.py"
+func_name = "main"
+md_path = "docs/source/examples"
+ipynb_path = "docs/jupyter_notebooks"
+
+[[ExampleFile]]
+filename = "examples/e5_expansion_valve.py"
+func_name = "main"
+md_path = "docs/source/examples"
+ipynb_path = "docs/jupyter_notebooks"
+
+[[ExampleFile]]
+filename = "examples/e6_simple_heat_pump.py"
+func_name = "main"
+md_path = "docs/source/examples"
+ipynb_path = "docs/jupyter_notebooks"
+
+[[ExampleFile]]
+filename = "examples/e7_vapor_injection.py"
+func_name = "main"
+md_path = "docs/source/examples"
+ipynb_path = "docs/jupyter_notebooks"
