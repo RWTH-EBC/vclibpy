@@ -132,14 +132,6 @@ def main():
 
     # ## Implement your own iteration
     # As the result is still not good, let's implement this really basic iteration logic.
-    # We will define a function which takes the pressure as an input:
-
-    def iterate_evaporator(p_eva, eva, h_inlet, inputs, fs_state):
-        eva.state_inlet = med_prop.calc_state("PH", p_eva, h_inlet)
-        T_eva = med_prop.calc_state("PQ", p_eva, 1).T
-        eva.state_outlet = med_prop.calc_state("PT", p_eva, T_eva + inputs.get("dT_eva_superheating").value)
-        return eva.calc(inputs=inputs, fs_state=fs_state)
-
     # For iterating, we use a while-loop. Let's define a max-iteration
     # counter to avoid an infinite iteration.
     max_iterations = 100
@@ -150,10 +142,10 @@ def main():
     min_error = 0.1  # 0.1 % maximal error
     errors, dT_mins, p_evaporations = [], [], []  # Store for later plotting
     while n_iteration < max_iterations:
-        error, dT_min = iterate_evaporator(
-            p_eva=p_eva_next, eva=evaporator, h_inlet=state_condenser_outlet.h,
-            inputs=inputs, fs_state=fs_state
-        )
+        evaporator.state_inlet = med_prop.calc_state("PH", p_eva_next, state_condenser_outlet.h)
+        T_eva = med_prop.calc_state("PQ", p_eva_next, 1).T
+        evaporator.state_outlet = med_prop.calc_state("PT", p_eva_next, T_eva + inputs.get("dT_eva_superheating").value)
+        error, dT_min evaporator.calc(inputs=inputs, fs_state=fs_state)
         # Store for later plotting
         errors.append(error)
         dT_mins.append(dT_min)
@@ -213,7 +205,6 @@ def main():
         [T_eva_in, T_eva_out],
         color="blue"
     )
-    # Set some limits and labels:
     plt.ylabel("$T$ in °C")
     plt.xlabel("$h$ in kJ/kgK")
     plt.ylim([evaporator.state_inlet.T - 275.15, T_eva_in + 2])

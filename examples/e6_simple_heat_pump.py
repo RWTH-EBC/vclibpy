@@ -95,7 +95,7 @@ def main():
     # the values using e.g. pandas. It is also the second return value of the function.
     import pandas as pd
     df = pd.read_csv(save_path_csv, index_col=0)
-    print(df.to_string())
+    df
     # Now, we can plot variables, for example as a scatter plot using matplotlib.
     # You have to know the names, which are the column headers.
     import matplotlib.pyplot as plt
