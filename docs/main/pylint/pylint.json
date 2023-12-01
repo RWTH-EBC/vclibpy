@@ -2,820 +2,6 @@
     "messages": [
         {
             "type": "error",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "unrecognized-option",
-            "message": "Unrecognized option found: no-space-check",
-            "message-id": "E0015"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'print-statement' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'parameter-unpacking' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'unpacking-in-except' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'old-raise-syntax' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'backtick' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'import-star-module-level' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'apply-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'basestring-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'buffer-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'cmp-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'coerce-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'execfile-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'file-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'long-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'raw_input-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'reduce-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'standarderror-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'unicode-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'xrange-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'coerce-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'delslice-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'getslice-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'setslice-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'no-absolute-import' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'old-division' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'dict-iter-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'dict-view-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'next-method-called' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'metaclass-assignment' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'indexing-exception' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'raising-string' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'reload-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'oct-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'hex-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'nonzero-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'cmp-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'input-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'round-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'intern-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'unichr-builtin' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'map-builtin-not-iterating' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'zip-builtin-not-iterating' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'range-builtin-not-iterating' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'filter-builtin-not-iterating' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'using-cmp-argument' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'div-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'idiv-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'rdiv-method' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'exception-message-attribute' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'invalid-str-codec' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'sys-max-int' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'bad-python3-import' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'deprecated-string-function' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'deprecated-str-translate-call' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'deprecated-itertools-function' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'deprecated-types-field' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'next-method-defined' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'dict-items-not-iterating' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'dict-keys-not-iterating' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "refactor",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "useless-option-value",
-            "message": "Useless option value for '--disable', 'dict-values-not-iterating' was removed from pylint, see https://github.com/pylint-dev/pylint/pull/4942.",
-            "message-id": "R0022"
-        },
-        {
-            "type": "warning",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "unknown-option-value",
-            "message": "Unknown option value for '--disable', expected a valid pylint message and got 'long-suffix'",
-            "message-id": "W0012"
-        },
-        {
-            "type": "warning",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "unknown-option-value",
-            "message": "Unknown option value for '--disable', expected a valid pylint message and got 'old-ne-operator'",
-            "message-id": "W0012"
-        },
-        {
-            "type": "warning",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "unknown-option-value",
-            "message": "Unknown option value for '--disable', expected a valid pylint message and got 'old-octal-literal'",
-            "message-id": "W0012"
-        },
-        {
-            "type": "warning",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "unknown-option-value",
-            "message": "Unknown option value for '--disable', expected a valid pylint message and got 'non-ascii-bytes-literal'",
-            "message-id": "W0012"
-        },
-        {
-            "type": "warning",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "unknown-option-value",
-            "message": "Unknown option value for '--disable', expected a valid pylint message and got 'locally-enabled'",
-            "message-id": "W0012"
-        },
-        {
-            "type": "warning",
-            "module": "/builds/EBC/EBC_all/github_ci/vclibpy/pylintrc",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "pylintrc",
-            "symbol": "unknown-option-value",
-            "message": "Unknown option value for '--disable', expected a valid pylint message and got 'eq-without-hash'",
-            "message-id": "W0012"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.heat_pumps",
-            "obj": "",
-            "line": 15,
-            "column": 0,
-            "path": "vclibpy/heat_pumps.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (111/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.heat_pumps",
-            "obj": "",
-            "line": 18,
-            "column": 0,
-            "path": "vclibpy/heat_pumps.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (107/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.heat_pumps",
-            "obj": "",
-            "line": 36,
-            "column": 0,
-            "path": "vclibpy/heat_pumps.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (131/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.heat_pumps",
-            "obj": "",
-            "line": 37,
-            "column": 0,
-            "path": "vclibpy/heat_pumps.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (113/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.heat_pumps",
-            "obj": "HPLoader_kbr_pwo",
-            "line": 9,
-            "column": 0,
-            "path": "vclibpy/heat_pumps.py",
-            "symbol": "missing-class-docstring",
-            "message": "Missing class docstring",
-            "message-id": "C0115"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.heat_pumps",
-            "obj": "HPLoader_kbr_pwo",
-            "line": 9,
-            "column": 0,
-            "path": "vclibpy/heat_pumps.py",
-            "symbol": "invalid-name",
-            "message": "Class name \"HPLoader_kbr_pwo\" doesn't conform to PascalCase naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "refactor",
-            "module": "vclibpy.heat_pumps",
-            "obj": "HPLoader_kbr_pwo",
-            "line": 9,
-            "column": 0,
-            "path": "vclibpy/heat_pumps.py",
-            "symbol": "too-few-public-methods",
-            "message": "Too few public methods (0/2)",
-            "message-id": "R0903"
-        },
-        {
-            "type": "error",
             "module": "vclibpy.datamodels",
             "obj": "VariableContainer.__getattr__",
             "line": 65,
@@ -835,17 +21,6 @@
             "symbol": "too-many-arguments",
             "message": "Too many arguments (9/5)",
             "message-id": "R0913"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.cool_prop",
-            "obj": "CoolProp.__init__",
-            "line": 39,
-            "column": 8,
-            "path": "vclibpy/media/cool_prop.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"M\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
         },
         {
             "type": "info",
@@ -914,17 +89,6 @@
             "message-id": "I1101"
         },
         {
-            "type": "convention",
-            "module": "vclibpy.media.cool_prop",
-            "obj": "CoolProp.calc_state",
-            "line": 48,
-            "column": 12,
-            "path": "vclibpy/media/cool_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
             "type": "info",
             "module": "vclibpy.media.cool_prop",
             "obj": "CoolProp.calc_state",
@@ -934,17 +98,6 @@
             "symbol": "c-extension-no-member",
             "message": "Module 'CoolProp.CoolProp' has no 'PropsSI' member, but source is unavailable. Consider adding this module to extension-pkg-allow-list if you want to perform analysis based on run-time introspection of living objects.",
             "message-id": "I1101"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.cool_prop",
-            "obj": "CoolProp.calc_state",
-            "line": 50,
-            "column": 12,
-            "path": "vclibpy/media/cool_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"d\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
         },
         {
             "type": "info",
@@ -958,17 +111,6 @@
             "message-id": "I1101"
         },
         {
-            "type": "convention",
-            "module": "vclibpy.media.cool_prop",
-            "obj": "CoolProp.calc_state",
-            "line": 52,
-            "column": 12,
-            "path": "vclibpy/media/cool_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
             "type": "info",
             "module": "vclibpy.media.cool_prop",
             "obj": "CoolProp.calc_state",
@@ -978,17 +120,6 @@
             "symbol": "c-extension-no-member",
             "message": "Module 'CoolProp.CoolProp' has no 'PropsSI' member, but source is unavailable. Consider adding this module to extension-pkg-allow-list if you want to perform analysis based on run-time introspection of living objects.",
             "message-id": "I1101"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.cool_prop",
-            "obj": "CoolProp.calc_state",
-            "line": 54,
-            "column": 12,
-            "path": "vclibpy/media/cool_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"u\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
         },
         {
             "type": "info",
@@ -1002,17 +133,6 @@
             "message-id": "I1101"
         },
         {
-            "type": "convention",
-            "module": "vclibpy.media.cool_prop",
-            "obj": "CoolProp.calc_state",
-            "line": 56,
-            "column": 12,
-            "path": "vclibpy/media/cool_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"h\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
             "type": "info",
             "module": "vclibpy.media.cool_prop",
             "obj": "CoolProp.calc_state",
@@ -1024,17 +144,6 @@
             "message-id": "I1101"
         },
         {
-            "type": "convention",
-            "module": "vclibpy.media.cool_prop",
-            "obj": "CoolProp.calc_state",
-            "line": 58,
-            "column": 12,
-            "path": "vclibpy/media/cool_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"s\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
             "type": "info",
             "module": "vclibpy.media.cool_prop",
             "obj": "CoolProp.calc_state",
@@ -1044,17 +153,6 @@
             "symbol": "c-extension-no-member",
             "message": "Module 'CoolProp.CoolProp' has no 'PropsSI' member, but source is unavailable. Consider adding this module to extension-pkg-allow-list if you want to perform analysis based on run-time introspection of living objects.",
             "message-id": "I1101"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.cool_prop",
-            "obj": "CoolProp.calc_state",
-            "line": 60,
-            "column": 12,
-            "path": "vclibpy/media/cool_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"q\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
         },
         {
             "type": "info",
@@ -1090,17 +188,6 @@
             "message-id": "I1101"
         },
         {
-            "type": "convention",
-            "module": "vclibpy.media.cool_prop",
-            "obj": "CoolProp.calc_transport_properties",
-            "line": 90,
-            "column": 12,
-            "path": "vclibpy/media/cool_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"cp\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
             "type": "info",
             "module": "vclibpy.media.cool_prop",
             "obj": "CoolProp.calc_transport_properties",
@@ -1110,17 +197,6 @@
             "symbol": "c-extension-no-member",
             "message": "Module 'CoolProp.CoolProp' has no 'PropsSI' member, but source is unavailable. Consider adding this module to extension-pkg-allow-list if you want to perform analysis based on run-time introspection of living objects.",
             "message-id": "I1101"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.cool_prop",
-            "obj": "CoolProp.calc_transport_properties",
-            "line": 92,
-            "column": 12,
-            "path": "vclibpy/media/cool_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"cv\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
         },
         {
             "type": "info",
@@ -1154,17 +230,6 @@
             "symbol": "c-extension-no-member",
             "message": "Module 'CoolProp.CoolProp' has no 'PropsSI' member, but source is unavailable. Consider adding this module to extension-pkg-allow-list if you want to perform analysis based on run-time introspection of living objects.",
             "message-id": "I1101"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.cool_prop",
-            "obj": "CoolProp.get_critical_point",
-            "line": 132,
-            "column": 8,
-            "path": "vclibpy/media/cool_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"Tc\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
         },
         {
             "type": "info",
@@ -1772,17 +837,6 @@
             "message-id": "C0103"
         },
         {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.__init__",
-            "line": 199,
-            "column": 8,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"M\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
             "type": "refactor",
             "module": "vclibpy.media.ref_prop",
             "obj": "RefProp",
@@ -2047,501 +1101,6 @@
             "message-id": "R0914"
         },
         {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 646,
-            "column": 8,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 647,
-            "column": 8,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"d\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 648,
-            "column": 8,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 649,
-            "column": 8,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"u\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 650,
-            "column": 8,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"h\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 651,
-            "column": 8,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"s\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 652,
-            "column": 8,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"q\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 658,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 659,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"d\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 665,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 667,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"h\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 672,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 674,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"q\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 681,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 683,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"s\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 688,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 690,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 694,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 696,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"u\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 702,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 703,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"d\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 708,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 709,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"h\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 714,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 715,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"q\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 722,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 723,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"s\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 728,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 729,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"u\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 735,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"d\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 737,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"h\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 742,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"d\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 744,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"s\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 749,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"d\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 751,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"u\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 756,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"h\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 758,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"s\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 769,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 771,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 773,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"u\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 775,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"h\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 777,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"s\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 779,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"d\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 788,
-            "column": 16,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"q\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_state",
-            "line": 790,
-            "column": 16,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"q\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
             "type": "refactor",
             "module": "vclibpy.media.ref_prop",
             "obj": "RefProp.calc_state",
@@ -2566,39 +1125,6 @@
         {
             "type": "convention",
             "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_satliq_state",
-            "line": 800,
-            "column": 32,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"s\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_satliq_state",
-            "line": 807,
-            "column": 8,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.calc_satliq_state",
-            "line": 808,
-            "column": 8,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"d\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
             "obj": "RefProp.get_available_substances",
             "line": 873,
             "column": 29,
@@ -2606,17 +1132,6 @@
             "symbol": "consider-using-f-string",
             "message": "Formatting a regular string which could be a f-string",
             "message-id": "C0209"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.get_available_substances",
-            "line": 877,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
         },
         {
             "type": "warning",
@@ -2666,44 +1181,11 @@
             "type": "convention",
             "module": "vclibpy.media.ref_prop",
             "obj": "RefProp.get_molar_composition",
-            "line": 938,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"M\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.get_molar_composition",
             "line": 940,
             "column": 12,
             "path": "vclibpy/media/ref_prop.py",
             "symbol": "invalid-name",
             "message": "Variable name \"z\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.get_molar_composition",
-            "line": 941,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"M\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.get_critical_point",
-            "line": 982,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"Tc\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
         },
         {
@@ -2726,17 +1208,6 @@
             "path": "vclibpy/media/ref_prop.py",
             "symbol": "invalid-name",
             "message": "Variable name \"dc\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.ref_prop",
-            "obj": "RefProp.get_critical_point",
-            "line": 987,
-            "column": 12,
-            "path": "vclibpy/media/ref_prop.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"Tc\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
         },
         {
@@ -3191,94 +1662,6 @@
             "message-id": "C0301"
         },
         {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 62,
-            "column": 8,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 63,
-            "column": 8,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 64,
-            "column": 8,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"u\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 65,
-            "column": 8,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"h\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 66,
-            "column": 8,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"s\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 67,
-            "column": 8,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"v\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 68,
-            "column": 8,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"q\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 69,
-            "column": 8,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"d\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
             "type": "refactor",
             "module": "vclibpy.media.states",
             "obj": "ThermodynamicState",
@@ -3290,94 +1673,6 @@
             "message-id": "R0902"
         },
         {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 37,
-            "column": 17,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 38,
-            "column": 17,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 39,
-            "column": 17,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"u\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 40,
-            "column": 17,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"h\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 41,
-            "column": 17,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"s\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 42,
-            "column": 17,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"v\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 43,
-            "column": 17,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"q\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "ThermodynamicState.__init__",
-            "line": 44,
-            "column": 17,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"d\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
             "type": "refactor",
             "module": "vclibpy.media.states",
             "obj": "ThermodynamicState.__init__",
@@ -3387,39 +1682,6 @@
             "symbol": "too-many-arguments",
             "message": "Too many arguments (9/5)",
             "message-id": "R0913"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "TransportProperties.__init__",
-            "line": 153,
-            "column": 8,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"Pr\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "TransportProperties.__init__",
-            "line": 154,
-            "column": 8,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"cp\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "TransportProperties.__init__",
-            "line": 155,
-            "column": 8,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Attribute name \"cv\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
         },
         {
             "type": "refactor",
@@ -3441,28 +1703,6 @@
             "path": "vclibpy/media/states.py",
             "symbol": "invalid-name",
             "message": "Argument name \"pr\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "TransportProperties.__init__",
-            "line": 129,
-            "column": 17,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"cp\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.media.states",
-            "obj": "TransportProperties.__init__",
-            "line": 130,
-            "column": 17,
-            "path": "vclibpy/media/states.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"cv\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
         },
         {
@@ -3689,6 +1929,17 @@
             "type": "convention",
             "module": "vclibpy.utils.plotting",
             "obj": "plot_sdf_map",
+            "line": 156,
+            "column": 16,
+            "path": "vclibpy/utils/plotting.py",
+            "symbol": "invalid-name",
+            "message": "Variable name \"ax\" doesn't conform to snake_case naming style",
+            "message-id": "C0103"
+        },
+        {
+            "type": "convention",
+            "module": "vclibpy.utils.plotting",
+            "obj": "plot_sdf_map",
             "line": 166,
             "column": 16,
             "path": "vclibpy/utils/plotting.py",
@@ -3766,6 +2017,17 @@
             "type": "convention",
             "module": "vclibpy.utils.plotting",
             "obj": "plot_sdf_map",
+            "line": 198,
+            "column": 28,
+            "path": "vclibpy/utils/plotting.py",
+            "symbol": "invalid-name",
+            "message": "Variable name \"ax\" doesn't conform to snake_case naming style",
+            "message-id": "C0103"
+        },
+        {
+            "type": "convention",
+            "module": "vclibpy.utils.plotting",
+            "obj": "plot_sdf_map",
             "line": 201,
             "column": 28,
             "path": "vclibpy/utils/plotting.py",
@@ -3819,53 +2081,20 @@
         },
         {
             "type": "convention",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 96,
-            "column": 0,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (104/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 105,
-            "column": 0,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (105/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 111,
-            "column": 0,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (102/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 165,
-            "column": 0,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (111/100)",
-            "message-id": "C0301"
+            "module": "vclibpy.utils.plotting",
+            "obj": "set_axis_style",
+            "line": 223,
+            "column": 19,
+            "path": "vclibpy/utils/plotting.py",
+            "symbol": "invalid-name",
+            "message": "Argument name \"ax\" doesn't conform to snake_case naming style",
+            "message-id": "C0103"
         },
         {
             "type": "warning",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "",
-            "line": 97,
+            "line": 103,
             "column": 25,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "fixme",
@@ -3876,7 +2105,7 @@
             "type": "warning",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "",
-            "line": 120,
+            "line": 132,
             "column": 5,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "fixme",
@@ -3909,7 +2138,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 18,
+            "line": 19,
             "column": 8,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -3920,7 +2149,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 18,
+            "line": 19,
             "column": 28,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -3931,18 +2160,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 18,
-            "column": 48,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"n\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "create_regression_data",
-            "line": 19,
+            "line": 20,
             "column": 8,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -3953,7 +2171,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 19,
+            "line": 20,
             "column": 21,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -3964,7 +2182,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 19,
+            "line": 20,
             "column": 46,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -3975,7 +2193,7 @@
             "type": "refactor",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 16,
+            "line": 17,
             "column": 0,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "too-many-arguments",
@@ -3986,7 +2204,7 @@
             "type": "refactor",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 16,
+            "line": 17,
             "column": 0,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "too-many-locals",
@@ -3997,7 +2215,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 84,
+            "line": 87,
             "column": 8,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -4008,7 +2226,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 86,
+            "line": 89,
             "column": 12,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -4019,7 +2237,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 87,
+            "line": 90,
             "column": 12,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -4030,7 +2248,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 89,
+            "line": 93,
             "column": 12,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "consider-using-enumerate",
@@ -4041,7 +2259,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 90,
+            "line": 95,
             "column": 16,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "consider-using-enumerate",
@@ -4052,7 +2270,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 92,
+            "line": 97,
             "column": 24,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -4063,7 +2281,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 95,
+            "line": 100,
             "column": 24,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -4074,7 +2292,18 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 125,
+            "line": 119,
+            "column": 12,
+            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
+            "symbol": "invalid-name",
+            "message": "Variable name \"df\" doesn't conform to snake_case naming style",
+            "message-id": "C0103"
+        },
+        {
+            "type": "convention",
+            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
+            "obj": "create_regression_data",
+            "line": 137,
             "column": 75,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -4085,7 +2314,7 @@
             "type": "refactor",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 84,
+            "line": 87,
             "column": 4,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "too-many-nested-blocks",
@@ -4096,7 +2325,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 127,
+            "line": 139,
             "column": 12,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -4107,7 +2336,7 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_data",
-            "line": 128,
+            "line": 140,
             "column": 16,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -4118,7 +2347,18 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_parameters",
-            "line": 156,
+            "line": 145,
+            "column": 33,
+            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
+            "symbol": "invalid-name",
+            "message": "Argument name \"df\" doesn't conform to snake_case naming style",
+            "message-id": "C0103"
+        },
+        {
+            "type": "convention",
+            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
+            "obj": "create_regression_parameters",
+            "line": 168,
             "column": 4,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
@@ -4129,144 +2369,12 @@
             "type": "convention",
             "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
             "obj": "create_regression_parameters",
-            "line": 160,
+            "line": 172,
             "column": 4,
             "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
             "symbol": "invalid-name",
             "message": "Variable name \"X\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'T_con' in function call",
-            "message-id": "E1120"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'T_eva' in function call",
-            "message-id": "E1120"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'n' in function call",
-            "message-id": "E1120"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'T_sh' in function call",
-            "message-id": "E1120"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'T_sc' in function call",
-            "message-id": "E1120"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'n_max' in function call",
-            "message-id": "E1120"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'V_h' in function call",
-            "message-id": "E1120"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'fluid' in function call",
-            "message-id": "E1120"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'datasheet' in function call",
-            "message-id": "E1120"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'capacity_definition' in function call",
-            "message-id": "E1120"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'assumed_eta_mech' in function call",
-            "message-id": "E1120"
-        },
-        {
-            "type": "error",
-            "module": "vclibpy.utils.ten_coefficient_compressor_reqression",
-            "obj": "",
-            "line": 172,
-            "column": 4,
-            "path": "vclibpy/utils/ten_coefficient_compressor_reqression.py",
-            "symbol": "no-value-for-parameter",
-            "message": "No value for argument 'folder_path' in function call",
-            "message-id": "E1120"
         },
         {
             "type": "convention",
@@ -4311,6 +2419,28 @@
             "symbol": "too-many-locals",
             "message": "Too many local variables (20/15)",
             "message-id": "R0914"
+        },
+        {
+            "type": "convention",
+            "module": "vclibpy.utils.sdf_",
+            "obj": "sdf_to_csv",
+            "line": 129,
+            "column": 12,
+            "path": "vclibpy/utils/sdf_.py",
+            "symbol": "invalid-name",
+            "message": "Variable name \"df\" doesn't conform to snake_case naming style",
+            "message-id": "C0103"
+        },
+        {
+            "type": "convention",
+            "module": "vclibpy.utils.sdf_",
+            "obj": "sdf_to_csv",
+            "line": 130,
+            "column": 12,
+            "path": "vclibpy/utils/sdf_.py",
+            "symbol": "invalid-name",
+            "message": "Variable name \"df\" doesn't conform to snake_case naming style",
+            "message-id": "C0103"
         },
         {
             "type": "refactor",
@@ -4514,6 +2644,17 @@
             "type": "warning",
             "module": "vclibpy.utils.automation",
             "obj": "calc_multiple_states",
+            "line": 36,
+            "column": 8,
+            "path": "vclibpy/utils/automation.py",
+            "symbol": "logging-fstring-interpolation",
+            "message": "Use lazy % formatting in logging functions",
+            "message-id": "W1203"
+        },
+        {
+            "type": "warning",
+            "module": "vclibpy.utils.automation",
+            "obj": "calc_multiple_states",
             "line": 40,
             "column": 15,
             "path": "vclibpy/utils/automation.py",
@@ -4530,6 +2671,28 @@
             "path": "vclibpy/utils/automation.py",
             "symbol": "invalid-name",
             "message": "Variable name \"e\" doesn't conform to snake_case naming style",
+            "message-id": "C0103"
+        },
+        {
+            "type": "warning",
+            "module": "vclibpy.utils.automation",
+            "obj": "calc_multiple_states",
+            "line": 42,
+            "column": 12,
+            "path": "vclibpy/utils/automation.py",
+            "symbol": "logging-fstring-interpolation",
+            "message": "Use lazy % formatting in logging functions",
+            "message-id": "W1203"
+        },
+        {
+            "type": "convention",
+            "module": "vclibpy.utils.automation",
+            "obj": "calc_multiple_states",
+            "line": 50,
+            "column": 4,
+            "path": "vclibpy/utils/automation.py",
+            "symbol": "invalid-name",
+            "message": "Variable name \"df\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
         },
         {
@@ -4624,17 +2787,6 @@
             "type": "convention",
             "module": "vclibpy.utils.automation",
             "obj": "full_factorial_map_generation",
-            "line": 108,
-            "column": 17,
-            "path": "vclibpy/utils/automation.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"n\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.utils.automation",
-            "obj": "full_factorial_map_generation",
             "line": 109,
             "column": 16,
             "path": "vclibpy/utils/automation.py",
@@ -4652,6 +2804,28 @@
             "symbol": "invalid-name",
             "message": "Variable name \"T_con_in\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
+        },
+        {
+            "type": "warning",
+            "module": "vclibpy.utils.automation",
+            "obj": "full_factorial_map_generation",
+            "line": 127,
+            "column": 12,
+            "path": "vclibpy/utils/automation.py",
+            "symbol": "logging-fstring-interpolation",
+            "message": "Use lazy % formatting in logging functions",
+            "message-id": "W1203"
+        },
+        {
+            "type": "warning",
+            "module": "vclibpy.utils.automation",
+            "obj": "full_factorial_map_generation",
+            "line": 133,
+            "column": 12,
+            "path": "vclibpy/utils/automation.py",
+            "symbol": "logging-fstring-interpolation",
+            "message": "Use lazy % formatting in logging functions",
+            "message-id": "W1203"
         },
         {
             "type": "refactor",
@@ -4742,10 +2916,21 @@
             "message-id": "C0103"
         },
         {
+            "type": "warning",
+            "module": "vclibpy.utils.automation",
+            "obj": "_calc_single_hp_state",
+            "line": 216,
+            "column": 8,
+            "path": "vclibpy/utils/automation.py",
+            "symbol": "logging-fstring-interpolation",
+            "message": "Use lazy % formatting in logging functions",
+            "message-id": "W1203"
+        },
+        {
             "type": "convention",
             "module": "vclibpy.components.component",
             "obj": "",
-            "line": 17,
+            "line": 11,
             "column": 0,
             "path": "vclibpy/components/component.py",
             "symbol": "line-too-long",
@@ -4756,7 +2941,7 @@
             "type": "convention",
             "module": "vclibpy.components.component",
             "obj": "",
-            "line": 18,
+            "line": 12,
             "column": 0,
             "path": "vclibpy/components/component.py",
             "symbol": "line-too-long",
@@ -4767,7 +2952,7 @@
             "type": "convention",
             "module": "vclibpy.components.component",
             "obj": "",
-            "line": 45,
+            "line": 39,
             "column": 0,
             "path": "vclibpy/components/component.py",
             "symbol": "line-too-long",
@@ -4789,7 +2974,7 @@
             "type": "warning",
             "module": "vclibpy.components.component",
             "obj": "BaseComponent.start_secondary_med_prop",
-            "line": 49,
+            "line": 43,
             "column": 8,
             "path": "vclibpy/components/component.py",
             "symbol": "unnecessary-pass",
@@ -4800,7 +2985,7 @@
             "type": "warning",
             "module": "vclibpy.components.component",
             "obj": "BaseComponent.terminate_secondary_med_prop",
-            "line": 61,
+            "line": 55,
             "column": 8,
             "path": "vclibpy/components/component.py",
             "symbol": "unnecessary-pass",
@@ -4855,7 +3040,7 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "",
-            "line": 93,
+            "line": 92,
             "column": 0,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "line-too-long",
@@ -4866,7 +3051,7 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "",
-            "line": 132,
+            "line": 130,
             "column": 0,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "line-too-long",
@@ -4877,7 +3062,7 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "",
-            "line": 141,
+            "line": 139,
             "column": 0,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "line-too-long",
@@ -4888,7 +3073,7 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "",
-            "line": 151,
+            "line": 149,
             "column": 0,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "line-too-long",
@@ -4899,7 +3084,7 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "",
-            "line": 153,
+            "line": 151,
             "column": 0,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "line-too-long",
@@ -4920,28 +3105,6 @@
         {
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
-            "obj": "BasicNTU.set_primary_cp",
-            "line": 57,
-            "column": 29,
-            "path": "vclibpy/components/heat_exchangers/ntu.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"cp\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.ntu",
-            "obj": "BasicNTU.calc_eps",
-            "line": 66,
-            "column": 23,
-            "path": "vclibpy/components/heat_exchangers/ntu.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"R\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "BasicNTU.calc_eps",
             "line": 66,
             "column": 33,
@@ -4951,32 +3114,10 @@
             "message-id": "C0103"
         },
         {
-            "type": "refactor",
-            "module": "vclibpy.components.heat_exchangers.ntu",
-            "obj": "BasicNTU.calc_eps",
-            "line": 79,
-            "column": 11,
-            "path": "vclibpy/components/heat_exchangers/ntu.py",
-            "symbol": "consider-using-in",
-            "message": "Consider merging these comparisons with 'in' by using 'R in (0, 1)'. Use a set instead if elements are hashable.",
-            "message-id": "R1714"
-        },
-        {
-            "type": "refactor",
-            "module": "vclibpy.components.heat_exchangers.ntu",
-            "obj": "BasicNTU.calc_eps",
-            "line": 81,
-            "column": 8,
-            "path": "vclibpy/components/heat_exchangers/ntu.py",
-            "symbol": "no-else-return",
-            "message": "Unnecessary \"elif\" after \"return\", remove the leading \"el\" from \"elif\"",
-            "message-id": "R1705"
-        },
-        {
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "BasicNTU.calc_R",
-            "line": 91,
+            "line": 90,
             "column": 4,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "invalid-name",
@@ -4984,21 +3125,10 @@
             "message-id": "C0103"
         },
         {
-            "type": "refactor",
-            "module": "vclibpy.components.heat_exchangers.ntu",
-            "obj": "BasicNTU.calc_R",
-            "line": 99,
-            "column": 8,
-            "path": "vclibpy/components/heat_exchangers/ntu.py",
-            "symbol": "no-else-return",
-            "message": "Unnecessary \"else\" after \"return\", remove the \"else\" and de-indent the code inside it",
-            "message-id": "R1705"
-        },
-        {
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "BasicNTU.calc_NTU",
-            "line": 125,
+            "line": 123,
             "column": 4,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "invalid-name",
@@ -5009,7 +3139,7 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "BasicNTU.calc_NTU",
-            "line": 125,
+            "line": 123,
             "column": 17,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "invalid-name",
@@ -5020,7 +3150,7 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "BasicNTU.calc_Q_ntu",
-            "line": 151,
+            "line": 149,
             "column": 4,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "invalid-name",
@@ -5031,7 +3161,7 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "BasicNTU.calc_Q_ntu",
-            "line": 151,
+            "line": 149,
             "column": 25,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "invalid-name",
@@ -5042,7 +3172,7 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "BasicNTU.calc_Q_ntu",
-            "line": 151,
+            "line": 149,
             "column": 76,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "invalid-name",
@@ -5053,18 +3183,7 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "BasicNTU.calc_Q_ntu",
-            "line": 164,
-            "column": 8,
-            "path": "vclibpy/components/heat_exchangers/ntu.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"R\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.ntu",
-            "obj": "BasicNTU.calc_Q_ntu",
-            "line": 167,
+            "line": 165,
             "column": 8,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "invalid-name",
@@ -5075,7 +3194,7 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.ntu",
             "obj": "BasicNTU.calc_Q_ntu",
-            "line": 171,
+            "line": 169,
             "column": 8,
             "path": "vclibpy/components/heat_exchangers/ntu.py",
             "symbol": "invalid-name",
@@ -5114,17 +3233,6 @@
             "symbol": "missing-function-docstring",
             "message": "Missing function or method docstring",
             "message-id": "C0116"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.economizer",
-            "obj": "VaporInjectionEconomizerNTU.set_secondary_cp",
-            "line": 58,
-            "column": 31,
-            "path": "vclibpy/components/heat_exchangers/economizer.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"cp\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
         },
         {
             "type": "convention",
@@ -5239,28 +3347,6 @@
         {
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.heat_exchanger",
-            "obj": "HeatExchanger.calc_secondary_cp",
-            "line": 193,
-            "column": 32,
-            "path": "vclibpy/components/heat_exchangers/heat_exchanger.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.heat_exchanger",
-            "obj": "HeatExchanger.calc_secondary_cp",
-            "line": 193,
-            "column": 42,
-            "path": "vclibpy/components/heat_exchangers/heat_exchanger.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.heat_exchanger",
             "obj": "HeatExchanger.calc_secondary_Q_flow",
             "line": 204,
             "column": 4,
@@ -5300,28 +3386,6 @@
             "path": "vclibpy/components/heat_exchangers/heat_exchanger.py",
             "symbol": "invalid-name",
             "message": "Method name \"calc_Q_flow\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.heat_exchanger",
-            "obj": "HeatExchanger.calc_transport_properties_secondary_medium",
-            "line": 216,
-            "column": 57,
-            "path": "vclibpy/components/heat_exchangers/heat_exchanger.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"T\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.heat_exchanger",
-            "obj": "HeatExchanger.calc_transport_properties_secondary_medium",
-            "line": 216,
-            "column": 60,
-            "path": "vclibpy/components/heat_exchangers/heat_exchanger.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"p\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
         },
         {
@@ -5515,17 +3579,6 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
             "obj": "MovingBoundaryNTU.separate_phases",
-            "line": 19,
-            "column": 92,
-            "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"p\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-            "obj": "MovingBoundaryNTU.separate_phases",
             "line": 41,
             "column": 8,
             "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
@@ -5564,28 +3617,6 @@
             "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
             "symbol": "invalid-name",
             "message": "Argument name \"dT_max\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-            "obj": "MovingBoundaryNTU.iterate_area",
-            "line": 52,
-            "column": 57,
-            "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"Q\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-            "obj": "MovingBoundaryNTU.iterate_area",
-            "line": 67,
-            "column": 8,
-            "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"R\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
         },
         {
@@ -5652,17 +3683,6 @@
             "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
             "symbol": "invalid-name",
             "message": "Variable name \"Q_sh\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-            "obj": "MovingBoundaryNTUCondenser.calc",
-            "line": 141,
-            "column": 8,
-            "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"Q\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
         },
         {
@@ -5820,6 +3840,17 @@
             "message-id": "C0103"
         },
         {
+            "type": "warning",
+            "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+            "obj": "MovingBoundaryNTUCondenser.calc",
+            "line": 199,
+            "column": 12,
+            "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
+            "symbol": "logging-fstring-interpolation",
+            "message": "Use lazy % formatting in logging functions",
+            "message-id": "W1203"
+        },
+        {
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
             "obj": "MovingBoundaryNTUCondenser.calc",
@@ -5862,6 +3893,17 @@
             "symbol": "invalid-name",
             "message": "Variable name \"Q_sh_ntu\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
+        },
+        {
+            "type": "warning",
+            "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+            "obj": "MovingBoundaryNTUCondenser.calc",
+            "line": 216,
+            "column": 12,
+            "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
+            "symbol": "logging-fstring-interpolation",
+            "message": "Use lazy % formatting in logging functions",
+            "message-id": "W1203"
         },
         {
             "type": "convention",
@@ -5988,17 +4030,6 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
             "obj": "MovingBoundaryNTUEvaporator.calc",
-            "line": 273,
-            "column": 8,
-            "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"Q\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-            "obj": "MovingBoundaryNTUEvaporator.calc",
             "line": 277,
             "column": 8,
             "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
@@ -6106,6 +4137,17 @@
             "message-id": "C0103"
         },
         {
+            "type": "warning",
+            "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+            "obj": "MovingBoundaryNTUEvaporator.calc",
+            "line": 311,
+            "column": 12,
+            "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
+            "symbol": "logging-fstring-interpolation",
+            "message": "Use lazy % formatting in logging functions",
+            "message-id": "W1203"
+        },
+        {
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
             "obj": "MovingBoundaryNTUEvaporator.calc",
@@ -6170,6 +4212,17 @@
             "symbol": "invalid-name",
             "message": "Variable name \"Q_lat_ntu\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
+        },
+        {
+            "type": "warning",
+            "module": "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+            "obj": "MovingBoundaryNTUEvaporator.calc",
+            "line": 339,
+            "column": 12,
+            "path": "vclibpy/components/heat_exchangers/moving_boundary_ntu.py",
+            "symbol": "logging-fstring-interpolation",
+            "message": "Use lazy % formatting in logging functions",
+            "message-id": "W1203"
         },
         {
             "type": "convention",
@@ -6582,17 +4635,6 @@
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall",
             "obj": "VDIAtlasAirToWallTransfer.calc_laminar_area_nusselt",
-            "line": 161,
-            "column": 8,
-            "path": "vclibpy/components/heat_exchangers/heat_transfer/vdi_atlas_air_to_wall.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"Nu\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall",
-            "obj": "VDIAtlasAirToWallTransfer.calc_laminar_area_nusselt",
             "line": 166,
             "column": 8,
             "path": "vclibpy/components/heat_exchangers/heat_transfer/vdi_atlas_air_to_wall.py",
@@ -6656,28 +4698,6 @@
             "message-id": "C0114"
         },
         {
-            "type": "refactor",
-            "module": "vclibpy.components.heat_exchangers.heat_transfer",
-            "obj": "",
-            "line": 2,
-            "column": 0,
-            "path": "vclibpy/components/heat_exchangers/heat_transfer/__init__.py",
-            "symbol": "consider-using-from-import",
-            "message": "Use 'from vclibpy.components.heat_exchangers.heat_transfer import constant' instead",
-            "message-id": "R0402"
-        },
-        {
-            "type": "refactor",
-            "module": "vclibpy.components.heat_exchangers.heat_transfer",
-            "obj": "",
-            "line": 3,
-            "column": 0,
-            "path": "vclibpy/components/heat_exchangers/heat_transfer/__init__.py",
-            "symbol": "consider-using-from-import",
-            "message": "Use 'from vclibpy.components.heat_exchangers.heat_transfer import wall' instead",
-            "message-id": "R0402"
-        },
-        {
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.heat_transfer",
             "obj": "",
@@ -6685,7 +4705,7 @@
             "column": 0,
             "path": "vclibpy/components/heat_exchangers/heat_transfer/__init__.py",
             "symbol": "wrong-import-order",
-            "message": "first party import \"import vclibpy.components.heat_exchangers.heat_transfer.constant as constant\" should be placed before \"from .heat_transfer import TwoPhaseHeatTransfer, HeatTransfer, calc_reynolds_pipe\"",
+            "message": "first party import \"from vclibpy.components.heat_exchangers.heat_transfer import constant\" should be placed before \"from .heat_transfer import TwoPhaseHeatTransfer, HeatTransfer, calc_reynolds_pipe\"",
             "message-id": "C0411"
         },
         {
@@ -6696,7 +4716,7 @@
             "column": 0,
             "path": "vclibpy/components/heat_exchangers/heat_transfer/__init__.py",
             "symbol": "wrong-import-order",
-            "message": "first party import \"import vclibpy.components.heat_exchangers.heat_transfer.wall as wall\" should be placed before \"from .heat_transfer import TwoPhaseHeatTransfer, HeatTransfer, calc_reynolds_pipe\"",
+            "message": "first party import \"from vclibpy.components.heat_exchangers.heat_transfer import wall\" should be placed before \"from .heat_transfer import TwoPhaseHeatTransfer, HeatTransfer, calc_reynolds_pipe\"",
             "message-id": "C0411"
         },
         {
@@ -6757,34 +4777,12 @@
         {
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
-            "obj": "TurbulentFluidInPipeToWallTransfer.calc",
-            "line": 56,
-            "column": 8,
-            "path": "vclibpy/components/heat_exchangers/heat_transfer/pipe_to_wall.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"Nu\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
             "obj": "TurbulentFluidInPipeToWallTransfer.calc_turbulent_tube_nusselt",
             "line": 59,
             "column": 42,
             "path": "vclibpy/components/heat_exchangers/heat_transfer/pipe_to_wall.py",
             "symbol": "invalid-name",
             "message": "Argument name \"Re\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
-            "obj": "TurbulentFluidInPipeToWallTransfer.calc_turbulent_tube_nusselt",
-            "line": 59,
-            "column": 46,
-            "path": "vclibpy/components/heat_exchangers/heat_transfer/pipe_to_wall.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"Pr\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
         },
         {
@@ -6797,28 +4795,6 @@
             "symbol": "no-else-return",
             "message": "Unnecessary \"elif\" after \"return\", remove the leading \"el\" from \"elif\"",
             "message-id": "R1705"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
-            "obj": "TurbulentFluidInPipeToWallTransfer.calc_turbulent_tube_nusselt",
-            "line": 88,
-            "column": 16,
-            "path": "vclibpy/components/heat_exchangers/heat_transfer/pipe_to_wall.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"Nu\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
-            "obj": "TurbulentFluidInPipeToWallTransfer.calc_turbulent_tube_nusselt",
-            "line": 90,
-            "column": 16,
-            "path": "vclibpy/components/heat_exchangers/heat_transfer/pipe_to_wall.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"Nu\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
         },
         {
             "type": "refactor",
@@ -6966,28 +4942,6 @@
         {
             "type": "convention",
             "module": "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
-            "obj": "AirToWallTransfer.calc_laminar_area_nusselt",
-            "line": 54,
-            "column": 44,
-            "path": "vclibpy/components/heat_exchangers/heat_transfer/air_to_wall.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"Pr\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
-            "obj": "WSUAirToWall.calc_laminar_area_nusselt",
-            "line": 110,
-            "column": 8,
-            "path": "vclibpy/components/heat_exchangers/heat_transfer/air_to_wall.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"Nu\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
             "obj": "",
             "line": 5,
             "column": 0,
@@ -7044,7 +4998,7 @@
             "type": "convention",
             "module": "vclibpy.components.compressors.compressor",
             "obj": "",
-            "line": 41,
+            "line": 40,
             "column": 0,
             "path": "vclibpy/components/compressors/compressor.py",
             "symbol": "line-too-long",
@@ -7055,7 +5009,7 @@
             "type": "convention",
             "module": "vclibpy.components.compressors.compressor",
             "obj": "",
-            "line": 153,
+            "line": 152,
             "column": 0,
             "path": "vclibpy/components/compressors/compressor.py",
             "symbol": "line-too-long",
@@ -7066,7 +5020,7 @@
             "type": "convention",
             "module": "vclibpy.components.compressors.compressor",
             "obj": "",
-            "line": 154,
+            "line": 153,
             "column": 0,
             "path": "vclibpy/components/compressors/compressor.py",
             "symbol": "line-too-long",
@@ -7077,7 +5031,7 @@
             "type": "convention",
             "module": "vclibpy.components.compressors.compressor",
             "obj": "",
-            "line": 159,
+            "line": 158,
             "column": 0,
             "path": "vclibpy/components/compressors/compressor.py",
             "symbol": "line-too-long",
@@ -7088,7 +5042,7 @@
             "type": "convention",
             "module": "vclibpy.components.compressors.compressor",
             "obj": "Compressor.__init__",
-            "line": 53,
+            "line": 52,
             "column": 8,
             "path": "vclibpy/components/compressors/compressor.py",
             "symbol": "invalid-name",
@@ -7099,7 +5053,7 @@
             "type": "convention",
             "module": "vclibpy.components.compressors.compressor",
             "obj": "Compressor.__init__",
-            "line": 54,
+            "line": 53,
             "column": 8,
             "path": "vclibpy/components/compressors/compressor.py",
             "symbol": "invalid-name",
@@ -7109,19 +5063,8 @@
         {
             "type": "convention",
             "module": "vclibpy.components.compressors.compressor",
-            "obj": "Compressor.get_n_absolute",
-            "line": 103,
-            "column": 29,
-            "path": "vclibpy/components/compressors/compressor.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"n\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.compressors.compressor",
             "obj": "Compressor.calc_m_flow",
-            "line": 146,
+            "line": 145,
             "column": 8,
             "path": "vclibpy/components/compressors/compressor.py",
             "symbol": "invalid-name",
@@ -7132,7 +5075,7 @@
             "type": "convention",
             "module": "vclibpy.components.compressors.compressor",
             "obj": "Compressor.calc_electrical_power",
-            "line": 169,
+            "line": 168,
             "column": 8,
             "path": "vclibpy/components/compressors/compressor.py",
             "symbol": "invalid-name",
@@ -7143,23 +5086,12 @@
             "type": "convention",
             "module": "vclibpy.components.compressors.compressor",
             "obj": "Compressor.calc_electrical_power",
-            "line": 172,
+            "line": 171,
             "column": 8,
             "path": "vclibpy/components/compressors/compressor.py",
             "symbol": "invalid-name",
             "message": "Variable name \"P_el\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
-        },
-        {
-            "type": "warning",
-            "module": "vclibpy.components.compressors.compressor",
-            "obj": "",
-            "line": 7,
-            "column": 0,
-            "path": "vclibpy/components/compressors/compressor.py",
-            "symbol": "unused-import",
-            "message": "Unused ThermodynamicState imported from vclibpy.media",
-            "message-id": "W0611"
         },
         {
             "type": "convention",
@@ -7417,17 +5349,6 @@
         {
             "type": "convention",
             "module": "vclibpy.components.compressors.ten_coefficient",
-            "obj": "BaseTenCoefficientCompressor.get_parameter",
-            "line": 93,
-            "column": 42,
-            "path": "vclibpy/components/compressors/ten_coefficient.py",
-            "symbol": "invalid-name",
-            "message": "Argument name \"n\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.compressors.ten_coefficient",
             "obj": "TenCoefficientCompressor.__init__",
             "line": 170,
             "column": 8,
@@ -7499,17 +5420,6 @@
             "column": 8,
             "path": "vclibpy/components/compressors/ten_coefficient.py",
             "symbol": "invalid-name",
-            "message": "Variable name \"T_eva\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.compressors.ten_coefficient",
-            "obj": "TenCoefficientCompressor.get_eta_isentropic",
-            "line": 222,
-            "column": 15,
-            "path": "vclibpy/components/compressors/ten_coefficient.py",
-            "symbol": "invalid-name",
             "message": "Variable name \"T_con\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
         },
@@ -7547,33 +5457,11 @@
             "message-id": "C0103"
         },
         {
-            "type": "warning",
-            "module": "vclibpy.components.compressors.ten_coefficient",
-            "obj": "TenCoefficientCompressor.get_eta_isentropic",
-            "line": 222,
-            "column": 8,
-            "path": "vclibpy/components/compressors/ten_coefficient.py",
-            "symbol": "unused-variable",
-            "message": "Unused variable 'T_eva'",
-            "message-id": "W0612"
-        },
-        {
             "type": "convention",
             "module": "vclibpy.components.compressors.ten_coefficient",
             "obj": "TenCoefficientCompressor.get_eta_mech",
             "line": 255,
             "column": 8,
-            "path": "vclibpy/components/compressors/ten_coefficient.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"T_eva\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.compressors.ten_coefficient",
-            "obj": "TenCoefficientCompressor.get_eta_mech",
-            "line": 255,
-            "column": 15,
             "path": "vclibpy/components/compressors/ten_coefficient.py",
             "symbol": "invalid-name",
             "message": "Variable name \"T_con\" doesn't conform to snake_case naming style",
@@ -7600,17 +5488,6 @@
             "symbol": "invalid-name",
             "message": "Variable name \"h2\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
-        },
-        {
-            "type": "warning",
-            "module": "vclibpy.components.compressors.ten_coefficient",
-            "obj": "TenCoefficientCompressor.get_eta_mech",
-            "line": 255,
-            "column": 8,
-            "path": "vclibpy/components/compressors/ten_coefficient.py",
-            "symbol": "unused-variable",
-            "message": "Unused variable 'T_eva'",
-            "message-id": "W0612"
         },
         {
             "type": "convention",
@@ -7781,17 +5658,6 @@
             "type": "convention",
             "module": "vclibpy.components.compressors.rotary",
             "obj": "RotaryCompressor.get_lambda_h",
-            "line": 40,
-            "column": 8,
-            "path": "vclibpy/components/compressors/rotary.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"n\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.compressors.rotary",
-            "obj": "RotaryCompressor.get_lambda_h",
             "line": 41,
             "column": 8,
             "path": "vclibpy/components/compressors/rotary.py",
@@ -7836,17 +5702,6 @@
             "type": "convention",
             "module": "vclibpy.components.compressors.rotary",
             "obj": "RotaryCompressor.get_eta_isentropic",
-            "line": 78,
-            "column": 8,
-            "path": "vclibpy/components/compressors/rotary.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"n\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.compressors.rotary",
-            "obj": "RotaryCompressor.get_eta_isentropic",
             "line": 84,
             "column": 8,
             "path": "vclibpy/components/compressors/rotary.py",
@@ -7864,17 +5719,6 @@
             "symbol": "too-many-locals",
             "message": "Too many local variables (17/15)",
             "message-id": "R0914"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.components.compressors.rotary",
-            "obj": "RotaryCompressor.get_eta_mech",
-            "line": 106,
-            "column": 8,
-            "path": "vclibpy/components/compressors/rotary.py",
-            "symbol": "invalid-name",
-            "message": "Variable name \"n\" doesn't conform to snake_case naming style",
-            "message-id": "C0103"
         },
         {
             "type": "convention",
@@ -7902,61 +5746,6 @@
             "type": "convention",
             "module": "vclibpy.flowsheets.vapor_injection",
             "obj": "",
-            "line": 68,
-            "column": 0,
-            "path": "vclibpy/flowsheets/vapor_injection.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (116/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.flowsheets.vapor_injection",
-            "obj": "",
-            "line": 86,
-            "column": 0,
-            "path": "vclibpy/flowsheets/vapor_injection.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (115/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.flowsheets.vapor_injection",
-            "obj": "",
-            "line": 87,
-            "column": 0,
-            "path": "vclibpy/flowsheets/vapor_injection.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (103/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.flowsheets.vapor_injection",
-            "obj": "",
-            "line": 134,
-            "column": 0,
-            "path": "vclibpy/flowsheets/vapor_injection.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (103/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.flowsheets.vapor_injection",
-            "obj": "",
-            "line": 135,
-            "column": 0,
-            "path": "vclibpy/flowsheets/vapor_injection.py",
-            "symbol": "line-too-long",
-            "message": "Line too long (105/100)",
-            "message-id": "C0301"
-        },
-        {
-            "type": "convention",
-            "module": "vclibpy.flowsheets.vapor_injection",
-            "obj": "",
             "line": 1,
             "column": 0,
             "path": "vclibpy/flowsheets/vapor_injection.py",
@@ -7968,7 +5757,7 @@
             "type": "convention",
             "module": "vclibpy.flowsheets.vapor_injection",
             "obj": "BaseVaporInjection.calc_states",
-            "line": 82,
+            "line": 84,
             "column": 8,
             "path": "vclibpy/flowsheets/vapor_injection.py",
             "symbol": "invalid-name",
@@ -7979,7 +5768,7 @@
             "type": "convention",
             "module": "vclibpy.flowsheets.vapor_injection",
             "obj": "BaseVaporInjection.calc_electrical_power",
-            "line": 134,
+            "line": 148,
             "column": 8,
             "path": "vclibpy/flowsheets/vapor_injection.py",
             "symbol": "invalid-name",
@@ -7990,7 +5779,7 @@
             "type": "convention",
             "module": "vclibpy.flowsheets.vapor_injection",
             "obj": "BaseVaporInjection.calc_electrical_power",
-            "line": 135,
+            "line": 151,
             "column": 8,
             "path": "vclibpy/flowsheets/vapor_injection.py",
             "symbol": "invalid-name",
@@ -8034,7 +5823,7 @@
             "type": "refactor",
             "module": "vclibpy.flowsheets.vapor_injection_economizer",
             "obj": "VaporInjectionEconomizer.calc_injection",
-            "line": 45,
+            "line": 46,
             "column": 4,
             "path": "vclibpy/flowsheets/vapor_injection_economizer.py",
             "symbol": "too-many-locals",
@@ -8045,7 +5834,7 @@
             "type": "convention",
             "module": "vclibpy.flowsheets.vapor_injection_economizer",
             "obj": "VaporInjectionEconomizer.calc_injection",
-            "line": 84,
+            "line": 85,
             "column": 8,
             "path": "vclibpy/flowsheets/vapor_injection_economizer.py",
             "symbol": "invalid-name",
@@ -8056,7 +5845,7 @@
             "type": "convention",
             "module": "vclibpy.flowsheets.vapor_injection_economizer",
             "obj": "VaporInjectionEconomizer.calc_injection",
-            "line": 105,
+            "line": 106,
             "column": 12,
             "path": "vclibpy/flowsheets/vapor_injection_economizer.py",
             "symbol": "invalid-name",
@@ -8067,7 +5856,7 @@
             "type": "convention",
             "module": "vclibpy.flowsheets.vapor_injection_economizer",
             "obj": "VaporInjectionEconomizer.calc_injection",
-            "line": 113,
+            "line": 114,
             "column": 12,
             "path": "vclibpy/flowsheets/vapor_injection_economizer.py",
             "symbol": "invalid-name",
@@ -8078,7 +5867,7 @@
             "type": "warning",
             "module": "vclibpy.flowsheets.vapor_injection_economizer",
             "obj": "VaporInjectionEconomizer.calc_injection",
-            "line": 113,
+            "line": 114,
             "column": 20,
             "path": "vclibpy/flowsheets/vapor_injection_economizer.py",
             "symbol": "unused-variable",
@@ -8463,22 +6252,22 @@
             "type": "convention",
             "module": "vclibpy.flowsheets.base",
             "obj": "BaseCycle.plot_cycle",
-            "line": 378,
-            "column": 8,
+            "line": 382,
+            "column": 13,
             "path": "vclibpy/flowsheets/base.py",
             "symbol": "invalid-name",
-            "message": "Variable name \"T\" doesn't conform to snake_case naming style",
+            "message": "Variable name \"ax\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
         },
         {
             "type": "convention",
             "module": "vclibpy.flowsheets.base",
-            "obj": "BaseCycle.plot_cycle",
-            "line": 379,
-            "column": 8,
+            "obj": "BaseCycle._plot_secondary_heat_flow_rates",
+            "line": 410,
+            "column": 46,
             "path": "vclibpy/flowsheets/base.py",
             "symbol": "invalid-name",
-            "message": "Variable name \"p\" doesn't conform to snake_case naming style",
+            "message": "Argument name \"ax\" doesn't conform to snake_case naming style",
             "message-id": "C0103"
         },
         {
@@ -8543,19 +6332,8 @@
             "line": 1,
             "column": 0,
             "path": "vclibpy/flowsheets/base.py",
-            "symbol": "duplicate-code",
-            "message": "Similar lines in 2 files\n==vclibpy.flowsheets.standard:[81:91]\n==vclibpy.flowsheets.vapor_injection:[110:130]\n        )\n        fs_state.set(\n            name=\"T_4\", value=self.evaporator.state_inlet.T,\n            unit=\"K\", description=\"Refrigerant temperature at evaporator inlet\"\n        )\n        fs_state.set(name=\"p_con\", value=p_2, unit=\"Pa\", description=\"Condensation pressure\")\n        fs_state.set(name=\"p_eva\", value=p_1, unit=\"Pa\", description=\"Evaporation pressure\")\n\n    def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):\n        \"\"\"Based on simple energy balance - Adiabatic\"\"\"",
-            "message-id": "R0801"
-        },
-        {
-            "type": "refactor",
-            "module": "vclibpy.flowsheets.base",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "vclibpy/flowsheets/base.py",
             "symbol": "cyclic-import",
-            "message": "Cyclic import (vclibpy.media -> vclibpy.media.ref_prop)",
+            "message": "Cyclic import (vclibpy.media -> vclibpy.media.media)",
             "message-id": "R0401"
         },
         {
@@ -8577,7 +6355,7 @@
             "column": 0,
             "path": "vclibpy/flowsheets/base.py",
             "symbol": "cyclic-import",
-            "message": "Cyclic import (vclibpy.media -> vclibpy.media.media)",
+            "message": "Cyclic import (vclibpy.media -> vclibpy.media.ref_prop)",
             "message-id": "R0401"
         },
         {
@@ -8599,7 +6377,7 @@
             "column": 0,
             "path": "vclibpy/flowsheets/base.py",
             "symbol": "cyclic-import",
-            "message": "Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection)",
+            "message": "Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection)",
             "message-id": "R0401"
         },
         {
@@ -8632,15 +6410,15 @@
             "column": 0,
             "path": "vclibpy/flowsheets/base.py",
             "symbol": "cyclic-import",
-            "message": "Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection)",
+            "message": "Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection)",
             "message-id": "R0401"
         }
     ],
     "stats": {
         "bad_names": {
-            "argument": 55,
-            "attr": 31,
-            "klass": 1,
+            "argument": 33,
+            "attr": 18,
+            "klass": 0,
             "class_attribute": 0,
             "class_const": 0,
             "const": 0,
@@ -8648,7 +6426,7 @@
             "function": 0,
             "method": 7,
             "module": 0,
-            "variable": 244,
+            "variable": 172,
             "typevar": 0,
             "typealias": 0
         },
@@ -8662,15 +6440,6 @@
                 "statement": 2,
                 "warning": 0
             },
-            "vclibpy.heat_pumps": {
-                "convention": 6,
-                "error": 0,
-                "fatal": 0,
-                "info": 0,
-                "refactor": 1,
-                "statement": 19,
-                "warning": 0
-            },
             "vclibpy.datamodels": {
                 "convention": 0,
                 "error": 1,
@@ -8681,7 +6450,7 @@
                 "warning": 0
             },
             "vclibpy.media.cool_prop": {
-                "convention": 14,
+                "convention": 3,
                 "error": 0,
                 "fatal": 0,
                 "info": 21,
@@ -8690,7 +6459,7 @@
                 "warning": 0
             },
             "vclibpy.media.ref_prop": {
-                "convention": 124,
+                "convention": 70,
                 "error": 1,
                 "fatal": 0,
                 "info": 0,
@@ -8717,7 +6486,7 @@
                 "warning": 2
             },
             "vclibpy.media.states": {
-                "convention": 30,
+                "convention": 9,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -8726,7 +6495,7 @@
                 "warning": 0
             },
             "vclibpy.utils.plotting": {
-                "convention": 23,
+                "convention": 26,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -8735,16 +6504,16 @@
                 "warning": 0
             },
             "vclibpy.utils.ten_coefficient_compressor_reqression": {
-                "convention": 23,
-                "error": 12,
+                "convention": 20,
+                "error": 0,
                 "fatal": 0,
                 "info": 0,
                 "refactor": 3,
-                "statement": 67,
+                "statement": 65,
                 "warning": 3
             },
             "vclibpy.utils.sdf_": {
-                "convention": 3,
+                "convention": 5,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -8777,7 +6546,7 @@
                 "info": 0,
                 "refactor": 6,
                 "statement": 99,
-                "warning": 2
+                "warning": 7
             },
             "vclibpy.components.__init__": {
                 "convention": 0,
@@ -8834,16 +6603,16 @@
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.ntu": {
-                "convention": 18,
+                "convention": 15,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
-                "refactor": 3,
+                "refactor": 0,
                 "statement": 47,
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.economizer": {
-                "convention": 4,
+                "convention": 3,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -8861,7 +6630,7 @@
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.heat_exchanger": {
-                "convention": 15,
+                "convention": 11,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -8870,13 +6639,13 @@
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.moving_boundary_ntu": {
-                "convention": 78,
+                "convention": 73,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
                 "refactor": 3,
                 "statement": 134,
-                "warning": 6
+                "warning": 10
             },
             "vclibpy.components.heat_exchangers.heat_transfer.constant": {
                 "convention": 2,
@@ -8888,7 +6657,7 @@
                 "warning": 3
             },
             "vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall": {
-                "convention": 22,
+                "convention": 21,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -8910,12 +6679,12 @@
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
-                "refactor": 2,
+                "refactor": 0,
                 "statement": 3,
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall": {
-                "convention": 11,
+                "convention": 7,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -8933,7 +6702,7 @@
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall": {
-                "convention": 9,
+                "convention": 7,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -8951,25 +6720,25 @@
                 "warning": 0
             },
             "vclibpy.components.compressors.compressor": {
-                "convention": 10,
+                "convention": 9,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
                 "refactor": 0,
-                "statement": 39,
-                "warning": 1
+                "statement": 38,
+                "warning": 0
             },
             "vclibpy.components.compressors.ten_coefficient": {
-                "convention": 45,
+                "convention": 42,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
                 "refactor": 2,
                 "statement": 95,
-                "warning": 2
+                "warning": 0
             },
             "vclibpy.components.compressors.rotary": {
-                "convention": 15,
+                "convention": 12,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -8987,7 +6756,7 @@
                 "warning": 0
             },
             "vclibpy.flowsheets.vapor_injection": {
-                "convention": 9,
+                "convention": 4,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -9036,19 +6805,17 @@
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
-                "refactor": 17,
+                "refactor": 16,
                 "statement": 228,
                 "warning": 0
             }
         },
         "by_msg": {
-            "line-too-long": 162,
-            "missing-class-docstring": 1,
-            "invalid-name": 338,
-            "too-few-public-methods": 6,
             "no-member": 2,
             "too-many-arguments": 13,
             "c-extension-no-member": 21,
+            "invalid-name": 230,
+            "line-too-long": 149,
             "too-many-lines": 1,
             "fixme": 5,
             "too-many-instance-attributes": 6,
@@ -9058,7 +6825,7 @@
             "no-else-continue": 5,
             "too-many-branches": 6,
             "no-else-raise": 1,
-            "unused-variable": 10,
+            "unused-variable": 8,
             "too-many-locals": 12,
             "too-many-statements": 4,
             "unspecified-encoding": 1,
@@ -9074,21 +6841,18 @@
             "too-many-nested-blocks": 4,
             "raise-missing-from": 1,
             "consider-using-enumerate": 2,
-            "no-value-for-parameter": 12,
             "consider-using-generator": 1,
             "trailing-whitespace": 2,
+            "logging-fstring-interpolation": 9,
             "broad-exception-caught": 2,
             "consider-using-with": 1,
-            "consider-using-in": 1,
-            "no-else-return": 3,
             "missing-function-docstring": 8,
             "no-else-break": 1,
+            "too-few-public-methods": 5,
             "wrong-import-order": 6,
-            "consider-using-from-import": 2,
-            "unused-import": 1,
+            "no-else-return": 1,
             "superfluous-parens": 1,
             "inconsistent-return-statements": 1,
-            "duplicate-code": 1,
             "cyclic-import": 8
         },
         "code_type_count": {
@@ -9100,27 +6864,19 @@
         },
         "dependencies": {
             "vclibpy.datamodels": [
+                "vclibpy",
+                "vclibpy.flowsheets.base",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
+                "vclibpy.components.compressors.ten_coefficient",
                 "vclibpy.utils.automation",
                 "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-                "vclibpy.components.compressors.rotary",
-                "vclibpy.components.heat_exchangers.heat_exchanger",
-                "vclibpy.flowsheets.vapor_injection",
-                "vclibpy.components.compressors.compressor",
-                "vclibpy",
-                "vclibpy.media.states",
                 "vclibpy.components.compressors.constant_effectivness",
+                "vclibpy.components.compressors.rotary",
                 "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
-                "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.flowsheets.base",
+                "vclibpy.components.compressors.compressor",
+                "vclibpy.media.states",
+                "vclibpy.flowsheets.vapor_injection",
                 "vclibpy.flowsheets.standard"
-            ],
-            "vclibpy.components.compressors.ten_coefficient": [
-                "vclibpy.components.compressors",
-                "vclibpy.heat_pumps"
-            ],
-            "vclibpy.components.heat_exchangers": [
-                "vclibpy.flowsheets.base",
-                "vclibpy.heat_pumps"
             ],
             "CoolProp.CoolProp": [
                 "vclibpy.media.cool_prop"
@@ -9137,35 +6893,34 @@
                 "vclibpy.media.ref_prop"
             ],
             "vclibpy.media": [
-                "vclibpy.media.ref_prop",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-                "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
-                "vclibpy.components.heat_exchangers.heat_exchanger",
-                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
-                "vclibpy.components.compressors.compressor",
-                "vclibpy.flowsheets.vapor_injection",
-                "vclibpy.media.media",
+                "vclibpy.components.component",
                 "vclibpy.components.heat_exchangers.heat_transfer.constant",
                 "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
-                "vclibpy.components.component",
-                "vclibpy.components.phase_separator",
-                "vclibpy.components.heat_exchangers.heat_transfer.wall",
+                "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
+                "vclibpy.media.media",
+                "vclibpy.media.ref_prop",
                 "vclibpy.components.heat_exchangers.economizer",
+                "vclibpy.components.heat_exchangers.heat_transfer.wall",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
+                "vclibpy.flowsheets.base",
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.phase_separator",
+                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
                 "vclibpy.utils.ten_coefficient_compressor_reqression",
-                "vclibpy.flowsheets.base"
+                "vclibpy.flowsheets.vapor_injection"
             ],
             "numpy": [
-                "vclibpy.utils.automation",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-                "vclibpy.utils.plotting",
-                "vclibpy.flowsheets.vapor_injection",
                 "vclibpy.media.media",
                 "vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall",
                 "vclibpy.flowsheets.vapor_injection_economizer",
+                "vclibpy.flowsheets.base",
                 "vclibpy.components.heat_exchangers.ntu",
-                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
+                "vclibpy.utils.plotting",
                 "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.flowsheets.base"
+                "vclibpy.utils.automation",
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
+                "vclibpy.flowsheets.vapor_injection"
             ],
             "vclibpy.media.cool_prop": [
                 "vclibpy.media"
@@ -9182,9 +6937,9 @@
                 "vclibpy.utils.sdf_"
             ],
             "pandas": [
-                "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.utils.automation",
                 "vclibpy.utils.ten_coefficient_compressor_reqression",
+                "vclibpy.utils.automation",
+                "vclibpy.components.compressors.ten_coefficient",
                 "vclibpy.utils.sdf_"
             ],
             "vclibpy.components.compressors": [
@@ -9193,13 +6948,13 @@
                 "vclibpy.flowsheets.standard"
             ],
             "vclibpy": [
-                "vclibpy.utils.nominal_design",
                 "vclibpy.utils.ten_coefficient_compressor_reqression",
+                "vclibpy.utils.nominal_design",
                 "vclibpy.flowsheets.base"
             ],
             "vclibpy.flowsheets": [
-                "vclibpy.utils.nominal_design",
                 "vclibpy.utils.automation",
+                "vclibpy.utils.nominal_design",
                 "vclibpy.flowsheets.vapor_injection",
                 "vclibpy.flowsheets.standard"
             ],
@@ -9214,15 +6969,15 @@
             ],
             "vclibpy.components.component": [
                 "vclibpy.components.expansion_valves.expansion_valve",
+                "vclibpy.flowsheets.base",
                 "vclibpy.components.heat_exchangers.heat_exchanger",
-                "vclibpy.components.compressors.compressor",
                 "vclibpy.components.phase_separator",
-                "vclibpy.flowsheets.base"
+                "vclibpy.components.compressors.compressor"
             ],
             "vclibpy.components.expansion_valves": [
-                "vclibpy.components.expansion_valves.bernoulli",
+                "vclibpy.flowsheets.standard",
                 "vclibpy.flowsheets.vapor_injection",
-                "vclibpy.flowsheets.standard"
+                "vclibpy.components.expansion_valves.bernoulli"
             ],
             "vclibpy.components.expansion_valves.expansion_valve": [
                 "vclibpy.components.expansion_valves"
@@ -9235,17 +6990,17 @@
                 "vclibpy.components.heat_exchangers.ntu"
             ],
             "vclibpy.components.heat_exchangers.ntu": [
-                "vclibpy.components.heat_exchangers.economizer",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu"
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.heat_exchangers.economizer"
             ],
             "vclibpy.components.heat_exchangers.moving_boundary_ntu": [
                 "vclibpy.components.heat_exchangers"
             ],
             "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer": [
-                "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
-                "vclibpy.components.heat_exchangers.heat_exchanger",
                 "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
+                "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
                 "vclibpy.components.heat_exchangers.heat_transfer.wall",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
                 "vclibpy.components.heat_exchangers.heat_transfer"
             ],
             "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall": [
@@ -9259,19 +7014,22 @@
             ],
             "vclibpy.components.compressors.compressor": [
                 "vclibpy.components.compressors.ten_coefficient",
+                "vclibpy.components.compressors.constant_effectivness",
                 "vclibpy.components.compressors.rotary",
-                "vclibpy.components.compressors",
-                "vclibpy.components.compressors.constant_effectivness"
+                "vclibpy.components.compressors"
             ],
             "vclibpy.components.compressors.rotary": [
+                "vclibpy.components.compressors"
+            ],
+            "vclibpy.components.compressors.ten_coefficient": [
                 "vclibpy.components.compressors"
             ],
             "vclibpy.components.compressors.constant_effectivness": [
                 "vclibpy.components.compressors"
             ],
             "vclibpy.flowsheets.vapor_injection": [
-                "vclibpy.flowsheets.vapor_injection_economizer",
-                "vclibpy.flowsheets.vapor_injection_phase_separator"
+                "vclibpy.flowsheets.vapor_injection_phase_separator",
+                "vclibpy.flowsheets.vapor_injection_economizer"
             ],
             "vclibpy.components.heat_exchangers.economizer": [
                 "vclibpy.flowsheets.vapor_injection_economizer"
@@ -9290,6 +7048,9 @@
             ],
             "vclibpy.components.phase_separator": [
                 "vclibpy.flowsheets.vapor_injection_phase_separator"
+            ],
+            "vclibpy.components.heat_exchangers": [
+                "vclibpy.flowsheets.base"
             ]
         },
         "duplicated_lines": {
@@ -9298,32 +7059,32 @@
         },
         "node_count": {
             "function": 19,
-            "klass": 41,
+            "klass": 40,
             "method": 219,
-            "module": 43
+            "module": 42
         },
         "undocumented": {
             "function": 0,
-            "klass": 1,
+            "klass": 0,
             "method": 8,
             "module": 27
         },
-        "convention": 563,
-        "error": 14,
+        "convention": 441,
+        "error": 2,
         "fatal": 0,
         "info": 21,
-        "refactor": 83,
-        "statement": 2216,
-        "warning": 37,
+        "refactor": 76,
+        "statement": 2194,
+        "warning": 43,
         "global_note": 0,
-        "nb_duplicated_lines": 7,
-        "percent_duplicated_lines": 0.10869565217391304
+        "nb_duplicated_lines": 0,
+        "percent_duplicated_lines": 0.0
     },
     "previous": {
         "bad_names": {
-            "argument": 55,
-            "attr": 31,
-            "klass": 1,
+            "argument": 33,
+            "attr": 18,
+            "klass": 0,
             "class_attribute": 0,
             "class_const": 0,
             "const": 0,
@@ -9331,7 +7092,7 @@
             "function": 0,
             "method": 7,
             "module": 0,
-            "variable": 244,
+            "variable": 172,
             "typevar": 0,
             "typealias": 0
         },
@@ -9345,15 +7106,6 @@
                 "statement": 2,
                 "warning": 0
             },
-            "vclibpy.heat_pumps": {
-                "convention": 6,
-                "error": 0,
-                "fatal": 0,
-                "info": 0,
-                "refactor": 1,
-                "statement": 19,
-                "warning": 0
-            },
             "vclibpy.datamodels": {
                 "convention": 0,
                 "error": 1,
@@ -9364,7 +7116,7 @@
                 "warning": 0
             },
             "vclibpy.media.cool_prop": {
-                "convention": 14,
+                "convention": 3,
                 "error": 0,
                 "fatal": 0,
                 "info": 21,
@@ -9373,7 +7125,7 @@
                 "warning": 0
             },
             "vclibpy.media.ref_prop": {
-                "convention": 124,
+                "convention": 70,
                 "error": 1,
                 "fatal": 0,
                 "info": 0,
@@ -9400,7 +7152,7 @@
                 "warning": 2
             },
             "vclibpy.media.states": {
-                "convention": 30,
+                "convention": 9,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -9409,7 +7161,7 @@
                 "warning": 0
             },
             "vclibpy.utils.plotting": {
-                "convention": 23,
+                "convention": 26,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -9418,16 +7170,16 @@
                 "warning": 0
             },
             "vclibpy.utils.ten_coefficient_compressor_reqression": {
-                "convention": 23,
-                "error": 12,
+                "convention": 20,
+                "error": 0,
                 "fatal": 0,
                 "info": 0,
                 "refactor": 3,
-                "statement": 67,
+                "statement": 65,
                 "warning": 3
             },
             "vclibpy.utils.sdf_": {
-                "convention": 3,
+                "convention": 5,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -9460,7 +7212,7 @@
                 "info": 0,
                 "refactor": 6,
                 "statement": 99,
-                "warning": 2
+                "warning": 7
             },
             "vclibpy.components.__init__": {
                 "convention": 0,
@@ -9517,16 +7269,16 @@
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.ntu": {
-                "convention": 18,
+                "convention": 15,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
-                "refactor": 3,
+                "refactor": 0,
                 "statement": 47,
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.economizer": {
-                "convention": 4,
+                "convention": 3,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -9544,7 +7296,7 @@
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.heat_exchanger": {
-                "convention": 15,
+                "convention": 11,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -9553,13 +7305,13 @@
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.moving_boundary_ntu": {
-                "convention": 78,
+                "convention": 73,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
                 "refactor": 3,
                 "statement": 134,
-                "warning": 6
+                "warning": 10
             },
             "vclibpy.components.heat_exchangers.heat_transfer.constant": {
                 "convention": 2,
@@ -9571,7 +7323,7 @@
                 "warning": 3
             },
             "vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall": {
-                "convention": 22,
+                "convention": 21,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -9593,12 +7345,12 @@
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
-                "refactor": 2,
+                "refactor": 0,
                 "statement": 3,
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall": {
-                "convention": 11,
+                "convention": 7,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -9616,7 +7368,7 @@
                 "warning": 0
             },
             "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall": {
-                "convention": 9,
+                "convention": 7,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -9634,25 +7386,25 @@
                 "warning": 0
             },
             "vclibpy.components.compressors.compressor": {
-                "convention": 10,
+                "convention": 9,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
                 "refactor": 0,
-                "statement": 39,
-                "warning": 1
+                "statement": 38,
+                "warning": 0
             },
             "vclibpy.components.compressors.ten_coefficient": {
-                "convention": 45,
+                "convention": 42,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
                 "refactor": 2,
                 "statement": 95,
-                "warning": 2
+                "warning": 0
             },
             "vclibpy.components.compressors.rotary": {
-                "convention": 15,
+                "convention": 12,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -9670,7 +7422,7 @@
                 "warning": 0
             },
             "vclibpy.flowsheets.vapor_injection": {
-                "convention": 9,
+                "convention": 4,
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
@@ -9719,19 +7471,17 @@
                 "error": 0,
                 "fatal": 0,
                 "info": 0,
-                "refactor": 17,
+                "refactor": 16,
                 "statement": 228,
                 "warning": 0
             }
         },
         "by_msg": {
-            "line-too-long": 162,
-            "missing-class-docstring": 1,
-            "invalid-name": 338,
-            "too-few-public-methods": 6,
             "no-member": 2,
             "too-many-arguments": 13,
             "c-extension-no-member": 21,
+            "invalid-name": 230,
+            "line-too-long": 149,
             "too-many-lines": 1,
             "fixme": 5,
             "too-many-instance-attributes": 6,
@@ -9741,7 +7491,7 @@
             "no-else-continue": 5,
             "too-many-branches": 6,
             "no-else-raise": 1,
-            "unused-variable": 10,
+            "unused-variable": 8,
             "too-many-locals": 12,
             "too-many-statements": 4,
             "unspecified-encoding": 1,
@@ -9757,21 +7507,18 @@
             "too-many-nested-blocks": 4,
             "raise-missing-from": 1,
             "consider-using-enumerate": 2,
-            "no-value-for-parameter": 12,
             "consider-using-generator": 1,
             "trailing-whitespace": 2,
+            "logging-fstring-interpolation": 9,
             "broad-exception-caught": 2,
             "consider-using-with": 1,
-            "consider-using-in": 1,
-            "no-else-return": 3,
             "missing-function-docstring": 8,
             "no-else-break": 1,
+            "too-few-public-methods": 5,
             "wrong-import-order": 6,
-            "consider-using-from-import": 2,
-            "unused-import": 1,
+            "no-else-return": 1,
             "superfluous-parens": 1,
             "inconsistent-return-statements": 1,
-            "duplicate-code": 1,
             "cyclic-import": 8
         },
         "code_type_count": {
@@ -9783,27 +7530,19 @@
         },
         "dependencies": {
             "vclibpy.datamodels": [
-                "vclibpy.components.compressors.rotary",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-                "vclibpy.utils.automation",
-                "vclibpy.components.heat_exchangers.heat_exchanger",
-                "vclibpy.flowsheets.vapor_injection",
-                "vclibpy.components.compressors.compressor",
                 "vclibpy",
-                "vclibpy.media.states",
-                "vclibpy.components.compressors.constant_effectivness",
-                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
+                "vclibpy.flowsheets.base",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
                 "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.flowsheets.base",
+                "vclibpy.utils.automation",
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.compressors.constant_effectivness",
+                "vclibpy.components.compressors.rotary",
+                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
+                "vclibpy.components.compressors.compressor",
+                "vclibpy.media.states",
+                "vclibpy.flowsheets.vapor_injection",
                 "vclibpy.flowsheets.standard"
-            ],
-            "vclibpy.components.compressors.ten_coefficient": [
-                "vclibpy.components.compressors",
-                "vclibpy.heat_pumps"
-            ],
-            "vclibpy.components.heat_exchangers": [
-                "vclibpy.flowsheets.base",
-                "vclibpy.heat_pumps"
             ],
             "CoolProp.CoolProp": [
                 "vclibpy.media.cool_prop"
@@ -9820,35 +7559,34 @@
                 "vclibpy.media.ref_prop"
             ],
             "vclibpy.media": [
-                "vclibpy.media.ref_prop",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-                "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
-                "vclibpy.components.heat_exchangers.heat_exchanger",
-                "vclibpy.flowsheets.vapor_injection",
-                "vclibpy.components.compressors.compressor",
-                "vclibpy.media.media",
+                "vclibpy.components.component",
                 "vclibpy.components.heat_exchangers.heat_transfer.constant",
                 "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
-                "vclibpy.components.component",
+                "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
+                "vclibpy.media.media",
+                "vclibpy.flowsheets.base",
+                "vclibpy.components.heat_exchangers.economizer",
+                "vclibpy.components.heat_exchangers.heat_transfer.wall",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
+                "vclibpy.media.ref_prop",
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
                 "vclibpy.components.phase_separator",
                 "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
-                "vclibpy.components.heat_exchangers.economizer",
                 "vclibpy.utils.ten_coefficient_compressor_reqression",
-                "vclibpy.flowsheets.base",
-                "vclibpy.components.heat_exchangers.heat_transfer.wall"
+                "vclibpy.flowsheets.vapor_injection"
             ],
             "numpy": [
+                "vclibpy.media.media",
+                "vclibpy.flowsheets.vapor_injection_economizer",
+                "vclibpy.flowsheets.base",
+                "vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall",
+                "vclibpy.components.heat_exchangers.ntu",
+                "vclibpy.utils.plotting",
+                "vclibpy.components.compressors.ten_coefficient",
                 "vclibpy.utils.automation",
                 "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-                "vclibpy.utils.plotting",
-                "vclibpy.flowsheets.vapor_injection",
-                "vclibpy.media.media",
-                "vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall",
-                "vclibpy.flowsheets.vapor_injection_economizer",
-                "vclibpy.components.heat_exchangers.ntu",
                 "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
-                "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.flowsheets.base"
+                "vclibpy.flowsheets.vapor_injection"
             ],
             "vclibpy.media.cool_prop": [
                 "vclibpy.media"
@@ -9865,9 +7603,9 @@
                 "vclibpy.utils.sdf_"
             ],
             "pandas": [
-                "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.utils.automation",
                 "vclibpy.utils.ten_coefficient_compressor_reqression",
+                "vclibpy.utils.automation",
+                "vclibpy.components.compressors.ten_coefficient",
                 "vclibpy.utils.sdf_"
             ],
             "vclibpy.components.compressors": [
@@ -9876,13 +7614,13 @@
                 "vclibpy.flowsheets.standard"
             ],
             "vclibpy": [
-                "vclibpy.utils.nominal_design",
                 "vclibpy.utils.ten_coefficient_compressor_reqression",
+                "vclibpy.utils.nominal_design",
                 "vclibpy.flowsheets.base"
             ],
             "vclibpy.flowsheets": [
-                "vclibpy.utils.nominal_design",
                 "vclibpy.utils.automation",
+                "vclibpy.utils.nominal_design",
                 "vclibpy.flowsheets.vapor_injection",
                 "vclibpy.flowsheets.standard"
             ],
@@ -9897,15 +7635,15 @@
             ],
             "vclibpy.components.component": [
                 "vclibpy.components.expansion_valves.expansion_valve",
+                "vclibpy.flowsheets.base",
                 "vclibpy.components.heat_exchangers.heat_exchanger",
-                "vclibpy.components.compressors.compressor",
                 "vclibpy.components.phase_separator",
-                "vclibpy.flowsheets.base"
+                "vclibpy.components.compressors.compressor"
             ],
             "vclibpy.components.expansion_valves": [
-                "vclibpy.components.expansion_valves.bernoulli",
                 "vclibpy.flowsheets.vapor_injection",
-                "vclibpy.flowsheets.standard"
+                "vclibpy.flowsheets.standard",
+                "vclibpy.components.expansion_valves.bernoulli"
             ],
             "vclibpy.components.expansion_valves.expansion_valve": [
                 "vclibpy.components.expansion_valves"
@@ -9918,17 +7656,17 @@
                 "vclibpy.components.heat_exchangers.ntu"
             ],
             "vclibpy.components.heat_exchangers.ntu": [
-                "vclibpy.components.heat_exchangers.economizer",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu"
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.heat_exchangers.economizer"
             ],
             "vclibpy.components.heat_exchangers.moving_boundary_ntu": [
                 "vclibpy.components.heat_exchangers"
             ],
             "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer": [
-                "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
-                "vclibpy.components.heat_exchangers.heat_exchanger",
                 "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
+                "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
                 "vclibpy.components.heat_exchangers.heat_transfer.wall",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
                 "vclibpy.components.heat_exchangers.heat_transfer"
             ],
             "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall": [
@@ -9942,19 +7680,22 @@
             ],
             "vclibpy.components.compressors.compressor": [
                 "vclibpy.components.compressors.ten_coefficient",
+                "vclibpy.components.compressors.constant_effectivness",
                 "vclibpy.components.compressors.rotary",
-                "vclibpy.components.compressors",
-                "vclibpy.components.compressors.constant_effectivness"
+                "vclibpy.components.compressors"
             ],
             "vclibpy.components.compressors.rotary": [
+                "vclibpy.components.compressors"
+            ],
+            "vclibpy.components.compressors.ten_coefficient": [
                 "vclibpy.components.compressors"
             ],
             "vclibpy.components.compressors.constant_effectivness": [
                 "vclibpy.components.compressors"
             ],
             "vclibpy.flowsheets.vapor_injection": [
-                "vclibpy.flowsheets.vapor_injection_economizer",
-                "vclibpy.flowsheets.vapor_injection_phase_separator"
+                "vclibpy.flowsheets.vapor_injection_phase_separator",
+                "vclibpy.flowsheets.vapor_injection_economizer"
             ],
             "vclibpy.components.heat_exchangers.economizer": [
                 "vclibpy.flowsheets.vapor_injection_economizer"
@@ -9973,6 +7714,9 @@
             ],
             "vclibpy.components.phase_separator": [
                 "vclibpy.flowsheets.vapor_injection_phase_separator"
+            ],
+            "vclibpy.components.heat_exchangers": [
+                "vclibpy.flowsheets.base"
             ]
         },
         "duplicated_lines": {
@@ -9981,25 +7725,25 @@
         },
         "node_count": {
             "function": 19,
-            "klass": 41,
+            "klass": 40,
             "method": 219,
-            "module": 43
+            "module": 42
         },
         "undocumented": {
             "function": 0,
-            "klass": 1,
+            "klass": 0,
             "method": 8,
             "module": 27
         },
-        "convention": 563,
-        "error": 14,
+        "convention": 441,
+        "error": 2,
         "fatal": 0,
         "info": 21,
-        "refactor": 83,
-        "statement": 2216,
-        "warning": 37,
-        "global_note": 6.601985559566787,
-        "nb_duplicated_lines": 7,
-        "percent_duplicated_lines": 0.10869565217391304
+        "refactor": 76,
+        "statement": 2194,
+        "warning": 43,
+        "global_note": 7.4020054694621695,
+        "nb_duplicated_lines": 0,
+        "percent_duplicated_lines": 0.0
     }
 }

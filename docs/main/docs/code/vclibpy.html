@@ -66,10 +66,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#vclibpy.datamodels.VariableContainer"><code class="docutils literal notranslate"><span class="pre">VariableContainer</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#module-vclibpy.heat_pumps">vclibpy.heat_pumps module</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo"><code class="docutils literal notranslate"><span class="pre">HPLoader_kbr_pwo</span></code></a></li>
-</ul>
-</li>
 </ul>
 </li>
 </ul>
@@ -408,7 +404,7 @@ and not restrict to a certain naming convention.</p>
 <p>While the inputs are pre-defined, you may add further ones
 using the <cite>set</cite> method.</p>
 <dl class="simple">
-<dt>Attributes:</dt><dd><p>n (float): Relative compressor speed between 0 and 1.
+<dt>Args:</dt><dd><p>n (float): Relative compressor speed between 0 and 1.
 T_eva_in (float): Secondary side evaporator inlet temperature.
 T_con_in (float): Secondary side condenser inlet temperature.
 m_flow_eva (float): Secondary side evaporator mass flow rate.
@@ -426,7 +422,7 @@ T_ambient (float): Ambient temperature of the machine.</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Class for a variable used in analysis.</p>
 <dl class="simple">
-<dt>Attributes:</dt><dd><p>name (str): The name of the variable.
+<dt>Args:</dt><dd><p>name (str): The name of the variable.
 value (float): The numerical value of the variable.
 unit (str): The unit of measurement for the variable (optional).
 description (str): A description of the variable (optional).</p>
@@ -535,101 +531,6 @@ default (Any): Default value to return if the variable is not found.</p>
 value (float): The numerical value of the variable.
 unit (str): The unit of measurement for the variable (optional).
 description (str): A description of the variable (optional).</p>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-</section>
-<section id="module-vclibpy.heat_pumps">
-<span id="vclibpy-heat-pumps-module"></span><h2>vclibpy.heat_pumps module<a class="headerlink" href="#module-vclibpy.heat_pumps" title="Permalink to this heading"></a></h2>
-<p>Module to load specific real existing heat
-pumps based on their parameter configuration</p>
-<dl class="py class">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.heat_pumps.</span></span><span class="sig-name descname"><span class="pre">HPLoader_kbr_pwo</span></span><a class="reference internal" href="../_modules/vclibpy/heat_pumps.html#HPLoader_kbr_pwo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.HP_type">
-<span class="sig-name descname"><span class="pre">HP_type</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'AW'</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.HP_type" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.N_max">
-<span class="sig-name descname"><span class="pre">N_max</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">120</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.N_max" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.T_sc">
-<span class="sig-name descname"><span class="pre">T_sc</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">8.3</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.T_sc" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.T_sh">
-<span class="sig-name descname"><span class="pre">T_sh</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">11.1</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.T_sh" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.V_h">
-<span class="sig-name descname"><span class="pre">V_h</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">2.09e-05</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.V_h" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.assumed_eta_mech">
-<span class="sig-name descname"><span class="pre">assumed_eta_mech</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">0.98</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.assumed_eta_mech" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.capacity_definition">
-<span class="sig-name descname"><span class="pre">capacity_definition</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'cooling'</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.capacity_definition" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.com_type">
-<span class="sig-name descname"><span class="pre">com_type</span></span><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.com_type" title="Permalink to this definition"></a></dt>
-<dd><p>alias of <a class="reference internal" href="vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.TenCoefficientCompressor" title="vclibpy.components.compressors.ten_coefficient.TenCoefficientCompressor"><code class="xref py py-class docutils literal notranslate"><span class="pre">TenCoefficientCompressor</span></code></a></p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.con_paras">
-<span class="sig-name descname"><span class="pre">con_paras</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'A':</span> <span class="pre">6.1,</span> <span class="pre">'A_cross':</span> <span class="pre">5,</span> <span class="pre">'char_len_pri':</span> <span class="pre">0,</span> <span class="pre">'char_len_sec':</span> <span class="pre">0,</span> <span class="pre">'const_alpha_pri':</span> <span class="pre">50000,</span> <span class="pre">'const_alpha_sec':</span> <span class="pre">50000,</span> <span class="pre">'secondary_medium':</span> <span class="pre">'water',</span> <span class="pre">'wall':</span> <span class="pre">{'lambda':</span> <span class="pre">236,</span> <span class="pre">'thickness':</span> <span class="pre">0.0021}}</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.con_paras" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.con_type">
-<span class="sig-name descname"><span class="pre">con_type</span></span><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.con_type" title="Permalink to this definition"></a></dt>
-<dd><p>alias of <a class="reference internal" href="vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger" title="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeatExchanger</span></code></a></p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.datasheet">
-<span class="sig-name descname"><span class="pre">datasheet</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">PosixPath('/builds/EBC/EBC_all/github_ci/vclibpy/vclibpy/data/coefficients_2.xlsx')</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.datasheet" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.eva_paras">
-<span class="sig-name descname"><span class="pre">eva_paras</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'A':</span> <span class="pre">11.7,</span> <span class="pre">'A_cross':</span> <span class="pre">5,</span> <span class="pre">'char_len_pri':</span> <span class="pre">0,</span> <span class="pre">'char_len_sec':</span> <span class="pre">0,</span> <span class="pre">'const_alpha_pri':</span> <span class="pre">50000,</span> <span class="pre">'const_alpha_sec':</span> <span class="pre">5000,</span> <span class="pre">'secondary_medium':</span> <span class="pre">'air',</span> <span class="pre">'wall':</span> <span class="pre">{'lambda':</span> <span class="pre">236,</span> <span class="pre">'thickness':</span> <span class="pre">0.00018}}</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.eva_paras" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.eva_type">
-<span class="sig-name descname"><span class="pre">eva_type</span></span><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.eva_type" title="Permalink to this definition"></a></dt>
-<dd><p>alias of <a class="reference internal" href="vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger" title="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeatExchanger</span></code></a></p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.heat_pumps.HPLoader_kbr_pwo.nominal_values">
-<span class="sig-name descname"><span class="pre">nominal_values</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'Propane_StandardFlowsheet':</span> <span class="pre">{'dT_con_subcooling':</span> <span class="pre">8,</span> <span class="pre">'dT_eva_superheating':</span> <span class="pre">6.1,</span> <span class="pre">'delta_T_con':</span> <span class="pre">8,</span> <span class="pre">'delta_T_eva':</span> <span class="pre">5,</span> <span class="pre">'m_flow_con':</span> <span class="pre">0.3337946666666667,</span> <span class="pre">'m_flow_eva':</span> <span class="pre">0.35894444444444445}}</span></em><a class="headerlink" href="#vclibpy.heat_pumps.HPLoader_kbr_pwo.nominal_values" title="Permalink to this definition"></a></dt>
-<dd><dl class="simple">
-<dt>“Propane_StandardFlowsheet”: {</dt><dd><p>‘Q_con’: 4407.787307356876,
-‘COP’: 2.1397221180625285,
-‘m_flow_con’: 0.13170689122288656,
-‘m_flow_eva’: 0.4698166163310231,
-‘delta_T_con’: 8,
-‘delta_T_eva’: 5,
-‘dT_eva_superheating’: 5,
-‘dT_con_subcooling’: 0}</p>
 </dd>
 </dl>
 </dd></dl>

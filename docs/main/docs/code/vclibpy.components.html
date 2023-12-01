@@ -60,7 +60,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="vclibpy.html#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="vclibpy.html#module-vclibpy.datamodels">vclibpy.datamodels module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="vclibpy.html#module-vclibpy.heat_pumps">vclibpy.heat_pumps module</a></li>
 </ul>
 </li>
 </ul>
@@ -273,11 +272,6 @@
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
 <p>Abstract base class for defining interfaces of components in the vapor compression cycle.</p>
 <dl class="simple">
-<dt>Attributes:</dt><dd><p>_state_inlet (ThermodynamicState): Inlet state of the component.
-_state_outlet (ThermodynamicState): Outlet state of the component.
-_m_flow (float): Mass flow rate through the component.
-_med_prop (MedProp): Property wrapper for the working fluid.</p>
-</dd>
 <dt>Methods:</dt><dd><dl class="simple">
 <dt>start_secondary_med_prop():</dt><dd><p>To use multiprocessing, MedProp can’t start in the main thread, as the object can’t be pickled.
 This function starts possible secondary MedProp classes, for instance in heat exchangers.
@@ -368,11 +362,6 @@ this function.</p>
 <em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.components.phase_separator.</span></span><span class="sig-name descname"><span class="pre">PhaseSeparator</span></span><a class="reference internal" href="../_modules/vclibpy/components/phase_separator.html#PhaseSeparator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.phase_separator.PhaseSeparator" title="Permalink to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#vclibpy.components.component.BaseComponent" title="vclibpy.components.component.BaseComponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseComponent</span></code></a></p>
 <p>A simple phase separator model.</p>
-<dl class="simple">
-<dt>Attributes:</dt><dd><p>_state_outlet_liquid (ThermodynamicState): Outlet state for the liquid phase.
-_state_outlet_vapor (ThermodynamicState): Outlet state for the vapor phase.</p>
-</dd>
-</dl>
 <dl class="py property">
 <dt class="sig sig-object py" id="vclibpy.components.phase_separator.PhaseSeparator.state_inlet">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state_inlet</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="vclibpy.media.html#vclibpy.media.states.ThermodynamicState" title="vclibpy.media.states.ThermodynamicState"><span class="pre">ThermodynamicState</span></a></em><a class="headerlink" href="#vclibpy.components.phase_separator.PhaseSeparator.state_inlet" title="Permalink to this definition"></a></dt>

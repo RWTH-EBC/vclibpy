@@ -83,14 +83,13 @@
 
 <span class="kn">from</span> <span class="nn">vclibpy.components.component</span> <span class="kn">import</span> <span class="n">BaseComponent</span>
 <span class="kn">from</span> <span class="nn">vclibpy.datamodels</span> <span class="kn">import</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">FlowsheetState</span>
-<span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">ThermodynamicState</span>
 
 
 <div class="viewcode-block" id="Compressor"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor">[docs]</a><span class="k">class</span> <span class="nc">Compressor</span><span class="p">(</span><span class="n">BaseComponent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base compressor class to be extended for specific compressor models.</span>
 
-<span class="sd">    Attributes:</span>
+<span class="sd">    Args:</span>
 <span class="sd">        N_max (float): Maximal rotations per second of the compressor.</span>
 <span class="sd">        V_h (float): Volume of the compressor in m^3.</span>
 

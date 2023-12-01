@@ -85,12 +85,6 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Abstract base class for defining interfaces of components in the vapor compression cycle.</span>
 
-<span class="sd">    Attributes:</span>
-<span class="sd">        _state_inlet (ThermodynamicState): Inlet state of the component.</span>
-<span class="sd">        _state_outlet (ThermodynamicState): Outlet state of the component.</span>
-<span class="sd">        _m_flow (float): Mass flow rate through the component.</span>
-<span class="sd">        _med_prop (MedProp): Property wrapper for the working fluid.</span>
-
 <span class="sd">    Methods:</span>
 <span class="sd">        start_secondary_med_prop():</span>
 <span class="sd">            To use multiprocessing, MedProp can&#39;t start in the main thread, as the object can&#39;t be pickled.</span>

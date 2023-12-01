@@ -298,7 +298,7 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            float: Isentropic efficiency.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">state_inlet_datasheet</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">p_el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span>
+        <span class="n">T_con</span><span class="p">,</span> <span class="n">state_inlet_datasheet</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">p_el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span>
             <span class="n">p_2</span><span class="o">=</span><span class="n">p_outlet</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span>
         <span class="p">)</span>
 
@@ -331,7 +331,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capacity_definition</span> <span class="o">==</span> <span class="s2">&quot;cooling&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assumed_eta_mech</span>
         <span class="c1"># Else heating</span>
-        <span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">state_inlet_datasheet</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">p_el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span>
+        <span class="n">T_con</span><span class="p">,</span> <span class="n">state_inlet_datasheet</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">p_el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span>
             <span class="n">p_2</span><span class="o">=</span><span class="n">p_outlet</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span>
         <span class="p">)</span>
 
@@ -350,7 +350,7 @@
 <span class="sd">            inputs (Inputs): Input parameters.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            Tuple[float, float, State, float, float, float]: Intermediate values.</span>
+<span class="sd">            Tuple[float, State, float, float, float]: Intermediate values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">T_eva</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="mf">273.15</span>  <span class="c1"># [°C]</span>
         <span class="n">T_con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="mf">273.15</span>  <span class="c1"># [°C]</span>
@@ -360,7 +360,7 @@
         <span class="n">m_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="s2">&quot;m_flow&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3600</span>  <span class="c1"># [kg/s]</span>
         <span class="n">capacity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">)</span>  <span class="c1"># [W]</span>
         <span class="n">p_el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="s2">&quot;input_power&quot;</span><span class="p">)</span>  <span class="c1"># [W]</span>
-        <span class="k">return</span> <span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">state_inlet_datasheet</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">p_el</span></div>
+        <span class="k">return</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">state_inlet_datasheet</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">p_el</span></div>
 
 
 <div class="viewcode-block" id="DataSheetCompressor"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.DataSheetCompressor">[docs]</a><span class="k">class</span> <span class="nc">DataSheetCompressor</span><span class="p">(</span><span class="n">BaseTenCoefficientCompressor</span><span class="p">):</span>

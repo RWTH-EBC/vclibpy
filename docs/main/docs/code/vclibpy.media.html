@@ -60,7 +60,6 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="vclibpy.html#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="vclibpy.html#module-vclibpy.datamodels">vclibpy.datamodels module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="vclibpy.html#module-vclibpy.heat_pumps">vclibpy.heat_pumps module</a></li>
 </ul>
 </li>
 </ul>
@@ -947,7 +946,7 @@ Default behaviour does nothing.</p>
 <dl class="simple">
 <dt>Notes:</dt><dd><p>Does not necessarily need to have all state variables defined!</p>
 </dd>
-<dt>Attributes:</dt><dd><p>p (float): Pressure at the state in Pa.
+<dt>Args:</dt><dd><p>p (float): Pressure at the state in Pa.
 T (float): Temperature at the state in K.
 u (float): Inner energy at the state in J/kg.
 h (float): Enthalpy at the state in J/kg.
@@ -975,7 +974,7 @@ get_pretty_print: Formats the state with names, units, and descriptions.</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Represents transport properties at a specific thermodynamic state.</p>
 <dl class="simple">
-<dt>Attributes:</dt><dd><p>lam (float): Thermal conductivity in W/(m*K).
+<dt>Args:</dt><dd><p>lam (float): Thermal conductivity in W/(m*K).
 dyn_vis (float): Dynamic viscosity in Pa*s.
 kin_vis (float): Kinematic viscosity in m^2/s.
 Pr (float): Prandtl number.
@@ -1907,7 +1906,7 @@ Default behaviour does nothing.</p>
 <dl class="simple">
 <dt>Notes:</dt><dd><p>Does not necessarily need to have all state variables defined!</p>
 </dd>
-<dt>Attributes:</dt><dd><p>p (float): Pressure at the state in Pa.
+<dt>Args:</dt><dd><p>p (float): Pressure at the state in Pa.
 T (float): Temperature at the state in K.
 u (float): Inner energy at the state in J/kg.
 h (float): Enthalpy at the state in J/kg.
@@ -1935,7 +1934,7 @@ get_pretty_print: Formats the state with names, units, and descriptions.</p>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
 <p>Represents transport properties at a specific thermodynamic state.</p>
 <dl class="simple">
-<dt>Attributes:</dt><dd><p>lam (float): Thermal conductivity in W/(m*K).
+<dt>Args:</dt><dd><p>lam (float): Thermal conductivity in W/(m*K).
 dyn_vis (float): Dynamic viscosity in Pa*s.
 kin_vis (float): Kinematic viscosity in m^2/s.
 Pr (float): Prandtl number.

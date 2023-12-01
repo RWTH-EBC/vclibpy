@@ -27,11 +27,3 @@ vclibpy.datamodels module
    :members:
    :undoc-members:
    :show-inheritance:
-
-vclibpy.heat\_pumps module
---------------------------
-
-.. automodule:: vclibpy.heat_pumps
-   :members:
-   :undoc-members:
-   :show-inheritance:
