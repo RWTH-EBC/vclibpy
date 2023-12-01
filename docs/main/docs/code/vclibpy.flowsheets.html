@@ -429,17 +429,17 @@ or heat exchanger.</p>
 <dd><p>Bases: <a class="reference internal" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection" title="vclibpy.flowsheets.vapor_injection.BaseVaporInjection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseVaporInjection</span></code></a></p>
 <p>Cycle with vapor injection using an economizer.</p>
 <p>For this cycle, we have 9 relevant states:</p>
-<ol class="arabic simple">
-<li><p>Before compressor, after evaporator</p></li>
-<li><p>Before condenser, after compressor</p></li>
-<li><p>Before ihx, after condenser</p></li>
-</ol>
-<p>4. Before Evaporator, after ihx
-5_ihx. Before ihx, after condenser and EV
-6_ihx. Before Mixing with 1_VI, after ihx
-7_ihx. Before second EV, after ihx
-1_VI. Before Mixing with 6_ihx, After first stage
-1_VI_mixed. Before second stage of compressor, after mixing with 6_ihx</p>
+<ul class="simple">
+<li><p>1: Before compressor, after evaporator</p></li>
+<li><p>2: Before condenser, after compressor</p></li>
+<li><p>3: Before ihx, after condenser</p></li>
+<li><p>4: Before Evaporator, after ihx</p></li>
+<li><p>5_ihx: Before ihx, after condenser and EV</p></li>
+<li><p>6_ihx: Before Mixing with 1_VI, after ihx</p></li>
+<li><p>7_ihx: Before second EV, after ihx</p></li>
+<li><p>1_VI: Before Mixing with 6_ihx, After first stage</p></li>
+<li><p>1_VI_mixed. Before second stage of compressor, after mixing with 6_ihx</p></li>
+</ul>
 <section id="additional-assumptions">
 <h3>Additional Assumptions:<a class="headerlink" href="#additional-assumptions" title="Permalink to this heading"></a></h3>
 <ul class="simple">
@@ -503,17 +503,17 @@ or heat exchanger.</p>
 <dd><p>Bases: <a class="reference internal" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection" title="vclibpy.flowsheets.vapor_injection.BaseVaporInjection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseVaporInjection</span></code></a></p>
 <p>Cycle with vapor injection using an adiabatic ideal phase seperator.</p>
 <p>For this cycle, we have 9 relevant states:</p>
-<ol class="arabic simple">
-<li><p>Before compressor, after evaporator</p></li>
-<li><p>Before condenser, after compressor</p></li>
-<li><p>Before PS, after condenser</p></li>
-</ol>
-<p>4. Before Evaporator, after PS
-5_vips. Before PS, after first EV
-6_vips. Before Mixing with 1_VI, after PS
-7_vips. Before second EV, after PS
-1_VI. Before Mixing with 6_vips, After first stage
-1_VI_mixed. Before second stage of compressor, after mixing with 6_vips</p>
+<ul class="simple">
+<li><p>1: Before compressor, after evaporator</p></li>
+<li><p>2: Before condenser, after compressor</p></li>
+<li><p>3: Before PS, after condenser</p></li>
+<li><p>4: Before Evaporator, after PS</p></li>
+<li><p>5_vips: Before PS, after first EV</p></li>
+<li><p>6_vips: Before Mixing with 1_VI, after PS</p></li>
+<li><p>7_vips: Before second EV, after PS</p></li>
+<li><p>1_VI: Before Mixing with 6_vips, After first stage</p></li>
+<li><p>1_VI_mixed. Before second stage of compressor, after mixing with 6_vips</p></li>
+</ul>
 <section id="id2">
 <h3>Additional Assumptions:<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
 <ul class="simple">
