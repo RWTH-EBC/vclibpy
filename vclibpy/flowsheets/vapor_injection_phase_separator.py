@@ -12,15 +12,16 @@ class VaporInjectionPhaseSeparator(BaseVaporInjection):
     Cycle with vapor injection using an adiabatic ideal phase seperator.
 
     For this cycle, we have 9 relevant states:
-    1: Before compressor, after evaporator
-    2: Before condenser, after compressor
-    3: Before PS, after condenser
-    4: Before Evaporator, after PS
-    5_vips: Before PS, after first EV
-    6_vips: Before Mixing with 1_VI, after PS
-    7_vips: Before second EV, after PS
-    1_VI: Before Mixing with 6_vips, After first stage
-    1_VI_mixed: Before second stage of compressor, after mixing with 6_vips
+
+    1. Before compressor, after evaporator
+    2. Before condenser, after compressor
+    3. Before PS, after condenser
+    4. Before Evaporator, after PS
+    5_vips. Before PS, after first EV
+    6_vips. Before Mixing with 1_VI, after PS
+    7_vips. Before second EV, after PS
+    1_VI. Before Mixing with 6_vips, After first stage
+    1_VI_mixed. Before second stage of compressor, after mixing with 6_vips
 
     Additional Assumptions:
     -----------------------

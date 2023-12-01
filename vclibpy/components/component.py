@@ -6,12 +6,6 @@ class BaseComponent(ABC):
     """
     Abstract base class for defining interfaces of components in the vapor compression cycle.
 
-    Attributes:
-        _state_inlet (ThermodynamicState): Inlet state of the component.
-        _state_outlet (ThermodynamicState): Outlet state of the component.
-        _m_flow (float): Mass flow rate through the component.
-        _med_prop (MedProp): Property wrapper for the working fluid.
-
     Methods:
         start_secondary_med_prop():
             To use multiprocessing, MedProp can't start in the main thread, as the object can't be pickled.

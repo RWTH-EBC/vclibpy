@@ -9,15 +9,16 @@ class VaporInjectionEconomizer(BaseVaporInjection):
     Cycle with vapor injection using an economizer.
 
     For this cycle, we have 9 relevant states:
-    1: Before compressor, after evaporator
-    2: Before condenser, after compressor
-    3: Before ihx, after condenser
-    4: Before Evaporator, after ihx
-    5_ihx: Before ihx, after condenser and EV
-    6_ihx: Before Mixing with 1_VI, after ihx
-    7_ihx: Before second EV, after ihx
-    1_VI: Before Mixing with 6_ihx, After first stage
-    1_VI_mixed: Before second stage of compressor, after mixing with 6_ihx
+
+    1. Before compressor, after evaporator
+    2. Before condenser, after compressor
+    3. Before ihx, after condenser
+    4. Before Evaporator, after ihx
+    5_ihx. Before ihx, after condenser and EV
+    6_ihx. Before Mixing with 1_VI, after ihx
+    7_ihx. Before second EV, after ihx
+    1_VI. Before Mixing with 6_ihx, After first stage
+    1_VI_mixed. Before second stage of compressor, after mixing with 6_ihx
 
     Additional Assumptions:
     -----------------------

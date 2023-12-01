@@ -65,7 +65,9 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
         # Calculate low compressor stage to already have access to the mass flow rates.
         self.set_evaporator_outlet_based_on_superheating(p_eva=p_1, inputs=inputs)
         self.low_pressure_compressor.state_inlet = self.evaporator.state_outlet
-        self.low_pressure_compressor.calc_state_outlet(p_outlet=p_vapor_injection, inputs=inputs, fs_state=fs_state)
+        self.low_pressure_compressor.calc_state_outlet(
+            p_outlet=p_vapor_injection, inputs=inputs, fs_state=fs_state
+        )
         m_flow_low = self.low_pressure_compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
         self.evaporator.m_flow = self.low_pressure_compressor.m_flow
 
@@ -83,12 +85,18 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
                 (1-x_vapor_injection) * self.low_pressure_compressor.state_outlet.h +
                 x_vapor_injection * h_vapor_injection
         )
-        self.high_pressure_compressor.state_inlet = self.med_prop.calc_state("PH", p_vapor_injection, h_1_VI_mixed)
-        self.high_pressure_compressor.calc_state_outlet(p_outlet=p_2, inputs=inputs, fs_state=fs_state)
+        self.high_pressure_compressor.state_inlet = self.med_prop.calc_state(
+            "PH", p_vapor_injection, h_1_VI_mixed
+        )
+        self.high_pressure_compressor.calc_state_outlet(
+            p_outlet=p_2, inputs=inputs, fs_state=fs_state
+        )
 
         # Check m_flow of both compressor stages to check if
         # there would be an asymmetry of how much refrigerant is transported
-        m_flow_high = self.high_pressure_compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
+        m_flow_high = self.high_pressure_compressor.calc_m_flow(
+            inputs=inputs, fs_state=fs_state
+        )
         m_flow_low_should = m_flow_high * (1-x_vapor_injection)
         percent_deviation = (m_flow_low - m_flow_low_should) / m_flow_low_should * 100
         logger.debug("Deviation of mass flow rates is %s percent", percent_deviation)
@@ -113,8 +121,14 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
             name="T_4", value=self.evaporator.state_inlet.T,
             unit="K", description="Refrigerant temperature at evaporator inlet"
         )
-        fs_state.set(name="p_con", value=p_2, unit="Pa", description="Condensation pressure")
-        fs_state.set(name="p_eva", value=p_1, unit="Pa", description="Evaporation pressure")
+        fs_state.set(
+            name="p_con", value=p_2,
+            unit="Pa", description="Condensation pressure"
+        )
+        fs_state.set(
+            name="p_eva", value=p_1,
+            unit="Pa", description="Evaporation pressure"
+        )
 
     def calc_injection(self) -> (float, float, ThermodynamicState):
         """
@@ -131,8 +145,12 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
         raise NotImplementedError
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
-        P_el_low = self.low_pressure_compressor.calc_electrical_power(inputs=inputs, fs_state=fs_state)
-        P_el_high = self.high_pressure_compressor.calc_electrical_power(inputs=inputs, fs_state=fs_state)
+        P_el_low = self.low_pressure_compressor.calc_electrical_power(
+            inputs=inputs, fs_state=fs_state
+        )
+        P_el_high = self.high_pressure_compressor.calc_electrical_power(
+            inputs=inputs, fs_state=fs_state
+        )
         fs_state.set(
             name="P_el_low",
             value=P_el_low,

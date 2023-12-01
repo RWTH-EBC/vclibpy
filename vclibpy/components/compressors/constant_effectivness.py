@@ -16,7 +16,7 @@ class ConstantEffectivenessCompressor(Compressor):
         eta_mech (float): Constant mechanical efficiency of the compressor.
         lambda_h (float): Constant volumetric efficiency.
 
-    Attributes:
+    Args:
         N_max (float): Maximal rotations per second of the compressor.
         V_h (float): Volume of the compressor in m^3.
         eta_isentropic (float): Constant isentropic efficiency of the compressor.

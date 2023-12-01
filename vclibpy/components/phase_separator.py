@@ -9,10 +9,6 @@ from vclibpy.components.component import BaseComponent
 class PhaseSeparator(BaseComponent):
     """
     A simple phase separator model.
-
-    Attributes:
-        _state_outlet_liquid (ThermodynamicState): Outlet state for the liquid phase.
-        _state_outlet_vapor (ThermodynamicState): Outlet state for the vapor phase.
     """
 
     def __init__(self):

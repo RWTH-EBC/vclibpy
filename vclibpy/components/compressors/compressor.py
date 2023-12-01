@@ -4,14 +4,13 @@ Module for different compressor models
 
 from vclibpy.components.component import BaseComponent
 from vclibpy.datamodels import Inputs, FlowsheetState
-from vclibpy.media import ThermodynamicState
 
 
 class Compressor(BaseComponent):
     """
     Base compressor class to be extended for specific compressor models.
 
-    Attributes:
+    Args:
         N_max (float): Maximal rotations per second of the compressor.
         V_h (float): Volume of the compressor in m^3.
 

@@ -12,7 +12,7 @@ class Variable:
     """
     Class for a variable used in analysis.
 
-    Attributes:
+    Args:
         name (str): The name of the variable.
         value (float): The numerical value of the variable.
         unit (str): The unit of measurement for the variable (optional).
@@ -152,7 +152,7 @@ class Inputs(VariableContainer):
     While the inputs are pre-defined, you may add further ones
     using the `set` method.
 
-    Attributes:
+    Args:
         n (float): Relative compressor speed between 0 and 1.
         T_eva_in (float): Secondary side evaporator inlet temperature.
         T_con_in (float): Secondary side condenser inlet temperature.

@@ -17,7 +17,7 @@ class ThermodynamicState:
     Notes:
         Does not necessarily need to have all state variables defined!
 
-    Attributes:
+    Args:
         p (float): Pressure at the state in Pa.
         T (float): Temperature at the state in K.
         u (float): Inner energy at the state in J/kg.
@@ -103,7 +103,7 @@ class TransportProperties:
     """
     Represents transport properties at a specific thermodynamic state.
 
-    Attributes:
+    Args:
         lam (float): Thermal conductivity in W/(m*K).
         dyn_vis (float): Dynamic viscosity in Pa*s.
         kin_vis (float): Kinematic viscosity in m^2/s.

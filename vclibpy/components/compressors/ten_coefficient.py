@@ -219,7 +219,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         Returns:
             float: Isentropic efficiency.
         """
-        T_eva, T_con, state_inlet_datasheet, m_flow, capacity, p_el = self._calculate_values(
+        T_con, state_inlet_datasheet, m_flow, capacity, p_el = self._calculate_values(
             p_2=p_outlet, inputs=inputs
         )
 
@@ -252,7 +252,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         if self._capacity_definition == "cooling":
             return self.assumed_eta_mech
         # Else heating
-        T_eva, T_con, state_inlet_datasheet, m_flow, capacity, p_el = self._calculate_values(
+        T_con, state_inlet_datasheet, m_flow, capacity, p_el = self._calculate_values(
             p_2=p_outlet, inputs=inputs
         )
 
@@ -271,7 +271,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
             inputs (Inputs): Input parameters.
 
         Returns:
-            Tuple[float, float, State, float, float, float]: Intermediate values.
+            Tuple[float, State, float, float, float]: Intermediate values.
         """
         T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15  # [°C]
         T_con = self.med_prop.calc_state("PQ", p_2, 0).T - 273.15  # [°C]
@@ -281,7 +281,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600  # [kg/s]
         capacity = self.get_parameter(T_eva, T_con, inputs.n, "capacity")  # [W]
         p_el = self.get_parameter(T_eva, T_con, inputs.n, "input_power")  # [W]
-        return T_eva, T_con, state_inlet_datasheet, m_flow, capacity, p_el
+        return T_con, state_inlet_datasheet, m_flow, capacity, p_el
 
 
 class DataSheetCompressor(BaseTenCoefficientCompressor):

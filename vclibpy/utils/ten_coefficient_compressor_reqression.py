@@ -10,7 +10,8 @@ try:
     from sklearn.preprocessing import PolynomialFeatures
     from xlsxwriter.workbook import Workbook
 except ImportError as err:
-    raise ImportError("You have to install xlsxwriter and sklearn to use this regression tool")
+    raise ImportError("You have to install xlsxwriter and "
+                      "sklearn to use this regression tool")
 
 
 def create_regression_data(
@@ -72,28 +73,33 @@ def create_regression_data(
         for _n in n:
             tuples_for_cols.append((keywords[_variable], compressor.get_n_absolute(_n)))
     # tuples_for_cols:
-    #                   eta_s   eta_s   eta_s   lambda_h    lambda_h    lambda_h    eta_mech    ...
-    #               n   30      60      90      30          60          90          30          ...
+    #     eta_s   eta_s   eta_s   lambda_h    lambda_h    lambda_h    eta_mech    ...
+    # n   30      60      90      30          60          90          30          ...
     cols = pd.MultiIndex.from_tuples(tuples_for_cols)
     final_df = pd.DataFrame(
         data={cols[0]: ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10"]},
         columns=cols
     )
-    # final_df: column names are tuples (tuples_for_cols). First column is filled with P1, P2, ...
+    # final_df: column names are tuples (tuples_for_cols).
+    # First column is filled with P1, P2, ...
 
-    for m, _variable in enumerate(variables):  # for-loop for multiple types(eta_s, eta_mech, etc)
+    # for-loop for multiple types(eta_s, eta_mech, etc)
+    for m, _variable in enumerate(variables):
         for k, _n in enumerate(n):  # for-loop for multiple rotation speeds
             T_eva_list = []
             T_con_list = []
             result_list = []
-            for i in range(len(T_eva)):  # for-loop for multiple evaporating temperatures
-                for j in range(len(T_con)):  # for-loop for multiple condensing temperatures
+            # for-loop for multiple evaporating temperatures
+            for i in range(len(T_eva)):
+                # for-loop for multiple condensing temperatures
+                for j in range(len(T_con)):
                     if T_eva[i] < T_con[j]:
                         p1 = med_prop.calc_state("TQ", T_eva[i], 1).p
                         state_1 = med_prop.calc_state("PT", p1, (T_eva[i] + T_sh))
                         compressor.state_inlet = state_1
                         p2 = med_prop.calc_state("TQ", T_con[j], 1).p
-                        # The enthalpy and entropy of the outlet state do not matter, only the pressure:
+                        # The enthalpy and entropy of the outlet
+                        # state do not matter, only the pressure:
                         # TODO: Enable calculation of get_lambda_h etc. with p2 only
                         state_2 = med_prop.calc_state("PS", p2, state_1.s)
                         compressor.state_outlet = state_2
@@ -102,13 +108,19 @@ def create_regression_data(
                         inputs = Inputs(n=_n)
 
                         if _variable == "eta_s":
-                            result_list.append(compressor.get_eta_isentropic(p_outlet=p2, inputs=inputs))
+                            result_list.append(compressor.get_eta_isentropic(
+                                p_outlet=p2, inputs=inputs)
+                            )
                         elif _variable == "lambda_h":
                             result_list.append(compressor.get_lambda_h(inputs=inputs))
                         elif _variable == "eta_mech":
                             result_list.append(compressor.get_eta_mech(inputs=inputs))
 
-            df = pd.DataFrame(data={"T_eva": T_eva_list, "T_con": T_con_list, _variable: result_list})
+            df = pd.DataFrame(
+                data={"T_eva": T_eva_list,
+                      "T_con": T_con_list,
+                      _variable: result_list}
+            )
 
             final_df[cols[m * len(n) + k + 1]] = create_regression_parameters(df, _variable)
 
@@ -162,11 +174,8 @@ def create_regression_parameters(df: pd.DataFrame, variable: str):
     # Execute the multidimensional linear regression
     model = LinearRegression().fit(X, z)
 
-    output = [model.intercept_, model.coef_[0], model.coef_[1], model.coef_[2], model.coef_[3], model.coef_[4],
+    output = [model.intercept_, model.coef_[0], model.coef_[1], model.coef_[2],
+              model.coef_[3], model.coef_[4],
               model.coef_[5], model.coef_[6], model.coef_[7], model.coef_[8]]
     # output = P1-P10
     return output
-
-
-if __name__ == "__main__":
-    create_regression_data(variables=["eta_s", "lambda_h", "eta_mech"])

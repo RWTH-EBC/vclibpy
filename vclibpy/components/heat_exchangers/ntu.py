@@ -76,17 +76,16 @@ class BasicNTU(HeatExchanger, abc.ABC):
         Returns:
             float: Effectiveness (eps) of the heat exchanger.
         """
-        if R == 0 or R == 1:
+        if R in (0, 1):
             return NTU / (NTU + 1)
         if self.flow_type == "counter":
             return (1 - np.exp(-NTU * (1 - R))) / (1 - R * np.exp(-NTU * (1 - R)))
-        elif self.flow_type == "cross":
+        if self.flow_type == "cross":
             eta = NTU ** -0.22
             return 1 - np.exp((np.exp(- NTU * R * eta) - 1) / (R * eta))
-        elif self.flow_type == "parallel":
+        if self.flow_type == "parallel":
             return (1 - np.exp(-NTU * (1 + R))) / (1 + R)
-        else:
-            raise TypeError(f"Flow type {self.flow_type} not supported")
+        raise TypeError(f"Flow type {self.flow_type} not supported")
 
     def calc_R(self) -> float:
         """
@@ -98,8 +97,7 @@ class BasicNTU(HeatExchanger, abc.ABC):
         m_flow_pri_cp = self.m_flow * self._primary_cp
         if m_flow_pri_cp > self.m_flow_secondary_cp:
             return self.m_flow_secondary_cp / m_flow_pri_cp
-        else:
-            return m_flow_pri_cp / self.m_flow_secondary_cp
+        return m_flow_pri_cp / self.m_flow_secondary_cp
 
     def calc_k(self, alpha_pri: float, alpha_sec: float) -> float:
         """
