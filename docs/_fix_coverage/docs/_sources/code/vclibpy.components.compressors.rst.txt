@@ -1,0 +1,42 @@
+vclibpy.components.compressors package
+======================================
+
+.. automodule:: vclibpy.components.compressors
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+vclibpy.components.compressors.compressor module
+------------------------------------------------
+
+.. automodule:: vclibpy.components.compressors.compressor
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.components.compressors.constant\_effectivness module
+------------------------------------------------------------
+
+.. automodule:: vclibpy.components.compressors.constant_effectivness
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.components.compressors.rotary module
+--------------------------------------------
+
+.. automodule:: vclibpy.components.compressors.rotary
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.components.compressors.ten\_coefficient module
+------------------------------------------------------
+
+.. automodule:: vclibpy.components.compressors.ten_coefficient
+   :members:
+   :undoc-members:
+   :show-inheritance:
