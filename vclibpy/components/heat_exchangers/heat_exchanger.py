@@ -34,9 +34,6 @@ class HeatExchanger(BaseComponent, abc.ABC):
             A: float,
             wall_heat_transfer: HeatTransfer,
             secondary_heat_transfer: HeatTransfer,
-            gas_heat_transfer: HeatTransfer,
-            liquid_heat_transfer: HeatTransfer,
-            two_phase_heat_transfer: TwoPhaseHeatTransfer,
             secondary_medium: str
     ):
         super().__init__()
@@ -45,9 +42,6 @@ class HeatExchanger(BaseComponent, abc.ABC):
 
         self._wall_heat_transfer = wall_heat_transfer
         self._secondary_heat_transfer = secondary_heat_transfer
-        self._gas_heat_transfer = gas_heat_transfer
-        self._liquid_heat_transfer = liquid_heat_transfer
-        self._two_phase_heat_transfer = two_phase_heat_transfer
 
         self.med_prop_sec = None  # Later start in start_secondary_med_prop
         self._m_flow_secondary = None
@@ -108,16 +102,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
         Returns:
             float: The two-phase heat transfer coefficient.
         """
-        return self._two_phase_heat_transfer.calc(
-            state_q0=state_q0,
-            state_q1=state_q1,
-            inputs=inputs,
-            fs_state=fs_state,
-            m_flow=self.m_flow,
-            med_prop=self.med_prop,
-            state_inlet=self.state_inlet,
-            state_outlet=self.state_outlet
-        )
+        raise NotImplementedError
 
     def calc_alpha_liquid(self, transport_properties) -> float:
         """
@@ -129,10 +114,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
         Returns:
             float: The liquid-phase heat transfer coefficient.
         """
-        return self._liquid_heat_transfer.calc(
-            transport_properties=transport_properties,
-            m_flow=self.m_flow
-        )
+        raise NotImplementedError
 
     def calc_alpha_gas(self, transport_properties) -> float:
         """
@@ -144,10 +126,19 @@ class HeatExchanger(BaseComponent, abc.ABC):
         Returns:
             float: The gas-phase heat transfer coefficient.
         """
-        return self._gas_heat_transfer.calc(
-            transport_properties=transport_properties,
-            m_flow=self.m_flow
-        )
+        raise NotImplementedError
+
+    def calc_alpha_primary(self, transport_properties) -> float:
+        """
+        Calculate the primary-medium heat transfer coefficient.
+
+        Args:
+            transport_properties: Transport properties for the secondary medium.
+
+        Returns:
+            float: The secondary-medium heat transfer coefficient.
+        """
+        raise NotImplementedError
 
     def calc_alpha_secondary(self, transport_properties) -> float:
         """

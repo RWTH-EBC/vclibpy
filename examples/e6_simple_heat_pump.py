@@ -18,7 +18,7 @@ def main():
     # Also, note again that the expansion valve model does not influence the results
     # for the current algorithm. But, you could size the expansion valve
     # using vclibpy, including off-design, but this is one for another example.
-    from vclibpy.components.heat_exchangers import moving_boundary_ntu
+    from vclibpy.components.heat_exchangers import moving_boundary_ntu, simple_ntu
     from vclibpy.components.heat_exchangers import heat_transfer
     condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
         A=5,
@@ -31,6 +31,17 @@ def main():
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000)
     )
+
+    condenser = simple_ntu.SimpleNTUCondenser(
+        A=5,
+        secondary_medium="water",
+        flow_type="counter",
+        ratio_outer_to_inner_area=1,
+        primary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
+        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
+        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000)
+    )
+
     evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
         A=15,
         secondary_medium="air",
