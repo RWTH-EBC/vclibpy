@@ -1,5 +1,7 @@
 """Module with functions to test the if examples are
 executable."""
+import importlib
+import sys
 import unittest
 import subprocess
 import pathlib
@@ -12,17 +14,11 @@ class TestExamples(unittest.TestCase):
         self.timeout = 100  # Seconds which the script is allowed to run
 
     def _run_example(self, example, timeout=None):
-        if timeout is None:
-            timeout = self.timeout
         ex_py = pathlib.Path(__file__).absolute().parents[1].joinpath("examples", example)
-        try:
-            subprocess.check_output(['python', ex_py],
-                                    stderr=subprocess.STDOUT,
-                                    timeout=timeout)
-        # except subprocess.TimeoutExpired:
-        #     pass
-        except subprocess.CalledProcessError as proc_err:
-            raise Exception(proc_err.output.decode('utf-8')) from proc_err
+        sys.path.insert(0, str(ex_py.parent))
+        module = importlib.import_module(ex_py.stem)
+        example_main = getattr(module, "main")
+        example_main()
 
     def test_e1_refrigerant_data(self):
         self._run_example(example="e1_refrigerant_data.py")
