@@ -20,7 +20,7 @@ class TurbulentFluidInPipeToWallTransfer(HeatTransfer):
             - Taler2016
             - Domanski1989_sp_smooth
             - Amalfi2016
-            - ScriptWSÜ
+            - ScriptWSÜ. For turbulent regimes, eta_by_eta_w is assumed to be one.
 
             Refer to the paper / documents or the function in this class for more
             info on numbers and assumptions
@@ -82,7 +82,8 @@ class TurbulentFluidInPipeToWallTransfer(HeatTransfer):
         elif self.method == "ScriptWSÜ":
             if Re < 3000 or Re > 1e5:
                 raise ValueError(f"Given Re {Re} is outside of allowed bounds for method {self.method}")
-            return 0.027 * Re ** 0.8 ** Pr ** 0.14
+            eta_by_eta_w = 1
+            return 0.027 * Re ** 0.8 ** Pr ** (1 / 3) * eta_by_eta_w ** 0.14
         elif self.method == "Amalfi2016":
             if Re <= 700:
                 Nu = (0.0295 * Pr - 0.115) * Re ** 0.954
