@@ -52,3 +52,8 @@ Visit our official [Documentation](https://rwth-ebc.github.io/vclibpy/main/docs/
 # Problems?
 Please [raise an issue here](https://github.com/RWTH-EBC/vclibpy/issues/new).
 
+# Acknowledgements
+
+We gratefully acknowledge the financial support by the Federal Ministry for Economic Affairs and Climate Action (BMWK), promotional reference 03EN1022B.
+
+![BMWK_Logo](https://github.com/RWTH-EBC/BESMod/blob/main/BESMod/Resources/Images/BMWK_logo.png)
