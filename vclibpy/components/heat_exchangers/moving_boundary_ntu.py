@@ -274,7 +274,7 @@ class MovingBoundaryNTUEvaporator(MovingBoundaryNTU):
 
         # Note: As Q_eva_ntu has to converge to Q_eva (m_ref*delta_h), we can safely
         # calculate the output temperature.
-        T_mean = inputs.T_eva_in + Q / (self.m_flow_secondary_cp * 2)
+        T_mean = inputs.T_eva_in - Q / (self.m_flow_secondary_cp * 2)
         tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
 

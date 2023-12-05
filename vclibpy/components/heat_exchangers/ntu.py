@@ -81,6 +81,8 @@ class BasicNTU(HeatExchanger, abc.ABC):
         if self.flow_type == "counter":
             return (1 - np.exp(-NTU * (1 - R))) / (1 - R * np.exp(-NTU * (1 - R)))
         if self.flow_type == "cross":
+            if NTU == 0:
+                return 0
             eta = NTU ** -0.22
             return 1 - np.exp((np.exp(- NTU * R * eta) - 1) / (R * eta))
         if self.flow_type == "parallel":
