@@ -16,12 +16,12 @@ class SimpleNTU(BasicNTU, abc.ABC):
 
     See parent classe for arguments.
     """
+
     def __init__(self,
                  flow_type: str,
                  ratio_outer_to_inner_area: float,
                  primary_heat_transfer: HeatTransfer,
                  **kwargs):
-
         super(SimpleNTU, self).__init__(flow_type,
                                         ratio_outer_to_inner_area,
                                         **kwargs)
@@ -43,6 +43,7 @@ class SimpleNTU(BasicNTU, abc.ABC):
             transport_properties=transport_properties,
             m_flow=self.m_flow_secondary
         )
+
 
 class SimpleNTUCondenser(SimpleNTU):
     """
@@ -217,4 +218,3 @@ class SimpleNTUEvaporator(SimpleNTU):
                      description="Area for latent heat exchange in evaporator")
 
         return error, min(dT_min_out, dT_min_in)
-

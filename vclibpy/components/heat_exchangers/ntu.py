@@ -44,7 +44,7 @@ class BasicNTU(HeatExchanger, abc.ABC):
                 The calculation follows the code in the function `calc_k`.
             **kwargs: Additional keyword arguments passed to the parent class.
         """
-        super().__init__(**kwargs)
+        super(BasicNTU, self).__init__(**kwargs)
         self.ratio_outer_to_inner_area = ratio_outer_to_inner_area
 
         # Set primary cp:

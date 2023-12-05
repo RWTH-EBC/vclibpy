@@ -36,7 +36,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
             secondary_heat_transfer: HeatTransfer,
             secondary_medium: str
     ):
-        super().__init__()
+        super(HeatExchanger, self).__init__()
         self.A = A
         self.secondary_medium = secondary_medium.lower()
 
