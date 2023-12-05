@@ -353,7 +353,7 @@
 
         <span class="c1"># Note: As Q_eva_ntu has to converge to Q_eva (m_ref*delta_h), we can safely</span>
         <span class="c1"># calculate the output temperature.</span>
-        <span class="n">T_mean</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">T_eva_in</span> <span class="o">+</span> <span class="n">Q</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m_flow_secondary_cp</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">T_mean</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">T_eva_in</span> <span class="o">-</span> <span class="n">Q</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">m_flow_secondary_cp</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
         <span class="n">tra_prop_med</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_transport_properties_secondary_medium</span><span class="p">(</span><span class="n">T_mean</span><span class="p">)</span>
         <span class="n">alpha_med_wall</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_alpha_secondary</span><span class="p">(</span><span class="n">tra_prop_med</span><span class="p">)</span>
 
