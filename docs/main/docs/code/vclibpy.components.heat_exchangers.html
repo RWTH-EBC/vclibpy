@@ -597,12 +597,13 @@ dT_min: Minimal temperature difference (can be negative).</p>
 <dt>flow_type (str):</dt><dd><p>Counter, Cross or parallel flow</p>
 </dd>
 <dt>ratio_outer_to_inner_area (float):</dt><dd><p>The NTU method uses the overall heat transfer coefficient <cite>k</cite>
-and multiplies it with the overall area <cite>A</cite>.
+and multiplies it with the outer area <cite>A</cite> (area of the secondary side).
 However, depending on the heat exchanger type, the areas may
 differ drastically. For instance in an air-to-water heat exchanger.
 The VDI-Atlas proposes the ratio of outer area to inner pipe area
 to account for this mismatch in sizes.
-The calculation follows the code in the function <cite>calc_k</cite>.</p>
+The calculation follows the code in the function <cite>calc_k</cite>.
+Typical values are around 20-30.</p>
 </dd>
 </dl>
 </dd>

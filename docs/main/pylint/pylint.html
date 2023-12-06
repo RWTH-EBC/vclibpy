@@ -2749,7 +2749,7 @@
             </tr>
             
             <tr>
-                <td>66</td>
+                <td>67</td>
                 <td>33</td>
                 <td>convention</td>
                 <td><code>invalid-name</code></td>
@@ -2759,7 +2759,7 @@
             </tr>
             
             <tr>
-                <td>92</td>
+                <td>93</td>
                 <td>4</td>
                 <td>convention</td>
                 <td><code>invalid-name</code></td>
@@ -2769,7 +2769,7 @@
             </tr>
             
             <tr>
-                <td>94</td>
+                <td>95</td>
                 <td>0</td>
                 <td>convention</td>
                 <td><code>line-too-long</code></td>
@@ -2779,7 +2779,7 @@
             </tr>
             
             <tr>
-                <td>125</td>
+                <td>126</td>
                 <td>4</td>
                 <td>convention</td>
                 <td><code>invalid-name</code></td>
@@ -2789,7 +2789,7 @@
             </tr>
             
             <tr>
-                <td>125</td>
+                <td>126</td>
                 <td>17</td>
                 <td>convention</td>
                 <td><code>invalid-name</code></td>
@@ -2799,7 +2799,7 @@
             </tr>
             
             <tr>
-                <td>132</td>
+                <td>133</td>
                 <td>0</td>
                 <td>convention</td>
                 <td><code>line-too-long</code></td>
@@ -2809,7 +2809,7 @@
             </tr>
             
             <tr>
-                <td>141</td>
+                <td>142</td>
                 <td>0</td>
                 <td>convention</td>
                 <td><code>line-too-long</code></td>
@@ -2819,7 +2819,7 @@
             </tr>
             
             <tr>
-                <td>151</td>
+                <td>152</td>
                 <td>0</td>
                 <td>convention</td>
                 <td><code>line-too-long</code></td>
@@ -2829,7 +2829,7 @@
             </tr>
             
             <tr>
-                <td>151</td>
+                <td>152</td>
                 <td>4</td>
                 <td>convention</td>
                 <td><code>invalid-name</code></td>
@@ -2839,7 +2839,7 @@
             </tr>
             
             <tr>
-                <td>151</td>
+                <td>152</td>
                 <td>25</td>
                 <td>convention</td>
                 <td><code>invalid-name</code></td>
@@ -2849,7 +2849,7 @@
             </tr>
             
             <tr>
-                <td>151</td>
+                <td>152</td>
                 <td>76</td>
                 <td>convention</td>
                 <td><code>invalid-name</code></td>
@@ -2859,7 +2859,7 @@
             </tr>
             
             <tr>
-                <td>153</td>
+                <td>154</td>
                 <td>0</td>
                 <td>convention</td>
                 <td><code>line-too-long</code></td>
@@ -2869,7 +2869,7 @@
             </tr>
             
             <tr>
-                <td>167</td>
+                <td>168</td>
                 <td>8</td>
                 <td>convention</td>
                 <td><code>invalid-name</code></td>
@@ -2879,7 +2879,7 @@
             </tr>
             
             <tr>
-                <td>171</td>
+                <td>172</td>
                 <td>8</td>
                 <td>convention</td>
                 <td><code>invalid-name</code></td>
@@ -2977,7 +2977,7 @@
                 <td><code>cyclic-import</code></td>
                 <td>R0401</td>
                 <td></td>
-                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.cool_prop -&gt; vclibpy.media.media)</pre></td>
+                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.ref_prop)</pre></td>
             </tr>
             
             <tr>
@@ -2997,7 +2997,17 @@
                 <td><code>cyclic-import</code></td>
                 <td>R0401</td>
                 <td></td>
-                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.ref_prop)</pre></td>
+                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.cool_prop -&gt; vclibpy.media.media)</pre></td>
+            </tr>
+            
+            <tr>
+                <td>1</td>
+                <td>0</td>
+                <td>refactor</td>
+                <td><code>cyclic-import</code></td>
+                <td>R0401</td>
+                <td></td>
+                <td><pre>Cyclic import (vclibpy.flowsheets -&gt; vclibpy.flowsheets.vapor_injection_economizer -&gt; vclibpy.flowsheets.vapor_injection)</pre></td>
             </tr>
             
             <tr>
@@ -3008,16 +3018,6 @@
                 <td>R0401</td>
                 <td></td>
                 <td><pre>Cyclic import (vclibpy.components.expansion_valves -&gt; vclibpy.components.expansion_valves.bernoulli)</pre></td>
-            </tr>
-            
-            <tr>
-                <td>1</td>
-                <td>0</td>
-                <td>refactor</td>
-                <td><code>cyclic-import</code></td>
-                <td>R0401</td>
-                <td></td>
-                <td><pre>Cyclic import (vclibpy.flowsheets -&gt; vclibpy.flowsheets.vapor_injection_phase_separator -&gt; vclibpy.flowsheets.vapor_injection)</pre></td>
             </tr>
             
             <tr>
@@ -3047,7 +3047,7 @@
                 <td><code>cyclic-import</code></td>
                 <td>R0401</td>
                 <td></td>
-                <td><pre>Cyclic import (vclibpy.flowsheets -&gt; vclibpy.flowsheets.vapor_injection_economizer -&gt; vclibpy.flowsheets.vapor_injection)</pre></td>
+                <td><pre>Cyclic import (vclibpy.flowsheets -&gt; vclibpy.flowsheets.vapor_injection_phase_separator -&gt; vclibpy.flowsheets.vapor_injection)</pre></td>
             </tr>
             
             <tr>
