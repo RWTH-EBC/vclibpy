@@ -1,0 +1,29 @@
+vclibpy package
+===============
+
+.. automodule:: vclibpy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   vclibpy.components
+   vclibpy.flowsheets
+   vclibpy.media
+   vclibpy.utils
+
+Submodules
+----------
+
+vclibpy.datamodels module
+-------------------------
+
+.. automodule:: vclibpy.datamodels
+   :members:
+   :undoc-members:
+   :show-inheritance:

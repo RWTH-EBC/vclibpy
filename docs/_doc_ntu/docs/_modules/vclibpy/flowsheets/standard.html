@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.flowsheets.standard &mdash; vclibpy 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/autodoc_pydantic.css" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+        <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+              <div class="version">
+                0.1
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">vclibpy.flowsheets.standard</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for vclibpy.flowsheets.standard</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">vclibpy.flowsheets</span> <span class="kn">import</span> <span class="n">BaseCycle</span>
+<span class="kn">from</span> <span class="nn">vclibpy.datamodels</span> <span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
+<span class="kn">from</span> <span class="nn">vclibpy.components.compressors</span> <span class="kn">import</span> <span class="n">Compressor</span>
+<span class="kn">from</span> <span class="nn">vclibpy.components.expansion_valves</span> <span class="kn">import</span> <span class="n">ExpansionValve</span>
+
+
+<div class="viewcode-block" id="StandardCycle"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle">[docs]</a><span class="k">class</span> <span class="nc">StandardCycle</span><span class="p">(</span><span class="n">BaseCycle</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for a standard cycle with four components.</span>
+
+<span class="sd">    For the standard cycle, we have 4 possible states:</span>
+
+<span class="sd">    1. Before compressor, after evaporator</span>
+<span class="sd">    2. Before condenser, after compressor</span>
+<span class="sd">    3. Before EV, after condenser</span>
+<span class="sd">    4. Before Evaporator, after EV</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">flowsheet_name</span> <span class="o">=</span> <span class="s2">&quot;Standard&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">compressor</span><span class="p">:</span> <span class="n">Compressor</span><span class="p">,</span>
+            <span class="n">expansion_valve</span><span class="p">:</span> <span class="n">ExpansionValve</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span> <span class="o">=</span> <span class="n">compressor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span> <span class="o">=</span> <span class="n">expansion_valve</span>
+
+<div class="viewcode-block" id="StandardCycle.get_all_components"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.get_all_components">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_all_components</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="StandardCycle.get_states_in_order_for_plotting"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.get_states_in_order_for_plotting">[docs]</a>    <span class="k">def</span> <span class="nf">get_states_in_order_for_plotting</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="StandardCycle.calc_states"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.calc_states">[docs]</a>    <span class="k">def</span> <span class="nf">calc_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_1</span><span class="p">,</span> <span class="n">p_2</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_condenser_outlet_based_on_subcooling</span><span class="p">(</span><span class="n">p_con</span><span class="o">=</span><span class="n">p_2</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_outlet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span><span class="o">.</span><span class="n">calc_outlet</span><span class="p">(</span><span class="n">p_outlet</span><span class="o">=</span><span class="n">p_1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span><span class="o">.</span><span class="n">state_outlet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_evaporator_outlet_based_on_superheating</span><span class="p">(</span><span class="n">p_eva</span><span class="o">=</span><span class="n">p_1</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_outlet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">calc_state_outlet</span><span class="p">(</span><span class="n">p_outlet</span><span class="o">=</span><span class="n">p_2</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">state_outlet</span>
+
+        <span class="c1"># Mass flow rate:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">calc_m_flow</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">m_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">m_flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">m_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">m_flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span><span class="o">.</span><span class="n">m_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">m_flow</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;y_EV&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span><span class="o">.</span><span class="n">calc_opening_at_m_flow</span><span class="p">(</span><span class="n">m_flow</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span><span class="o">.</span><span class="n">m_flow</span><span class="p">),</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Expansion valve opening&quot;</span>
+        <span class="p">)</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;T_1&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_outlet</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;K&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Refrigerant temperature at evaporator outlet&quot;</span>
+        <span class="p">)</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;T_2&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">state_outlet</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;K&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Compressor outlet temperature&quot;</span>
+        <span class="p">)</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;T_3&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_outlet</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;K&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Refrigerant temperature at condenser outlet&quot;</span>
+        <span class="p">)</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;T_4&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;K&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Refrigerant temperature at evaporator inlet&quot;</span>
+        <span class="p">)</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;p_con&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">p_2</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Pa&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Condensation pressure&quot;</span><span class="p">)</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;p_eva&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">p_1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Pa&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Evaporation pressure&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="StandardCycle.calc_electrical_power"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.calc_electrical_power">[docs]</a>    <span class="k">def</span> <span class="nf">calc_electrical_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Based on simple energy balance - Adiabatic&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">calc_electrical_power</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
