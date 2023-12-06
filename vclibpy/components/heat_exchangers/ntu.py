@@ -19,12 +19,13 @@ class BasicNTU(HeatExchanger, abc.ABC):
             Counter, Cross or parallel flow
         ratio_outer_to_inner_area (float):
             The NTU method uses the overall heat transfer coefficient `k`
-            and multiplies it with the overall area `A`.
+            and multiplies it with the outer area `A` (area of the secondary side).
             However, depending on the heat exchanger type, the areas may
             differ drastically. For instance in an air-to-water heat exchanger.
             The VDI-Atlas proposes the ratio of outer area to inner pipe area
             to account for this mismatch in sizes.
             The calculation follows the code in the function `calc_k`.
+            Typical values are around 20-30.
     """
 
     def __init__(self, flow_type: str, ratio_outer_to_inner_area: float, **kwargs):
