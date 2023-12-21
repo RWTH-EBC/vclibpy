@@ -15,9 +15,19 @@ def calc_area(Q, k, Tm):
         return Q / (k * Tm)
 
 
-def calc_mean_temperature(T_hot_in, T_hot_out, T_cold_in, T_cold_out):
-    dT_A = T_hot_in - T_cold_out
-    dT_B = T_hot_out - T_cold_in
+def calc_mean_temperature(
+        T_hot_in: float, T_hot_out: float,
+        T_cold_in: float, T_cold_out: float,
+        flow_type: str = "counter"
+):
+    if flow_type == "counter":
+        dT_A = T_hot_in - T_cold_out
+        dT_B = T_hot_out - T_cold_in
+    elif flow_type == "parallel":
+        dT_A = T_hot_in - T_cold_in
+        dT_B = T_hot_out - T_cold_out
+    else:
+        raise TypeError("Given flow_type is not supported yet")
     if dT_B < 0 or dT_A < 0:
         return 0  # Heat can't be transferred
     if np.isclose(dT_B, 0) or np.isclose(dT_A, 0) or np.isclose(dT_B, dT_A):

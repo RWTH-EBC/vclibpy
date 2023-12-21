@@ -39,6 +39,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
             two_phase_heat_transfer: TwoPhaseHeatTransfer,
             secondary_medium: str,
             ratio_outer_to_inner_area: float = 1,
+            flow_type: str = "counter"
     ):
         super().__init__()
         self.A = A
