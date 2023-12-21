@@ -1,7 +1,0 @@
-vclibpy
-=======
-
-.. toctree::
-   :maxdepth: 4
-
-   vclibpy
