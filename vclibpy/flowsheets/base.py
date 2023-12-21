@@ -1,6 +1,7 @@
 import logging
 from typing import List
 import numpy as np
+from scipy.optimize import fsolve
 
 from abc import abstractmethod
 import matplotlib.pyplot as plt
@@ -76,6 +77,26 @@ class BaseCycle:
         p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
         return p_2_start
 
+    def improve_first_condensing_guess(self, inputs: Inputs, m_flow_guess, p_2_guess, dT_pinch_assumption=0):
+        self.condenser.m_flow_secondary = inputs.m_flow_con  # [kg/s]
+        self.condenser.calc_secondary_cp(T=inputs.T_con_in)
+
+        def nonlinear_func(p_2, *args):
+            _flowsheet, _inputs, _m_flow_ref, _dT_pinch = args
+            state_q0 = _flowsheet.med_prop.calc_state("PQ", p_2, 0)
+            state_q1 = _flowsheet.med_prop.calc_state("PQ", p_2, 1)
+            state_3 = _flowsheet.med_prop.calc_state("PT", p_2, state_q0.T - _inputs.dT_con_subcooling)
+            Q_water_till_q1 = (state_q1.h - state_3.h) * _m_flow_ref
+            T_water_q1 = _inputs.T_con_in + Q_water_till_q1 / _flowsheet.condenser.m_flow_secondary_cp
+            return T_water_q1 + _dT_pinch - state_q1.T
+
+        p_2_guess_optimized = fsolve(
+            func=nonlinear_func,
+            x0=p_2_guess,
+            args=(self, inputs, m_flow_guess, dT_pinch_assumption)
+        )[0]
+        return p_2_guess_optimized
+
     def get_start_evaporating_pressure(self, inputs: Inputs, dT_pinch: float = 0):
         T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating - dT_pinch
         return self.med_prop.calc_state("TQ", T_1_start, 1).p
@@ -142,6 +163,7 @@ class BaseCycle:
         max_num_iterations = kwargs.pop("max_num_iterations", 1e5)
         dT_pinch_con_guess = kwargs.pop("dT_pinch_con_guess", 0)
         dT_pinch_eva_guess = kwargs.pop("dT_pinch_eva_guess", 0)
+        improve_first_condensing_guess = kwargs.pop("improve_first_condensing_guess", False)
         p_1_history = []
         p_2_history = []
         error_con_history = []
@@ -243,6 +265,13 @@ class BaseCycle:
                 return
 
             if num_iterations == 1:
+                if improve_first_condensing_guess:
+                    p_2_next = self.improve_first_condensing_guess(
+                       inputs=inputs,
+                       m_flow_guess=self.condenser.m_flow,
+                       p_2_guess=p_2,
+                       dT_pinch_assumption=dT_pinch_con_guess
+                    )
 
                 if save_path_plots is not None and show_iteration:
                     input_name = inputs.get_name()
@@ -305,6 +334,63 @@ class BaseCycle:
         if show_iteration:
             plt.close(fig_iterations)
 
+        return self.calculate_outputs_for_valid_pressures(
+            p_1=p_1, p_2=p_2, inputs=inputs, fs_state=fs_state,
+            save_path_plots=save_path_plots
+        )
+
+    def calc_steady_state_fsolve(self, inputs: Inputs, fluid: str = None, **kwargs):
+        # Settings
+        max_err = kwargs.pop("max_err_ntu", 0.5)
+
+        save_path_plots = kwargs.get("save_path_plots", None)
+        dT_pinch_eva_guess = kwargs.pop("dT_pinch_eva_guess", 0)
+
+        # Setup fluid:
+        if fluid is None:
+            fluid = self.fluid
+        self.setup_new_fluid(fluid)
+
+        # First: Iterate with given conditions to get the 4 states and the mass flow rate:
+        p_1_next = self.get_start_evaporating_pressure(inputs=inputs, dT_pinch=dT_pinch_eva_guess)
+        p_2_next = self.get_start_condensing_pressure(inputs=inputs)
+
+        def nonlinear_func(x, *args):
+            _flowsheet, _inputs, _fs_state, _max_err = args
+            _p_1, _p_2 = x
+            if not (_p_1 < _p_2 < self._p_max):
+                return 1000, 1000
+            if not (self._p_min < _p_1 < _p_2):
+                return 1000, 1000
+            _error_eva, dT_min_eva, _error_con, dT_min_con = _flowsheet.calculate_cycle_for_pressures(
+                p_1=x[0], p_2=x[1], inputs=_inputs, fs_state=_fs_state
+            )
+
+            if 0 <= _error_eva < _max_err:
+                _error_eva = 0
+            if 0 <= _error_con < _max_err:
+                _error_con = 0
+            if 0 > _error_eva:
+                _error_eva *= 5
+            if 0 > _error_con:
+                _error_con *= 5
+            return _error_eva, _error_con
+
+        fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
+        try:
+            args = (self, inputs, fs_state, max_err)
+            p_optimized = fsolve(
+                func=nonlinear_func,
+                x0=np.array([p_1_next, p_2_next]),
+                args=args
+            )
+        except Exception as err:
+            logger.error("An error occurred while calculating states using fsolve: %s", err)
+            return
+        error_con, error_eva = nonlinear_func(p_optimized, *args)
+        print(f"{error_con=}, {error_eva=}")
+
+        p_1, p_2 = p_optimized
         return self.calculate_outputs_for_valid_pressures(
             p_1=p_1, p_2=p_2, inputs=inputs, fs_state=fs_state,
             save_path_plots=save_path_plots
