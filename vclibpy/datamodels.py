@@ -132,6 +132,10 @@ class VariableContainer:
             return {f"{k} in {v.unit} ({v.description})": v.value for k, v in self.items()}
         return {k: v.value for k, v in self.items()}
 
+    def get_name(self):
+        return ";".join([k + "=" + str(round(v.value, 3)).replace(".", "_")
+                         for k, v in self.get_variables().items()])
+
 
 class FlowsheetState(VariableContainer):
     """
