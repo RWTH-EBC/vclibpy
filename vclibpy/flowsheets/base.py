@@ -418,8 +418,8 @@ class BaseCycle:
         Q_con_outer = self.condenser.calc_secondary_Q_flow(Q_con)
         Q_eva = self.evaporator.calc_Q_flow()
         Q_eva_outer = self.evaporator.calc_secondary_Q_flow(Q_eva)
-        self.evaporator.calc(inputs=inputs, fs_state=fs_state)
-        self.condenser.calc(inputs=inputs, fs_state=fs_state)
+        error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
+        error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
         P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
         T_con_out = inputs.T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
 
@@ -459,7 +459,22 @@ class BaseCycle:
             name="COP_outer", value=COP_outer,
             unit="-", description="Outer COP, including heat losses"
         )
-
+        fs_state.set(
+            name="error_con", value=error_con,
+            unit="%", description="Error in condenser heat exchanger model"
+        )
+        fs_state.set(
+            name="error_eva", value=error_eva,
+            unit="%", description="Error in evaporator heat exchanger model"
+        )
+        fs_state.set(
+            name="dT_min_eva", value=dT_min_eva,
+            unit="K", description="Evaporator pinch temperature"
+        )
+        fs_state.set(
+            name="dT_min_con", value=dT_min_con,
+            unit="K", description="Condenser pinch temperature"
+        )
         if save_path_plots is not None:
             input_name = inputs.get_name()
             self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_final_result.png"), inputs=inputs)
