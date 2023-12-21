@@ -28,7 +28,7 @@ class BasicNTU(HeatExchanger, abc.ABC):
             Typical values are around 20-30.
     """
 
-    def __init__(self, flow_type: str, ratio_outer_to_inner_area: float, **kwargs):
+    def __init__(self, flow_type: str, **kwargs):
         """
         Initializes BasicNTU.
 
@@ -45,7 +45,6 @@ class BasicNTU(HeatExchanger, abc.ABC):
             **kwargs: Additional keyword arguments passed to the parent class.
         """
         super().__init__(**kwargs)
-        self.ratio_outer_to_inner_area = ratio_outer_to_inner_area
 
         # Set primary cp:
         self._primary_cp = None
@@ -101,26 +100,6 @@ class BasicNTU(HeatExchanger, abc.ABC):
         if m_flow_pri_cp > self.m_flow_secondary_cp:
             return self.m_flow_secondary_cp / m_flow_pri_cp
         return m_flow_pri_cp / self.m_flow_secondary_cp
-
-    def calc_k(self, alpha_pri: float, alpha_sec: float) -> float:
-        """
-        Calculate the overall heat transfer coefficient (k) of the heat exchanger.
-
-        Args:
-            alpha_pri (float): Heat transfer coefficient for the primary medium.
-            alpha_sec (float): Heat transfer coefficient for the secondary medium.
-
-        Returns:
-            float: Overall heat transfer coefficient (k).
-        """
-        k_wall = self.calc_wall_heat_transfer()
-        k = (1 / (
-                        (1 / alpha_pri) * self.ratio_outer_to_inner_area +
-                        (1 / k_wall) * self.ratio_outer_to_inner_area +
-                        (1 / alpha_sec)
-                )
-             )
-        return k
 
     @staticmethod
     def calc_NTU(A: float, k: float, m_flow_cp: float) -> float:
