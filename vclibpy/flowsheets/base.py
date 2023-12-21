@@ -71,6 +71,15 @@ class BaseCycle:
     def get_all_components(self) -> List[BaseComponent]:
         return [self.condenser, self.evaporator]
 
+    def get_start_condensing_pressure(self, inputs: Inputs):
+        T_3_start = inputs.T_con_in + inputs.dT_con_subcooling
+        p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
+        return p_2_start
+
+    def get_start_evaporating_pressure(self, inputs: Inputs, dT_pinch: float = 0):
+        T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating - dT_pinch
+        return self.med_prop.calc_state("TQ", T_1_start, 1).p
+
     def calc_steady_state(self, inputs: Inputs, fluid: str = None, **kwargs):
         """
         Calculate the steady-state performance of a vapor compression cycle
@@ -126,15 +135,21 @@ class BaseCycle:
         # Settings
         min_iteration_step = kwargs.pop("min_iteration_step", 1)
         save_path_plots = kwargs.get("save_path_plots", None)
-        input_name = ";".join([k + "=" + str(np.round(v.value, 3)).replace(".", "_")
-                               for k, v in inputs.get_variables().items()])
         show_iteration = kwargs.get("show_iteration", False)
         use_quick_solver = kwargs.pop("use_quick_solver", True)
         err_ntu = kwargs.pop("max_err_ntu", 0.5)
         err_dT_min = kwargs.pop("max_err_dT_min", 0.1)
         max_num_iterations = kwargs.pop("max_num_iterations", 1e5)
+        dT_pinch_con_guess = kwargs.pop("dT_pinch_con_guess", 0)
+        dT_pinch_eva_guess = kwargs.pop("dT_pinch_eva_guess", 0)
         p_1_history = []
         p_2_history = []
+        error_con_history = []
+        error_eva_history = []
+        dT_eva_history = []
+        dT_con_history = []
+        error_con, dT_min_eva, dT_min_con, error_eva = np.NAN, np.NAN, np.NAN, np.NAN
+        plot_last = -100
 
         if use_quick_solver:
             step_p1 = kwargs.get("step_max", 10000)
@@ -149,19 +164,15 @@ class BaseCycle:
         self.setup_new_fluid(fluid)
 
         # First: Iterate with given conditions to get the 4 states and the mass flow rate:
-        T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating
-        T_3_start = inputs.T_con_in + inputs.dT_con_subcooling
-        p_1_start = self.med_prop.calc_state("TQ", T_1_start, 1).p
-        p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
-        p_1_next = p_1_start
-        p_2_next = p_2_start
+        p_1_next = self.get_start_evaporating_pressure(inputs=inputs, dT_pinch=dT_pinch_eva_guess)
+        p_2_next = self.get_start_condensing_pressure(inputs=inputs)
 
         fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
         fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
         fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
 
         if show_iteration:
-            fig_iterations, ax_iterations = plt.subplots(2)
+            fig_iterations, ax_iterations = plt.subplots(3, 2, sharex=True)
 
         num_iterations = 0
 
@@ -178,13 +189,29 @@ class BaseCycle:
 
             p_1 = p_1_next
             p_2 = p_2_next
-            p_1_history.append(p_1)
-            p_2_history.append(p_2)
+            p_1_history.append(p_1 / 1e5)
+            p_2_history.append(p_2 / 1e5)
+            error_con_history.append(error_con)
+            error_eva_history.append(error_eva)
+            dT_con_history.append(dT_min_con)
+            dT_eva_history.append(dT_min_eva)
+
             if show_iteration:
-                ax_iterations[0].cla()
-                ax_iterations[1].cla()
-                ax_iterations[0].scatter(list(range(len(p_1_history))), p_1_history)
-                ax_iterations[1].scatter(list(range(len(p_2_history))), p_2_history)
+                for ax in ax_iterations.flatten():
+                    ax.clear()
+                iterations = list(range(len(p_1_history)))[plot_last:]
+                ax_iterations[0, 0].set_ylabel("error_eva in %")
+                ax_iterations[0, 1].set_ylabel("error_con in %")
+                ax_iterations[1, 0].set_ylabel("$\Delta T_\mathrm{Min}$ in K")
+                ax_iterations[1, 1].set_ylabel("$\Delta T_\mathrm{Min}$ in K")
+                ax_iterations[2, 0].set_ylabel("$p_1$ in bar")
+                ax_iterations[2, 1].set_ylabel("$p_2$ in bar")
+                ax_iterations[0, 0].scatter(iterations, error_eva_history[plot_last:])
+                ax_iterations[0, 1].scatter(iterations, error_con_history[plot_last:])
+                ax_iterations[1, 0].scatter(iterations, dT_eva_history[plot_last:])
+                ax_iterations[1, 1].scatter(iterations, dT_con_history[plot_last:])
+                ax_iterations[2, 0].scatter(iterations, p_1_history[plot_last:])
+                ax_iterations[2, 1].scatter(iterations, p_2_history[plot_last:])
                 plt.draw()
                 plt.pause(1e-5)
 
@@ -206,18 +233,24 @@ class BaseCycle:
                 step_p1 /= 10
                 continue
 
-            # Calculate the states based on the given flowsheet
             try:
-                self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
+                error_eva, dT_min_eva, error_con, dT_min_con = self.calculate_cycle_for_pressures(
+                    p_1=p_1, p_2=p_2, inputs=inputs, fs_state=fs_state
+                )
             except ValueError as err:
                 logger.error("An error occurred while calculating states. "
                              "Can't guess next pressures, thus, exiting: %s", err)
                 return
-            if save_path_plots is not None and num_iterations == 1 and show_iteration:
-                self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_initialization.png"), inputs=inputs)
 
-            # Check heat exchangers:
-            error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+            if num_iterations == 1:
+
+                if save_path_plots is not None and show_iteration:
+                    input_name = inputs.get_name()
+                    self.plot_cycle(
+                        save_path=save_path_plots.joinpath(f"{input_name}_initialization.png"),
+                        inputs=inputs
+                    )
+
             if not isinstance(error_eva, float):
                 print(error_eva)
             if error_eva < 0:
@@ -233,7 +266,6 @@ class BaseCycle:
                     p_1_next = p_1 + step_p1
                     continue
 
-            error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
             if error_con < 0:
                 p_2_next = p_2 + step_p2
                 continue
@@ -273,6 +305,28 @@ class BaseCycle:
         if show_iteration:
             plt.close(fig_iterations)
 
+        return self.calculate_outputs_for_valid_pressures(
+            p_1=p_1, p_2=p_2, inputs=inputs, fs_state=fs_state,
+            save_path_plots=save_path_plots
+        )
+
+    def calculate_cycle_for_pressures(self, p_1: float, p_2: float, inputs: Inputs, fs_state: FlowsheetState):
+        # Calculate the states based on the given flowsheet
+        self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
+        # Check heat exchangers:
+        error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+        error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
+        return error_eva, dT_min_eva, error_con, dT_min_con
+
+    def calculate_outputs_for_valid_pressures(
+            self,
+            p_1,
+            p_2,
+            fs_state: FlowsheetState,
+            inputs: Inputs,
+            save_path_plots
+    ):
+        self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
         # Calculate the heat flow rates for the selected states.
         Q_con = self.condenser.calc_Q_flow()
         Q_con_outer = self.condenser.calc_secondary_Q_flow(Q_con)
@@ -321,6 +375,7 @@ class BaseCycle:
         )
 
         if save_path_plots is not None:
+            input_name = inputs.get_name()
             self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_final_result.png"), inputs=inputs)
 
         return fs_state
