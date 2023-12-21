@@ -83,8 +83,11 @@ class MovingBoundaryNTU(BasicNTU, abc.ABC):
 
         area = 0.0
         while True:
-            NTU = self.calc_NTU(area, k, m_flow_cp_min)
-            eps = self.calc_eps(R, NTU)
+            if self.flow_type == "cross" and area == 0.0:
+                eps = 0.0
+            else:
+                NTU = self.calc_NTU(area, k, m_flow_cp_min)
+                eps = self.calc_eps(R, NTU)
             if eps >= eps_necessary:
                 if _step <= _accuracy:
                     break
