@@ -312,122 +312,125 @@ vclibpy/components/heat_exchangers/economizer.py:1:0: C0114: Missing module docs
 vclibpy/components/heat_exchangers/economizer.py:40:4: C0116: Missing function or method docstring (missing-function-docstring)
 vclibpy/components/heat_exchangers/economizer.py:48:4: C0116: Missing function or method docstring (missing-function-docstring)
 ************* Module vclibpy.components.heat_exchangers.moving_boundary_Tm
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:28:0: C0301: Line too long (110/100) (line-too-long)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:121:0: C0301: Line too long (104/100) (line-too-long)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:154:0: C0301: Line too long (101/100) (line-too-long)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:160:0: C0301: Line too long (103/100) (line-too-long)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:184:0: C0301: Line too long (121/100) (line-too-long)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:185:0: C0301: Line too long (120/100) (line-too-long)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:186:0: C0301: Line too long (122/100) (line-too-long)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:252:0: C0301: Line too long (104/100) (line-too-long)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:286:0: C0301: Line too long (101/100) (line-too-long)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:292:0: C0301: Line too long (103/100) (line-too-long)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:313:0: C0301: Line too long (122/100) (line-too-long)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:314:0: C0301: Line too long (121/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:38:0: C0301: Line too long (110/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:131:0: C0301: Line too long (104/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:164:0: C0301: Line too long (101/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:170:0: C0301: Line too long (103/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:194:0: C0301: Line too long (121/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:195:0: C0301: Line too long (120/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:196:0: C0301: Line too long (122/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:262:0: C0301: Line too long (104/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:296:0: C0301: Line too long (101/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:302:0: C0301: Line too long (103/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:323:0: C0301: Line too long (122/100) (line-too-long)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:324:0: C0301: Line too long (121/100) (line-too-long)
 vclibpy/components/heat_exchangers/moving_boundary_Tm.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 vclibpy/components/heat_exchangers/moving_boundary_Tm.py:1:0: C0103: Module name "moving_boundary_Tm" doesn't conform to snake_case naming style (invalid-name)
 vclibpy/components/heat_exchangers/moving_boundary_Tm.py:11:0: C0116: Missing function or method docstring (missing-function-docstring)
 vclibpy/components/heat_exchangers/moving_boundary_Tm.py:11:20: C0103: Argument name "Tm" doesn't conform to snake_case naming style (invalid-name)
 vclibpy/components/heat_exchangers/moving_boundary_Tm.py:12:4: R1705: Unnecessary "else" after "return", remove the "else" and de-indent the code inside it (no-else-return)
 vclibpy/components/heat_exchangers/moving_boundary_Tm.py:18:0: C0116: Missing function or method docstring (missing-function-docstring)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:18:26: C0103: Argument name "T_hot_in" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:18:36: C0103: Argument name "T_hot_out" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:18:47: C0103: Argument name "T_cold_in" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:18:58: C0103: Argument name "T_cold_out" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:19:4: C0103: Variable name "dT_A" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:20:4: C0103: Variable name "dT_B" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:50:4: C0103: Variable name "Q_sc" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:53:4: C0103: Variable name "Q_lat" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:56:4: C0103: Variable name "Q_sh" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:73:4: R0914: Too many local variables (39/15) (too-many-locals)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:95:8: C0103: Variable name "Q_sc" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:95:14: C0103: Variable name "Q_lat" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:95:21: C0103: Variable name "Q_sh" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:107:8: C0103: Variable name "T_mean" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:113:8: C0103: Variable name "T_sc" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:114:8: C0103: Variable name "T_sh" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:115:8: C0103: Variable name "T_out" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:118:8: C0103: Variable name "Q_sc_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:118:17: C0103: Variable name "A_sc" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:118:23: C0103: Variable name "A_sc_available" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:126:12: C0103: Variable name "T_m_sc" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:130:12: C0103: Variable name "A_sc" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:131:12: C0103: Variable name "A_sc_available" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:132:12: C0103: Variable name "Q_sc_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:135:8: C0103: Variable name "Q_lat_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:135:18: C0103: Variable name "A_lat" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:135:25: C0103: Variable name "A_lat_available" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:145:12: C0103: Variable name "T_m_lat" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:149:12: C0103: Variable name "A_lat" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:151:12: C0103: Variable name "A_lat_available" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:152:12: C0103: Variable name "Q_lat_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:154:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:157:8: C0103: Variable name "Q_sh_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:157:17: C0103: Variable name "A_sh" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:164:12: C0103: Variable name "T_m_sh" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:168:12: C0103: Variable name "A_sh" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:170:12: C0103: Variable name "A_sh_available" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:171:12: C0103: Variable name "Q_sh_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:173:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:175:8: C0103: Variable name "A_necessary" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:176:8: C0103: Variable name "Q_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:177:8: C0103: Variable name "error_A" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:180:8: C0103: Variable name "dT_min_in" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:181:8: C0103: Variable name "dT_min_out" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:182:8: C0103: Variable name "dT_min_LatSH" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:177:8: W0612: Unused variable 'error_A' (unused-variable)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:204:4: R0914: Too many local variables (38/15) (too-many-locals)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:226:8: C0103: Variable name "Q_sc" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:226:14: C0103: Variable name "Q_lat" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:226:21: C0103: Variable name "Q_sh" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:238:8: C0103: Variable name "T_mean" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:244:8: C0103: Variable name "T_sh" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:245:8: C0103: Variable name "T_sc" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:246:8: C0103: Variable name "T_out" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:249:8: C0103: Variable name "Q_sh_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:249:17: C0103: Variable name "A_sh" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:249:23: C0103: Variable name "A_sh_available" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:256:12: C0103: Variable name "T_m_sh" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:261:12: C0103: Variable name "A_sh" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:262:12: C0103: Variable name "A_sh_available" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:263:12: C0103: Variable name "Q_sh_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:265:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:268:8: C0103: Variable name "Q_lat_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:268:18: C0103: Variable name "A_lat" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:268:25: C0103: Variable name "A_lat_available" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:277:12: C0103: Variable name "T_m_lat" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:281:12: C0103: Variable name "A_lat" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:283:12: C0103: Variable name "A_lat_available" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:284:12: C0103: Variable name "Q_lat_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:286:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:289:8: C0103: Variable name "Q_sc_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:289:17: C0103: Variable name "A_sc" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:297:12: C0103: Variable name "T_m_sc" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:301:12: C0103: Variable name "A_sc" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:302:12: C0103: Variable name "A_sc_available" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:303:12: C0103: Variable name "Q_sc_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:305:8: C0103: Variable name "A_necessary" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:306:8: C0103: Variable name "Q_Tm" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:307:8: C0103: Variable name "error_A" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:310:8: C0103: Variable name "dT_min_in" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:311:8: C0103: Variable name "dT_min_out" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/moving_boundary_Tm.py:307:8: W0612: Unused variable 'error_A' (unused-variable)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:19:8: C0103: Argument name "T_hot_in" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:19:25: C0103: Argument name "T_hot_out" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:20:8: C0103: Argument name "T_cold_in" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:20:26: C0103: Argument name "T_cold_out" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:24:8: C0103: Variable name "dT_A" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:25:8: C0103: Variable name "dT_B" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:27:8: C0103: Variable name "dT_A" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:28:8: C0103: Variable name "dT_B" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:60:4: C0103: Variable name "Q_sc" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:63:4: C0103: Variable name "Q_lat" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:66:4: C0103: Variable name "Q_sh" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:83:4: R0914: Too many local variables (39/15) (too-many-locals)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:105:8: C0103: Variable name "Q_sc" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:105:14: C0103: Variable name "Q_lat" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:105:21: C0103: Variable name "Q_sh" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:117:8: C0103: Variable name "T_mean" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:123:8: C0103: Variable name "T_sc" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:124:8: C0103: Variable name "T_sh" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:125:8: C0103: Variable name "T_out" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:128:8: C0103: Variable name "Q_sc_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:128:17: C0103: Variable name "A_sc" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:128:23: C0103: Variable name "A_sc_available" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:136:12: C0103: Variable name "T_m_sc" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:140:12: C0103: Variable name "A_sc" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:141:12: C0103: Variable name "A_sc_available" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:142:12: C0103: Variable name "Q_sc_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:145:8: C0103: Variable name "Q_lat_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:145:18: C0103: Variable name "A_lat" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:145:25: C0103: Variable name "A_lat_available" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:155:12: C0103: Variable name "T_m_lat" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:159:12: C0103: Variable name "A_lat" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:161:12: C0103: Variable name "A_lat_available" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:162:12: C0103: Variable name "Q_lat_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:164:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:167:8: C0103: Variable name "Q_sh_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:167:17: C0103: Variable name "A_sh" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:174:12: C0103: Variable name "T_m_sh" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:178:12: C0103: Variable name "A_sh" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:180:12: C0103: Variable name "A_sh_available" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:181:12: C0103: Variable name "Q_sh_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:183:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:185:8: C0103: Variable name "A_necessary" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:186:8: C0103: Variable name "Q_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:187:8: C0103: Variable name "error_A" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:190:8: C0103: Variable name "dT_min_in" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:191:8: C0103: Variable name "dT_min_out" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:192:8: C0103: Variable name "dT_min_LatSH" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:187:8: W0612: Unused variable 'error_A' (unused-variable)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:214:4: R0914: Too many local variables (38/15) (too-many-locals)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:236:8: C0103: Variable name "Q_sc" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:236:14: C0103: Variable name "Q_lat" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:236:21: C0103: Variable name "Q_sh" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:248:8: C0103: Variable name "T_mean" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:254:8: C0103: Variable name "T_sh" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:255:8: C0103: Variable name "T_sc" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:256:8: C0103: Variable name "T_out" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:259:8: C0103: Variable name "Q_sh_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:259:17: C0103: Variable name "A_sh" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:259:23: C0103: Variable name "A_sh_available" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:266:12: C0103: Variable name "T_m_sh" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:271:12: C0103: Variable name "A_sh" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:272:12: C0103: Variable name "A_sh_available" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:273:12: C0103: Variable name "Q_sh_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:275:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:278:8: C0103: Variable name "Q_lat_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:278:18: C0103: Variable name "A_lat" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:278:25: C0103: Variable name "A_lat_available" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:287:12: C0103: Variable name "T_m_lat" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:291:12: C0103: Variable name "A_lat" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:293:12: C0103: Variable name "A_lat_available" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:294:12: C0103: Variable name "Q_lat_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:296:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:299:8: C0103: Variable name "Q_sc_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:299:17: C0103: Variable name "A_sc" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:307:12: C0103: Variable name "T_m_sc" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:311:12: C0103: Variable name "A_sc" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:312:12: C0103: Variable name "A_sc_available" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:313:12: C0103: Variable name "Q_sc_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:315:8: C0103: Variable name "A_necessary" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:316:8: C0103: Variable name "Q_Tm" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:317:8: C0103: Variable name "error_A" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:320:8: C0103: Variable name "dT_min_in" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:321:8: C0103: Variable name "dT_min_out" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/moving_boundary_Tm.py:317:8: W0612: Unused variable 'error_A' (unused-variable)
 ************* Module vclibpy.components.heat_exchangers
 vclibpy/components/heat_exchangers/__init__.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 ************* Module vclibpy.components.heat_exchangers.heat_exchanger
 vclibpy/components/heat_exchangers/heat_exchanger.py:8:0: C0301: Line too long (109/100) (line-too-long)
-vclibpy/components/heat_exchangers/heat_exchanger.py:100:0: C0301: Line too long (106/100) (line-too-long)
-vclibpy/components/heat_exchangers/heat_exchanger.py:256:0: C0301: Line too long (109/100) (line-too-long)
+vclibpy/components/heat_exchangers/heat_exchanger.py:101:0: C0301: Line too long (106/100) (line-too-long)
+vclibpy/components/heat_exchangers/heat_exchanger.py:257:0: C0301: Line too long (109/100) (line-too-long)
 vclibpy/components/heat_exchangers/heat_exchanger.py:1:0: C0114: Missing module docstring (missing-module-docstring)
-vclibpy/components/heat_exchangers/heat_exchanger.py:44:8: C0103: Attribute name "A" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/heat_exchanger.py:45:8: C0103: Attribute name "A" doesn't conform to snake_case naming style (invalid-name)
 vclibpy/components/heat_exchangers/heat_exchanger.py:11:0: R0902: Too many instance attributes (12/7) (too-many-instance-attributes)
-vclibpy/components/heat_exchangers/heat_exchanger.py:32:4: R0913: Too many arguments (9/5) (too-many-arguments)
-vclibpy/components/heat_exchangers/heat_exchanger.py:203:4: C0116: Missing function or method docstring (missing-function-docstring)
-vclibpy/components/heat_exchangers/heat_exchanger.py:212:4: C0116: Missing function or method docstring (missing-function-docstring)
-vclibpy/components/heat_exchangers/heat_exchanger.py:226:4: C0116: Missing function or method docstring (missing-function-docstring)
-vclibpy/components/heat_exchangers/heat_exchanger.py:226:4: C0103: Method name "calc_secondary_Q_flow" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/heat_exchanger.py:226:36: C0103: Argument name "Q_flow" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/components/heat_exchangers/heat_exchanger.py:229:4: C0103: Method name "calc_Q_flow" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/heat_exchanger.py:32:4: R0913: Too many arguments (10/5) (too-many-arguments)
+vclibpy/components/heat_exchangers/heat_exchanger.py:42:12: W0613: Unused argument 'flow_type' (unused-argument)
+vclibpy/components/heat_exchangers/heat_exchanger.py:204:4: C0116: Missing function or method docstring (missing-function-docstring)
+vclibpy/components/heat_exchangers/heat_exchanger.py:213:4: C0116: Missing function or method docstring (missing-function-docstring)
+vclibpy/components/heat_exchangers/heat_exchanger.py:227:4: C0116: Missing function or method docstring (missing-function-docstring)
+vclibpy/components/heat_exchangers/heat_exchanger.py:227:4: C0103: Method name "calc_secondary_Q_flow" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/heat_exchanger.py:227:36: C0103: Argument name "Q_flow" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/components/heat_exchangers/heat_exchanger.py:230:4: C0103: Method name "calc_Q_flow" doesn't conform to snake_case naming style (invalid-name)
 ************* Module vclibpy.components.heat_exchangers.moving_boundary_ntu
 vclibpy/components/heat_exchangers/moving_boundary_ntu.py:19:0: C0301: Line too long (102/100) (line-too-long)
 vclibpy/components/heat_exchangers/moving_boundary_ntu.py:162:0: C0301: Line too long (104/100) (line-too-long)
@@ -769,7 +772,7 @@ vclibpy/flowsheets/base.py:570:8: C0103: Variable name "delta_H_con" doesn't con
 vclibpy/flowsheets/base.py:574:8: C0103: Variable name "delta_H_eva" doesn't conform to snake_case naming style (invalid-name)
 vclibpy/flowsheets/base.py:6:0: C0411: standard import "from abc import abstractmethod" should be placed before "import numpy as np" (wrong-import-order)
 vclibpy/flowsheets/base.py:1:0: R0801: Similar lines in 2 files
-==vclibpy.components.heat_exchangers.moving_boundary_Tm:[179:192]
+==vclibpy.components.heat_exchangers.moving_boundary_Tm:[189:202]
 ==vclibpy.components.heat_exchangers.moving_boundary_ntu:[223:236]
         dT_min_in = self.state_outlet.T - inputs.T_con_in
         dT_min_out = self.state_inlet.T - T_out
@@ -785,17 +788,18 @@ vclibpy/flowsheets/base.py:1:0: R0801: Similar lines in 2 files
 
  (duplicate-code)
 vclibpy/flowsheets/base.py:1:0: R0801: Similar lines in 2 files
-==vclibpy.components.heat_exchangers.moving_boundary_Tm:[231:248]
+==vclibpy.components.heat_exchangers.moving_boundary_Tm:[241:258]
 ==vclibpy.components.heat_exchangers.moving_boundary_ntu:[273:289]
         )
 
         Q = Q_sc + Q_lat + Q_sh
 
-        # Note: As Q_eva_ntu has to converge to Q_eva (m_ref*delta_h), we can safely
+        # Note: As Q_eva_Tm has to converge to Q_eva (m_ref*delta_h), we can safely
         # calculate the output temperature.
         T_mean = inputs.T_eva_in - Q / (self.m_flow_secondary_cp * 2)
         tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
+        # alpha_med_wall = 26
 
         # Calculate secondary_medium side temperatures:
         T_sh = inputs.T_eva_in - Q_sh / self.m_flow_secondary_cp
@@ -804,7 +808,7 @@ vclibpy/flowsheets/base.py:1:0: R0801: Similar lines in 2 files
 
         # 1. Regime: Superheating (duplicate-code)
 vclibpy/flowsheets/base.py:1:0: R0801: Similar lines in 2 files
-==vclibpy.components.heat_exchangers.moving_boundary_Tm:[100:117]
+==vclibpy.components.heat_exchangers.moving_boundary_Tm:[110:127]
 ==vclibpy.components.heat_exchangers.moving_boundary_ntu:[142:159]
         )
         Q = Q_sc + Q_lat + Q_sh
@@ -824,27 +828,25 @@ vclibpy/flowsheets/base.py:1:0: R0801: Similar lines in 2 files
 
         # 1. Regime: Subcooling (duplicate-code)
 vclibpy/flowsheets/base.py:1:0: R0801: Similar lines in 2 files
-==vclibpy.components.heat_exchangers.moving_boundary_Tm:[269:275]
+==vclibpy.components.heat_exchangers.moving_boundary_Tm:[279:285]
 ==vclibpy.components.heat_exchangers.moving_boundary_ntu:[320:327]
             alpha_ref_wall = self.calc_alpha_two_phase(
                 state_q0=state_q0,
                 state_q1=state_q1,
                 fs_state=fs_state,
                 inputs=inputs
-            )
- (duplicate-code)
+            ) (duplicate-code)
 vclibpy/flowsheets/base.py:1:0: R0801: Similar lines in 2 files
-==vclibpy.components.heat_exchangers.moving_boundary_Tm:[137:143]
+==vclibpy.components.heat_exchangers.moving_boundary_Tm:[147:153]
 ==vclibpy.components.heat_exchangers.moving_boundary_ntu:[183:190]
             alpha_ref_wall = self.calc_alpha_two_phase(
                 state_q0=state_q0,
                 state_q1=state_q1,
                 fs_state=fs_state,
                 inputs=inputs
-            )
- (duplicate-code)
+            ) (duplicate-code)
 vclibpy/flowsheets/base.py:1:0: R0801: Similar lines in 2 files
-==vclibpy.components.heat_exchangers.moving_boundary_Tm:[309:316]
+==vclibpy.components.heat_exchangers.moving_boundary_Tm:[319:326]
 ==vclibpy.components.heat_exchangers.moving_boundary_ntu:[362:369]
         dT_min_in = inputs.T_eva_in - self.state_outlet.T
         dT_min_out = T_out - self.state_inlet.T
@@ -856,12 +858,12 @@ vclibpy/flowsheets/base.py:1:0: R0801: Similar lines in 2 files
 vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.cool_prop -> vclibpy.media.media) (cyclic-import)
 vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.media) (cyclic-import)
 vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.ref_prop) (cyclic-import)
-vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
 vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.components.expansion_valves -> vclibpy.components.expansion_valves.bernoulli) (cyclic-import)
+vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
 vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.utils -> vclibpy.utils.automation) (cyclic-import)
 vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.standard) (cyclic-import)
-vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
+vclibpy/flowsheets/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
 
 -----------------------------------
-Your code has been rated at 7.03/10
+Your code has been rated at 7.02/10
 
