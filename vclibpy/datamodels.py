@@ -165,6 +165,9 @@ class Inputs(VariableContainer):
 
     def __init__(
             self,
+            Q_con_set: float = -1,
+            T_eva_out_set: float = -9999,
+            T_con_out_set: float = -9999,
             n: float = None,
             T_eva_in: float = None,
             T_con_in: float = None,
@@ -179,6 +182,7 @@ class Inputs(VariableContainer):
         for the vapor compression cycle.
 
         Args:
+            Q_con (float): heating power
             n (float): Relative compressor speed between 0 and 1 (unit: -).
             T_eva_in (float): Secondary side evaporator inlet temperature (unit: K).
             T_con_in (float): Secondary side condenser inlet temperature (unit: K).
@@ -189,6 +193,14 @@ class Inputs(VariableContainer):
             T_ambient (float): Ambient temperature of the machine (unit: K).
         """
         super().__init__()
+
+        self.set(
+            name="Q_con_set",
+            value=Q_con_set,
+            unit="W",
+            description="heating power_set"
+        )
+
         self.set(
             name="n",
             value=n,
@@ -201,12 +213,28 @@ class Inputs(VariableContainer):
             unit="K",
             description="Secondary side evaporator inlet temperature"
         )
+
+        self.set(
+            name="T_eva_out_set",
+            value=T_eva_out_set,
+            unit="K",
+            description="Secondary side evaporator outlet temperature"
+        )
+
         self.set(
             name="T_con_in",
             value=T_con_in,
             unit="K",
             description="Secondary side condenser inlet temperature"
         )
+
+        self.set(
+            name="T_con_out_set",
+            value=T_con_out_set,
+            unit="K",
+            description="Secondary side condenser outlet temperature"
+        )
+
         self.set(
             name="m_flow_con",
             value=m_flow_con,

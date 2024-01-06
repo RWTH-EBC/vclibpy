@@ -252,3 +252,6 @@ class BasicNTU(HeatExchanger, abc.ABC):
             area += _step
 
         return min(area, self.A)
+
+
+

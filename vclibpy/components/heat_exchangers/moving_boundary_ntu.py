@@ -216,6 +216,11 @@ class MovingBoundaryNTUCondenser(MovingBoundaryNTU):
         fs_state.set(name="A_con_lat", value=A_lat, unit="m2", description="Area for latent heat exchange in condenser")
         fs_state.set(name="A_con_sc", value=A_sc, unit="m2",
                      description="Area for subcooling heat exchange in condenser")
+        fs_state.set(name="dT_pinch_con",
+                     value=min(dT_min_in,
+                               dT_min_LatSH,
+                               dT_min_out),
+                     description="Pinch Condenser")
 
         return error, min(dT_min_in,
                           dT_min_LatSH,
@@ -355,5 +360,9 @@ class MovingBoundaryNTUEvaporator(MovingBoundaryNTU):
                      description="Area for superheat heat exchange in evaporator")
         fs_state.set(name="A_eva_lat", value=A_lat, unit="m2",
                      description="Area for latent heat exchange in evaporator")
+        fs_state.set(name="dT_pinch_eva",
+                     value=min(dT_min_out,
+                               dT_min_in),
+                     description="Pinch Evaporator")
 
         return error, min(dT_min_out, dT_min_in)

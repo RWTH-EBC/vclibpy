@@ -75,7 +75,7 @@ def main():
     save_path = r"D:\00_temp\simple_heat_pump"
     T_eva_in_ar = [-10 + 273.15, 273.15, 10 + 273.15]
     T_con_in_ar = [30 + 273.15, 50 + 273.15, 70 + 273.15]
-    n_ar = [0.3, 0.7, 1]
+    n_ar = [0.7]
 
     # Now, we can generate the full-factorial performance map
     # using all inputs. The results will be stored under the

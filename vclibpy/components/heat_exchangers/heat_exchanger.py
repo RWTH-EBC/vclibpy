@@ -190,7 +190,8 @@ class HeatExchanger(BaseComponent, abc.ABC):
             p (float, optional): Pressure of the secondary medium. Defaults to None.
         """
         self._secondary_cp = self.calc_transport_properties_secondary_medium(T=T, p=p).cp
-        self._m_flow_secondary_cp = self.m_flow_secondary * self._secondary_cp
+        if self.m_flow_secondary is not None:
+            self._m_flow_secondary_cp = self.m_flow_secondary * self._secondary_cp
 
     def calc_secondary_Q_flow(self, Q_flow: float) -> float:
         return Q_flow
@@ -228,3 +229,13 @@ class HeatExchanger(BaseComponent, abc.ABC):
         state = self.med_prop_sec.calc_state("PT", p, T)
         # Return properties
         return self.med_prop_sec.calc_transport_properties(state)
+
+    @property
+    def secondary_cp(self):
+        return self._secondary_cp
+
+
+
+
+
+
