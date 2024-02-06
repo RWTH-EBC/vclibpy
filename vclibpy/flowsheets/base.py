@@ -1,4 +1,5 @@
 import logging
+import os.path
 from typing import List
 import numpy as np
 
@@ -321,7 +322,7 @@ class BaseCycle:
         )
 
         if save_path_plots is not None:
-            self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_final_result.png"), inputs=inputs)
+            self.plot_cycle(save_path=save_path_plots.joinpath(f"{COP_inner}_final_result.png"), inputs=inputs)
 
         return fs_state
 
