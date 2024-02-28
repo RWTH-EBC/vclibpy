@@ -18,7 +18,7 @@ def main():
     # Also, note again that the expansion valve model does not influence the results
     # for the current algorithm. But, you could size the expansion valve
     # using vclibpy, including off-design, but this is one for another example.
-    from vclibpy.components.heat_exchangers import moving_boundary_ntu, simple_ntu
+    from vclibpy.components.heat_exchangers import moving_boundary_ntu, simple_ntu, simple_lmtd, moving_boundary_lmtd
     from vclibpy.components.heat_exchangers import heat_transfer
     condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
         A=5,
@@ -42,9 +42,53 @@ def main():
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000)
     )
 
+    condenser = simple_lmtd.SimpleLMTDCondenser(
+        A=5,
+        secondary_medium="water",
+        flow_type="counter",
+        ratio_outer_to_inner_area=1,
+        primary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=2000),
+        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
+        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=2000)
+    )
+
+    condenser = moving_boundary_lmtd.MovingBoundaryLMTDCondenser(
+        A=5,
+        secondary_medium="water",
+        flow_type="counter",
+        ratio_outer_to_inner_area=1,
+        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=5000),
+        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
+        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
+        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
+        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000)
+    )
+
     evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
         A=15,
         secondary_medium="air",
+        flow_type="counter",
+        ratio_outer_to_inner_area=10,
+        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=1000),
+        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1000),
+        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
+        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
+        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=25)
+    )
+
+    evaporator = simple_lmtd.SimpleLMTDEvaporator(
+        A=5,
+        secondary_medium="water",
+        flow_type="counter",
+        ratio_outer_to_inner_area=1,
+        primary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=2000),
+        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
+        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=2000)
+    )
+
+    evaporator = moving_boundary_lmtd.MovingBoundaryLMTDEvaporator(
+        A=5,
+        secondary_medium="water",
         flow_type="counter",
         ratio_outer_to_inner_area=10,
         two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=1000),
@@ -73,7 +117,7 @@ def main():
     # As in the other example, we can specify save-paths,
     # solver settings and inputs to vary:
     save_path = r"D:\00_temp\simple_heat_pump"
-    T_eva_in_ar = [-10 + 273.15, 273.15, 10 + 273.15]
+    T_eva_in_ar = [10 + 273.15]
     T_con_in_ar = [30 + 273.15, 50 + 273.15, 70 + 273.15]
     n_ar = [0.7]
 
@@ -92,7 +136,7 @@ def main():
         T_eva_in_ar=T_eva_in_ar,
         n_ar=n_ar,
         use_multiprocessing=False,
-        save_plots=True,
+        save_plots=False,
         m_flow_con=0.2,
         m_flow_eva=0.9,
         dT_eva_superheating=5,
