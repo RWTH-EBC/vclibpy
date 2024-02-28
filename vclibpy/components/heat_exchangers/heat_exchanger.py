@@ -64,7 +64,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
         # Set up the secondary_medium wrapper:
         med_prop_class, med_prop_kwargs = media.get_global_med_prop_and_kwargs()
         if self.secondary_medium == "air" and med_prop_class == media.RefProp:
-            fluid_name = "AIR.PPF"
+            fluid_name = "air.ppf"
         else:
             fluid_name = self.secondary_medium
         if self.med_prop_sec is not None:
