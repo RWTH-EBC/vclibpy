@@ -219,7 +219,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
         if p is None:
             if self.secondary_medium == "water":
                 p = 2e5  # 2 bar (default hydraulic pressure)
-            elif self.secondary_medium == "air":
+            elif self.secondary_medium in ["air", "air.ppf"]:
                 p = 101325  # 1 atm
             else:
                 raise NotImplementedError(
