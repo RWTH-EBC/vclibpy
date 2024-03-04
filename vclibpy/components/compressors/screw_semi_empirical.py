@@ -28,6 +28,42 @@ class RotaryCompressor(Compressor):
 
     """
 
+    def __init__(
+            self,
+            m_flow_nom: str,
+            a_tl_1: str,
+            a_tl_2: str,
+            A_leak: str,
+            AU_su_nom: str,
+            AU_ex_nom: str,
+            b_hl: str,
+            BVR: str,
+            V_sw: str
+    ):
+        """
+
+        :param m_flow_nom:
+        :param a_tl_1:
+        :param a_tl_2:
+        :param A_leak:
+        :param AU_su_nom:
+        :param AU_ex_nom:
+        :param b_hl:
+        :param BVR:
+        :param V_sw:
+        """
+
+        super().__init__()
+        self.m_flow_nom = m_flow_nom
+        self.a_tl_1 = a_tl_1
+        self.a_tl_2 = a_tl_2
+        self.A_leak = A_leak
+        self.AU_su_nom = AU_su_nom
+        self.AU_ex_nom = AU_ex_nom
+        self.b_hl = b_hl
+        self.BVR = BVR
+        self.V_sw = V_sw
+
     def get_lambda_h(self, inputs: Inputs) -> float:
         """
         Returns the volumetric efficiency.
@@ -44,7 +80,7 @@ class RotaryCompressor(Compressor):
 
     def get_eta_isentropic(self, p_outlet: float, inputs: Inputs) -> float:
         """
-        Returns the isentropic efficiency based on the regressions of Mirko Engelpracht.
+        Returns the isentropic efficiency.
 
         Args:
             p_outlet (float): High pressure value.
