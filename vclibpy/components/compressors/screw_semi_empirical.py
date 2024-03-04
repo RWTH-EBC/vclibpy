@@ -42,15 +42,15 @@ class RotaryCompressor(Compressor):
     ):
         """
 
-        :param m_flow_nom:
-        :param a_tl_1:
-        :param a_tl_2:
-        :param A_leak:
-        :param AU_su_nom:
-        :param AU_ex_nom:
-        :param b_hl:
-        :param BVR:
-        :param V_sw:
+        :param m_flow_nom:  Nominal mass flow rate, kg·s−1
+        :param a_tl_1:      Coefficient for internal load losses
+        :param a_tl_2:      Coefficient for viscous friction losses
+        :param A_leak:      Leakage area, mm^2
+        :param AU_su_nom:   Supply heat transfer coefficient, W·K^(−1)
+        :param AU_ex_nom:   Exhaust heat transfer coefficient, W·K^(−1)
+        :param b_hl:        Coefficient for ambient heat losses, W·K^(−5/4)
+        :param BVR:         Built-in volume ratio
+        :param V_sw:        Swept volume, cm^3
         """
 
         super().__init__()
