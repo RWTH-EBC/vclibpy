@@ -2,3 +2,4 @@ from .compressor import Compressor
 from .rotary import RotaryCompressor
 from .ten_coefficient import TenCoefficientCompressor, DataSheetCompressor
 from .constant_effectivness import ConstantEffectivenessCompressor
+from .screw_semi_empirical import ScrewCompressorSemiEmpirical
