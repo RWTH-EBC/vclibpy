@@ -56,7 +56,7 @@ class StandardCycle(BaseCycle):
         self.evaporator.state_inlet = self.expansion_valve.state_outlet
         self.set_evaporator_outlet_based_on_superheating(p_eva=p_1, inputs=inputs)
         self.compressor.state_inlet = self.evaporator.state_outlet
-
+        n_start = inputs.n
         if inputs.Q_con_set > 0 > inputs.n:
             n_next = 0.5
             n_step = 0.1
@@ -82,8 +82,8 @@ class StandardCycle(BaseCycle):
                 if abs(rel_error) < max_rel_error:
                     break
                 elif rel_error < 0:
-                    if n_next > 1:
-                        n_next = 1
+                    if n_next > 1.5:
+                        n_next = 1.5
                         break
                     n_next+= n_step
                     bigger = True
@@ -107,7 +107,6 @@ class StandardCycle(BaseCycle):
                         bigger = False
                         smaller = False
                     continue
-
         self.compressor.calc_state_outlet(p_outlet=p_2, inputs=inputs, fs_state=fs_state)
         self.condenser.state_inlet = self.compressor.state_outlet
 
@@ -133,7 +132,7 @@ class StandardCycle(BaseCycle):
         )
 
         if inputs.T_eva_out_set > - 9999:
-            self.evaporator.calc_secondary_cp(T=0.5 * (inputs.T_eva_in + inputs.T_eva_out_set))
+            self.evaporator.calc_secondary_cp(T=inputs.T_eva_in)
             m_flow_eva = inputs.Q_eva / (self.evaporator.secondary_cp * (inputs.T_eva_in - inputs.T_eva_out_set))
             inputs.set(
                 name="m_flow_eva",
@@ -141,14 +140,32 @@ class StandardCycle(BaseCycle):
                 unit="kg/s",
                 description="Secondary side evaporator mass flow rate"
             )
+        else:
+            self.evaporator.calc_secondary_cp(T=inputs.T_eva_in)
+            T_eva_out = inputs.T_eva_in - (inputs.Q_eva/(inputs.Q_eva*inputs.m_flow_eva))
+            inputs.set(
+                name="T_eva_out",
+                value=T_eva_out,
+                unit="K",
+                description="Secondary side evaporator outlet temperature"
+            )
         if inputs.T_con_out_set > - 9999:
-            self.condenser.calc_secondary_cp(T=0.5 * (inputs.T_con_in + inputs.T_con_out_set))
+            self.condenser.calc_secondary_cp(T=inputs.T_con_in)
             m_flow_con = inputs.Q_con / (self.condenser.secondary_cp * (inputs.T_con_out_set - inputs.T_con_in))
             inputs.set(
                 name="m_flow_con",
                 value=m_flow_con,
                 unit="kg/s",
                 description="Secondary side condenser mass flow rate"
+            )
+        else:
+            self.condenser.calc_secondary_cp(T=inputs.T_con_in)
+            T_con_out = inputs.T_con_in + (inputs.Q_con/self.condenser.secondary_cp*inputs.m_flow_con)
+            inputs.set(
+                name="T_con_out",
+                value=T_con_out,
+                unit="K",
+                description="Secondary side condenser outlet temperature"
             )
 
         fs_state.set(
@@ -175,6 +192,13 @@ class StandardCycle(BaseCycle):
         fs_state.set(name="p_con", value=p_2, unit="Pa", description="Condensation pressure")
         fs_state.set(name="p_eva", value=p_1, unit="Pa", description="Evaporation pressure")
         fs_state.set(name="compressor_speed_calc", value=inputs.n, unit="1/s", description="Compressor Speed")
+
+        inputs.set(
+            name="n",
+            value=n_start,
+            unit="-",
+            description="Relative compressor speed"
+        )
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
         """Based on simple energy balance - Adiabatic"""

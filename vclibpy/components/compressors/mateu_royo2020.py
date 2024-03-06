@@ -42,7 +42,11 @@ class MateuRoyo2020(Compressor):
     def __init__(self,
                  N_max: float, V_h: float,
                  eps_vol: float,
-                 eta_mech: float):
+                 eta_mech: float,
+                 a0=1.0455,
+                 a1=-0.0184,
+                 a2=-0.0011,
+                 ):
         """
         Initialize the ConstantEffectivenessCompressor.
 
@@ -58,7 +62,9 @@ class MateuRoyo2020(Compressor):
         super(MateuRoyo2020, self).__init__(N_max=N_max, V_h=V_h)
         self.eps_vol = eps_vol
         self.eta_mech = eta_mech
-
+        self.a0 = a0
+        self.a1 = a1
+        self.a2 = a2
 
     def get_lambda_h(self, inputs: Inputs) -> float:
         """
@@ -71,13 +77,11 @@ class MateuRoyo2020(Compressor):
             float: Constant volumetric efficiency.
         """
 
-        a0 = 1.0455
-        a1 = -0.0184
-        a2 = -0.0011
 
-        rp = self.state_outlet.p/self.state_inlet.p
 
-        return a0 + a1*rp + a2*rp**2
+        rp = self.state_outlet.p / self.state_inlet.p
+
+        return self.a0 + self.a1 * rp + self.a2 * rp ** 2
 
     def get_eta_isentropic(self, p_outlet: float, inputs: Inputs) -> float:
         """
@@ -92,8 +96,8 @@ class MateuRoyo2020(Compressor):
 
         """
         v_suc = self.state_inlet.v
-        v_ad = v_suc/self.eps_vol
-        d_ad = 1/v_ad
+        v_ad = v_suc / self.eps_vol
+        d_ad = 1 / v_ad
         state_outlet_isentropic = self.med_prop.calc_state("PS", p_outlet, self.state_inlet.s)
         state_adaptet = self.med_prop.calc_state("DS", d_ad, self.state_inlet.s)
         h_disch_is = state_outlet_isentropic.h
@@ -101,7 +105,7 @@ class MateuRoyo2020(Compressor):
         h_ad = state_adaptet.h
         P_disch = p_outlet
         P_ad = state_adaptet.p
-        return (h_disch_is-h_suc)/((h_ad-h_suc)+v_ad*abs(P_disch-P_ad))
+        return (h_disch_is - h_suc) / ((h_ad - h_suc) + v_ad * abs(P_disch - P_ad))
 
     def get_eta_mech(self, inputs: Inputs) -> float:
         """
