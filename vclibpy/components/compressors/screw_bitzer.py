@@ -4,7 +4,7 @@ from vclibpy.datamodels import Inputs
 
 class ScrewBitzer(Compressor):
     """
-    Compressor based data from Bitzer-tool for screw compressors:
+    Compressor based on data from Bitzer-tool for screw compressors:
     Bitzer data from compact screw compressor series. Calculation of efficiencies with polynomials for P_el and m_flow.
     Boundary conditions: T_SH = 10 K, T_SC = 0 K, n_max = 50 Hz, eta_mech = 0.92
     Mean curve for eta_s and lambda_h approximated based on 5 refrigerants (R134a, R290, R1234yf, R1234ze, R407C).
@@ -79,8 +79,8 @@ class ScrewBitzer(Compressor):
 
     def get_eta_isentropic(self, p_outlet: float, inputs: Inputs,
                            transition_point = 5.3,
-                           a0 = -0.428288911, a1 = 0.905243389, a2 = -0.218644813, a3 = 0.016393308,
-                           b0 = 0.821171862, b1 = -0.028999017) -> float:
+                           b0 = -0.428288911, b1 = 0.905243389, b2 = -0.218644813, b3 = 0.016393308,
+                           c0 = 0.821171862, c1 = -0.028999017) -> float:
         """
         Returns the isentropic efficiency of the compressor for the corresponding pressure ratio.
 
@@ -94,9 +94,9 @@ class ScrewBitzer(Compressor):
         rp = p_outlet/self.state_inlet.p
 
         if rp <= transition_point:
-            eta_s = a0 + a1 * rp + a2 * rp**2 + a3 * rp**3
+            eta_s = b0 + b1 * rp + b2 * rp**2 + b3 * rp**3
         else:
-            eta_s = b0 + b1 * rp
+            eta_s = c0 + c1 * rp
 
         return eta_s
 
