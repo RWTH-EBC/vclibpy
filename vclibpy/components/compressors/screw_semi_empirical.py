@@ -1,6 +1,7 @@
 from vclibpy.components.compressors.compressor import Compressor
 from vclibpy.datamodels import Inputs
 import numpy as np
+import math
 
 class RotaryCompressor(Compressor):
     """
