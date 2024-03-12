@@ -215,7 +215,7 @@ class RotaryCompressor(Compressor):
                     logger.info("Breaking: Converged")
                     break
 
-            return state_in, state_out, m_flow, state_out_is.h
+            return state_in, state_out, m_flow, state_out_is.h, P_sh
 
 
 
@@ -227,9 +227,18 @@ class RotaryCompressor(Compressor):
 
 
     def get_lambda_h(self, inputs: Inputs) -> float:
+        """
+        Returns the volumetric efficiency.
+
+        Args:
+            inputs (Inputs): Input parameters for the calculation.
+
+        Returns:
+            float: volumetric efficiency.
+        """
         n_abs = self.get_n_absolute(inputs.n)
 
-        state_in, state_out, m_flow, h_out_s = self.iterate(n_abs)
+        state_in, state_out, m_flow, h_out_s, P_sh = self.iterate(n_abs)
 
         lambda_h = m_flow / (n_abs * state_in.d * self.V_h)
         return lambda_h
@@ -251,7 +260,7 @@ class RotaryCompressor(Compressor):
         """
         n_abs = self.get_n_absolute(inputs.n)
 
-        state_in, state_out, m_flow, h_out_s = self.iterate(n_abs)
+        state_in, state_out, m_flow, h_out_s, P_sh = self.iterate(n_abs)
         eta_s = (h_out_s - state_in.h) / (state_out.h - state_in.h)
 
         return eta_s
@@ -270,4 +279,10 @@ class RotaryCompressor(Compressor):
         Returns:
             float: Mechanical efficiency.
         """
-        raise NotImplementedError("Re-implement this function to use it")
+
+        n_abs = self.get_n_absolute(inputs.n)
+
+        state_in, state_out, m_flow, h_out_s, P_sh = self.iterate(n_abs)
+        eta_mech = m_flow * (state_out.h - state_in.h)/P_sh
+
+        return eta_mech
