@@ -133,7 +133,7 @@ class RotaryCompressor(Compressor):
         self.fitting_compressor = {"piston_diameter": 34e-3, "piston_height": 34e-3, "amount_cyl": 2.,
                                    "cylinder_surface": .04}
 
-        self.T_env = 25.  # temperature of environment
+        self.T_amb = 25.  # temperature of ambience
 
 
 
@@ -153,13 +153,18 @@ class RotaryCompressor(Compressor):
         :return float vol_eff:
             Volumetric compressor efficiency
         """
+        # boundary conditions
         p_out = self.get_p_outlet()
         p_in  = self.state_inlet.p
         T_in  = self.state_inlet.T
         s_in  = self.state_inlet.s
+        h_in  = self.state_inlet.h
+        h_1= h_in
+        R = 8.314 #ideal gas constant [J/(K*mol)]
+        state_in = self.med_prop.calc_state('PT', p_in,T_in)
 
-
-        T_out_start = self.med_prop.calc_state('PS', p_out, s_in)
+        T_out_start = self.med_prop.calc_state('PS', p_out, s_in).T
+        T_out_next = T_out_start
 
         number_of_iterations  = 0
         m_flow_history = []
@@ -168,7 +173,9 @@ class RotaryCompressor(Compressor):
         m_flow_leak_history = []
         m_flow_leak_start = 0
         m_flow_leak_next = m_flow_leak_start
-
+        T_w_start = self.T_amb
+        T_w_next = T_w_start
+        cp_in = self.med_prop.calc_transport_properties(state_in).cp
 
 
 
@@ -177,6 +184,28 @@ class RotaryCompressor(Compressor):
             m_flow = m_flow_next
             m_flow_leak = m_flow_leak_next
             m_flow_ges = m_flow + m_flow_leak
+            T_out = T_out_next
+            T_w = T_w_next
+
+            state_6 = self.med_prop.calc_state("PT", p_out, T_out)
+            state_1 = self.med_prop.calc_state('PT', p_in, T_in)
+
+            # Poytropenverhältnis
+            ny = (state_6.s-state_1.s)/R * math.log(state_6.p/state_1.p)
+            p_2_array = np.linspace(p_in, p_out, 20)
+            T_2_array = []
+            h_2_array = []
+            for p_2 in p_2_array:
+                T_2 = T_in *(p_2/p_in) ** (ny * R /cp_in)
+                h_2 = self.med_prop.calc_state('PT', p_2, T_2)
+                T_2_array.append(T_2)
+                h_2_array.append(h_2)
+
+
+            h_2 = (m_flow * h_1 + m_flow_leak * state_6.h ) / m_flow_ges
+            AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8
+            Q_flow_23 = m_flow_ges *(T_w-T_2)
+
 
 
 
