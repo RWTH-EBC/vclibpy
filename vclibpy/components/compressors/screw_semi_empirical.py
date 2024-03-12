@@ -30,15 +30,19 @@ class RotaryCompressor(Compressor):
 
     def __init__(
             self,
-            m_flow_nom: str,
-            a_tl_1: str,
-            a_tl_2: str,
-            A_leak: str,
-            AU_su_nom: str,
-            AU_ex_nom: str,
-            b_hl: str,
-            BVR: str,
-            V_sw: str
+            n: float,
+            my: float, # dynamic viscosity of the lubricant
+            N_max,
+            V_h,
+            m_flow_nom: float,
+            a_tl_1: float,
+            a_tl_2: float,
+            A_leak: float,
+            AU_su_nom: float,
+            AU_ex_nom: float,
+            b_hl: float,
+            BVR: float,
+            V_sw: float
     ):
         """Initialization function
 
@@ -71,7 +75,8 @@ class RotaryCompressor(Compressor):
         self.AU_ex_nom      = 35.6
         self.b_hl           = 1.82
         self.BVR            = 3.26
-        self.V_sw           = 676.8
+        self.n              = n
+        self.my             = my
 
 
         #  state of fluid at in/out
@@ -170,53 +175,98 @@ class RotaryCompressor(Compressor):
         m_flow_history = []
         m_flow_start = self.m_flow_nom
         m_flow_next = m_flow_start
-        m_flow_leak_history = []
-        m_flow_leak_start = 0
-        m_flow_leak_next = m_flow_leak_start
         T_w_start = self.T_amb
         T_w_next = T_w_start
-
-
-
+        T_w_history = []
 
         while True:
             number_of_iterations +=1
             m_flow = m_flow_next
-            m_flow_leak = m_flow_leak_next
-            m_flow_ges = m_flow + m_flow_leak
+            m_flow_history.append(m_flow)
+
+
             T_out = T_out_next
             T_w = T_w_next
+            T_w_history.append(T_w)
 
             # Dertermination of state 2
 
             state_6 = self.med_prop.calc_state("PT", p_out, T_out)
             state_1 = self.med_prop.calc_state('PT', p_in, T_in)
+            gamma = transport_properties.cp / transport_properties.cv
+            p_crit_leak = p_out *((2/(gamma+1)) **(gamma/(gamma+1)))
+            p_leak = max (p_crit_leak, state_1.p)
+            state_leak = self.med_prop.calc_state('PS', p_leak, state_6.s)
+            m_flow_leak = (1/state_leak.d) * self.A_leak * np.sqrt(2 * (state_6.h - state_leak.h))
+            m_flow_ges = m_flow + m_flow_leak
             transport_properties = self.med_prop.calc_mean_transport_properties(state_1, state_6)
             h_2 = (m_flow * state_1.h + m_flow_leak * state_6.h) / m_flow_ges
 
-            # Poytropenverhältnis
-            ny = (state_6.s-state_1.s)/R * math.log(state_6.p/state_1.p)
-            p_2_array = np.linspace(p_in, p_out, 20)
-            T_2_array = []
-            h_2_array = []
-            for p_2 in p_2_array:
-                T_2 = T_in *(p_2/p_in) ** (ny * R /transport_properties.cp)
-                h_2 = self.med_prop.calc_state('PT', p_2, T_2).h
-                T_2_array.append(T_2)
-                h_2_array.append(h_2)
+            # Determination of state 2 via Volumenkonstanz
 
-            p_2 = np.interp(h_2, h_2_array, p_2_array)
-            state_2 = self.med_prop.calc_state('PH', p_2, h_2)
-            cp_2 = self.med_prop.calc_transport_properties(state_2)
+
+            v_2 = m_flow / (m_flow_ges * state_1.d) + m_flow_leak / (m_flow_ges * state_6.d)
+            d_2 = 1/ v_2
+            state_2 = self.med_prop.calc_state('DH', d_2, h_2)
+
+
+            ## Poytropenverhältnis
+            #ny = (state_6.s-state_1.s)/R * math.log(state_6.p/state_1.p)
+            #p_2_array = np.linspace(p_in, p_out, 20)
+            #T_2_array = []
+            #h_2_array = []
+            #for p_2 in p_2_array:
+            #    T_2 = T_in *(p_2/p_in) ** (ny * R /transport_properties.cp)
+            #    h_2 = self.med_prop.calc_state('PT', p_2, T_2).h
+            #    T_2_array.append(T_2)
+            #    h_2_array.append(h_2)
+
+            #p_2 = np.interp(h_2, h_2_array, p_2_array)
+            #state_2 = self.med_prop.calc_state('PH', p_2, h_2)
+
+
 
             # Determination of state 3
 
             AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8
-            Q_flow_23 = m_flow_ges * (T_w - state_2.T) * transport_properties.cp * (1 - np.exp(-AU_su / (m_flow_ges * transport_properties.cp)))
+            Q_flow_23 = (m_flow_ges * (T_w - state_2.T) * transport_properties.cp *
+                        (1 - np.exp(-AU_su / (m_flow_ges * transport_properties.cp))))
+                        # todo: Check, if T_2 is correct (assumption in determination of state 2) evtl: keine Entropieproduktion
 
             h_3 = h_2 + Q_flow_23 / m_flow_ges
+            v_3 = self.V_h * self.n / m_flow_ges
+            d_3 = 1 / v_3
+            state_3 = self.med_prop.calc_state('DH', d_3, h_3)
 
+            # Determination of state 4
 
+            v_4 = v_3/self.BVR
+            d_4 = 1/v_4
+            s_4 = state_3.s
+            state_4 = self.med_prop.calc_state('DS', d_4, s_4)
+            state_5 = self.med_prop.calc_state('PD', p_out, state_4.d)
+            w_in = (state_4.h - state_3.h) + (1 / state_4.d) /(state_5.p-state_4.p)
+
+            # Determination of state 6
+
+            AU_ex = self.AU_ex_nom * (m_flow_ges / self.m_flow_nom) ** 0.8
+            Q_flow_56 = (m_flow_ges * (T_w - state_5.T) * transport_properties.cp *
+                        (1 - np.exp(-AU_ex / (m_flow_ges * transport_properties.cp))))
+            h_6 = state_5.h + Q_flow_56 / m_flow_ges
+            state_6 = self.med_prop.calc_state('PH', p_out, h_6)
+            T_out_next = state_6.T
+
+            P_in = w_in * m_flow_ges
+            P_loss_1 = P_in * self.a_tl_1
+            P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * self.n / 30) ** 2) * self.my
+            P_sh = P_in + P_loss_1 + P_loss_2
+
+            Q_flow_amb = self.b_hl * (T_w - self.T_amb) ** 1.25
+
+            h_out= state_in.h + (P_sh - Q_flow_amb) / m_flow
+            T_out_next = self.med_prop.calc_state('PH', p_out, h_out)
+
+            T_w_next = self.T_amb + ((P_loss_1 + P_loss_2 - Q_flow_23 - Q_flow_56)/self.b_hl) ** (4/5)
 
 
 
