@@ -175,7 +175,7 @@ class RotaryCompressor(Compressor):
         m_flow_leak_next = m_flow_leak_start
         T_w_start = self.T_amb
         T_w_next = T_w_start
-        cp_in = self.med_prop.calc_transport_properties(state_in).cp
+
 
 
 
@@ -187,8 +187,11 @@ class RotaryCompressor(Compressor):
             T_out = T_out_next
             T_w = T_w_next
 
+            # Dertermination of state 2
+
             state_6 = self.med_prop.calc_state("PT", p_out, T_out)
             state_1 = self.med_prop.calc_state('PT', p_in, T_in)
+            transport_properties = self.med_prop.calc_mean_transport_properties(state_1, state_6)
             h_2 = (m_flow * state_1.h + m_flow_leak * state_6.h) / m_flow_ges
 
             # Poytropenverhältnis
@@ -197,19 +200,21 @@ class RotaryCompressor(Compressor):
             T_2_array = []
             h_2_array = []
             for p_2 in p_2_array:
-                T_2 = T_in *(p_2/p_in) ** (ny * R /cp_in)
+                T_2 = T_in *(p_2/p_in) ** (ny * R /transport_properties.cp)
                 h_2 = self.med_prop.calc_state('PT', p_2, T_2).h
                 T_2_array.append(T_2)
                 h_2_array.append(h_2)
 
             p_2 = np.interp(h_2, h_2_array, p_2_array)
             state_2 = self.med_prop.calc_state('PH', p_2, h_2)
+            cp_2 = self.med_prop.calc_transport_properties(state_2)
 
-
-
+            # Determination of state 3
 
             AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8
-            Q_flow_23 = m_flow_ges * (T_w - state_2.T)
+            Q_flow_23 = m_flow_ges * (T_w - state_2.T) * transport_properties.cp * (1 - np.exp(-AU_su / (m_flow_ges * transport_properties.cp)))
+
+            h_3 = h_2 + Q_flow_23 / m_flow_ges
 
 
 
