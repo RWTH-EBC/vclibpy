@@ -158,10 +158,10 @@ class RotaryCompressor(Compressor):
         p_in  = self.state_inlet.p
         T_in  = self.state_inlet.T
         s_in  = self.state_inlet.s
-        h_in  = self.state_inlet.h
-        h_1= h_in
+
+
         R = 8.314 #ideal gas constant [J/(K*mol)]
-        state_in = self.med_prop.calc_state('PT', p_in,T_in)
+        state_in = self.state_inlet
 
         T_out_start = self.med_prop.calc_state('PS', p_out, s_in).T
         T_out_next = T_out_start
@@ -189,6 +189,7 @@ class RotaryCompressor(Compressor):
 
             state_6 = self.med_prop.calc_state("PT", p_out, T_out)
             state_1 = self.med_prop.calc_state('PT', p_in, T_in)
+            h_2 = (m_flow * state_1.h + m_flow_leak * state_6.h) / m_flow_ges
 
             # Poytropenverhältnis
             ny = (state_6.s-state_1.s)/R * math.log(state_6.p/state_1.p)
@@ -197,14 +198,18 @@ class RotaryCompressor(Compressor):
             h_2_array = []
             for p_2 in p_2_array:
                 T_2 = T_in *(p_2/p_in) ** (ny * R /cp_in)
-                h_2 = self.med_prop.calc_state('PT', p_2, T_2)
+                h_2 = self.med_prop.calc_state('PT', p_2, T_2).h
                 T_2_array.append(T_2)
                 h_2_array.append(h_2)
 
+            p_2 = np.interp(h_2, h_2_array, p_2_array)
+            state_2 = self.med_prop.calc_state('PH', p_2, h_2)
 
-            h_2 = (m_flow * h_1 + m_flow_leak * state_6.h ) / m_flow_ges
+
+
+
             AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8
-            Q_flow_23 = m_flow_ges *(T_w-T_2)
+            Q_flow_23 = m_flow_ges * (T_w - state_2.T)
 
 
 
