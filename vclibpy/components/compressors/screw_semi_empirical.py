@@ -4,7 +4,7 @@ import numpy as np
 import math
 import logging
 logger = logging.getLogger(__name__)
-class RotaryCompressor(Compressor):
+class ScrewCompressorSemiEmpirical(Compressor):
     """
      Reciprocating compressor semi-empirical model.
 
@@ -30,21 +30,10 @@ class RotaryCompressor(Compressor):
     """
 
     def __init__(
-            self,
-            n: float,
-            my: float, # dynamic viscosity of the lubricant
-            max_num_iterations,
-            N_max,
-            V_h,
-            m_flow_nom: float,
-            a_tl_1: float,
-            a_tl_2: float,
-            A_leak: float,
-            AU_su_nom: float,
-            AU_ex_nom: float,
-            b_hl: float,
-            BVR: float,
-            V_sw: float
+            self,N_max, V_h,
+            my = 68,
+            max_num_iterations = 2000
+
     ):
         """Initialization function
 
@@ -64,7 +53,7 @@ class RotaryCompressor(Compressor):
         :param V_sw:        Swept volume, [cm^3]
         """
         # Super init function
-        super().__init__()
+        super().__init__(N_max, V_h)
 
 
         # Model parameters for Bitzer OSN5361-K  118 / 142 (https://www.bitzer.de/ch/de/produkte/schraubenverdichter/offen/fuer-standardkaeltemittel/os-serie/#!OSN5361)
@@ -196,7 +185,7 @@ class RotaryCompressor(Compressor):
 
             P_in = w_in * m_flow_ges
             P_loss_1 = P_in * self.a_tl_1
-            P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * self.n / 30) ** 2) * self.my
+            P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my
             P_sh = P_in + P_loss_1 + P_loss_2
 
             Q_flow_amb = self.b_hl * (T_w - self.T_amb) ** 1.25
