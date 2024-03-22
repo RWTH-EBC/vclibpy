@@ -62,3 +62,5 @@ Please [raise an issue here](https://github.com/RWTH-EBC/vclibpy/issues/new).
 We gratefully acknowledge the financial support by the Federal Ministry for Economic Affairs and Climate Action (BMWK), promotional reference 03EN1022B.
 
 <img src="https://github.com/RWTH-EBC/BESMod/blob/main/BESMod/Resources/Images/BMWK_logo.png" alt="BMWK" width="200"/>
+
+We gratefully acknowledge the financial support by the Federal Ministry for Economic Affairs and Climate Action (BMWK), promotional reference 03EN1022B, as well as the European Regional Development Fund (ERDF) (ERDF-0500029).
