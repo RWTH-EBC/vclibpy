@@ -1,5 +1,5 @@
 from vclibpy.components.compressors.compressor import Compressor
-from vclibpy.datamodels import Inputs
+from vclibpy.datamodels import Inputs, FlowsheetState
 import numpy as np
 import math
 import logging
@@ -73,8 +73,25 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
         self.max_num_iterations = max_num_iterations
 
+    def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
+        """
+        Calculate the output state based on the high pressure level and the provided inputs.
+        The state is automatically set as the outlet state of this component.
 
-    def iterate(self, n_abs):
+        Args:
+            p_outlet (float): High pressure value.
+            inputs (Inputs): Inputs for calculation.
+            fs_state (FlowsheetState): Flowsheet state.
+        """
+        state_outlet_isentropic = self.med_prop.calc_state("PS", p_outlet, self.state_inlet.s)
+        eta_is = self.get_eta_isentropic(p_outlet=p_outlet, inputs=inputs)
+        h_outlet = (
+                self.state_inlet.h + (state_outlet_isentropic.h - self.state_inlet.h) /
+                eta_is
+        )
+        fs_state.set(name="eta_is", value=eta_is, unit="%", description="Isentropic efficiency")
+        self.state_outlet = self.med_prop.calc_state("PH", p_outlet, h_outlet)
+    def iterate(self, inputs: Inputs, n_abs):
         """ Iterate process until error is smaller than tolerance
 
         Return:
@@ -102,7 +119,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         m_flow_history = []
         m_flow_start = self.m_flow_nom
         m_flow_next = m_flow_start
-        T_w_start = self.T_amb
+        T_w_start = inputs.T_ambient
         T_w_next = T_w_start
         T_w_history = []
 
@@ -122,8 +139,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
             state_1 = self.med_prop.calc_state('PT', p_in, T_in)
             transport_properties = self.med_prop.calc_mean_transport_properties(state_1, state_6)
             gamma = transport_properties.cp / transport_properties.cv
-            p_crit_leak = p_out *((2/(gamma+1)) **(gamma/(gamma+1)))
-            p_leak = max (p_crit_leak, state_1.p)
+            p_crit_leak = p_out * ((2/(gamma+1)) **(gamma/(gamma+1)))
+            p_leak = max(p_crit_leak, state_1.p)
             state_leak = self.med_prop.calc_state('PS', p_leak, state_6.s)
             m_flow_leak = (1/state_leak.d) * self.A_leak * np.sqrt(2 * (state_6.h - state_leak.h))
             m_flow_ges = m_flow + m_flow_leak
@@ -188,12 +205,12 @@ class ScrewCompressorSemiEmpirical(Compressor):
             P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my
             P_sh = P_in + P_loss_1 + P_loss_2
 
-            Q_flow_amb = self.b_hl * (T_w - self.T_amb) ** 1.25
+            Q_flow_amb = self.b_hl * (T_w - inputs.T_ambient) ** 1.25
 
             h_out= state_in.h + (P_sh - Q_flow_amb) / m_flow
             state_out = self.med_prop.calc_state('PH', p_out, h_out)
             T_out_next = state_out.T
-            T_w_next = self.T_amb + ((P_loss_1 + P_loss_2 - Q_flow_23 - Q_flow_56)/self.b_hl) ** (4/5)
+            T_w_next = inputs.T_ambient + ((P_loss_1 + P_loss_2 - Q_flow_23 - Q_flow_56)/self.b_hl) ** (4/5)
 
             if self.max_num_iterations <= number_of_iterations:
                 logger.critical("Breaking: exceeded maximum number of iterations")
@@ -204,7 +221,10 @@ class ScrewCompressorSemiEmpirical(Compressor):
                     logger.info("Breaking: Converged")
                     break
 
-            return state_in, state_out, m_flow, state_out_is.h, P_sh
+        eta_s = (state_out_is.h - state_in.h) / (state_out.h - state_in.h)
+        eta_mech = 1
+        eta_vol = 1
+        return state_out, eta_s, eta_vol, eta_mech, m_flow
 
 
 
