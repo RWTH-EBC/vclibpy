@@ -57,10 +57,14 @@ class ScrewCompressorSemiEmpirical(Compressor):
             Calculate the electrical power consumed by the compressor based on an adiabatic energy balance.
     """
 
-    def __init__(self, N_max: float, V_h: float,
-            my = 68,
-            max_num_iterations = 2000
-        ):
+
+
+    def __init__(self,
+                 N_max: float,
+                 V_h: float,
+                 eta_mech: float,
+                 my=68,
+                 max_num_iterations=2000):
         """Initialization function
 
         Parameters:
@@ -79,7 +83,23 @@ class ScrewCompressorSemiEmpirical(Compressor):
         :param V_sw:        Swept volume, [cm^3]
         """
         # Super init function
-        super().__init__(N_max, V_h)
+        super().__init__(N_max=N_max, V_h=V_h)
+
+        # Model parameters for Bitzer OSN5361-K  118 / 142 (https://www.bitzer.de/ch/de/produkte/schraubenverdichter/offen/fuer-standardkaeltemittel/os-serie/#!OSN5361)
+        # Parameters taken from Giuffrida
+        self.m_flow_nom = 0.988
+        self.a_tl_1 = 0.265
+        self.a_tl_2 = 134.5
+        self.A_leak = 3.32
+        self.AU_su_nom = 60.5
+        self.AU_ex_nom = 35.6
+        self.b_hl = 1.82
+        self.BVR = 3.26
+        self.eta_mech = eta_mech
+
+        self.my = my  # dynamic viscosity of the lubricant
+        self.T_amb = 25.  # temperature of ambience
+        self.max_num_iterations = max_num_iterations
 
     def get_lambda_h(self, inputs: Inputs) -> float:
         """
