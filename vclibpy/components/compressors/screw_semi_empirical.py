@@ -4,6 +4,189 @@ import numpy as np
 import math
 import logging
 logger = logging.getLogger(__name__)
+
+
+
+
+"""
+Module for different compressor models
+"""
+
+from vclibpy.components.component import BaseComponent
+from vclibpy.datamodels import Inputs, FlowsheetState
+
+
+class ScrewCompressorSemiEmpirical(Compressor):
+    """
+    Class of semi-empirical screw compressor model
+
+    Sources:
+    --------
+    [1] Giuffrida, Antonio; 2016, A semi-empirical method for assessing the performance of an open-drive screw
+    refrigeration compressor. In: Applied Thermal Engineering 93 (2016) 813–823, DOI:https://doi.org/10.1016/j.applthermaleng.2015.10.023
+
+
+
+    Args:
+        N_max (float): Maximal rotations per second of the compressor.
+        V_h (float): Volume of the compressor in m^3.
+
+    Methods:
+        get_lambda_h(inputs: Inputs) -> float:
+            Get the volumetric efficiency.
+
+        get_eta_isentropic(p_outlet: float, inputs: Inputs) -> float:
+            Get the isentropic efficiency.
+
+        get_eta_mech(inputs: Inputs) -> float:
+            Get the mechanical efficiency.
+
+        get_p_outlet() -> float:
+            Get the outlet pressure.
+
+        get_n_absolute(n: float) -> float:
+            Return the absolute compressor frequency based on the relative speed.
+
+        calc_state_outlet(p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
+            Calculate the outlet state based on the high pressure level and provided inputs.
+
+        calc_m_flow(inputs: Inputs, fs_state: FlowsheetState) -> float:
+            Calculate the refrigerant mass flow rate.
+
+        calc_electrical_power(inputs: Inputs, fs_state: FlowsheetState) -> float:
+            Calculate the electrical power consumed by the compressor based on an adiabatic energy balance.
+    """
+
+    def __init__(self, N_max: float, V_h: float,
+            my = 68,
+            max_num_iterations = 2000
+        ):
+        """Initialization function
+
+        Parameters:
+
+
+        Compressor specific parameters:
+
+        :param m_flow_nom:  Nominal mass flow rate, [kg/s]
+        :param a_tl_1:      Coefficient for internal load losses, [-]
+        :param a_tl_2:      Coefficient for viscous friction losses, [-]
+        :param A_leak:      Leakage area, [mm^2]
+        :param AU_su_nom:   Supply heat transfer coefficient, [W/K]
+        :param AU_ex_nom:   Exhaust heat transfer coefficient, [W/K]
+        :param b_hl:        Coefficient for ambient heat losses, [W/K^(5/4)]
+        :param BVR:         Built-in volume ratio, [-]
+        :param V_sw:        Swept volume, [cm^3]
+        """
+        # Super init function
+        super().__init__(N_max, V_h)
+
+    def get_lambda_h(self, inputs: Inputs) -> float:
+        """
+        Get the volumetric efficiency.
+
+        Args:
+            inputs (Inputs): Inputs for the calculation.
+
+        Returns:
+            float: Volumetric efficiency.
+        """
+        raise NotImplementedError("Re-implement this function to use it")
+
+    def get_eta_isentropic(self, p_outlet: float, inputs: Inputs) -> float:
+        """
+        Get the isentropic efficiency.
+
+        Args:
+            p_outlet (float): High pressure value.
+            inputs (Inputs): Inputs for the calculation.
+
+        Returns:
+            float: Isentropic efficiency.
+        """
+        raise NotImplementedError("Re-implement this function to use it")
+
+    def get_eta_mech(self, inputs: Inputs) -> float:
+        """
+        Returns the product of the constant mechanical, motor, and inverter efficiencies
+        as the effective mechanical efficiency of the compressor.
+
+        Args:
+            inputs (Inputs): Input parameters for the calculation.
+
+        Returns:
+            float: Effective mechanical efficiency.
+        """
+        return self.eta_mech
+
+    def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
+        """
+        Calculate the output state based on the high pressure level and the provided inputs.
+        The state is automatically set as the outlet state of this component.
+
+        Args:
+            p_outlet (float): High pressure value.
+            inputs (Inputs): Inputs for calculation.
+            fs_state (FlowsheetState): Flowsheet state.
+        """
+        state_outlet_isentropic = self.med_prop.calc_state("PS", p_outlet, self.state_inlet.s)
+        eta_is = self.get_eta_isentropic(p_outlet=p_outlet, inputs=inputs)
+        h_outlet = (
+                self.state_inlet.h + (state_outlet_isentropic.h - self.state_inlet.h) /
+                eta_is
+        )
+        fs_state.set(name="eta_is", value=eta_is, unit="%", description="Isentropic efficiency")
+        self.state_outlet = self.med_prop.calc_state("PH", p_outlet, h_outlet)
+
+    def calc_m_flow(self, inputs: Inputs, fs_state: FlowsheetState) -> float:
+        """
+        Calculate the refrigerant mass flow rate.
+
+        Args:
+            inputs (Inputs): Inputs for the calculation.
+            fs_state (FlowsheetState): Flowsheet state.
+
+        Returns:
+            float: Refrigerant mass flow rate.
+        """
+        lambda_h = self.get_lambda_h(inputs=inputs)
+        V_flow_ref = (
+                lambda_h *
+                self.V_h *
+                self.get_n_absolute(inputs.n)
+        )
+        self.m_flow = self.state_inlet.d * V_flow_ref
+        fs_state.set(name="lambda_h", value=lambda_h, unit="%", description="Volumetric efficiency")
+        fs_state.set(name="V_flow_ref", value=V_flow_ref, unit="m3/s", description="Refrigerant volume flow rate")
+        fs_state.set(name="m_flow_ref", value=self.m_flow, unit="kg/s", description="Refrigerant mass flow rate")
+        return self.m_flow
+
+    def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState) -> float:
+        """
+        Calculate the electrical power consumed by the compressor based on an adiabatic energy balance.
+
+        Args:
+            inputs (Inputs): Inputs for the calculation.
+            fs_state (FlowsheetState): Flowsheet state.
+
+        Returns:
+            float: Electrical power consumed.
+        """
+        # Heat flow in the compressor
+        P_t = self.m_flow * (self.state_outlet.h - self.state_inlet.h)
+        # Electrical power consumed
+        eta_mech = self.get_eta_mech(inputs=inputs)
+        P_el = P_t / eta_mech
+        fs_state.set(name="eta_mech", value=eta_mech, unit="-", description="Mechanical efficiency")
+        return P_el
+
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+################################################################################################################################################################################################################################################
+################################################################################################################################################################################################################################################
+########################################################################################################################
 class ScrewCompressorSemiEmpirical(Compressor):
     """
      Reciprocating compressor semi-empirical model.
@@ -29,12 +212,13 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
     """
 
-    def __init__(
-            self,N_max, V_h,
-            my = 68,
-            max_num_iterations = 2000
+    def __init__(self,
+                 N_max: float,
+                 V_h: float,
+                 eta_mech: float,
+                 my = 68,
+                 max_num_iterations = 2000):
 
-    ):
         """Initialization function
 
         Parameters:
@@ -53,7 +237,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         :param V_sw:        Swept volume, [cm^3]
         """
         # Super init function
-        super().__init__(N_max, V_h)
+        super().__init__(N_max=N_max, V_h=V_h)
 
 
         # Model parameters for Bitzer OSN5361-K  118 / 142 (https://www.bitzer.de/ch/de/produkte/schraubenverdichter/offen/fuer-standardkaeltemittel/os-serie/#!OSN5361)
@@ -66,11 +250,10 @@ class ScrewCompressorSemiEmpirical(Compressor):
         self.AU_ex_nom      = 35.6
         self.b_hl           = 1.82
         self.BVR            = 3.26
+        self.eta_mech = eta_mech
 
         self.my             = my # dynamic viscosity of the lubricant
-
         self.T_amb = 25.                # temperature of ambience
-
         self.max_num_iterations = max_num_iterations
 
     def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
@@ -189,7 +372,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
             s_4 = state_3.s
             state_4 = self.med_prop.calc_state('DS', d_4, s_4)
             state_5 = self.med_prop.calc_state('PD', p_out, state_4.d)
-            w_in = (state_4.h - state_3.h) + (1 / state_4.d) /(state_5.p-state_4.p)
+            w_t = (state_4.h - state_3.h) + (1 / state_4.d) /(state_5.p-state_4.p)
 
             # Determination of state 6
 
@@ -200,10 +383,10 @@ class ScrewCompressorSemiEmpirical(Compressor):
             state_6 = self.med_prop.calc_state('PH', p_out, h_6)
             T_out_next = state_6.T
 
-            P_in = w_in * m_flow_ges
-            P_loss_1 = P_in * self.a_tl_1
+            P_t = w_t * m_flow_ges
+            P_loss_1 = P_t * self.a_tl_1
             P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my
-            P_sh = P_in + P_loss_1 + P_loss_2
+            P_sh = P_t + P_loss_1 + P_loss_2
 
             Q_flow_amb = self.b_hl * (T_w - inputs.T_ambient) ** 1.25
 
