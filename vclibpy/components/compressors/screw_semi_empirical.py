@@ -126,7 +126,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         """
         raise NotImplementedError("Re-implement this function to use it")
 
-    def get_eta_mech(self, inputs: Inputs) -> float:
+    def get_eta_mech(self, inputs: Inputs) -> float: #todo: implement claculation of eta mech
         """
         Returns the product of the constant mechanical, motor, and inverter efficiencies
         as the effective mechanical efficiency of the compressor.
@@ -309,8 +309,9 @@ class ScrewCompressorSemiEmpirical(Compressor):
         Returns:
             float: Refrigerant mass flow rate.
         """
-        assert fs_state.m_flow is not None, self.calc_state_outlet(p_outlet=self.get_p_outlet(), inputs=inputs, fs_state=fs_state)
-        return self.m_flow
+        if fs_state.m_flow is not None:
+            self.calc_state_outlet(p_outlet=self.get_p_outlet(), inputs=inputs, fs_state=fs_state)
+        return fs_state.m_flow
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState) -> float:
         """
