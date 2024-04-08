@@ -178,7 +178,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         T_w_history = []
 
         while True:
-            number_of_iterations +=1
+            number_of_iterations += 1
             m_flow = m_flow_next
             m_flow_history.append(m_flow)
             T_out = T_out_next
@@ -232,7 +232,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
                         # todo: Check, if T_2 is correct (assumption in determination of state 2) evtl: keine Entropieproduktion
 
             h_3 = h_2 + Q_flow_23 / m_flow_ges
-            v_3 = self.V_h * n_abs / m_flow_ges
+            v_3 = self.V_h * self.n_abs / m_flow_ges
             d_3 = 1 / v_3
             state_3 = self.med_prop.calc_state('DH', d_3, h_3)
 
@@ -256,7 +256,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
             P_t = w_t * m_flow_ges
             P_loss_1 = P_t * self.a_tl_1
-            P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my
+            P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * self.n_abs / 30) ** 2) * self.my
             P_sh = P_t + P_loss_1 + P_loss_2
 
             Q_flow_amb = self.b_hl * (T_w - inputs.T_ambient) ** 1.25
