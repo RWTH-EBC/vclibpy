@@ -166,16 +166,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
         Returns:
             float: Refrigerant mass flow rate.
         """
-        lambda_h = self.get_lambda_h(inputs=inputs)
-        V_flow_ref = (
-                lambda_h *
-                self.V_h *
-                self.get_n_absolute(inputs.n)
-        )
-        self.m_flow = self.state_inlet.d * V_flow_ref
-        fs_state.set(name="lambda_h", value=lambda_h, unit="%", description="Volumetric efficiency")
-        fs_state.set(name="V_flow_ref", value=V_flow_ref, unit="m3/s", description="Refrigerant volume flow rate")
-        fs_state.set(name="m_flow_ref", value=self.m_flow, unit="kg/s", description="Refrigerant mass flow rate")
+
+
         return self.m_flow
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState) -> float:
