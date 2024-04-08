@@ -259,7 +259,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         h3 = self.med_prop.calc_state("PT", p_outlet, T_con + 273.15 - self.T_sc).h  # [J/kg]
         h2 = h3 + capacity / m_flow  # [J/kg]
 
-        eta_mech = p_el / (m_flow * (h2 - state_inlet_datasheet.h))
+        eta_mech = (m_flow * (h2 - state_inlet_datasheet.h)) / p_el
         return eta_mech
 
     def _calculate_values(self, p_2: float, inputs: Inputs):
