@@ -51,7 +51,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
     def __init__(self,
                  N_max: float,
                  V_h: float,
-                 eta_mech: float,
+                 eta_el: float,
                  my=68,
                  max_num_iterations=2000):
         """Initialization function
@@ -84,7 +84,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         self.AU_ex_nom = 35.6
         self.b_hl = 1.82
         self.BVR = 3.26
-        self.eta_mech = eta_mech
+        self.eta_el = eta_el
 
         self.my = my  # dynamic viscosity of the lubricant
         self.max_num_iterations = max_num_iterations
@@ -184,7 +184,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
             # Determination of state 3
 
             AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8
-            Q_flow_23 = (m_flow_ges * (T_w - state_2.T) * transport_properties.cp *  (1 - np.exp(-AU_su / (m_flow_ges * transport_properties.cp))))
+            Q_flow_23 = (m_flow_ges * (T_w - state_2.T) * transport_properties.cp *
+                         (1 - np.exp(-AU_su / (m_flow_ges * transport_properties.cp))))
                         # todo: Check, if T_2 is correct (assumption in determination of state 2) evtl: keine Entropieproduktion
 
             h_3 = h_2 + Q_flow_23 / m_flow_ges
@@ -211,11 +212,11 @@ class ScrewCompressorSemiEmpirical(Compressor):
             P_t = w_t * m_flow_ges
             P_loss_1 = P_t * self.a_tl_1
             P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my
-            P_sh = P_t + P_loss_1 + P_loss_2
+            P_mech = P_t + P_loss_1 + P_loss_2
 
             Q_flow_amb = self.b_hl * (T_w - T_amb) ** 1.25
 
-            h_out = state_in.h + (P_sh - Q_flow_amb) / m_flow
+            h_out = state_in.h + (P_mech - Q_flow_amb) / m_flow
             state_out = self.med_prop.calc_state('PH', p_out, h_out)
             T_out_next = state_out.T
             T_w_next = T_amb + ((P_loss_1 + P_loss_2 - Q_flow_23 - Q_flow_56)/self.b_hl) ** (4/5)
@@ -230,8 +231,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
                     break
 
         eta_is = (state_out_is.h - state_in.h) / (state_out.h - state_in.h)
-        eta_mech = 1
-        eta_vol = 1
+        eta_mech = P_t / P_mech
+        eta_vol = (m_flow * state_in.d) / (self.V_h * n_abs)
 
         state_outlet_isentropic = self.med_prop.calc_state("PS", p_outlet, self.state_inlet.s)
 
@@ -249,6 +250,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         fs_state.set(name="m_flow", value=m_flow, unit="kg/s", description="Refrigerant mass flow")     #todo: check unit
         fs_state.set(name="eta_mech", value=eta_mech, unit="-", description="Mechanical efficiency")    #todo: check unit
         fs_state.set(name="eta_vol", value=eta_vol, unit="-", description="Volumetric efficiency")      #todo: check unit
+        fs_state.set(name="P_mech", value=P_mech, unit = "W", description="Mechanical Power")
         return self.state_outlet
 
     def get_lambda_h(self, inputs: Inputs) -> float:
@@ -318,12 +320,12 @@ class ScrewCompressorSemiEmpirical(Compressor):
         Returns:
             float: Electrical power consumed.
         """
-        # Heat flow in the compressor
-        P_t = self.m_flow * (self.state_outlet.h - self.state_inlet.h)
+
+
         # Electrical power consumed
-        eta_mech = self.get_eta_mech(inputs=inputs)
-        P_el = P_t / eta_mech
-        fs_state.set(name="eta_mech", value=eta_mech, unit="-", description="Mechanical efficiency")
+        P_el = fs_state.P_mech / self.eta_el
+        fs_state.set(name="eta_el", value=self.eta_el, unit="-", description="Electrical efficiency")
+        fs_state.set(name="P_el", value=self.P_el, unit="W", description="Electrical power")
         return P_el
 
 
