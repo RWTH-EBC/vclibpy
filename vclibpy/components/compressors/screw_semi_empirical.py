@@ -98,7 +98,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         self.T_amb = 25.  # temperature of ambience
         self.max_num_iterations = max_num_iterations
 
-    def get_lambda_h(self, inputs: Inputs) -> float:
+    def get_lambda_h(self, inputs: Inputs, fs_state: FlowsheetState) -> float: #todo: implement claculation of lambda h
         """
         Get the volumetric efficiency.
 
@@ -108,9 +108,12 @@ class ScrewCompressorSemiEmpirical(Compressor):
         Returns:
             float: Volumetric efficiency.
         """
-        raise NotImplementedError("Re-implement this function to use it")
+        if fs_state.eta_vol is not None:
+            self.calc_state_outlet(p_outlet=self.get_p_outlet(), inputs=inputs, fs_state=fs_state)
+        return fs_state.eta_vol
 
-    def get_eta_isentropic(self, p_outlet: float, inputs: Inputs) -> float:
+
+    def get_eta_isentropic(self, p_outlet: float, inputs: Inputs) -> float: #todo: implement claculation of eta_isentropic
         """
         Get the isentropic efficiency.
 
