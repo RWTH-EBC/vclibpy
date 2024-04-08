@@ -12,7 +12,7 @@ def main():
     # Let's specify some dummy parameters:
     screw_compressor = ScrewCompressorSemiEmpirical(
         N_max=120,
-        V_h=19e-6,
+        V_h=676.8e-6,
         eta_mech=0.9
     )
     # Before we can do any calculations, the compressor needs

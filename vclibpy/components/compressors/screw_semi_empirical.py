@@ -109,9 +109,9 @@ class ScrewCompressorSemiEmpirical(Compressor):
             Volumetric compressor efficiency
         """
         accuracy = 0.001 # Maximale Abweichung: der Iterationsschritte: 0,1 %
-        self.n_abs = self.get_n_absolute(self.n)
+        n_abs = self.get_n_absolute(inputs.n)
         # boundary conditions
-        p_out = self.get_p_outlet()
+        p_out = p_outlet
         p_in = self.state_inlet.p
         T_in = self.state_inlet.T
         s_in = self.state_inlet.s
@@ -121,12 +121,16 @@ class ScrewCompressorSemiEmpirical(Compressor):
         state_out_is = self.med_prop.calc_state('PS', p_out, s_in)
         T_out_start = state_out_is.T
         T_out_next = T_out_start
+        T_out_history = []
 
         number_of_iterations = 0
         m_flow_history = []
         m_flow_start = self.m_flow_nom
         m_flow_next = m_flow_start
-        T_w_start = inputs.T_ambient
+        if inputs.T_ambient is not None:
+            T_w_start = inputs.T_ambient
+        else:
+            T_w_start = 25 + 273.15
         T_w_next = T_w_start
         T_w_history = []
 
@@ -135,9 +139,9 @@ class ScrewCompressorSemiEmpirical(Compressor):
             m_flow = m_flow_next
             m_flow_history.append(m_flow)
             T_out = T_out_next
+            T_out_history.append(T_out)
             T_w = T_w_next
             T_w_history.append(T_w)
-
             # Dertermination of state 2
 
             state_6 = self.med_prop.calc_state("PT", p_out, T_out)
@@ -178,23 +182,21 @@ class ScrewCompressorSemiEmpirical(Compressor):
             # Determination of state 3
 
             AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8
-            Q_flow_23 = (m_flow_ges * (T_w - state_2.T) * transport_properties.cp *
-                        (1 - np.exp(-AU_su / (m_flow_ges * transport_properties.cp))))
+            Q_flow_23 = (m_flow_ges * (T_w - state_2.T) * transport_properties.cp *  (1 - np.exp(-AU_su / (m_flow_ges * transport_properties.cp))))
                         # todo: Check, if T_2 is correct (assumption in determination of state 2) evtl: keine Entropieproduktion
 
             h_3 = h_2 + Q_flow_23 / m_flow_ges
-            v_3 = self.V_h * self.n_abs / m_flow_ges
+            v_3 = self.V_h * n_abs / m_flow_ges #todo: find error
             d_3 = 1 / v_3
             state_3 = self.med_prop.calc_state('DH', d_3, h_3)
 
             # Determination of state 4
 
-            v_4 = v_3/self.BVR
-            d_4 = 1/v_4
+            d_4 = self.BVR * d_3
             s_4 = state_3.s
             state_4 = self.med_prop.calc_state('DS', d_4, s_4)
-            state_5 = self.med_prop.calc_state('PD', p_out, state_4.d)
-            w_t = (state_4.h - state_3.h) + (1 / state_4.d) /(state_5.p-state_4.p)
+            state_5 = self.med_prop.calc_state('PD', p_out, d_4)
+            w_t = (state_4.h - state_3.h) + (1 / state_4.d) / (state_5.p-state_4.p)
 
             # Determination of state 6
 
@@ -203,11 +205,10 @@ class ScrewCompressorSemiEmpirical(Compressor):
                         (1 - np.exp(-AU_ex / (m_flow_ges * transport_properties.cp))))
             h_6 = state_5.h + Q_flow_56 / m_flow_ges
             state_6 = self.med_prop.calc_state('PH', p_out, h_6)
-            T_out_next = state_6.T
 
             P_t = w_t * m_flow_ges
             P_loss_1 = P_t * self.a_tl_1
-            P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * self.n_abs / 30) ** 2) * self.my
+            P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my
             P_sh = P_t + P_loss_1 + P_loss_2
 
             Q_flow_amb = self.b_hl * (T_w - inputs.T_ambient) ** 1.25
