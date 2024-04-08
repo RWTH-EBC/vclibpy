@@ -338,57 +338,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
 ################################################################################################################################################################################################################################################
 ################################################################################################################################################################################################################################################
 ########################################################################################################################
-class ScrewCompressorSemiEmpirical(Compressor):
-    """
-     Reciprocating compressor semi-empirical model.
-
-    Sources:
-    --------
-    [1] Giuffrida, Antonio; 2016, A semi-empirical method for assessing the performance of an open-drive screw
-    refrigeration compressor. In: Applied Thermal Engineering 93 (2016) 813–823, DOI:https://doi.org/10.1016/j.applthermaleng.2015.10.023
 
 
-    Parameters:
-
-
-    Methods:
-        get_lambda_h(inputs: Inputs) -> float:
-            Returns the volumetric efficiency.
-
-        get_eta_isentropic(p_outlet: float, inputs: Inputs) -> float:
-            Returns the isentropic efficiency.
-
-        get_eta_mech(inputs: Inputs) -> float:
-            Returns the mechanical efficiency.
-
-    """
-
-    def __init__(self,
-                 N_max: float,
-                 V_h: float,
-                 eta_mech: float,
-                 my = 68,
-                 max_num_iterations = 2000):
-
-        """Initialization function
-
-        Parameters:
-
-
-        Compressor specific parameters:
-
-        :param m_flow_nom:  Nominal mass flow rate, [kg/s]
-        :param a_tl_1:      Coefficient for internal load losses, [-]
-        :param a_tl_2:      Coefficient for viscous friction losses, [-]
-        :param A_leak:      Leakage area, [mm^2]
-        :param AU_su_nom:   Supply heat transfer coefficient, [W/K]
-        :param AU_ex_nom:   Exhaust heat transfer coefficient, [W/K]
-        :param b_hl:        Coefficient for ambient heat losses, [W/K^(5/4)]
-        :param BVR:         Built-in volume ratio, [-]
-        :param V_sw:        Swept volume, [cm^3]
-        """
-        # Super init function
-        super().__init__(N_max=N_max, V_h=V_h)
 
 
         # Model parameters for Bitzer OSN5361-K  118 / 142 (https://www.bitzer.de/ch/de/produkte/schraubenverdichter/offen/fuer-standardkaeltemittel/os-serie/#!OSN5361)
