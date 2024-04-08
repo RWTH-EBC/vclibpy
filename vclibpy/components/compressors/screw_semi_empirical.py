@@ -79,7 +79,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         self.m_flow_nom = 0.988
         self.a_tl_1 = 0.265
         self.a_tl_2 = 134.5
-        self.A_leak = 3.32
+        self.A_leak = 3.32e-6
         self.AU_su_nom = 60.5
         self.AU_ex_nom = 35.6
         self.b_hl = 1.82
@@ -87,7 +87,6 @@ class ScrewCompressorSemiEmpirical(Compressor):
         self.eta_mech = eta_mech
 
         self.my = my  # dynamic viscosity of the lubricant
-        self.T_amb = 25.  # temperature of ambience
         self.max_num_iterations = max_num_iterations
 
     def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
@@ -128,9 +127,10 @@ class ScrewCompressorSemiEmpirical(Compressor):
         m_flow_start = self.m_flow_nom
         m_flow_next = m_flow_start
         if inputs.T_ambient is not None:
-            T_w_start = inputs.T_ambient
+            T_amb = inputs.T_amb
         else:
-            T_w_start = 25 + 273.15
+            T_amb = 25 + 273.15
+        T_w_start = T_amb
         T_w_next = T_w_start
         T_w_history = []
 
@@ -140,6 +140,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
             m_flow_history.append(m_flow)
             T_out = T_out_next
             T_out_history.append(T_out)
+            if T_w_next > 420:
+                T_w_next = 420
             T_w = T_w_next
             T_w_history.append(T_w)
             # Dertermination of state 2
@@ -211,12 +213,12 @@ class ScrewCompressorSemiEmpirical(Compressor):
             P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my
             P_sh = P_t + P_loss_1 + P_loss_2
 
-            Q_flow_amb = self.b_hl * (T_w - inputs.T_ambient) ** 1.25
+            Q_flow_amb = self.b_hl * (T_w - T_amb) ** 1.25
 
             h_out = state_in.h + (P_sh - Q_flow_amb) / m_flow
             state_out = self.med_prop.calc_state('PH', p_out, h_out)
             T_out_next = state_out.T
-            T_w_next = inputs.T_ambient + ((P_loss_1 + P_loss_2 - Q_flow_23 - Q_flow_56)/self.b_hl) ** (4/5)
+            T_w_next = T_amb + ((P_loss_1 + P_loss_2 - Q_flow_23 - Q_flow_56)/self.b_hl) ** (4/5)
 
             if self.max_num_iterations <= number_of_iterations:
                 logger.critical("Breaking: exceeded maximum number of iterations")
