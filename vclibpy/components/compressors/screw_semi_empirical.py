@@ -2,18 +2,15 @@ from vclibpy.components.compressors.compressor import Compressor
 from vclibpy.datamodels import Inputs, FlowsheetState
 import numpy as np
 import math
+
 import logging
 logger = logging.getLogger(__name__)
 
 
 
 
-"""
-Module for different compressor models
-"""
 
-from vclibpy.components.component import BaseComponent
-from vclibpy.datamodels import Inputs, FlowsheetState
+
 
 
 class ScrewCompressorSemiEmpirical(Compressor):
