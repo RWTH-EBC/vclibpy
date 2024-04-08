@@ -7,12 +7,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
-
-
-
-
-
 class ScrewCompressorSemiEmpirical(Compressor):
     """
     Class of semi-empirical screw compressor model
@@ -98,46 +92,6 @@ class ScrewCompressorSemiEmpirical(Compressor):
         self.T_amb = 25.  # temperature of ambience
         self.max_num_iterations = max_num_iterations
 
-    def get_lambda_h(self, inputs: Inputs, fs_state: FlowsheetState) -> float: #todo: implement claculation of lambda h
-        """
-        Get the volumetric efficiency.
-
-        Args:
-            inputs (Inputs): Inputs for the calculation.
-
-        Returns:
-            float: Volumetric efficiency.
-        """
-        if fs_state.eta_vol is not None:
-            self.calc_state_outlet(p_outlet=self.get_p_outlet(), inputs=inputs, fs_state=fs_state)
-        return fs_state.eta_vol
-
-
-    def get_eta_isentropic(self, p_outlet: float, inputs: Inputs) -> float: #todo: implement claculation of eta_isentropic
-        """
-        Get the isentropic efficiency.
-
-        Args:
-            p_outlet (float): High pressure value.
-            inputs (Inputs): Inputs for the calculation.
-
-        Returns:
-            float: Isentropic efficiency.
-        """
-        raise NotImplementedError("Re-implement this function to use it")
-
-    def get_eta_mech(self, inputs: Inputs) -> float:
-        """
-        Returns the product of the constant mechanical, motor, and inverter efficiencies
-        as the effective mechanical efficiency of the compressor.
-
-        Args:
-            inputs (Inputs): Input parameters for the calculation.
-
-        Returns:
-            float: Effective mechanical efficiency.
-        """
-        return self.eta_mech
 
     def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
         """
@@ -298,6 +252,49 @@ class ScrewCompressorSemiEmpirical(Compressor):
         self.state_outlet = self.med_prop.calc_state("PH", p_outlet, state_out.h)
         return self.state_outlet
 
+
+    def get_lambda_h(self, inputs: Inputs) -> float:
+        """
+        Get the volumetric efficiency.
+
+        Args:
+            inputs (Inputs): Inputs for the calculation.
+
+        Returns:
+            float: Volumetric efficiency.
+        """
+        assert self.eta_vol is not None, "You have to calculate the outlet state first."
+        return self.eta_vol
+
+
+    def get_eta_isentropic(self, p_outlet: float, inputs: Inputs) -> float: #todo: implement claculation of eta_isentropic
+        """
+        Get the isentropic efficiency.
+
+        Args:
+            p_outlet (float): High pressure value.
+            inputs (Inputs): Inputs for the calculation.
+
+        Returns:
+            float: Isentropic efficiency.
+        """
+        assert self.eta_is is not None, "You have to calculate the outlet state first."
+        return self.eta_is
+
+    def get_eta_mech(self, inputs: Inputs) -> float:
+        """
+        Returns the product of the constant mechanical, motor, and inverter efficiencies
+        as the effective mechanical efficiency of the compressor.
+
+        Args:
+            inputs (Inputs): Input parameters for the calculation.
+
+        Returns:
+            float: Effective mechanical efficiency.
+        """
+        assert self.eta_mech is not None, "You have to calculate the outlet state first."
+        return self.eta_mech
+
     def calc_m_flow(self, inputs: Inputs, fs_state: FlowsheetState) -> float:
         """
         Calculate the refrigerant mass flow rate.
@@ -309,7 +306,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         Returns:
             float: Refrigerant mass flow rate.
         """
-        assert fs_state.m_flow is not None, self.calc_state_outlet(p_outlet=self.get_p_outlet(), inputs=inputs, fs_state=fs_state)
+        assert self.m_flow is not None, "You have to calculate the outlet state first."
         return self.m_flow
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState) -> float:
@@ -344,38 +341,6 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
         # Model parameters for Bitzer OSN5361-K  118 / 142 (https://www.bitzer.de/ch/de/produkte/schraubenverdichter/offen/fuer-standardkaeltemittel/os-serie/#!OSN5361)
         # Parameters taken from Giuffrida
-        self.m_flow_nom     = 0.988
-        self.a_tl_1         = 0.265
-        self.a_tl_2         = 134.5
-        self.A_leak         = 3.32
-        self.AU_su_nom      = 60.5
-        self.AU_ex_nom      = 35.6
-        self.b_hl           = 1.82
-        self.BVR            = 3.26
-        self.eta_mech = eta_mech
-
-        self.my             = my # dynamic viscosity of the lubricant
-        self.T_amb = 25.                # temperature of ambience
-        self.max_num_iterations = max_num_iterations
-
-    def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
-        """
-        Calculate the output state based on the high pressure level and the provided inputs.
-        The state is automatically set as the outlet state of this component.
-
-        Args:
-            p_outlet (float): High pressure value.
-            inputs (Inputs): Inputs for calculation.
-            fs_state (FlowsheetState): Flowsheet state.
-        """
-        state_outlet_isentropic = self.med_prop.calc_state("PS", p_outlet, self.state_inlet.s)
-        eta_is = self.get_eta_isentropic(p_outlet=p_outlet, inputs=inputs)
-        h_outlet = (
-                self.state_inlet.h + (state_outlet_isentropic.h - self.state_inlet.h) /
-                eta_is
-        )
-        fs_state.set(name="eta_is", value=eta_is, unit="%", description="Isentropic efficiency")
-        self.state_outlet = self.med_prop.calc_state("PH", p_outlet, h_outlet)
 
 
 
@@ -384,63 +349,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
 
 
-    def get_lambda_h(self, inputs: Inputs) -> float:
-        """
-        Returns the volumetric efficiency.
-
-        Args:
-            inputs (Inputs): Input parameters for the calculation.
-
-        Returns:
-            float: volumetric efficiency.
-        """
-        n_abs = self.get_n_absolute(inputs.n)
-
-        state_in, state_out, m_flow, h_out_s, P_sh = self.iterate(n_abs)
-
-        lambda_h = m_flow / (n_abs * state_in.d * self.V_h)
-        return lambda_h
 
 
 
 
 
-    def get_eta_isentropic(self, p_outlet: float, inputs: Inputs) -> float:
-        """
-        Returns the isentropic efficiency.
-
-        Args:
-            p_outlet (float): High pressure value.
-            inputs (Inputs): Input parameters for the calculation.
-
-        Returns:
-            float: Isentropic efficiency.
-        """
-        n_abs = self.get_n_absolute(inputs.n)
-
-        state_in, state_out, m_flow, h_out_s, P_sh = self.iterate(n_abs)
-        eta_s = (h_out_s - state_in.h) / (state_out.h - state_in.h)
-
-        return eta_s
-
-
-
-
-
-    def get_eta_mech(self, inputs: Inputs) -> float:
-        """
-        Returns the mechanical efficiency.
-
-        Args:
-            inputs (Inputs): Input parameters for the calculation.
-
-        Returns:
-            float: Mechanical efficiency.
-        """
-
-        n_abs = self.get_n_absolute(inputs.n)
-
-        state_in, state_out, m_flow, h_out_s, P_sh = self.iterate(n_abs)
-        eta_mech = m_flow * (state_out.h - state_in.h)/P_sh
-
-        return eta_mech
