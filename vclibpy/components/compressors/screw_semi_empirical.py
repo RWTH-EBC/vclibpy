@@ -15,8 +15,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
     --------
     [1] Giuffrida, Antonio; 2016, A semi-empirical method for assessing the performance of an open-drive screw
     refrigeration compressor. In: Applied Thermal Engineering 93 (2016) 813–823, DOI:https://doi.org/10.1016/j.applthermaleng.2015.10.023
-
-
+        Model parameters for Bitzer OSN5361-K  118 / 142 (https://www.bitzer.de/ch/de/produkte/schraubenverdichter/offen/fuer-standardkaeltemittel/os-serie/#!OSN5361)
+        Fitting Parameters taken from Giuffrida
 
     Args:
         N_max (float): Maximal rotations per second of the compressor.
@@ -47,8 +47,6 @@ class ScrewCompressorSemiEmpirical(Compressor):
         calc_electrical_power(inputs: Inputs, fs_state: FlowsheetState) -> float:
             Calculate the electrical power consumed by the compressor based on an adiabatic energy balance.
     """
-
-
 
     def __init__(self,
                  N_max: float,
@@ -92,7 +90,6 @@ class ScrewCompressorSemiEmpirical(Compressor):
         self.T_amb = 25.  # temperature of ambience
         self.max_num_iterations = max_num_iterations
 
-
     def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
         """
         Calculate the output state based on the high pressure level and the provided inputs.
@@ -115,10 +112,9 @@ class ScrewCompressorSemiEmpirical(Compressor):
         self.n_abs = self.get_n_absolute(self.n)
         # boundary conditions
         p_out = self.get_p_outlet()
-        p_in  = self.state_inlet.p
-        T_in  = self.state_inlet.T
-        s_in  = self.state_inlet.s
-
+        p_in = self.state_inlet.p
+        T_in = self.state_inlet.T
+        s_in = self.state_inlet.s
 
         R = 8.314 #ideal gas constant [J/(K*mol)]
         state_in = self.state_inlet
@@ -141,8 +137,6 @@ class ScrewCompressorSemiEmpirical(Compressor):
             T_out = T_out_next
             T_w = T_w_next
             T_w_history.append(T_w)
-
-
 
             # Dertermination of state 2
 
@@ -218,7 +212,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
             Q_flow_amb = self.b_hl * (T_w - inputs.T_ambient) ** 1.25
 
-            h_out= state_in.h + (P_sh - Q_flow_amb) / m_flow
+            h_out = state_in.h + (P_sh - Q_flow_amb) / m_flow
             state_out = self.med_prop.calc_state('PH', p_out, h_out)
             T_out_next = state_out.T
             T_w_next = inputs.T_ambient + ((P_loss_1 + P_loss_2 - Q_flow_23 - Q_flow_56)/self.b_hl) ** (4/5)
@@ -236,22 +230,23 @@ class ScrewCompressorSemiEmpirical(Compressor):
         eta_mech = 1
         eta_vol = 1
 
-
-
         state_outlet_isentropic = self.med_prop.calc_state("PS", p_outlet, self.state_inlet.s)
 
         h_outlet = (
                 self.state_inlet.h + (state_outlet_isentropic.h - self.state_inlet.h) /
                 eta_is
         )
+        self.state_outlet = self.med_prop.calc_state("PH", p_outlet, state_out.h)
+        self.eta_is = eta_is
+        self.eta_mech = eta_mech
+        self.eta_vol = eta_vol
+
+        # Write calculated efficiencies to Flowsheet State
         fs_state.set(name="eta_is", value=eta_is, unit="%", description="Isentropic efficiency")        #todo: check unit
         fs_state.set(name="m_flow", value=m_flow, unit="kg/s", description="Refrigerant mass flow")     #todo: check unit
         fs_state.set(name="eta_mech", value=eta_mech, unit="-", description="Mechanical efficiency")    #todo: check unit
         fs_state.set(name="eta_vol", value=eta_vol, unit="-", description="Volumetric efficiency")      #todo: check unit
-
-        self.state_outlet = self.med_prop.calc_state("PH", p_outlet, state_out.h)
         return self.state_outlet
-
 
     def get_lambda_h(self, inputs: Inputs) -> float:
         """
@@ -265,7 +260,6 @@ class ScrewCompressorSemiEmpirical(Compressor):
         """
         assert self.eta_vol is not None, "You have to calculate the outlet state first."
         return self.eta_vol
-
 
     def get_eta_isentropic(self, p_outlet: float, inputs: Inputs) -> float: #todo: implement claculation of eta_isentropic
         """
@@ -309,7 +303,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
         assert self.m_flow is not None, "You have to calculate the outlet state first."
         return self.m_flow
 
-    def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState) -> float:
+    def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState) -> float: #todo: an Modell anpassen
+
         """
         Calculate the electrical power consumed by the compressor based on an adiabatic energy balance.
 
@@ -329,18 +324,10 @@ class ScrewCompressorSemiEmpirical(Compressor):
         return P_el
 
 
-########################################################################################################################
-########################################################################################################################
-########################################################################################################################
-################################################################################################################################################################################################################################################
-################################################################################################################################################################################################################################################
-########################################################################################################################
 
 
 
 
-        # Model parameters for Bitzer OSN5361-K  118 / 142 (https://www.bitzer.de/ch/de/produkte/schraubenverdichter/offen/fuer-standardkaeltemittel/os-serie/#!OSN5361)
-        # Parameters taken from Giuffrida
 
 
 
