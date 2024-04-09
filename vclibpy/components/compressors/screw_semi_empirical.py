@@ -115,7 +115,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         #self.limits = ((self.p_dis + 1, self.p_dis + 1000),  # state4.p
         #               (self.state_suc.s, self.state_suc.s + 500))  # state4.s
 
-        x0 = [self.m_flow_nom, self.med_prop.calc_state('PS', p_outlet, self.state_inlet.s).T, 25+273.15]
+        x0 = [self.m_flow_nom, self.med_prop.calc_state('PS', p_outlet, self.state_inlet.s).T+10, self.state_inlet.T+ 25]
 
         self.p_outlet = p_outlet
         self.inputs = inputs
@@ -156,24 +156,22 @@ class ScrewCompressorSemiEmpirical(Compressor):
         # Dertermination of state 2
         state_1 = state_in
         state_6 = state_out
-        transport_properties = self.med_prop.calc_mean_transport_properties(state_1, state_6)    # todo: use correct transport properties
-        gamma = transport_properties.cp / transport_properties.cv  # todo: use correct transport Properties
-        p_crit_leak = p_out * ((2/(gamma+1)) **(gamma/(gamma+1)))
+        transport_properties_2 = self.med_prop.calc_transport_properties(state_6)
+        gamma = transport_properties_2.cp / transport_properties_2.cv
+        p_crit_leak = p_out * ((2/(gamma+1)) ** (gamma/(gamma+1)))                                                      # Eq. (9)
         p_leak = max(p_crit_leak, state_1.p)
         state_leak = self.med_prop.calc_state('PS', p_leak, state_6.s)
-        m_flow_leak = (1/state_leak.d) * self.A_leak * np.sqrt(2 * (state_6.h - state_leak.h))
+        m_flow_leak = state_leak.d * self.A_leak * np.sqrt(2 * (state_6.h - state_leak.h))                              # Eq. (8)
         m_flow_ges = m_flow + m_flow_leak
         h_2 = (m_flow * state_1.h + m_flow_leak * state_out.h) / m_flow_ges                                             # Eq. (1)
 
         # Determination of state 2 --> Isobaric, isenthalp mixing
         state_2 = self.med_prop.calc_state('PH', state_1.p, h_2)
         cp_2 = self.med_prop.calc_transport_properties(state_2).cp
-
         # Determination of state 3
-
-        AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8
+        AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8                                                    # Eq. (4)
         Q_flow_su = (m_flow_ges * (T_w - state_2.T) * cp_2 *
-                     (1 - np.exp(-AU_su / (m_flow_ges * cp_2))))
+                     (1 - np.exp(-AU_su / (m_flow_ges * cp_2))))                                                        # Eq. (3)
 
         h_3 = h_2 + Q_flow_su / m_flow_ges                                                                              # Eq. (2)
         v_3 = self.V_h * n_abs / m_flow_ges                                                                             # Eq. (5)
@@ -206,13 +204,14 @@ class ScrewCompressorSemiEmpirical(Compressor):
         err_Q_amb = (Q_flow_amb_tilde - Q_flow_amb) / Q_flow_amb_tilde
         h_out = state_in.h + (P_mech - Q_flow_amb) / m_flow
         err_h_out = (h_out - state_out.h) / h_out
-
+        P_mech_tilde = m_flow * (state_6.h - state_in.h)                                                                # Eq. (18)
+        err_P_mech = (P_mech_tilde-P_mech) / P_mech_tilde
         #
         eta_is = (state_out_is.h - state_in.h) / (state_out.h - state_in.h)
         eta_mech = P_t / P_mech
         eta_vol = (m_flow * state_in.d) / (self.V_h * n_abs)
 
-        err = (err_Q_amb, err_h_out)
+        err = (err_Q_amb, err_h_out, err_P_mech)
 
         self.eta_mech = eta_mech
         self.eta_vol = eta_vol
@@ -300,22 +299,3 @@ class ScrewCompressorSemiEmpirical(Compressor):
         fs_state.set(name="eta_el", value=self.eta_el, unit="-", description="Electrical efficiency")
         fs_state.set(name="P_el", value=P_el, unit="W", description="Electrical power")
         return P_el
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
