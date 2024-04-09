@@ -2,6 +2,7 @@ from vclibpy.components.compressors.compressor import Compressor
 from vclibpy.datamodels import Inputs, FlowsheetState
 import numpy as np
 import math
+from scipy.optimize import minimize
 
 import logging
 logger = logging.getLogger(__name__)
@@ -157,29 +158,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
             m_flow_ges = m_flow + m_flow_leak
             h_2 = (m_flow * state_1.h + m_flow_leak * state_6.h) / m_flow_ges
 
-            # Determination of state 2 via Volumenkonstanz
-
-
-            v_2 = m_flow / (m_flow_ges * state_1.d) + m_flow_leak / (m_flow_ges * state_6.d)
-            d_2 = 1/ v_2
-            state_2 = self.med_prop.calc_state('DH', d_2, h_2)
-
-
-            ## Poytropenverhältnis
-            #ny = (state_6.s-state_1.s)/R * math.log(state_6.p/state_1.p)
-            #p_2_array = np.linspace(p_in, p_out, 20)
-            #T_2_array = []
-            #h_2_array = []
-            #for p_2 in p_2_array:
-            #    T_2 = T_in *(p_2/p_in) ** (ny * R /transport_properties.cp)
-            #    h_2 = self.med_prop.calc_state('PT', p_2, T_2).h
-            #    T_2_array.append(T_2)
-            #    h_2_array.append(h_2)
-
-            #p_2 = np.interp(h_2, h_2_array, p_2_array)
-            #state_2 = self.med_prop.calc_state('PH', p_2, h_2)
-
-
+            # Determination of state 2 --> Isobaric, isenthalp mixing
+            state_2 = self.med_prop.calc_state('PH', state_1.p, h_2)
 
             # Determination of state 3
 
@@ -241,7 +221,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
                 eta_is
         )
         self.state_outlet = self.med_prop.calc_state("PH", p_outlet, state_out.h)
-        self.eta_is = eta_is
+        inputs.set(name="eta_is", value=eta_is, unit="-", description="Isentropic efficiency")
         self.eta_mech = eta_mech
         self.eta_vol = eta_vol
 
@@ -277,8 +257,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
         Returns:
             float: Isentropic efficiency.
         """
-        assert self.eta_is is not None, "You have to calculate the outlet state first."
-        return self.eta_is
+        assert inputs.eta_is is not None, "You have to calculate the outlet state first."
+        return inputs.eta_is
 
     def get_eta_mech(self, inputs: Inputs) -> float:
         """
