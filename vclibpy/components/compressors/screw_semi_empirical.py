@@ -108,131 +108,129 @@ class ScrewCompressorSemiEmpirical(Compressor):
         :return float vol_eff:
             Volumetric compressor efficiency
         """
-        accuracy = 0.001 # Maximale Abweichung: der Iterationsschritte: 0,1 %
-        n_abs = self.get_n_absolute(inputs.n)
-        # boundary conditions
-        p_out = p_outlet
-        p_in = self.state_inlet.p
-        T_in = self.state_inlet.T
-        s_in = self.state_inlet.s
+        self.p_outlet = p_outlet
+        self.state_suc = state_in
+        self.state_dis_is = self.rp.calc_state("PS", self.p_dis, self.state_suc.s)
+        self.f = 50
 
-        R = 8.314 #ideal gas constant [J/(K*mol)]
+        self.limits = ((self.p_dis + 1, self.p_dis + 1000),  # state4.p
+                       (self.state_suc.s, self.state_suc.s + 500))  # state4.s
+
+        x0 = np.random.random(2)
+
+        res = minimize(fun=self._objective,
+                       x0=x0,
+                       bounds=((0, 1), (0, 1)),
+                       constraints={"type": "ineq", "fun": self._constraint},
+                       method="SLSQP")
+
+        self.state_outlet = self._iterate(x, mode="state_out")
+
+
+
+        return self.state_outlet
+
+    def _objective(self, x):
+        return self._iterate(x, mode="err")
+
+    def _constraint(self, x):
+        return self._iterate(x, mode="constr")
+
+    def _iterate(self, x, mode, inputs: Inputs):
+
+        m_flow = x[0]
+        T_out = x[1]
+        T_w = x[2]
+
+        p_out = self.p_outlet
+
         state_in = self.state_inlet
-        state_out_is = self.med_prop.calc_state('PS', p_out, s_in)
-        T_out_start = state_out_is.T
-        T_out_next = T_out_start
-        T_out_history = []
+        state_out_is = self.med_prop.calc_state('PS', p_out, state_in.s)
 
-        number_of_iterations = 0
-        m_flow_history = []
-        m_flow_start = self.m_flow_nom
-        m_flow_next = m_flow_start
+
+
+
         if inputs.T_ambient is not None:
             T_amb = inputs.T_amb
         else:
             T_amb = 25 + 273.15
-        T_w_start = T_amb
-        T_w_next = T_w_start
-        T_w_history = []
 
-        while True:
-            number_of_iterations += 1
-            m_flow = m_flow_next
-            m_flow_history.append(m_flow)
-            T_out = T_out_next
-            T_out_history.append(T_out)
-            if T_w_next > 420:
-                T_w_next = 420
-            T_w = T_w_next
-            T_w_history.append(T_w)
-            # Dertermination of state 2
+        # Dertermination of state 2
 
-            state_6 = self.med_prop.calc_state("PT", p_out, T_out)
-            state_1 = self.med_prop.calc_state('PT', p_in, T_in)
-            transport_properties = self.med_prop.calc_mean_transport_properties(state_1, state_6)
-            gamma = transport_properties.cp / transport_properties.cv
-            p_crit_leak = p_out * ((2/(gamma+1)) **(gamma/(gamma+1)))
-            p_leak = max(p_crit_leak, state_1.p)
-            state_leak = self.med_prop.calc_state('PS', p_leak, state_6.s)
-            m_flow_leak = (1/state_leak.d) * self.A_leak * np.sqrt(2 * (state_6.h - state_leak.h))
-            m_flow_ges = m_flow + m_flow_leak
-            h_2 = (m_flow * state_1.h + m_flow_leak * state_6.h) / m_flow_ges
+        state_out = self.med_prop.calc_state("PT", p_out, T_out)
+        state_1 = self.med_prop.calc_state('PT', state_in.p, state_in.T)
+        transport_properties = self.med_prop.calc_mean_transport_properties(state_1, state_out)
+        gamma = transport_properties.cp / transport_properties.cv
+        p_crit_leak = p_out * ((2/(gamma+1)) **(gamma/(gamma+1)))
+        p_leak = max(p_crit_leak, state_1.p)
+        state_leak = self.med_prop.calc_state('PS', p_leak, state_out.s)
+        m_flow_leak = (1/state_leak.d) * self.A_leak * np.sqrt(2 * (state_out.h - state_leak.h))
+        m_flow_ges = m_flow + m_flow_leak
+        h_2 = (m_flow * state_1.h + m_flow_leak * state_out.h) / m_flow_ges
 
-            # Determination of state 2 --> Isobaric, isenthalp mixing
-            state_2 = self.med_prop.calc_state('PH', state_1.p, h_2)
+        # Determination of state 2 --> Isobaric, isenthalp mixing
+        state_2 = self.med_prop.calc_state('PH', state_1.p, h_2)
 
-            # Determination of state 3
+        # Determination of state 3
 
-            AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8
-            Q_flow_23 = (m_flow_ges * (T_w - state_2.T) * transport_properties.cp *
-                         (1 - np.exp(-AU_su / (m_flow_ges * transport_properties.cp))))
-                        # todo: Check, if T_2 is correct (assumption in determination of state 2) evtl: keine Entropieproduktion
+        AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8
+        Q_flow_23 = (m_flow_ges * (T_w - state_2.T) * transport_properties.cp *
+                     (1 - np.exp(-AU_su / (m_flow_ges * transport_properties.cp))))
 
-            h_3 = h_2 + Q_flow_23 / m_flow_ges
-            v_3 = self.V_h * n_abs / m_flow_ges #todo: find error
-            d_3 = 1 / v_3
-            state_3 = self.med_prop.calc_state('DH', d_3, h_3)
 
-            # Determination of state 4
+        h_3 = h_2 + Q_flow_23 / m_flow_ges
+        v_3 = self.V_h * n_abs / m_flow_ges
+        d_3 = 1 / v_3
+        state_3 = self.med_prop.calc_state('DH', d_3, h_3)
 
-            d_4 = self.BVR * d_3
-            s_4 = state_3.s
-            state_4 = self.med_prop.calc_state('DS', d_4, s_4)
-            state_5 = self.med_prop.calc_state('PD', p_out, d_4)
-            w_t = (state_4.h - state_3.h) + (1 / state_4.d) / (state_5.p-state_4.p)
+        # Determination of state 4
 
-            # Determination of state 6
+        d_4 = self.BVR * d_3
+        s_4 = state_3.s
+        state_4 = self.med_prop.calc_state('DS', d_4, s_4)
+        state_5 = self.med_prop.calc_state('PD', p_out, d_4)
+        w_t = (state_4.h - state_3.h) + (1 / state_4.d) / (state_5.p-state_4.p)
 
-            AU_ex = self.AU_ex_nom * (m_flow_ges / self.m_flow_nom) ** 0.8
-            Q_flow_56 = (m_flow_ges * (T_w - state_5.T) * transport_properties.cp *
-                        (1 - np.exp(-AU_ex / (m_flow_ges * transport_properties.cp))))
-            h_6 = state_5.h + Q_flow_56 / m_flow_ges
-            state_6 = self.med_prop.calc_state('PH', p_out, h_6)
+        # Determination of state 6
 
-            P_t = w_t * m_flow_ges
-            P_loss_1 = P_t * self.a_tl_1
-            P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my
-            P_mech = P_t + P_loss_1 + P_loss_2
+        AU_ex = self.AU_ex_nom * (m_flow_ges / self.m_flow_nom) ** 0.8
+        Q_flow_56 = (m_flow_ges * (T_w - state_5.T) * transport_properties.cp *
+                    (1 - np.exp(-AU_ex / (m_flow_ges * transport_properties.cp))))
+        h_6 = state_5.h + Q_flow_56 / m_flow_ges
+        state_6 = self.med_prop.calc_state('PH', p_out, h_6)
 
-            Q_flow_amb = self.b_hl * (T_w - T_amb) ** 1.25
+        P_t = w_t * m_flow_ges
+        P_loss_1 = P_t * self.a_tl_1
+        P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my
+        P_mech = P_t + P_loss_1 + P_loss_2
 
-            h_out = state_in.h + (P_mech - Q_flow_amb) / m_flow
-            state_out = self.med_prop.calc_state('PH', p_out, h_out)
-            T_out_next = state_out.T
-            T_w_next = T_amb + ((P_loss_1 + P_loss_2 - Q_flow_23 - Q_flow_56)/self.b_hl) ** (4/5)
+        Q_flow_amb = self.b_hl * (T_w - T_amb) ** 1.25
 
-            if self.max_num_iterations <= number_of_iterations:
-                logger.critical("Breaking: exceeded maximum number of iterations")
-                break
+        h_out = state_in.h + (P_mech - Q_flow_amb) / m_flow
+        state_out = self.med_prop.calc_state('PH', p_out, h_out)
 
-            if np.abs((T_w_next-T_w)/T_w) <= accuracy:
-                if np.abs((T_out_next-T_out)/T_out) >= accuracy:
-                    logger.info("Breaking: Converged")
-                    break
+        T_w = T_amb + ((P_loss_1 + P_loss_2 - Q_flow_23 - Q_flow_56)/self.b_hl) ** (4/5)
+
+
 
         eta_is = (state_out_is.h - state_in.h) / (state_out.h - state_in.h)
         eta_mech = P_t / P_mech
         eta_vol = (m_flow * state_in.d) / (self.V_h * n_abs)
 
-        state_outlet_isentropic = self.med_prop.calc_state("PS", p_outlet, self.state_inlet.s)
 
-        h_outlet = (
-                self.state_inlet.h + (state_outlet_isentropic.h - self.state_inlet.h) /
-                eta_is
-        )
-        self.state_outlet = self.med_prop.calc_state("PH", p_outlet, state_out.h)
-        inputs.set(name="eta_is", value=eta_is, unit="-", description="Isentropic efficiency")
+
+
         self.eta_mech = eta_mech
         self.eta_vol = eta_vol
 
-        # Write calculated efficiencies to Flowsheet State
-        fs_state.set(name="eta_is", value=eta_is, unit="%", description="Isentropic efficiency")        #todo: check unit
-        fs_state.set(name="m_flow", value=m_flow, unit="kg/s", description="Refrigerant mass flow")     #todo: check unit
-        fs_state.set(name="eta_mech", value=eta_mech, unit="-", description="Mechanical efficiency")    #todo: check unit
-        fs_state.set(name="eta_vol", value=eta_vol, unit="-", description="Volumetric efficiency")      #todo: check unit
-        fs_state.set(name="P_mech", value=P_mech, unit = "W", description="Mechanical Power")
-        return self.state_outlet
 
+
+        if mode == "err":
+            return np.linalg.norm(np.array(err))
+        elif mode == "constr":
+            return [Q_flow_amb, -Q_flow_23, m_flow_leak, m_flow]
+        elif mode == "state_out":
+            return self.state_outlet
     def get_lambda_h(self, inputs: Inputs) -> float:
         """
         Get the volumetric efficiency.
