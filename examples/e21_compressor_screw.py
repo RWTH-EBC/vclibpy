@@ -13,7 +13,7 @@ def main():
     screw_compressor = ScrewCompressorSemiEmpirical(
         N_max=120,
         V_h=676.8e-6,
-        eta_mech=0.9
+        eta_el=0.9
     )
     # Before we can do any calculations, the compressor needs
     # access to refrigerant data. Each component in VcLibPy has
