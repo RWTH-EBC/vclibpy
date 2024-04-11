@@ -88,7 +88,38 @@ class ScrewCompressorSemiEmpirical(Compressor):
         self.eta_el = eta_el
 
         self.my = my  # dynamic viscosity of the lubricant
+    def normalize(self, x):
+        """ Normalize optimization parameters
 
+        Parameters
+        :param list x:
+            Not-normalized optimization parameters
+        Return:
+        -------
+        :return ndarray x:
+            Normalized optimization parameters
+        """
+        x_norm = [(val - self.limits[idx][0]) / max((self.limits[idx][1] - self.limits[idx][0]), 1e-10)
+                  for idx, val in enumerate(x)]
+        return np.array(x_norm)
+
+    #
+    #
+    def denormalize(self, x_norm):
+        """ Denormalize optimization parameters
+
+        Parameters
+        :param list x_norm:
+            Normalized optimization parameters
+        Return:
+        -------
+        :return list x:
+            Not-normalized optimization parameters
+        """
+        # Pressure in evaporator, pressure in condenser, dT super heating, dT subcooling
+        x = [self.limits[idx][0] + val * (self.limits[idx][1] - self.limits[idx][0])
+             for idx, val in enumerate(x_norm)]
+        return x
     def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
         """
         Calculate the output state based on the high pressure level and the provided inputs.
@@ -115,25 +146,41 @@ class ScrewCompressorSemiEmpirical(Compressor):
         #self.limits = ((self.p_dis + 1, self.p_dis + 1000),  # state4.p
         #               (self.state_suc.s, self.state_suc.s + 500))  # state4.s
 
-        x0 = [self.m_flow_nom, self.med_prop.calc_state('PS', p_outlet, self.state_inlet.s).T+10, self.state_inlet.T+ 25]
+        if inputs.T_ambient is not None:
+            self.T_amb = inputs.T_amb
+        else:
+            self.T_amb = 25 + 273.15
+        self.state_is = self.med_prop.calc_state('PS', p_outlet, self.state_inlet.s)
+
 
         self.p_outlet = p_outlet
         self.inputs = inputs
+        self.limits = ((self.m_flow_nom * 0, self.m_flow_nom * 5),  # m_flow
+                       (self.state_is.T, self.state_is.T+50),       # T_out
+                       (min(self.T_amb, self.state_inlet.T), max(self.T_amb, self.state_is.T + 50)))  # T_W
+        x0 =  np.random.random(3)
+
         res = minimize(fun=self._objective,
                        x0=x0,
-                       #bounds =((0,1),(0,1),(0,1))
+                       bounds=((0, 1), (0, 1), (0, 1)),
                        constraints={"type": "ineq", "fun": self._constraint},
                        method="SLSQP")
 
-        self.state_outlet = self._iterate(res.x, mode="state_out")
+        state_out, eta_mech, eta_vol, eta_is, P_mech, m_flow = self._iterate(self.denormalize(res.x), mode="state_out")
+        self.state_out = state_out
+        fs_state.set(name="eta_is", value=eta_is, unit="-", description="Isentropic efficiency")
+        fs_state.set(name="eta_vol", value=eta_vol, unit="-", description="Volumetric efficiency")
+        fs_state.set(name="eta_mech", value=eta_mech, unit="-", description="Mechanical efficiency")
+        fs_state.set(name="m_flow", value=m_flow, unit="kg/s", description="Refrigerant mass flow rate")
+        fs_state.set(name="P_mech", value=P_mech, unit="W", description="Mechanical Power consumption")
 
-        return self.state_outlet
+        return self.state_out
 
     def _objective(self, x):
-        return self._iterate(x, mode="err")
+        return self._iterate(self.denormalize(x), mode="err")
 
     def _constraint(self, x):
-        return self._iterate(x, mode="constr")
+        return self._iterate(self.denormalize(x), mode="constr")
 
     def _iterate(self, x, mode):
         inputs = self.inputs
@@ -142,16 +189,13 @@ class ScrewCompressorSemiEmpirical(Compressor):
         T_out = x[1]
         T_w = x[2]
 
-        if inputs.T_ambient is not None:
-            T_amb = inputs.T_amb
-        else:
-            T_amb = 25 + 273.15
+
 
         p_out = self.p_outlet
 
         state_in = self.state_inlet
         state_out = self.med_prop.calc_state("PT", p_out, T_out)
-        state_out_is = self.med_prop.calc_state('PS', p_out, state_in.s)
+        state_out_is = self.state_is
 
         # Dertermination of state 2
         state_1 = state_in
@@ -174,23 +218,23 @@ class ScrewCompressorSemiEmpirical(Compressor):
                      (1 - np.exp(-AU_su / (m_flow_ges * cp_2))))                                                        # Eq. (3)
 
         h_3 = h_2 + Q_flow_su / m_flow_ges                                                                              # Eq. (2)
-        v_3 = self.V_h * n_abs / m_flow_ges                                                                             # Eq. (5)
-        d_3 = 1 / v_3
-        state_3 = self.med_prop.calc_state('DH', d_3, h_3)
+
+        state_3 = self.med_prop.calc_state('PH', state_1.p, h_3) # todo: Hier stimmte bis gerade der Druck nicht
+        m_flow_ges = self.V_h * n_abs * state_3.d  # Eq. (5)
 
         # Determination of state 4
 
-        d_4 = self.BVR * d_3                                                                                            # Eq. (6)
+        d_4 = self.BVR * state_3.d                                                                                      # Eq. (6)
         s_4 = state_3.s
         state_4 = self.med_prop.calc_state('DS', d_4, s_4)
-        state_5 = self.med_prop.calc_state('PD', p_out, d_4)
+        state_5 = self.med_prop.calc_state('PD', p_out, d_4)  # todo: hier hakts
         w_t = (state_4.h - state_3.h) + (1 / state_4.d) * (state_5.p-state_4.p)                                         # Eq. (7)
 
         # Determination of state 6
         cp_5 = self.med_prop.calc_transport_properties(state_5).cp
         AU_ex = self.AU_ex_nom * (m_flow_ges / self.m_flow_nom) ** 0.8                                                  # Derived from Eq. (4)
         Q_flow_ex = (m_flow_ges * (T_w - state_5.T) * cp_5 *
-                    (1 - np.exp(-AU_ex / (m_flow_ges * cp_5))))                                                         # Derived from Eq. (3)
+                     (1 - np.exp(-AU_ex / (m_flow_ges * cp_5))))                                                        # Derived from Eq. (3)
         h_6 = state_5.h + Q_flow_ex / m_flow_ges                                                                        # Derived from Eq. (2)
         state_6 = self.med_prop.calc_state('PH', p_out, h_6)
 
@@ -199,7 +243,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
         P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my                                       # Eq. (12)
         P_mech = P_t + P_loss_1 + P_loss_2                                                                              # Eq. (13)
 
-        Q_flow_amb = self.b_hl * (T_w - T_amb) ** 1.25                                                                  # Eq. (16)
+        delta_T_abs = abs(T_w - self.T_amb)
+        Q_flow_amb = self.b_hl * math.pow(delta_T_abs, 1.25) * np.sign(T_w-self.T_amb)                              # Eq. (16)
         Q_flow_amb_tilde = P_loss_1 + P_loss_2 - Q_flow_su - Q_flow_ex                                                  # Eq. (17)
         err_Q_amb = (Q_flow_amb_tilde - Q_flow_amb) / Q_flow_amb_tilde
         h_out = state_in.h + (P_mech - Q_flow_amb) / m_flow
@@ -207,6 +252,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
         P_mech_tilde = m_flow * (state_6.h - state_in.h)                                                                # Eq. (18)
         err_P_mech = (P_mech_tilde-P_mech) / P_mech_tilde
         #
+
+
         eta_is = (state_out_is.h - state_in.h) / (state_out.h - state_in.h)
         eta_mech = P_t / P_mech
         eta_vol = (m_flow * state_in.d) / (self.V_h * n_abs)
@@ -223,9 +270,9 @@ class ScrewCompressorSemiEmpirical(Compressor):
         elif mode == "constr":
             return [Q_flow_amb, -Q_flow_su, m_flow_leak, m_flow]
         elif mode == "state_out":
-            return self.state_outlet
-        elif mode == "eff":
-            return eta_is, eta_vol, eta_mech
+            state_out = self.med_prop.calc_state('PT', p_out, T_out)
+            return state_out, eta_mech, eta_vol, eta_is, P_mech, m_flow
+
 
     def get_lambda_h(self, inputs: Inputs) -> float:
         """
