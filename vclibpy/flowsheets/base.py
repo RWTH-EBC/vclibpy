@@ -1,4 +1,5 @@
 import logging
+import os.path
 from typing import List
 import numpy as np
 
@@ -327,7 +328,7 @@ class BaseCycle:
         fs_state.set(name="T_eva_out_sec", value=T_eva_out-273.15, description="Evaporator outlet temperature secondary")
         fs_state.set(name="m_flow_eva", value=self.evaporator.m_flow_secondary, description="Evaporator mass flow secondary")
         if save_path_plots is not None:
-            self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_final_result.png"), inputs=inputs)
+            self.plot_cycle(save_path=save_path_plots.joinpath(f"{COP_inner}_final_result.png"), inputs=inputs)
 
         return fs_state
 

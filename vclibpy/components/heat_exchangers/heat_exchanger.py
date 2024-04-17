@@ -54,12 +54,8 @@ class HeatExchanger(BaseComponent, abc.ABC):
         """
         # Set up the secondary_medium wrapper:
         med_prop_class, med_prop_kwargs = media.get_global_med_prop_and_kwargs()
-        if self.secondary_medium == "air" and med_prop_class == media.RefProp:
-            fluid_name = "AIR.PPF"
-        else:
-            fluid_name = self.secondary_medium
         if self.med_prop_sec is not None:
-            if self.med_prop_sec.fluid_name == fluid_name:
+            if self.med_prop_sec.fluid_name == self.secondary_medium:
                 return
             self.med_prop_sec.terminate()
         self.med_prop_sec = med_prop_class(fluid_name=self.secondary_medium, **med_prop_kwargs)
@@ -223,7 +219,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
                 p = 101325  # 1 atm
             else:
                 raise NotImplementedError(
-                    "Default pressures for secondary_mediums aside from water and air are not supported yet."
+                    f"Default pressures for secondary_medium {self.secondary_medium} is not yet supported."
                 )
         # Calc state
         state = self.med_prop_sec.calc_state("PT", p, T)

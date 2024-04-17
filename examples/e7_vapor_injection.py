@@ -67,7 +67,7 @@ def main():
     )
     # As in the other example, we can specify save-paths,
     # solver settings and inputs to vary:
-    save_path = r"D:\00_temp\vapor_injection"
+    save_path = r"C:\users\cedri\00_python\00_temp\E7"
     T_eva_in_ar = [-10 + 273.15, 273.15, 10 + 273.15]
     T_con_in_ar = [30 + 273.15, 50 + 273.15, 60 + 273.15]
     n_ar = [0.3, 0.7, 1]
@@ -126,7 +126,7 @@ def main():
     )
     utils.full_factorial_map_generation(
         heat_pump=heat_pump,
-        save_path=r"D:\00_temp\vapor_injection_economizer",
+        save_path=r"C:\users\cedri\00_python\00_temp\E7",
         T_con_in_ar=T_con_in_ar,
         T_eva_in_ar=T_eva_in_ar,
         n_ar=n_ar,
