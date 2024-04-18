@@ -15,14 +15,17 @@ logger = logging.getLogger(__name__)
 
 class InternalHeatExchange(BaseCycle, abc.ABC):
     """
-    Class for a standard cycle with four components.
+    Class for a ihx cycle with 6 components.
 
-    For the standard cycle, we have 4 possible states:
+    For the ihx cycle, we have 6 possible states:
 
-    1. Before compressor, after evaporator
+    1. Before compressor, after ihx_lt
     2. Before condenser, after compressor
-    3. Before EV, after condenser
-    4. Before Evaporator, after EV
+    3. Before ihx_EV, after condenser
+    4. Before ihx_ht, after ihx_EV
+    5. Before EV, after ihx_ht
+    6. Before Evaporator, after EV
+    7. Before ihx_lt, after Evaporator
     """
 
     flowsheet_name = "InternalHeatExchange"
@@ -63,21 +66,6 @@ class InternalHeatExchange(BaseCycle, abc.ABC):
             self.expansion_valve.state_outlet,
         ]
 
-    def set_ihx_outlet_based_on_subcooling(self, p_con: float, inputs: Inputs):
-        """
-        Calculate the outlet state of the evaporator based on
-        the required degree of superheating.
-
-        Args:
-            p_con (float): Condensing pressure
-            inputs (Inputs): Inputs with superheating level
-        """
-        T_5 = self.med_prop.calc_state("PQ", p_con, 0).T - inputs.dT_con_subcooling
-        if inputs.dT_con_subcooling > 0:
-            self.ihx.state_outlet = self.med_prop.calc_state("PT", p_con, T_3)
-        else:
-            self.ihx.state_outlet = self.med_prop.calc_state("PQ", p_con, 0)
-
     def set_evaporator_outlet_ihx(self, p_eva: float):
         """
         Calculate the outlet state of the evaporator in IHX Cycle (q=1)
@@ -88,9 +76,8 @@ class InternalHeatExchange(BaseCycle, abc.ABC):
 
     def set_ihx_outlet_based_on_superheating(self, p_eva: float, inputs: Inputs):
         """
-        Calculate the outlet state of the ihx based on
+        Calculate the outlet state of the ihx_lt based on
         the required degree of superheating.
-
         Args:
             p_eva (float): Evaporation pressure
             inputs (Inputs): Inputs with superheating level
@@ -102,11 +89,22 @@ class InternalHeatExchange(BaseCycle, abc.ABC):
             self.ihx.state_outlet = self.med_prop.calc_state("PQ", p_eva, 1)
 
     def set_evaporator_inlet_IHX(self, p_eva: float):
-
+        """
+        Calculate the inlet state of the evaporator in ihx cycle based on
+        the internal heat exchange
+        Args:
+            p_eva (float): Evaporation pressure
+            inputs (Inputs): Inputs with superheating level
+        """
         h_eva_in = self.condenser.state_outlet.h - (self.ihx.state_outlet.h - self.evaporator.state_outlet.h)
         self.evaporator.state_inlet = self.med_prop.calc_state("PH", p_eva, h_eva_in)
 
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
+        """
+        Calculate all required states of the ihx cycle for evaporating and
+        condensing pressure iteration. calculation of the ihx-ht inlet and outlet state
+        is implemented in "calc_steady_state"
+        """
         self.set_condenser_outlet_based_on_subcooling(p_con=p_2, inputs=inputs)  # Subcooling nach Condenser, vor IHX
         self.expansion_valveIHX.state_inlet = self.condenser.state_outlet
         # self.expansion_valve.calc_outlet(p_outlet=p_1)
@@ -276,6 +274,10 @@ class InternalHeatExchange(BaseCycle, abc.ABC):
 
     def calc_steady_state(self, inputs: Inputs, fluid: str = None, **kwargs):
         """
+        This function is modified for the ihx-cycle with two expansion valves.
+        After the iteration of evaporating and condesing pressure, the pressure
+        for the high temperature side of the ihx is determined.
+
         Calculate the steady-state performance of a vapor compression cycle
         based on given inputs and assumptions.
 

@@ -370,6 +370,16 @@ class MovingBoundaryLMTDEvaporator(MovingBoundaryLMTD):
 
 
 class MovingBoundaryLMTDIHX(MovingBoundaryLMTD):
+    """
+        Internal heat exchanger class which implements the actual
+        `calc` method.
+
+        Assumptions:
+        -no pressure loss
+        -lt side is only superheated gas
+
+        See parent classes for arguments.
+    """
 
     def __init__(self,
                  flow_type: str,
@@ -388,6 +398,23 @@ class MovingBoundaryLMTDIHX(MovingBoundaryLMTD):
         self.state_outlet_ht: ThermodynamicState = None
 
     def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
+        """
+        Calculate the heat exchanger with the NTU-Method based on the given inputs.
+
+        The flowsheet state can be used to save important variables
+        during calculation for later analysis.
+
+        Both return values are used to check if the heat transfer is valid or not.
+
+        Args:
+            inputs (Inputs): The inputs for the calculation.
+            fs_state (FlowsheetState): The flowsheet state to save important variables.
+
+        Returns:
+            Tuple[float, float]:
+                error: Error in percentage between the required and calculated heat flow rates.
+                dT_min: Minimal temperature difference (can be negative).
+        """
 
         # lt
         Q_sc_lt, Q_lat_lt, Q_sh_lt, state_q0_lt, state_q1_lt = self.separate_phases(
