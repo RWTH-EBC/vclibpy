@@ -284,6 +284,7 @@ class BaseCycle:
         self.condenser.calc(inputs=inputs, fs_state=fs_state)
         P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
         T_con_out = inputs.T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
+        T_eva_out = inputs.T_eva_in - Q_eva_outer/ self.evaporator.m_flow_secondary_cp
 
         # COP based on P_el and Q_con:
         COP_inner = Q_con / P_el
@@ -325,7 +326,12 @@ class BaseCycle:
             name="COP_outer", value=COP_outer,
             unit="-", description="Outer COP, including heat losses"
         )
-
+        fs_state.set(name="T_con_in_sec", value=inputs.T_con_in-273.15, description="Condenser inlet temperature secondary")
+        fs_state.set(name="T_con_out_sec", value=T_con_out-273.15, description="Condenser outlet temperature secondary")
+        fs_state.set(name="m_flow_con", value=self.condenser.m_flow_secondary, description="Condenser mass flow secondary")
+        fs_state.set(name="T_eva_in_sec", value=inputs.T_eva_in-273.15, description="Evaporator inlet temperature secondary")
+        fs_state.set(name="T_eva_out_sec", value=T_eva_out-273.15, description="Evaporator outlet temperature secondary")
+        fs_state.set(name="m_flow_eva", value=self.evaporator.m_flow_secondary, description="Evaporator mass flow secondary")
         if save_path_plots is not None:
             self.plot_cycle(save_path=save_path_plots.joinpath(f"{COP_inner}_final_result.png"), inputs=inputs)
 

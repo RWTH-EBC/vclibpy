@@ -188,7 +188,14 @@ class StandardCycle(BaseCycle):
             name="T_4", value=self.evaporator.state_inlet.T,
             unit="K", description="Refrigerant temperature at evaporator inlet"
         )
-
+        fs_state.set(
+            name="d_1", value=self.compressor.state_inlet.d,
+            unit="kg/m3", description="Refrigerant Density at compressor inlet"
+        )
+        fs_state.set(
+            name="delta_h_con", value=(self.condenser.state_inlet.h-self.condenser.state_outlet.h),
+            unit="J/kg", description="Enthalpie difference condenser"
+        )
         fs_state.set(name="p_con", value=p_2, unit="Pa", description="Condensation pressure")
         fs_state.set(name="p_eva", value=p_1, unit="Pa", description="Evaporation pressure")
         fs_state.set(name="compressor_speed_calc", value=inputs.n, unit="1/s", description="Compressor Speed")
