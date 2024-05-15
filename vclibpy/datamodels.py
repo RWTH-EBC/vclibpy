@@ -204,9 +204,6 @@ class Inputs(VariableContainer):
         if T_con_out is not None and T_con_in is not None:
             raise ValueError("You can either specify condenser inlet or "
                              "outlet temperature, not both.")
-        if T_con_out is None and T_con_in is None:
-            raise ValueError("You must either specify condenser inlet or "
-                             "outlet temperature.")
 
         self.set(
             name="n",

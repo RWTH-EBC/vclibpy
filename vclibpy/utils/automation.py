@@ -207,7 +207,7 @@ def full_factorial_map_generation(
     inputs: Inputs = list_inputs[0]
     _parameters = {}
     for name, variable in inputs.items():
-        if name not in _scale_values:
+        if name not in list(_scale_values.keys()) + ["T_con_out", "T_con_in"]:
             _parameters[name] = {
                 "data": variable.value,
                 "unit": variable.unit,

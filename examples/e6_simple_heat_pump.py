@@ -1,6 +1,6 @@
 # # Example for a heat pump with a standard cycle
 
-def main():
+def main(use_condenser_inlet: bool = True):
     # Let's start the complete cycle simulation with the
     # most basic flowsheet, the standard-cycle. As all flowsheets
     # contain a condenser and an evaporator, we defined a common BaseCycle
@@ -62,7 +62,7 @@ def main():
     # As in the other example, we can specify save-paths,
     # solver settings and inputs to vary:
     # Note that T_con can either be inlet or outlet, depending on the setting
-    # of `use_condenser_inlet` later on. In this case, we simulate the inlet, T_con_in
+    # of `use_condenser_inlet`. Per default, we simulate the inlet, T_con_in
     save_path = r"D:\00_temp\simple_heat_pump"
     T_eva_in_ar = [-10 + 273.15, 273.15, 10 + 273.15]
     T_con_ar = [30 + 273.15, 50 + 273.15, 70 + 273.15]
@@ -82,7 +82,7 @@ def main():
         T_con_ar=T_con_ar,
         T_eva_in_ar=T_eva_in_ar,
         n_ar=n_ar,
-        use_condenser_inlet=True,
+        use_condenser_inlet=use_condenser_inlet,
         use_multiprocessing=False,
         save_plots=True,
         m_flow_con=0.2,
@@ -113,16 +113,17 @@ def main():
     # We can also use existing 3D-plotting scripts in vclibpy to analyze the
     # dependencies. For this, we need the .sdf file. In the sdf, the field names are without
     # the unit and description, as those are accessible in the file-format in other columns.
+    # Depending on whether we varied the inlet or outlet, we have to specify the correct name.
     from vclibpy.utils.plotting import plot_sdf_map
     plot_sdf_map(
         filepath_sdf=save_path_sdf,
         nd_data="COP",
         first_dimension="T_eva_in",
-        second_dimension="T_con_in",
+        second_dimension="T_con_in" if use_condenser_inlet else "T_con_out",
         fluids=["Propane"],
         flowsheets=["Standard"]
     )
 
 
 if __name__ == "__main__":
-    main()
+    main(use_condenser_inlet=False)
