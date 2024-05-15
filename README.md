@@ -46,6 +46,11 @@ Those examples are the same as the jupyter notebooks.
 
 `vclibpy` is currently in the process of publication. A corresponding DOI will be added soon.
 
+# Related publications
+
+- Vering, C., Wüllhorst, F., Mehrfeld, P., & Müller, D. (2021). Towards an integrated design of heat pump systems: Application of process intensification using two-stage optimization. Energy Conversion and Management, 250, 114888.  https://doi.org/10.1016/j.enconman.2021.114888
+- Vering, Christian; Müller, Dirk (Thesis advisor); Elbel, Stefan (Thesis advisor) (2023). Optimal design of heat pump systems for existing buildings, PhD thesis. https://doi.org/10.18154/RWTH-2023-04070
+
 # Documentation
 Visit our official [Documentation](https://rwth-ebc.github.io/vclibpy/main/docs/index.html).
 
@@ -54,6 +59,7 @@ Please [raise an issue here](https://github.com/RWTH-EBC/vclibpy/issues/new).
 
 # Acknowledgements
 
-We gratefully acknowledge the financial support by the Federal Ministry for Economic Affairs and Climate Action (BMWK), promotional reference 03EN1022B.
+We gratefully acknowledge the financial support by the Federal Ministry for Economic Affairs and Climate Action (BMWK), promotional reference 03EN1022B, as well as the European Regional Development Fund (ERDF) (ERDF-0500029).
 
 <img src="https://github.com/RWTH-EBC/BESMod/blob/main/BESMod/Resources/Images/BMWK_logo.png" alt="BMWK" width="200"/>
+
