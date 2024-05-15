@@ -1,5 +1,7 @@
 import logging
 
+import numpy as np
+
 from vclibpy.components.heat_exchangers import utils
 from vclibpy.datamodels import FlowsheetState, Inputs
 from vclibpy.components.heat_exchangers import HeatExchanger
@@ -59,7 +61,7 @@ class MovingBoundaryTmCondenser(HeatExchanger):
 
         # 1. Regime: Subcooling
         Q_sc_Tm, A_sc, A_sc_available = 0, 0, 0
-        if Q_sc > 0 and (state_q0.T != self.state_outlet.T):
+        if not np.isclose(Q_sc, 0) and not np.isclose(state_q0.T, self.state_outlet.T):
             # Get transport properties:
             tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(state_q0, self.state_outlet)
             alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_con)
@@ -76,7 +78,7 @@ class MovingBoundaryTmCondenser(HeatExchanger):
 
         # 2. Regime: Latent heat exchange
         Q_lat_Tm, A_lat, A_lat_available = 0, 0, 0
-        if Q_lat > 0:
+        if not np.isclose(Q_lat, 0):
             # Get transport properties:
             alpha_ref_wall = self.calc_alpha_two_phase(
                 state_q0=state_q0,
@@ -98,7 +100,7 @@ class MovingBoundaryTmCondenser(HeatExchanger):
 
         # 3. Regime: Superheat heat exchange
         Q_sh_Tm, A_sh = 0, 0
-        if Q_sh and (self.state_inlet.T != state_q1.T):
+        if not np.isclose(Q_sh, 0) and not np.isclose(self.state_inlet.T, state_q1.T):
             # Get transport properties:
             tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(self.state_inlet, state_q1)
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_con)
@@ -190,7 +192,7 @@ class MovingBoundaryTmEvaporator(HeatExchanger):
 
         # 1. Regime: Superheating
         Q_sh_Tm, A_sh, A_sh_available = 0, 0, 0
-        if Q_sh and (self.state_outlet.T != state_q1.T):
+        if not np.isclose(Q_sh, 0) and not np.isclose(self.state_outlet.T, state_q1.T):
             # Get transport properties:
             tra_prop_ref_eva = self.med_prop.calc_mean_transport_properties(self.state_outlet, state_q1)
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_eva)
@@ -209,7 +211,7 @@ class MovingBoundaryTmEvaporator(HeatExchanger):
 
         # 2. Regime: Latent heat exchange
         Q_lat_Tm, A_lat, A_lat_available = 0, 0, 0
-        if Q_lat > 0:
+        if not np.isclose(Q_lat, 0):
             alpha_ref_wall = self.calc_alpha_two_phase(
                 state_q0=state_q0,
                 state_q1=state_q1,
@@ -230,7 +232,7 @@ class MovingBoundaryTmEvaporator(HeatExchanger):
 
         # 3. Regime: Subcooling
         Q_sc_Tm, A_sc = 0, 0
-        if Q_sc > 0 and (state_q0.T != self.state_inlet.T):
+        if not np.isclose(Q_sc, 0) and not np.isclose(state_q0.T, self.state_inlet.T):
             # Get transport properties:
             tra_prop_ref_eva = self.med_prop.calc_mean_transport_properties(state_q0, self.state_inlet)
             alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_eva)
