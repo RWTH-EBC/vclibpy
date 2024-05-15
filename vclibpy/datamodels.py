@@ -129,12 +129,17 @@ class VariableContainer:
             dict: Containing all variables and values.
         """
         if with_unit_and_description:
-            return {f"{k} in {v.unit} ({v.description})": v.value for k, v in self.items()}
-        return {k: v.value for k, v in self.items()}
+            return {f"{k} in {v.unit} ({v.description})": v.value for k, v in self.items_not_none()}
+        return {k: v.value for k, v in self.items_not_none()}
 
     def get_name(self):
+        """Get the name based on variable names and rounded values"""
         return ";".join([k + "=" + str(round(v.value, 3)).replace(".", "_")
-                         for k, v in self.get_variables().items() if v.value is not None])
+                         for k, v in self.items_not_none()])
+
+    def items_not_none(self):
+        """Get all items where the value is not None"""
+        return {k: v for k, v in self.items() if v.value is not None}.items()
 
 
 class FlowsheetState(VariableContainer):
