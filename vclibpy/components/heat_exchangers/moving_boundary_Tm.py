@@ -1,72 +1,10 @@
 import logging
 
-import numpy as np
+from vclibpy.components.heat_exchangers import utils
 from vclibpy.datamodels import FlowsheetState, Inputs
 from vclibpy.components.heat_exchangers import HeatExchanger
-from vclibpy.media import ThermodynamicState
 
 logger = logging.getLogger(__name__)
-
-
-def calc_area(Q, k, Tm):
-    if Tm * k == 0:
-        return 1e10  # A really large number, but not np.inf to still be able to calculate with it
-    else:
-        return Q / (k * Tm)
-
-
-def calc_mean_temperature(
-        T_hot_in: float, T_hot_out: float,
-        T_cold_in: float, T_cold_out: float,
-        flow_type: str = "counter"
-):
-    if flow_type == "counter":
-        dT_A = T_hot_in - T_cold_out
-        dT_B = T_hot_out - T_cold_in
-    elif flow_type == "parallel":
-        dT_A = T_hot_in - T_cold_in
-        dT_B = T_hot_out - T_cold_out
-    else:
-        raise TypeError("Given flow_type is not supported yet")
-    if dT_B < 0 or dT_A < 0:
-        return 0  # Heat can't be transferred
-    if np.isclose(dT_B, 0) or np.isclose(dT_A, 0) or np.isclose(dT_B, dT_A):
-        return abs((dT_A + dT_B) / 2)
-    return (dT_A - dT_B) / np.log(dT_A / dT_B)
-
-
-def separate_phases(m_flow, med_prop, state_max: ThermodynamicState, state_min: ThermodynamicState, p: float):
-    """
-    Separates a flow with possible phase changes into three parts:
-    subcooling (sc), latent phase change (lat), and superheating (sh)
-    at the given pressure.
-
-    Args:
-        state_max (ThermodynamicState): State with higher enthalpy.
-        state_min (ThermodynamicState): State with lower enthalpy.
-        p (float): Pressure of phase change.
-
-    Returns:
-        Tuple[float, float, float, ThermodynamicState, ThermodynamicState]:
-            Q_sc: Heat for subcooling.
-            Q_lat: Heat for latent phase change.
-            Q_sh: Heat for superheating.
-            state_q0: State at vapor quality 0 and the given pressure.
-            state_q1: State at vapor quality 1 and the given pressure.
-    """
-    # Get relevant states:
-    state_q0 = med_prop.calc_state("PQ", p, 0)
-    state_q1 = med_prop.calc_state("PQ", p, 1)
-    Q_sc = max(0.0,
-               min((state_q0.h - state_min.h),
-                   (state_max.h - state_min.h))) * m_flow
-    Q_lat = max(0.0,
-                (min(state_max.h, state_q1.h) -
-                 max(state_min.h, state_q0.h))) * m_flow
-    Q_sh = max(0.0,
-               min((state_max.h - state_q1.h),
-                   (state_max.h - state_min.h))) * m_flow
-    return Q_sc, Q_lat, Q_sh, state_q0, state_q1
 
 
 class MovingBoundaryTmCondenser(HeatExchanger):
@@ -99,10 +37,10 @@ class MovingBoundaryTmCondenser(HeatExchanger):
                 dT_min: Minimal temperature difference (can be negative).
         """
         self.m_flow_secondary = inputs.m_flow_con  # [kg/s]
-        self.calc_secondary_cp(T=inputs.T_con_in)
+        self.calc_secondary_cp(T=inputs.T_con)
 
         # First we separate the flow:
-        Q_sc, Q_lat, Q_sh, state_q0, state_q1 = separate_phases(
+        Q_sc, Q_lat, Q_sh, state_q0, state_q1 = utils.separate_phases(
             m_flow=self.m_flow,
             med_prop=self.med_prop,
             state_max=self.state_inlet,
@@ -111,18 +49,13 @@ class MovingBoundaryTmCondenser(HeatExchanger):
         )
         Q = Q_sc + Q_lat + Q_sh
 
-        # Note: As Q_con_Tm has to converge to Q_con (m_ref*delta_h), we can safely
-        # calculate the output temperature.
+        T_in, T_sc, T_sh, T_out = utils.get_condenser_phase_temperatures_and_alpha(
+            heat_exchanger=self, inputs=inputs,
+            Q_sc=Q_sc, Q_lat=Q_lat, Q_sh=Q_sh
+        )
 
-        T_mean = inputs.T_con_in + self.calc_secondary_Q_flow(Q) / (self.m_flow_secondary_cp * 2)
-        tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
+        tra_prop_med = self.calc_transport_properties_secondary_medium((T_in + T_out) / 2)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
-
-        # Calculate secondary_medium side temperatures:
-        # Assumption loss is the same correlation for each regime
-        T_sc = inputs.T_con_in + self.calc_secondary_Q_flow(Q_sc) / self.m_flow_secondary_cp
-        T_sh = T_sc + self.calc_secondary_Q_flow(Q_lat) / self.m_flow_secondary_cp
-        T_out = T_sh + self.calc_secondary_Q_flow(Q_sh) / self.m_flow_secondary_cp
 
         # 1. Regime: Subcooling
         Q_sc_Tm, A_sc, A_sc_available = 0, 0, 0
@@ -133,11 +66,11 @@ class MovingBoundaryTmCondenser(HeatExchanger):
 
             # Only use still available area:
             k_sc = self.calc_k(alpha_pri=alpha_ref_wall, alpha_sec=alpha_med_wall)
-            T_m_sc = calc_mean_temperature(
+            T_m_sc = utils.calc_mean_temperature(
                 T_hot_in=state_q0.T, T_hot_out=self.state_outlet.T,
-                T_cold_in=inputs.T_con_in, T_cold_out=T_sc
+                T_cold_in=T_in, T_cold_out=T_sc
             )
-            A_sc = calc_area(Q_sc, k_sc, T_m_sc)
+            A_sc = utils.calc_area(Q_sc, k_sc, T_m_sc)
             A_sc_available = min(self.A, A_sc)
             Q_sc_Tm = A_sc_available * k_sc * T_m_sc
 
@@ -152,11 +85,11 @@ class MovingBoundaryTmCondenser(HeatExchanger):
                 inputs=inputs
             )
             k_lat = self.calc_k(alpha_pri=alpha_ref_wall, alpha_sec=alpha_med_wall)
-            T_m_lat = calc_mean_temperature(
+            T_m_lat = utils.calc_mean_temperature(
                 T_hot_in=state_q1.T, T_hot_out=state_q0.T,
                 T_cold_in=T_sc, T_cold_out=T_sh
             )
-            A_lat = calc_area(Q_lat, k_lat, T_m_lat)
+            A_lat = utils.calc_area(Q_lat, k_lat, T_m_lat)
             # Only use still available area:
             A_lat_available = min(max(self.A - A_sc_available, 0), A_lat)
             Q_lat_Tm = A_lat_available * k_lat * T_m_lat
@@ -171,11 +104,11 @@ class MovingBoundaryTmCondenser(HeatExchanger):
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_con)
 
             k_sh = self.calc_k(alpha_pri=alpha_ref_wall, alpha_sec=alpha_med_wall)
-            T_m_sh = calc_mean_temperature(
+            T_m_sh = utils.calc_mean_temperature(
                 T_hot_in=self.state_inlet.T, T_hot_out=state_q1.T,
                 T_cold_in=T_sh, T_cold_out=T_out
             )
-            A_sh = calc_area(Q_sh, k_sh, T_m_sh)
+            A_sh = utils.calc_area(Q_sh, k_sh, T_m_sh)
             # Only use still available area:
             A_sh_available = min(max(self.A - A_sc_available - A_lat_available, 0), A_sh)
             Q_sh_Tm = A_sh_available * k_sh * T_m_sh
@@ -187,7 +120,7 @@ class MovingBoundaryTmCondenser(HeatExchanger):
         error_A = (1 - A_necessary / self.A) * 100
         error = (Q_Tm / Q - 1) * 100
         # Get possible dT_min:
-        dT_min_in = self.state_outlet.T - inputs.T_con_in
+        dT_min_in = self.state_outlet.T - T_in
         dT_min_out = self.state_inlet.T - T_out
         dT_min_LatSH = state_q1.T - T_sh
 
@@ -233,7 +166,7 @@ class MovingBoundaryTmEvaporator(HeatExchanger):
         self.calc_secondary_cp(T=inputs.T_eva_in)
 
         # First we separate the flow:
-        Q_sc, Q_lat, Q_sh, state_q0, state_q1 = separate_phases(
+        Q_sc, Q_lat, Q_sh, state_q0, state_q1 = utils.separate_phases(
             m_flow=self.m_flow,
             med_prop=self.med_prop,
             state_max=self.state_outlet,
@@ -263,12 +196,12 @@ class MovingBoundaryTmEvaporator(HeatExchanger):
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_eva)
 
             k_sh = self.calc_k(alpha_pri=alpha_ref_wall, alpha_sec=alpha_med_wall)
-            T_m_sh = calc_mean_temperature(
+            T_m_sh = utils.calc_mean_temperature(
                 T_hot_in=inputs.T_eva_in, T_hot_out=T_sh,
                 T_cold_in=state_q1.T, T_cold_out=self.state_outlet.T
             )
             # Only use still available area:
-            A_sh = calc_area(Q_sh, k_sh, T_m_sh)
+            A_sh = utils.calc_area(Q_sh, k_sh, T_m_sh)
             A_sh_available = min(self.A, A_sh)
             Q_sh_Tm = A_sh_available * k_sh * T_m_sh
 
@@ -284,11 +217,11 @@ class MovingBoundaryTmEvaporator(HeatExchanger):
                 inputs=inputs
             )
             k_lat = self.calc_k(alpha_pri=alpha_ref_wall, alpha_sec=alpha_med_wall)
-            T_m_lat = calc_mean_temperature(
+            T_m_lat = utils.calc_mean_temperature(
                 T_hot_in=T_sh, T_hot_out=T_sc,
                 T_cold_in=state_q0.T, T_cold_out=state_q1.T
             )
-            A_lat = calc_area(Q_lat, k_lat, T_m_lat)
+            A_lat = utils.calc_area(Q_lat, k_lat, T_m_lat)
             # Only use still available area:
             A_lat_available = min(max(self.A - A_sh_available, 0), A_lat)
             Q_lat_Tm = A_lat_available * k_lat * T_m_lat
@@ -304,11 +237,11 @@ class MovingBoundaryTmEvaporator(HeatExchanger):
 
             # Only use still available area:
             k_sc = self.calc_k(alpha_pri=alpha_ref_wall, alpha_sec=alpha_med_wall)
-            T_m_sc = calc_mean_temperature(
+            T_m_sc = utils.calc_mean_temperature(
                 T_hot_in=T_sc, T_hot_out=T_out,
                 T_cold_in=self.state_inlet.T, T_cold_out=state_q0.T
             )
-            A_sc = calc_area(Q_sc, k_sc, T_m_sc)
+            A_sc = utils.calc_area(Q_sc, k_sc, T_m_sc)
             A_sc_available = min(max(self.A - A_sh_available - A_lat_available, 0), A_sc)
             Q_sc_Tm = A_sc_available * k_sc * T_m_sc
 

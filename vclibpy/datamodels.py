@@ -134,7 +134,7 @@ class VariableContainer:
 
     def get_name(self):
         return ";".join([k + "=" + str(round(v.value, 3)).replace(".", "_")
-                         for k, v in self.get_variables().items()])
+                         for k, v in self.get_variables().items() if v.value is not None])
 
 
 class FlowsheetState(VariableContainer):
@@ -172,6 +172,7 @@ class Inputs(VariableContainer):
             n: float = None,
             T_eva_in: float = None,
             T_con_in: float = None,
+            T_con_out: float = None,
             m_flow_eva: float = None,
             m_flow_con: float = None,
             dT_eva_superheating: float = None,
@@ -182,10 +183,17 @@ class Inputs(VariableContainer):
         Initializes an Inputs object with parameters representing external conditions
         for the vapor compression cycle.
 
+        Note that some inputs presuppose each other. For example, you can not
+        specify both `T_con_in`, `T_con_out`, and `m_flow_con`,
+        as one needs to be free for the simulation.
+        The current algorithms require `m_flow_con`
+        and either `T_con_in` or `T_con_out`.
+
         Args:
             n (float): Relative compressor speed between 0 and 1 (unit: -).
             T_eva_in (float): Secondary side evaporator inlet temperature (unit: K).
             T_con_in (float): Secondary side condenser inlet temperature (unit: K).
+            T_con_out (float): Secondary side condenser inlet temperature (unit: K).
             m_flow_eva (float): Secondary side evaporator mass flow rate (unit: kg/s).
             m_flow_con (float): Secondary side condenser mass flow rate (unit: kg/s).
             dT_eva_superheating (float): Super-heating after evaporator (unit: K).
@@ -193,6 +201,13 @@ class Inputs(VariableContainer):
             T_ambient (float): Ambient temperature of the machine (unit: K).
         """
         super().__init__()
+        if T_con_out is not None and T_con_in is not None:
+            raise ValueError("You can either specify condenser inlet or "
+                             "outlet temperature, not both.")
+        if T_con_out is None and T_con_in is None:
+            raise ValueError("You must either specify condenser inlet or "
+                             "outlet temperature.")
+
         self.set(
             name="n",
             value=n,
@@ -210,6 +225,12 @@ class Inputs(VariableContainer):
             value=T_con_in,
             unit="K",
             description="Secondary side condenser inlet temperature"
+        )
+        self.set(
+            name="T_con_out",
+            value=T_con_out,
+            unit="K",
+            description="Secondary side condenser outlet temperature"
         )
         self.set(
             name="m_flow_con",
@@ -243,3 +264,19 @@ class Inputs(VariableContainer):
             unit="K",
             description="Ambient temperature of machine"
         )
+
+    @property
+    def T_con(self):
+        """Returns either T_con_in or T_con_out, depending on what is specifiec."""
+        if self.T_con_in is not None:
+            return self.T_con_in
+        return self.T_con_out
+
+    @property
+    def uses_condenser_inlet(self):
+        """Indicates if condenser inlet or outlet is specified"""
+        return self.T_con_in is not None
+
+
+if __name__ == '__main__':
+    print(Inputs().T_con_out)

@@ -55,15 +55,18 @@ def calc_multiple_states(
 def full_factorial_map_generation(
         heat_pump: BaseCycle,
         T_eva_in_ar: Union[list, np.ndarray],
-        T_con_in_ar: Union[list, np.ndarray],
+        T_con_ar: Union[list, np.ndarray],
         n_ar: Union[list, np.ndarray],
         m_flow_con: float,
         m_flow_eva: float,
         save_path: Union[pathlib.Path, str],
         dT_eva_superheating=5,
         dT_con_subcooling=0,
+        use_condenser_inlet: bool = True,
+        dT_con_start: float = 10,
         use_multiprocessing: bool = False,
         save_plots: bool = False,
+        raise_errors: bool = False,
         **kwargs
 ) -> (pathlib.Path, pathlib.Path):
     """
@@ -71,24 +74,39 @@ def full_factorial_map_generation(
     used in other simulation tools like Modelica or to analyze
     the off-design of the flowsheet.
     The results are stored and returned as .sdf and .csv files.
-    Currently, only varying T_eva_in, T_con_in, and n is implemented.
+    Currently, only varying T_eva_in, T_con_in (or T_con_out), and n is implemented.
     However, changing this to more dimensions or other variables
     is not much work. In this case, please raise an issue.
 
     Args:
         heat_pump (BaseCycle): The flowsheet to use
-        T_eva_in_ar: Array with inputs for T_eva_in
-        T_con_in_ar: Array with inputs for T_con_in
-        n_ar: Array with inputs for n_ar
-        m_flow_con: Condenser mass flow rate
-        m_flow_eva: Evaporator mass flow rate
-        save_path: Where to save all results.
-        dT_eva_superheating: Evaporator superheating
-        dT_con_subcooling: Condenser subcooling
+        T_eva_in_ar (list):
+            Array with inputs for T_eva_in
+        T_con_ar (list):
+            Array with inputs for T_con_in or T_con_out, see `use_condenser_inlet`
+        n_ar (list):
+            Array with inputs for n_ar
+        m_flow_con (float):
+            Condenser mass flow rate
+        m_flow_eva (float):
+            Evaporator mass flow rate
+        save_path (Path):
+            Where to save all results.
+        dT_eva_superheating (float):
+            Evaporator superheating
+        dT_con_subcooling (float):
+            Condenser subcooling
+        use_condenser_inlet (bool):
+            True to consider T_con_ar as inlet, false for outlet.
+        dT_con_start (float):
+            Guess value for starting condenser pressure,
+            only relevant if `use_condenser_inlet=False`
         use_multiprocessing:
             True to use multiprocessing. May speed up the calculation. Default is False
         save_plots:
             True to save plots of each steady state point. Default is False
+        raise_errors:
+            True to raise errors if they occur.
         **kwargs: Solver settings for the flowsheet
 
     Returns:
@@ -106,16 +124,28 @@ def full_factorial_map_generation(
     idx_for_access_later = []
     for i_T_eva_in, T_eva_in in enumerate(T_eva_in_ar):
         for i_n, n in enumerate(n_ar):
-            for i_T_con_in, T_con_in in enumerate(T_con_in_ar):
-                idx_for_access_later.append([i_n, i_T_con_in, i_T_eva_in])
-                inputs = Inputs(n=n,
-                                T_eva_in=T_eva_in,
-                                T_con_in=T_con_in,
-                                m_flow_eva=m_flow_eva,
-                                m_flow_con=m_flow_con,
-                                dT_eva_superheating=dT_eva_superheating,
-                                dT_con_subcooling=dT_con_subcooling)
-                list_mp_inputs.append([heat_pump, inputs, kwargs])
+            for i_T_con, T_con in enumerate(T_con_ar):
+                idx_for_access_later.append([i_n, i_T_con, i_T_eva_in])
+                base_inputs = dict(
+                    n=n,
+                    T_eva_in=T_eva_in,
+                    m_flow_eva=m_flow_eva,
+                    m_flow_con=m_flow_con,
+                    dT_eva_superheating=dT_eva_superheating,
+                    dT_con_subcooling=dT_con_subcooling
+                )
+                if use_condenser_inlet:
+                    inputs = Inputs(
+                        T_con_in=T_con,
+                        **base_inputs
+                    )
+                else:
+                    inputs = Inputs(
+                        T_con_out=T_con,
+                        **base_inputs
+                    )
+                    inputs.set(name="dT_con_start", value=dT_con_start, unit="K")
+                list_mp_inputs.append([heat_pump, inputs, kwargs, raise_errors])
                 list_inputs.append(inputs)
     fs_states = []
     i = 0
@@ -127,13 +157,13 @@ def full_factorial_map_generation(
             logger.info(f"Ran {i} of {len(list_mp_inputs)} points")
     else:
         for inputs in list_inputs:
-            fs_state = _calc_single_hp_state([heat_pump, inputs, kwargs])
+            fs_state = _calc_single_hp_state([heat_pump, inputs, kwargs, raise_errors])
             fs_states.append(fs_state)
             i += 1
             logger.info(f"Ran {i} of {len(list_mp_inputs)} points")
 
     # Save to sdf
-    result_shape = (len(n_ar), len(T_con_in_ar), len(T_eva_in_ar))
+    result_shape = (len(n_ar), len(T_con_ar), len(T_eva_in_ar))
     _dummy = np.zeros(result_shape)  # Use a copy to avoid overwriting of values of any sort.
     _dummy[:] = np.nan
     # Get all possible values:
@@ -156,9 +186,9 @@ def full_factorial_map_generation(
     )
 
     for fs_state, idx_triple in zip(fs_states, idx_for_access_later):
-        i_n, i_T_con_in, i_T_eva_in = idx_triple
+        i_n, i_T_con, i_T_eva_in = idx_triple
         for variable_name, variable in fs_state.get_variables().items():
-            all_variables[variable_name][i_n][i_T_con_in][i_T_eva_in] = variable.value
+            all_variables[variable_name][i_n][i_T_con][i_T_eva_in] = variable.value
 
     _nd_data = {}
     for variable, nd_data in all_variables.items():
@@ -171,7 +201,7 @@ def full_factorial_map_generation(
 
     _scale_values = {
         "n": n_ar,
-        "T_con_in": T_con_in_ar,
+        "T_con_in" if use_condenser_inlet else "T_con_out": T_con_ar,
         "T_eva_in": T_eva_in_ar
     }
     inputs: Inputs = list_inputs[0]
@@ -207,12 +237,14 @@ def full_factorial_map_generation(
 
 def _calc_single_hp_state(data):
     """Helper function for a single state to enable multiprocessing"""
-    heat_pump, inputs, kwargs = data
+    heat_pump, inputs, kwargs, raise_errors = data
     fs_state = None
     try:
         fs_state = heat_pump.calc_steady_state(inputs=inputs,
                                                **kwargs)
     except Exception as e:
+        if raise_errors:
+            raise e
         logger.error(f"An error occurred for input: {inputs.__dict__}: {e}")
     if fs_state is None:
         fs_state = FlowsheetState()
