@@ -98,13 +98,13 @@ def main(use_condenser_inlet: bool = True):
     # the values using e.g. pandas. It is also the second return value of the function.
     import pandas as pd
     df = pd.read_csv(save_path_csv, index_col=0)
-    print(df)
+    df
     # Now, we can plot variables, for example as a scatter plot using matplotlib.
     # You have to know the names, which are the column headers.
     import matplotlib.pyplot as plt
     x_name = "n in - (Relative compressor speed)"
     y_name = "COP in - (Coefficient of performance)"
-    plt.scatter(df[x_name], df[y_name])
+    plt.scatter(df[x_name], df[y_name], s=20)
     plt.ylabel(y_name)
     plt.xlabel(x_name)
     plt.show()
