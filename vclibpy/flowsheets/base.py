@@ -65,7 +65,8 @@ class BaseCycle:
         self.fluid = fluid
 
     def terminate(self):
-        self.med_prop.terminate()
+        if self.med_prop is not None:
+            self.med_prop.terminate()
         for component in self.get_all_components():
             component.terminate_secondary_med_prop()
 
