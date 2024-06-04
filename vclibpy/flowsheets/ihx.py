@@ -241,8 +241,12 @@ class InternalHeatExchange(BaseCycle, abc.ABC):
         #     unit="-", description="Expansion valve opening"
         # )
         fs_state.set(
-            name="T_1", value=self.evaporator.state_outlet.T,
+            name="T_7", value=self.evaporator.state_outlet.T,
             unit="K", description="Refrigerant temperature at evaporator outlet"
+        )
+        fs_state.set(
+            name="T_1", value=self.ihx.state_outlet.T,
+            unit="K", description="IHX LT outlet temperature"
         )
         fs_state.set(
             name="T_2", value=self.compressor.state_outlet.T,
@@ -253,7 +257,7 @@ class InternalHeatExchange(BaseCycle, abc.ABC):
             description="Refrigerant temperature at condenser outlet"
         )
         fs_state.set(
-            name="T_4", value=self.evaporator.state_inlet.T,
+            name="T_6", value=self.evaporator.state_inlet.T,
             unit="K", description="Refrigerant temperature at evaporator inlet"
         )
 
@@ -480,8 +484,9 @@ class InternalHeatExchange(BaseCycle, abc.ABC):
 
         # Interal Heat Exchanger - Pressure Iteration
 
-        p_ihx_next = p_2
+
         step_p_ihx = 10000
+        p_ihx_next = p_2
         num_iterations = 0
         p_ihx_history = []
         firstIteration = True
@@ -592,6 +597,16 @@ class InternalHeatExchange(BaseCycle, abc.ABC):
         carnot_quality = COP_inner / COP_carnot
 
         fs_state.set(name="p_ihx", value=p_ihx, unit="Pa", description="Evaporation pressure")
+
+        fs_state.set(
+            name="T_4", value=self.ihx.state_inlet_ht.T,
+            unit="K", description="IHX HT inlet temperature"
+        )
+
+        fs_state.set(
+            name="T_5", value=self.ihx.state_outlet_ht.T,
+            unit="K", description="IHX HT outlet temperature"
+        )
 
         fs_state.set(
             name="y_EV", value=self.expansion_valve.calc_opening_at_m_flow(m_flow=self.expansion_valve.m_flow),
