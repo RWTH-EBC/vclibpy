@@ -498,3 +498,112 @@ class MovingBoundaryLMTDIHX(MovingBoundaryLMTD):
                      description="Pinch IHX")
 
         return error, min(dT_min_out, dT_min_in, dT_min_lat)
+
+    def calc_one_ev(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
+        """
+        Calculate the heat exchanger with the NTU-Method based on the given inputs.
+
+        The flowsheet state can be used to save important variables
+        during calculation for later analysis.
+
+        Both return values are used to check if the heat transfer is valid or not.
+
+        Args:
+            inputs (Inputs): The inputs for the calculation.
+            fs_state (FlowsheetState): The flowsheet state to save important variables.
+
+        Returns:
+            Tuple[float, float]:
+                error: Error in percentage between the required and calculated heat flow rates.
+                dT_min: Minimal temperature difference (can be negative).
+        """
+
+        # lt- primary
+        Q_sc_lt, Q_lat_lt, Q_sh_lt, state_q0_lt, state_q1_lt = self.separate_phases(
+            self.state_outlet,
+            self.state_inlet,
+            self.state_inlet.p
+        )
+        Q_lt = Q_sc_lt + Q_lat_lt + Q_sh_lt
+
+        # ht
+        Q_sc_ht, Q_lat_ht, Q_sh_ht, state_q0_ht, state_q1_ht = self.separate_phases(
+            self.state_inlet_ht,
+            self.state_outlet_ht,
+            self.state_inlet_ht.p
+        )
+        Q_ht = Q_sc_ht + Q_lat_ht + Q_sh_ht
+
+        # kein subcooling auf lt seite
+
+        self._secondary_cp = (self.state_outlet_ht.h - self.state_inlet_ht.h) / (
+                    self.state_outlet_ht.T - self.state_inlet_ht.T)  # lt
+        self.m_flow_secondary = self.m_flow
+        m_flow_secondary_cp = self._secondary_cp * self.m_flow_secondary
+        tra_prop_ref_sh = self.med_prop.calc_mean_transport_properties(self.state_outlet_ht, self.state_inlet_ht)
+        alpha_med_wall = self.calc_alpha_gas(tra_prop_ref_sh)
+        T_sh = self.state_inlet_ht.T - Q_lat_lt / m_flow_secondary_cp # Temperatur auf ht seite, wenn lt vollständig verdampft ist
+
+        # 1. Regime: latent
+        A_lat = 0
+        if Q_lat_lt > 0:
+            self.set_primary_cp(np.inf)
+
+            alpha_ref_wall = self.calc_alpha_two_phase(
+                state_q0=state_q0_lt,
+                state_q1=state_q1_lt,
+                fs_state=fs_state,
+                inputs=inputs
+            )
+
+            lmtd = self.calc_lmtd(Tprim_in=state_q0_lt.T,
+                                  Tprim_out=state_q1_lt.T,
+                                  Tsec_in=T_sh,
+                                  Tsec_out=self.state_outlet_ht.T)
+
+            A_lat = self.calc_A(lmtd=lmtd,
+                                alpha_pri=alpha_ref_wall,
+                                alpha_sec=alpha_med_wall,
+                                Q=Q_lat_lt)
+
+        # 2. Regime: Superheating
+        A_sh = 0
+        if Q_sh_lt and (self.state_outlet.T != state_q1_lt.T):
+            self.set_primary_cp((self.state_outlet.h - state_q1_lt.h) / (self.state_outlet.T - state_q1_lt.T))
+            # Get transport properties:
+            tra_prop_ref_eva = self.med_prop.calc_mean_transport_properties(self.state_outlet, state_q1_lt)
+            alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_eva)
+
+            lmtd = self.calc_lmtd(Tprim_in=state_q1_lt.T,
+                                  Tprim_out=self.state_outlet.T,
+                                  Tsec_in=self.state_inlet_ht.T,
+                                  Tsec_out=T_sh)
+
+            A_sh = self.calc_A(lmtd=lmtd,
+                               alpha_pri=alpha_ref_wall,
+                               alpha_sec=alpha_med_wall,
+                               Q=Q_sh_lt)
+
+
+        A_lmtd = A_lat + A_sh
+        error = (self.A / A_lmtd - 1) * 100
+        # Get possible dT_min:
+        dT_min_in = self.state_inlet_ht.T - self.state_outlet.T
+        dT_min_out = self.state_outlet_ht.T - self.state_inlet.T
+        dT_min_lat = T_sh - state_q1_lt.T
+
+        fs_state.set(name="A_ihx_sh", value=A_sh, unit="m2",
+                     description="Area for superheat heat exchange in IHX")
+        fs_state.set(name="A_ihx_lat", value=A_lat, unit="m2",
+                     description="Area for latent heat exchange in IHX")
+        fs_state.set(name="dT_pinch_ihx",
+                     value=min(dT_min_out,
+                               dT_min_in,
+                               dT_min_lat),
+                     description="Pinch IHX")
+
+        return error, min(dT_min_out, dT_min_in, dT_min_lat)
+
+
+
+
