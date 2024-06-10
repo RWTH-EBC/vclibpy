@@ -1,10 +1,12 @@
-import warnings
+import logging
 from abc import ABC
 import numpy as np
 import pandas as pd
 
 from vclibpy.components.compressors.compressor import Compressor
 from vclibpy.datamodels import Inputs
+
+logger = logging.getLogger(__name__)
 
 
 def calc_ten_coefficients(T_eva, T_con, coef_list):
@@ -188,14 +190,14 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         p_outlet = self.get_p_outlet()
 
         n_abs = self.get_n_absolute(inputs.n)
-        T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15  # [°C]
+        T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15 # [°C]
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T - 273.15  # [°C]
 
         if round((self.state_inlet.T - T_eva - 273.15), 2) != round(self.T_sh, 2):
-            warnings.warn("The superheating of the given state is not "
-                          "equal to the superheating of the datasheet. "
-                          "State1.T_sh= " + str(round((self.state_inlet.T - T_eva - 273.15), 2)) +
-                          ". Datasheet.T_sh = " + str(self.T_sh))
+            logger.warning("The superheating of the given state is not "
+                           "equal to the superheating of the datasheet. "
+                           "State1.T_sh= %s. Datasheet.T_sh = %s",
+                           round((self.state_inlet.T - T_eva - 273.15), 2), self.T_sh)
         # The datasheet has a given superheating temperature which can
         # vary from the superheating of the real state 1
         # which is given by the user.
@@ -222,8 +224,11 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         T_con, state_inlet_datasheet, m_flow, capacity, p_el = self._calculate_values(
             p_2=p_outlet, inputs=inputs
         )
+        if self.T_sc != 0:
+            h3 = self.med_prop.calc_state("PT", p_outlet, T_con + 273.15 - self.T_sc).h  # [J/kg]
+        else:
+            h3 = self.med_prop.calc_state("PQ", p_outlet, 0).h  # [J/kg]
 
-        h3 = self.med_prop.calc_state("PT", p_outlet, T_con + 273.15 - self.T_sc).h  # [J/kg]
         h2s = self.med_prop.calc_state("PS", p_outlet, state_inlet_datasheet.s).h  # [J/kg]
 
         if self._capacity_definition == "heating":
@@ -255,8 +260,11 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         T_con, state_inlet_datasheet, m_flow, capacity, p_el = self._calculate_values(
             p_2=p_outlet, inputs=inputs
         )
+        if self.T_sc != 0:
+            h3 = self.med_prop.calc_state("PT", p_outlet, T_con + 273.15 - self.T_sc).h  # [J/kg]
+        else:
+            h3 = self.med_prop.calc_state("PQ", p_outlet, 0).h  # [J/kg]
 
-        h3 = self.med_prop.calc_state("PT", p_outlet, T_con + 273.15 - self.T_sc).h  # [J/kg]
         h2 = h3 + capacity / m_flow  # [J/kg]
 
         eta_mech = (m_flow * (h2 - state_inlet_datasheet.h)) / p_el
