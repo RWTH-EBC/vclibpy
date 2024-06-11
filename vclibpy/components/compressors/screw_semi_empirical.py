@@ -155,10 +155,11 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
         self.p_outlet = p_outlet
         self.inputs = inputs
-        self.limits = ((self.m_flow_nom * 0, self.m_flow_nom * 5),  # m_flow
-                       (self.state_is.T, self.state_is.T+50),       # T_out
-                       (min(self.T_amb, self.state_inlet.T), max(self.T_amb, self.state_is.T + 50)))  # T_W
-        x0 =  np.random.random(3)
+        self.limits = ((self.state_inlet.T, self.state_is.T + 40),  # T_3
+                       (self.state_inlet.p, self.p_outlet),         # p_3
+                       (self.state_inlet.T, self.state_is.T))       # T_w
+
+        x0 = np.random.random(3)
 
         res = minimize(fun=self._objective,
                        x0=x0,
@@ -185,52 +186,25 @@ class ScrewCompressorSemiEmpirical(Compressor):
     def _iterate(self, x, mode):
         inputs = self.inputs
         n_abs = self.get_n_absolute(inputs.n)
-        m_flow = x[0]
-        T_out = x[1]
+        T_3 = x[0]
+        p_3 = x[1]
         T_w = x[2]
-
-
-
         p_out = self.p_outlet
 
         state_in = self.state_inlet
-        state_out = self.med_prop.calc_state("PT", p_out, T_out)
         state_out_is = self.state_is
+        state_3 = self.med_prop.calc_state("PT", p_3, T_3)
 
-        # Dertermination of state 2
-        state_1 = state_in
-        state_6 = state_out
-        transport_properties_2 = self.med_prop.calc_transport_properties(state_6)
-        gamma = transport_properties_2.cp / transport_properties_2.cv
-        p_crit_leak = p_out * ((2/(gamma+1)) ** (gamma/(gamma+1)))                                                      # Eq. (9)
-        p_leak = max(p_crit_leak, state_1.p)
-        state_leak = self.med_prop.calc_state('PS', p_leak, state_6.s)
-        m_flow_leak = state_leak.d * self.A_leak * np.sqrt(2 * (state_6.h - state_leak.h))                              # Eq. (8)
-        m_flow_ges = m_flow + m_flow_leak
-        h_2 = (m_flow * state_1.h + m_flow_leak * state_out.h) / m_flow_ges                                             # Eq. (1)
+        rho_4 = self.BVR * state_3.d
 
-        # Determination of state 2 --> Isobaric, isenthalp mixing
-        state_2 = self.med_prop.calc_state('PH', state_1.p, h_2)
-        cp_2 = self.med_prop.calc_transport_properties(state_2).cp
-        # Determination of state 3
-        AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8                                                    # Eq. (4)
-        Q_flow_su = (m_flow_ges * (T_w - state_2.T) * cp_2 *
-                     (1 - np.exp(-AU_su / (m_flow_ges * cp_2))))                                                        # Eq. (3)
+        m_flow_ges = self.V_h * n_abs * state_3.d
+        state_4 = self.med_prop.calc_state("DS", rho_4,state_3.s)
+        state_5 = self.med_prop.calc_state('PD', p_out, state_4.d)
 
-        h_3 = h_2 + Q_flow_su / m_flow_ges                                                                              # Eq. (2)
+        w_t = (state_4.h - state_3.h) + (1 / state_4.d) * (state_5.p - state_4.p)
+        P_t = w_t * m_flow_ges
 
-        state_3 = self.med_prop.calc_state('PH', state_1.p, h_3) # todo: Hier stimmte bis gerade der Druck nicht
-        m_flow_ges = self.V_h * n_abs * state_3.d  # Eq. (5)
-
-        # Determination of state 4
-
-        d_4 = self.BVR * state_3.d                                                                                      # Eq. (6)
-        s_4 = state_3.s
-        state_4 = self.med_prop.calc_state('DS', d_4, s_4)
-        state_5 = self.med_prop.calc_state('PD', p_out, d_4)  # todo: hier hakts
-        w_t = (state_4.h - state_3.h) + (1 / state_4.d) * (state_5.p-state_4.p)                                         # Eq. (7)
-
-        # Determination of state 6
+        # Determination of state_6
         cp_5 = self.med_prop.calc_transport_properties(state_5).cp
         AU_ex = self.AU_ex_nom * (m_flow_ges / self.m_flow_nom) ** 0.8                                                  # Derived from Eq. (4)
         Q_flow_ex = (m_flow_ges * (T_w - state_5.T) * cp_5 *
@@ -238,27 +212,52 @@ class ScrewCompressorSemiEmpirical(Compressor):
         h_6 = state_5.h + Q_flow_ex / m_flow_ges                                                                        # Derived from Eq. (2)
         state_6 = self.med_prop.calc_state('PH', p_out, h_6)
 
-        P_t = w_t * m_flow_ges                                                                                          # Eq. (10)
+        # Dertermination of leakage mass flow
+        state_1 = state_in
+
+        transport_properties_6 = self.med_prop.calc_transport_properties(state_6)
+        gamma = transport_properties_6.cp / transport_properties_6.cv
+        p_crit_leak = p_out * ((2/(gamma+1)) ** (gamma/(gamma+1)))                                                      # Eq. (9)
+        p_leak = max(p_crit_leak, state_1.p)
+        state_leak = self.med_prop.calc_state('PS', p_leak, state_6.s)
+        m_flow_leak = state_leak.d * self.A_leak * np.sqrt(2 * (state_6.h - state_leak.h))
+
+        # state_2 (Isobaric, isenthalp mixing)
+        m_flow = m_flow_ges - m_flow_leak
+        h_2 = (m_flow * state_1.h + m_flow_leak * state_6.h) / m_flow_ges                                             # Eq. (1)
+        state_2 = self.med_prop.calc_state('PH', state_1.p, h_2)
+        cp_2 = self.med_prop.calc_transport_properties(state_2).cp
+
+        # Enthalpy_3 --> as mimnimization variable
+        AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8                                                    # Eq. (4)
+        Q_flow_su = (m_flow_ges * (T_w - state_2.T) * cp_2 *
+                     (1 - np.exp(-AU_su / (m_flow_ges * cp_2))))                                                        # Eq. (3)
+
+        h_3 = h_2 + Q_flow_su / m_flow_ges
+
+        err_h_3 = (h_3-state_3.h)/h_3
+
         P_loss_1 = P_t * self.a_tl_1                                                                                    # Eq. (11)
-        P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my                                       # Eq. (12)
-        P_mech = P_t + P_loss_1 + P_loss_2                                                                              # Eq. (13)
+        P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my
+        P_mech = P_t + P_loss_1 + P_loss_2
+
+
+        m_flow_tilde = P_mech / (state_6.h - state_in.h)
+
 
         delta_T_abs = abs(T_w - self.T_amb)
         Q_flow_amb = self.b_hl * math.pow(delta_T_abs, 1.25) * np.sign(T_w-self.T_amb)                              # Eq. (16)
         Q_flow_amb_tilde = P_loss_1 + P_loss_2 - Q_flow_su - Q_flow_ex                                                  # Eq. (17)
         err_Q_amb = (Q_flow_amb_tilde - Q_flow_amb) / Q_flow_amb_tilde
-        h_out = state_in.h + (P_mech - Q_flow_amb) / m_flow
-        err_h_out = (h_out - state_out.h) / h_out
-        P_mech_tilde = m_flow * (state_6.h - state_in.h)                                                                # Eq. (18)
-        err_P_mech = (P_mech_tilde-P_mech) / P_mech_tilde
-        #
+        #h_out = state_in.h + (P_mech - Q_flow_amb) / m_flow
 
-
-        eta_is = (state_out_is.h - state_in.h) / (state_out.h - state_in.h)
+                                                            # Eq. (18)
+        err_m_flow = (m_flow-m_flow_tilde)/m_flow
+        eta_is = (state_out_is.h - state_in.h) / (state_6.h - state_in.h)
         eta_mech = P_t / P_mech
         eta_vol = (m_flow * state_in.d) / (self.V_h * n_abs)
 
-        err = (err_Q_amb, err_h_out, err_P_mech)
+        err = (err_h_3**2+err_Q_amb**2+err_m_flow**2)
 
         self.eta_mech = eta_mech
         self.eta_vol = eta_vol
@@ -270,7 +269,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         elif mode == "constr":
             return [Q_flow_amb, -Q_flow_su, m_flow_leak, m_flow]
         elif mode == "state_out":
-            state_out = self.med_prop.calc_state('PT', p_out, T_out)
+            state_out = state_6
             return state_out, eta_mech, eta_vol, eta_is, P_mech, m_flow
 
 

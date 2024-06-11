@@ -8,6 +8,8 @@ def main():
     from vclibpy.components.compressors import ScrewCompressorSemiEmpirical
     from vclibpy.media import RefProp
     from vclibpy import FlowsheetState, Inputs
+    import matplotlib.pyplot as plt
+    import numpy as np
     #Parametrisierung Verdichter
     screw_compressor = ScrewCompressorSemiEmpirical(
         N_max=120,
@@ -27,8 +29,19 @@ def main():
     inputs = Inputs(n=0.5)
 
     p_outlet = 6e5
+    T_out = np.zeros(100)
+    iterations = range(0,100)
+    for i in iterations:
+        try:
+            T_out[i] = screw_compressor.calc_state_outlet(p_outlet=p_outlet, inputs=inputs, fs_state=fs_state).T
+        except:
+            T_out[i] = 0
 
-    screw_compressor.calc_state_outlet(p_outlet=p_outlet, inputs=inputs, fs_state=fs_state)
+    plt.plot(iterations, T_out)
+    plt.show()
+
+
+
 
 
 if __name__ == '__main__':
