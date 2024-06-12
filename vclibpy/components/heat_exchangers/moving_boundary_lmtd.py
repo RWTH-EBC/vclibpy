@@ -1,16 +1,110 @@
 import abc
 import logging
-
+import math
 import numpy as np
 from vclibpy.datamodels import FlowsheetState, Inputs
-from vclibpy.components.heat_exchangers.lmtd import BasicLMTD
-
+from vclibpy.components.heat_exchangers.heat_exchanger import HeatExchanger
 from vclibpy.components.heat_exchangers.heat_transfer.heat_transfer import HeatTransfer, TwoPhaseHeatTransfer
+from vclibpy.media import ThermodynamicState, MedProp
 
 logger = logging.getLogger(__name__)
 
 
-class MovingBoundaryLMTD(BasicLMTD, abc.ABC):
+class BasicLMTD(HeatExchanger, abc.ABC):
+    """
+    Moving boundary LMTD based heat exchanger.
+
+    See parent class for more arguments.
+
+    Args:
+        flow_type (str):
+            Counter, Cross or parallel flow
+        ratio_outer_to_inner_area (float):
+            The NTU method uses the overall heat transfer coefficient `k`
+            and multiplies it with the overall area `A`.
+            However, depending on the heat exchanger type, the areas may
+            differ drastically. For instance in an air-to-water heat exchanger.
+            The VDI-Atlas proposes the ratio of outer area to inner pipe area
+            to account for this mismatch in sizes.
+            The calculation follows the code in the function `calc_k`.
+    """
+
+    def __init__(self, flow_type: str, ratio_outer_to_inner_area: float, **kwargs):
+        """
+        Initializes BasicLMTD.
+
+        Args:
+            flow_type (str): Type of flow: Counter, Cross, or Parallel.
+            ratio_outer_to_inner_area (float):
+                The NTU method uses the overall heat transfer coefficient `k`
+                and multiplies it with the overall area `A`.
+                However, depending on the heat exchanger type, the areas may
+                differ drastically. For instance in an air-to-water heat exchanger.
+                The VDI-Atlas proposes the ratio of outer area to inner pipe area
+                to account for this mismatch in sizes.
+                The calculation follows the code in the function `calc_k`.
+            **kwargs: Additional keyword arguments passed to the parent class.
+        """
+        super(BasicLMTD, self).__init__(**kwargs)
+        self.ratio_outer_to_inner_area = ratio_outer_to_inner_area
+
+        # Type of HE:
+        self.flow_type = flow_type.lower()
+        if self.flow_type not in ["counter", "cross", "parallel"]:
+            raise TypeError("Given flow_type is not supported")
+
+    def calc_A(self, lmtd, alpha_pri, alpha_sec, Q):
+
+        k = self.calc_k(alpha_pri=alpha_pri,
+                        alpha_sec=alpha_sec)
+
+        A = Q / (k * lmtd)
+
+        return max(A, 0)
+
+    def calc_Q_lmtd(self, lmtd, alpha_pri, alpha_sec, A):
+        k = self.calc_k(alpha_pri=alpha_pri,
+                        alpha_sec=alpha_sec)
+
+        Q_lmtd = A * k * lmtd
+
+        return Q_lmtd
+
+    def calc_lmtd(self, Tprim_in, Tprim_out, Tsec_in, Tsec_out):
+
+        dT_in = Tsec_in - Tprim_out
+        dT_out = Tsec_out - Tprim_in
+
+        if dT_in * dT_out < 0:
+            return 0.0000001
+        if dT_out == dT_in:
+            return dT_out
+        lmtd = (dT_in - dT_out) / math.log((dT_in / dT_out))
+
+        return abs(lmtd)
+
+    def calc_k(self, alpha_pri: float, alpha_sec: float) -> float:
+        """
+        Calculate the overall heat transfer coefficient (k) of the heat exchanger.
+
+        Args:
+            alpha_pri (float): Heat transfer coefficient for the primary medium.
+            alpha_sec (float): Heat transfer coefficient for the secondary medium.
+
+        Returns:
+            float: Overall heat transfer coefficient (k).
+        """
+        k_wall = self.calc_wall_heat_transfer()
+        k = (1 / (
+                (1 / alpha_pri) * self.ratio_outer_to_inner_area +
+                (1 / k_wall) * self.ratio_outer_to_inner_area +
+                (1 / alpha_sec)
+        )
+             )
+        return k
+
+
+class MVBLMTDSensibleSec(BasicLMTD, abc.ABC):
     """
     Moving boundary NTU based heat exchanger.
 
@@ -24,9 +118,9 @@ class MovingBoundaryLMTD(BasicLMTD, abc.ABC):
                  liquid_heat_transfer: HeatTransfer,
                  two_phase_heat_transfer: TwoPhaseHeatTransfer,
                  **kwargs):
-        super(MovingBoundaryLMTD, self).__init__(flow_type,
-                                                ratio_outer_to_inner_area,
-                                                **kwargs)
+        super(MVBLMTDSensibleSec, self).__init__(flow_type,
+                                                 ratio_outer_to_inner_area,
+                                                 **kwargs)
 
         self._gas_heat_transfer = gas_heat_transfer
         self._liquid_heat_transfer = liquid_heat_transfer
@@ -88,8 +182,41 @@ class MovingBoundaryLMTD(BasicLMTD, abc.ABC):
             m_flow=self.m_flow
         )
 
+    def separate_phases(self, state_max: ThermodynamicState, state_min: ThermodynamicState, p: float):
+        """
+        Separates a flow with possible phase changes into three parts:
+        subcooling (sc), latent phase change (lat), and superheating (sh)
+        at the given pressure.
 
-class MovingBoundaryLMTDCondenser(MovingBoundaryLMTD):
+        Args:
+            state_max (ThermodynamicState): State with higher enthalpy.
+            state_min (ThermodynamicState): State with lower enthalpy.
+            p (float): Pressure of phase change.
+
+        Returns:
+            Tuple[float, float, float, ThermodynamicState, ThermodynamicState]:
+                Q_sc: Heat for subcooling.
+                Q_lat: Heat for latent phase change.
+                Q_sh: Heat for superheating.
+                state_q0: State at vapor quality 0 and the given pressure.
+                state_q1: State at vapor quality 1 and the given pressure.
+        """
+        # Get relevant states:
+        state_q0 = self.med_prop.calc_state("PQ", p, 0)
+        state_q1 = self.med_prop.calc_state("PQ", p, 1)
+        Q_sc = max(0.0,
+                   min((state_q0.h - state_min.h),
+                       (state_max.h - state_min.h))) * self.m_flow
+        Q_lat = max(0.0,
+                    (min(state_max.h, state_q1.h) -
+                     max(state_min.h, state_q0.h))) * self.m_flow
+        Q_sh = max(0.0,
+                   min((state_max.h - state_q1.h),
+                       (state_max.h - state_min.h))) * self.m_flow
+        return Q_sc, Q_lat, Q_sh, state_q0, state_q1
+
+
+class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
     """
     Condenser class which implements the actual `calc` method.
 
@@ -145,7 +272,6 @@ class MovingBoundaryLMTDCondenser(MovingBoundaryLMTD):
         # 1. Regime: Subcooling
         A_sc = 0
         if Q_sc > 0 and (state_q0.T != self.state_outlet.T):
-            self.set_primary_cp((state_q0.h - self.state_outlet.h) / (state_q0.T - self.state_outlet.T))
             # Get transport properties:
             tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(state_q0, self.state_outlet)
             alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_con)
@@ -164,11 +290,9 @@ class MovingBoundaryLMTDCondenser(MovingBoundaryLMTD):
 
             A_sc = min(self.A, A_sc)
 
-
         # 2. Regime: Latent heat exchange
         A_lat = 0
         if Q_lat > 0:
-            self.set_primary_cp(np.inf)
             # Get transport properties:
             alpha_ref_wall = self.calc_alpha_two_phase(
                 state_q0=state_q0,
@@ -194,7 +318,6 @@ class MovingBoundaryLMTDCondenser(MovingBoundaryLMTD):
         # 3. Regime: Superheat heat exchange
         A_sh = 0
         if Q_sh and (self.state_inlet.T != state_q1.T):
-            self.set_primary_cp((self.state_inlet.h - state_q1.h) / (self.state_inlet.T - state_q1.T))
             # Get transport properties:
             tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(self.state_inlet, state_q1)
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_con)
@@ -236,7 +359,7 @@ class MovingBoundaryLMTDCondenser(MovingBoundaryLMTD):
                           dT_min_out)
 
 
-class MovingBoundaryLMTDEvaporator(MovingBoundaryLMTD):
+class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
     """
     Evaporator class which implements the actual `calc` method.
 
@@ -291,7 +414,6 @@ class MovingBoundaryLMTDEvaporator(MovingBoundaryLMTD):
         # 1. Regime: Superheating
         A_sh = 0
         if Q_sh and (self.state_outlet.T != state_q1.T):
-            self.set_primary_cp((self.state_outlet.h - state_q1.h) / (self.state_outlet.T - state_q1.T))
             # Get transport properties:
             tra_prop_ref_eva = self.med_prop.calc_mean_transport_properties(self.state_outlet, state_q1)
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_eva)
@@ -311,8 +433,6 @@ class MovingBoundaryLMTDEvaporator(MovingBoundaryLMTD):
         # 2. Regime: Latent heat exchange
         A_lat = 0
         if Q_lat > 0:
-            self.set_primary_cp(np.inf)
-
             alpha_ref_wall = self.calc_alpha_two_phase(
                 state_q0=state_q0,
                 state_q1=state_q1,
@@ -335,7 +455,6 @@ class MovingBoundaryLMTDEvaporator(MovingBoundaryLMTD):
         # 3. Regime: Subcooling
         A_sc = 0
         if Q_sc > 0 and (state_q0.T != self.state_inlet.T):
-            self.set_primary_cp((state_q0.h - self.state_inlet.h) / (state_q0.T - self.state_inlet.T))
             # Get transport properties:
             tra_prop_ref_eva = self.med_prop.calc_mean_transport_properties(state_q0, self.state_inlet)
             alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_eva)
@@ -347,9 +466,9 @@ class MovingBoundaryLMTDEvaporator(MovingBoundaryLMTD):
                                   Tsec_out=T_out)
 
             A_sc = self.calc_A(lmtd=lmtd,
-                                alpha_pri=alpha_ref_wall,
-                                alpha_sec=alpha_med_wall,
-                                Q=Q_sc)
+                               alpha_pri=alpha_ref_wall,
+                               alpha_sec=alpha_med_wall,
+                               Q=Q_sc)
 
         A_lmtd = A_sh + A_lat + A_sc
         error = (self.A / A_lmtd - 1) * 100
@@ -367,3 +486,299 @@ class MovingBoundaryLMTDEvaporator(MovingBoundaryLMTD):
                      description="Pinch Evaporator")
 
         return error, min(dT_min_out, dT_min_in)
+
+
+class MVB_LMTD_IHX(BasicLMTD):
+
+    def __init__(self,
+                 flow_type: str,
+                 gas_heat_transfer: HeatTransfer,
+                 liquid_heat_transfer: HeatTransfer,
+                 two_phase_heat_transfer_high: TwoPhaseHeatTransfer,
+                 two_phase_heat_transfer_low: TwoPhaseHeatTransfer,
+                 **kwargs):
+        super(MVB_LMTD_IHX, self).__init__(flow_type,
+                                           secondary_medium="None",
+                                           secondary_heat_transfer=None,
+                                           ratio_outer_to_inner_area=1,
+                                           **kwargs)
+
+        self._state_inlet_low: ThermodynamicState = None
+        self._state_outlet_low: ThermodynamicState = None
+        self._state_inlet_high: ThermodynamicState = None
+        self._state_outlet_high: ThermodynamicState = None
+        self._m_flow_high = None
+        self._m_flow_low = None
+
+        self._gas_heat_transfer = gas_heat_transfer
+        self._liquid_heat_transfer = liquid_heat_transfer
+        self._two_phase_heat_transfer_high = two_phase_heat_transfer_high
+        self._two_phase_heat_transfer_low = two_phase_heat_transfer_low
+
+    def start_secondary_med_prop(self):
+        return
+    def terminate_secondary_med_prop(self):
+        return
+    def calc_alpha_secondary(self, transport_properties):
+        return
+    def separte_phases(self,
+                       p_low,
+                       p_high,
+                       state_high_min,
+                       state_high_max,
+                       state_low_min,
+                       state_low_max):
+        state_high_q0 = self.med_prop.calc_state("PQ", p_high, 0)
+        state_high_q1 = self.med_prop.calc_state("PQ", p_high, 1)
+
+        Q_high_sc = max(0.0,
+                        min((state_high_q0.h - state_high_min.h),
+                            (state_high_max.h - state_high_min.h))) * self.m_flow_high
+
+        Q_high_lat = max(0.0,
+                         (min(state_high_max.h, state_high_q1.h) -
+                          max(state_high_min.h, state_high_q0.h))) * self.m_flow_high
+
+        Q_high_sh = max(0.0,
+                        min((state_high_max.h - state_high_q1.h),
+                            (state_high_max.h - state_high_min.h))) * self.m_flow_high
+
+        state_low_q0 = self.med_prop.calc_state("PQ", p_low, 0)
+        state_low_q1 = self.med_prop.calc_state("PQ", p_low, 1)
+
+        Q_low_sc = max(0.0,
+                       min((state_low_q0.h - state_low_min.h),
+                           (state_low_max.h - state_low_min.h))) * self.m_flow_low
+
+        Q_low_lat = max(0.0,
+                        (min(state_low_max.h, state_low_q1.h) -
+                         max(state_low_min.h, state_low_q0.h))) * self.m_flow_low
+
+        Q_low_sh = max(0.0,
+                       min((state_low_max.h - state_low_q1.h),
+                           (state_low_max.h - state_low_min.h))) * self.m_flow_low
+
+        def _seprate_singel(h_sc,
+                            h_lat,
+                            h_sh,
+                            low):
+            Q_hsc_l = max(0.0, min(low, h_sc))
+            low -= Q_hsc_l
+            h_sc -= Q_hsc_l
+            Q_hlat_l = max(0.0, min(low, h_lat))
+            low -= Q_hlat_l
+            h_lat -= Q_hlat_l
+            Q_hsh_l = max(0.0, min(low, h_sh))
+            low -= Q_hsh_l
+            h_sh -= Q_hsh_l
+
+            return [[Q_hsc_l, Q_hlat_l, Q_hsh_l], [h_sc, h_lat, h_sc]]
+
+        low_sc = _seprate_singel(h_sc=Q_high_sc, h_lat=Q_high_lat, h_sh=Q_high_sh, low=Q_low_sc)
+        low_lat = _seprate_singel(h_sc=low_sc[1][0], h_lat=low_sc[1][1], h_sh=low_sc[1][2], low=Q_low_lat)
+        low_sh = _seprate_singel(h_sc=low_lat[1][0], h_lat=low_lat[1][1], h_sh=low_lat[1][2], low=Q_low_sh)
+
+        regime = []
+        for low in [low_sc[0], low_lat[0], low_sh[0]]:
+            for _Q in low:
+                regime.append(_Q)
+
+        h_low = [state_low_min.h]
+        h_high = [state_high_min.h]
+        for i, _q in enumerate(regime):
+            h_low.append(h_low[i] + _q / self.m_flow_low)
+            h_high.append(h_high[i] + _q / self.m_flow_high)
+
+        t_low, t_high = [], []
+        for _h_low in h_low:
+            t_low.append(self.med_prop.calc_state("PH", p_low, _h_low).T)
+        for _h_high in h_high:
+            t_high.append(self.med_prop.calc_state("PH", p_high, _h_high).T)
+        return regime, t_low, t_high, state_low_q0, state_low_q1, state_high_q0, state_high_q1
+
+    def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
+
+        Q_regime, T_low, T_high, state_low_q0, state_low_q1, state_high_q0, state_high_q1 = self.separte_phases(
+            p_low=self.state_inlet_low.p,
+            p_high=self.state_inlet_high.p,
+            state_high_min=self.state_outlet_high,
+            state_high_max=self.state_inlet_high,
+            state_low_min=self.state_inlet_low,
+            state_low_max=self.state_outlet_low)
+
+        transport_gas_high = self.med_prop.calc_mean_transport_properties(state_high_q1, self.state_outlet_high)
+        transport_gas_low = self.med_prop.calc_mean_transport_properties(state_low_q1, self.state_outlet_low)
+        transport_liq_high = self.med_prop.calc_mean_transport_properties(state_high_q0, self.state_inlet_high)
+        transport_liq_low = self.med_prop.calc_mean_transport_properties(state_low_q0, self.state_inlet_low)
+
+        alpha_gas_high = self._gas_heat_transfer.calc(transport_gas_high, self.m_flow_high)
+        alpha_liq_high = self._liquid_heat_transfer.calc(transport_liq_high, self.m_flow_high)
+        alpha_gas_low = self._gas_heat_transfer.calc(transport_gas_low, self.m_flow_low)
+        alpha_liq_low = self._liquid_heat_transfer.calc(transport_liq_low, self.m_flow_low)
+
+        alpha_con = self._two_phase_heat_transfer_high.calc(
+            state_q0=state_high_q0,
+            state_q1=state_high_q1,
+            inputs=inputs,
+            fs_state=fs_state,
+            m_flow=self.m_flow_high,
+            med_prop=self.med_prop,
+            state_inlet=self.state_inlet_high,
+            state_outlet=self.state_outlet_high)
+
+        alpha_eva = self._two_phase_heat_transfer_low.calc(
+            state_q0=state_low_q0,
+            state_q1=state_low_q1,
+            inputs=inputs,
+            fs_state=fs_state,
+            m_flow=self.m_flow_low,
+            med_prop=self.med_prop,
+            state_inlet=self.state_inlet_low,
+            state_outlet=self.state_outlet_low)
+
+        alpha_low = [alpha_liq_low, alpha_eva, alpha_gas_low, alpha_liq_low, alpha_eva, alpha_gas_low, alpha_liq_low,
+                     alpha_eva, alpha_gas_low]
+        alpha_high = [alpha_liq_high, alpha_con, alpha_gas_high, alpha_liq_high, alpha_con, alpha_gas_high,
+                      alpha_liq_high, alpha_con, alpha_gas_high]
+
+        A_lmtd = 0
+        dT = []
+        for i, Q in enumerate(Q_regime):
+            lmtd = self.calc_lmtd(
+                Tprim_in=T_low[i],
+                Tprim_out=T_low[i+1],
+                Tsec_in=T_high[i+1],
+                Tsec_out=T_high[i]
+            )
+            A_lmtd += self.calc_A(
+                alpha_sec=alpha_high[i],
+                alpha_pri=alpha_low[i],
+                lmtd=lmtd,
+                Q=Q
+            )
+            dT.append(T_high[i+1]-T_low[i])
+            dT.append(T_high[i]-T_low[i+1])
+
+        error = (self.A / A_lmtd - 1) * 100
+
+        return error, min(dT)
+
+    @property
+    def state_inlet_high(self) -> ThermodynamicState:
+        """
+        Get or set the inlet state of the component.
+
+        Returns:
+            ThermodynamicState: Inlet state of the component.
+        """
+        return self._state_inlet_high
+
+    @state_inlet_high.setter
+    def state_inlet_high(self, state_inlet_high: ThermodynamicState):
+        """
+        Set the inlet state of the component.
+
+        Args:
+            state_inlet (ThermodynamicState): Inlet state to set.
+        """
+        self._state_inlet_high = state_inlet_high
+
+    @property
+    def state_outlet_high(self) -> ThermodynamicState:
+        """
+        Get or set the outlet state of the component.
+
+        Returns:
+            ThermodynamicState: Outlet state of the component.
+        """
+        return self._state_outlet_high
+
+    @state_outlet_high.setter
+    def state_outlet_high(self, state_outlet_high: ThermodynamicState):
+        """
+        Set the outlet state of the component.
+
+        Args:
+            state_outlet (ThermodynamicState): Outlet state to set.
+        """
+        self._state_outlet_high = state_outlet_high
+
+    @property
+    def m_flow_high(self) -> float:
+        """
+        Get or set the mass flow rate through the component.
+
+        Returns:
+            float: Mass flow rate through the component.
+        """
+        return self._m_flow_high
+
+    @m_flow_high.setter
+    def m_flow_high(self, m_flow_high: float):
+        """
+        Set the mass flow rate through the component.
+
+        Args:
+            m_flow (float): Mass flow rate to set.
+        """
+        self._m_flow_high = m_flow_high
+
+    @property
+    def state_inlet_low(self) -> ThermodynamicState:
+        """
+        Get or set the inlet state of the component.
+
+        Returns:
+            ThermodynamicState: Inlet state of the component.
+        """
+        return self._state_inlet_low
+
+    @state_inlet_low.setter
+    def state_inlet_low(self, state_inlet_low: ThermodynamicState):
+        """
+        Set the inlet state of the component.
+
+        Args:
+            state_inlet (ThermodynamicState): Inlet state to set.
+        """
+        self._state_inlet_low = state_inlet_low
+
+    @property
+    def state_outlet_low(self) -> ThermodynamicState:
+        """
+        Get or set the outlet state of the component.
+
+        Returns:
+            ThermodynamicState: Outlet state of the component.
+        """
+        return self._state_outlet_low
+
+    @state_outlet_low.setter
+    def state_outlet_low(self, state_outlet_low: ThermodynamicState):
+        """
+        Set the outlet state of the component.
+
+        Args:
+            state_outlet (ThermodynamicState): Outlet state to set.
+        """
+        self._state_outlet_low = state_outlet_low
+
+    @property
+    def m_flow_low(self) -> float:
+        """
+        Get or set the mass flow rate through the component.
+
+        Returns:
+            float: Mass flow rate through the component.
+        """
+        return self._m_flow_low
+
+    @m_flow_low.setter
+    def m_flow_low(self, m_flow_low: float):
+        """
+        Set the mass flow rate through the component.
+
+        Args:
+            m_flow (float): Mass flow rate to set.
+        """
+        self._m_flow_low = m_flow_low

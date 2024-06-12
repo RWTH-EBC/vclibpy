@@ -31,7 +31,7 @@ class BaseCycle:
             self,
             fluid: str,
             evaporator: HeatExchanger,
-            condenser: HeatExchanger
+            condenser: HeatExchanger,
     ):
         self.fluid: str = fluid
         self.evaporator = evaporator
@@ -40,6 +40,7 @@ class BaseCycle:
         self.med_prop = None
         self._p_min = 10000  # So that p>0 at all times
         self._p_max = None  # Is set by med-prop
+
 
     def __str__(self):
         return self.flowsheet_name
@@ -274,6 +275,9 @@ class BaseCycle:
         if show_iteration:
             plt.close(fig_iterations)
 
+        if self.flowsheet_name == "IHX":
+            self.calc_missing_IHX_states(inputs,fs_state,**kwargs)
+
         # Calculate the heat flow rates for the selected states.
         Q_con = self.condenser.calc_Q_flow()
         Q_con_outer = self.condenser.calc_secondary_Q_flow(Q_con)
@@ -283,7 +287,7 @@ class BaseCycle:
         self.condenser.calc(inputs=inputs, fs_state=fs_state)
         P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
         T_con_out = inputs.T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
-        T_eva_out = inputs.T_eva_in - Q_eva_outer/ self.evaporator.m_flow_secondary_cp
+        T_eva_out = inputs.T_eva_in - Q_eva_outer / self.evaporator.m_flow_secondary_cp
 
         # COP based on P_el and Q_con:
         COP_inner = Q_con / P_el
@@ -321,12 +325,18 @@ class BaseCycle:
             name="COP_outer", value=COP_outer,
             unit="-", description="Outer COP, including heat losses"
         )
-        fs_state.set(name="T_con_in_sec", value=inputs.T_con_in-273.15, description="Condenser inlet temperature secondary")
-        fs_state.set(name="T_con_out_sec", value=T_con_out-273.15, description="Condenser outlet temperature secondary")
-        fs_state.set(name="m_flow_con", value=self.condenser.m_flow_secondary, description="Condenser mass flow secondary")
-        fs_state.set(name="T_eva_in_sec", value=inputs.T_eva_in-273.15, description="Evaporator inlet temperature secondary")
-        fs_state.set(name="T_eva_out_sec", value=T_eva_out-273.15, description="Evaporator outlet temperature secondary")
-        fs_state.set(name="m_flow_eva", value=self.evaporator.m_flow_secondary, description="Evaporator mass flow secondary")
+        fs_state.set(name="T_con_in_sec", value=inputs.T_con_in - 273.15,
+                     description="Condenser inlet temperature secondary")
+        fs_state.set(name="T_con_out_sec", value=T_con_out - 273.15,
+                     description="Condenser outlet temperature secondary")
+        fs_state.set(name="m_flow_con", value=self.condenser.m_flow_secondary,
+                     description="Condenser mass flow secondary")
+        fs_state.set(name="T_eva_in_sec", value=inputs.T_eva_in - 273.15,
+                     description="Evaporator inlet temperature secondary")
+        fs_state.set(name="T_eva_out_sec", value=T_eva_out - 273.15,
+                     description="Evaporator outlet temperature secondary")
+        fs_state.set(name="m_flow_eva", value=self.evaporator.m_flow_secondary,
+                     description="Evaporator mass flow secondary")
         if save_path_plots is not None:
             self.plot_cycle(save_path=save_path_plots.joinpath(f"{COP_inner}_final_result.png"), inputs=inputs)
 
@@ -457,6 +467,17 @@ class BaseCycle:
             p_2 (float):
                 Higher pressure level. If no pressure losses are assumed,
                 this equals the condensing pressure and the compressor outlet pressure.
+            inputs (Inputs): Inputs of calculation.
+            fs_state (FlowsheetState): Flowsheet state to save important variables.
+        """
+        raise NotImplementedError
+
+    def calc_missing_IHX_states(self, inputs: Inputs, fs_state: FlowsheetState, **kwargs):
+        """
+
+
+        Args:
+
             inputs (Inputs): Inputs of calculation.
             fs_state (FlowsheetState): Flowsheet state to save important variables.
         """

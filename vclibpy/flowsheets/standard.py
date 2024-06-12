@@ -56,8 +56,7 @@ class StandardCycle(BaseCycle):
         self.evaporator.state_inlet = self.expansion_valve.state_outlet
         self.set_evaporator_outlet_based_on_superheating(p_eva=p_1, inputs=inputs)
         self.compressor.state_inlet = self.evaporator.state_outlet
-        n_start = inputs.n
-        if inputs.Q_con_set > 0 > inputs.n:
+        if inputs.fix_speed == float(False):
             n_next = 0.5
             n_step = 0.1
             max_rel_error = 0.0001
@@ -78,12 +77,18 @@ class StandardCycle(BaseCycle):
                 self.compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
                 self.condenser.m_flow = self.compressor.m_flow
                 Q_con = self.condenser.calc_Q_flow()
-                rel_error = 100 * (Q_con - inputs.Q_con_set)/inputs.Q_con_set
+                rel_error = 100 * (Q_con - inputs.Q_con)/inputs.Q_con
                 if abs(rel_error) < max_rel_error:
                     break
                 elif rel_error < 0:
                     if n_next > 1.5:
                         n_next = 1.5
+                        inputs.set(
+                            name="n",
+                            value=n_next,
+                            unit="-",
+                            description="Relative compressor speed"
+                        )
                         break
                     n_next+= n_step
                     bigger = True
@@ -97,6 +102,12 @@ class StandardCycle(BaseCycle):
                 elif rel_error > 0:
                     if n_next < 0.2:
                        n_next = 0.2
+                       inputs.set(
+                           name="n",
+                           value=n_next,
+                           unit="-",
+                           description="Relative compressor speed"
+                       )
                        break
                     n_next -= n_step
                     smaller = True
@@ -121,24 +132,24 @@ class StandardCycle(BaseCycle):
             name="Q_con",
             value=self.condenser.calc_Q_flow(),
             unit="W",
-            description="heating power"
+            description="heat flux condenser"
         )
 
         inputs.set(
             name="Q_eva",
             value=self.evaporator.calc_Q_flow(),
             unit="W",
-            description="Evaporating power"
+            description="heat flux evaporator"
         )
 
-        if inputs.T_eva_out_set > - 9999:
+        if inputs.fix_m_flow_eva == float(False):
             self.evaporator.calc_secondary_cp(T=inputs.T_eva_in)
-            m_flow_eva = inputs.Q_eva / (self.evaporator.secondary_cp * (inputs.T_eva_in - inputs.T_eva_out_set))
+            m_flow_eva = inputs.Q_eva / (self.evaporator.secondary_cp * (inputs.T_eva_in - inputs.T_eva_out))
             inputs.set(
                 name="m_flow_eva",
                 value=m_flow_eva,
                 unit="kg/s",
-                description="Secondary side evaporator mass flow rate"
+                description="Secondary side evaporator mass flow"
             )
         else:
             self.evaporator.calc_secondary_cp(T=inputs.T_eva_in)
@@ -149,14 +160,14 @@ class StandardCycle(BaseCycle):
                 unit="K",
                 description="Secondary side evaporator outlet temperature"
             )
-        if inputs.T_con_out_set > - 9999:
+        if inputs.fix_m_flow_con == float(False):
             self.condenser.calc_secondary_cp(T=inputs.T_con_in)
-            m_flow_con = inputs.Q_con / (self.condenser.secondary_cp * (inputs.T_con_out_set - inputs.T_con_in))
+            m_flow_con = inputs.Q_con / (self.condenser.secondary_cp * (inputs.T_con_out - inputs.T_con_in))
             inputs.set(
                 name="m_flow_con",
                 value=m_flow_con,
                 unit="kg/s",
-                description="Secondary side condenser mass flow rate"
+                description="Secondary side condenser mass flow"
             )
         else:
             self.condenser.calc_secondary_cp(T=inputs.T_con_in)
@@ -198,14 +209,12 @@ class StandardCycle(BaseCycle):
         )
         fs_state.set(name="p_con", value=p_2, unit="Pa", description="Condensation pressure")
         fs_state.set(name="p_eva", value=p_1, unit="Pa", description="Evaporation pressure")
-        fs_state.set(name="compressor_speed_calc", value=inputs.n, unit="1/s", description="Compressor Speed")
+        fs_state.set(name="compressor_speed", value=inputs.n*self.compressor.N_max, unit="1/s",
+                     description="Compressor Speed")
+        fs_state.set(name="relative_compressor_speed", value=inputs.n , unit="1/s",
+                     description="relative Compressor Speed")
 
-        inputs.set(
-            name="n",
-            value=n_start,
-            unit="-",
-            description="Relative compressor speed"
-        )
+
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
         """Based on simple energy balance - Adiabatic"""

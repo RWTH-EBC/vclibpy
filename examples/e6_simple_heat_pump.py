@@ -120,9 +120,9 @@ def main():
     )
     # As in the other example, we can specify save-paths,
     # solver settings and inputs to vary:
-    save_path = r"C:\users\cedri\00_python\00_temp\simple_heat_pump"
-    T_eva_in_ar = [-10 + 273.15, 273.15, 10 + 273.15]
-    T_con_in_ar = [30 + 273.15, 50 + 273.15, 70 + 273.15]
+    save_path = r"N:\Forschung\EBC0933_BMWK_Enlarge_KAP\Data\WorkingZone\Development\ORCA"
+    T_eva_in_ar = [10+ 273.15, 15 + 273.15]
+    T_con_in_ar = [30 + 273.15]
     n_ar = [0.7]
 
     # Now, we can generate the full-factorial performance map
@@ -154,7 +154,7 @@ def main():
     # the values using e.g. pandas. It is also the second return value of the function.
     import pandas as pd
     df = pd.read_csv(save_path_csv, index_col=0, sep= ";")
-    df
+
     # Now, we can plot variables, for example as a scatter plot using matplotlib.
     # You have to know the names, which are the column headers.
     import matplotlib.pyplot as plt
