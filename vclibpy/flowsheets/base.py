@@ -66,7 +66,8 @@ class BaseCycle:
         self.fluid = fluid
 
     def terminate(self):
-        self.med_prop.terminate()
+        if self.med_prop is not None:
+            self.med_prop.terminate()
         for component in self.get_all_components():
             component.terminate_secondary_med_prop()
 
@@ -296,6 +297,10 @@ class BaseCycle:
         COP_carnot = (T_con_out / (T_con_out - inputs.T_eva_in))
         carnot_quality = COP_inner / COP_carnot
         # Calc return temperature:
+        fs_state.set(
+            name="T_con_out", value=T_con_out, unit="K",
+            description="Secondary condenser outlet temperature"
+        )
         fs_state.set(
             name="P_el", value=P_el, unit="W",
             description="Power consumption"

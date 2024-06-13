@@ -144,8 +144,8 @@ def full_factorial_map_generation(
         all_variables.update({var: _dummy.copy() for var in fs_state.get_variable_names()})
         all_variables_info.update({var: variable for var, variable in fs_state.get_variables().items()})
         variables_to_excel.append({
-            **inputs.convert_to_str_value_format(with_unit_and_description=True),
-            **fs_state.convert_to_str_value_format(with_unit_and_description=True),
+            **inputs.convert_to_str_value_format(with_unit_and_description=False),
+            **fs_state.convert_to_str_value_format(with_unit_and_description=False),
         })
 
     # Save to excel
@@ -197,7 +197,7 @@ def full_factorial_map_generation(
                 heat_pump.fluid: (_scales, _nd_data, _parameters)
             }
     }
-    utils.save_to_sdf(data=sdf_data, save_path=save_path_sdf)
+    # utils.save_to_sdf(data=sdf_data, save_path=save_path_sdf)
 
     # Terminate heat pump med-props:
     heat_pump.terminate()
