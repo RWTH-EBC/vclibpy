@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class ScrewCompressorSemiEmpirical(Compressor):
+class ScrewCompressorSemiEmpiricalBruteForce(Compressor):
     """
     Class of semi-empirical screw compressor model
 

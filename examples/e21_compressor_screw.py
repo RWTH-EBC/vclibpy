@@ -29,17 +29,24 @@ def main():
     inputs = Inputs(n=0.5)
 
     p_outlet = 6e5
-    T_out = np.zeros(100)
-    iterations = range(0,100)
-    for i in iterations:
-        try:
-            T_out[i] = screw_compressor.calc_state_outlet(p_outlet=p_outlet, inputs=inputs, fs_state=fs_state).T
-        except:
-            T_out[i] = 0
+    n = 10
+    T_out = np.zeros(shape=(n, n, n))
+    iterations = np.linspace(0, 1, n)
+    for i in range(n):
+        for j in range(n):
+            for k in range(n):
 
-    plt.plot(iterations, T_out)
-    plt.show()
-
+                fs_state.set(name="x0i", value=i/n)
+                fs_state.set(name="x0j", value=j/n)
+                fs_state.set(name="x0k", value=k/n)
+                try:
+                    T_out[i, j, k] = screw_compressor.calc_state_outlet(p_outlet=p_outlet, inputs=inputs, fs_state=fs_state).T
+                except:
+                    T_out[i, j, k] = 0
+    x=1
+    #plt.plot(iterations, T_out)
+    #plt.show()
+#
 
 
 
