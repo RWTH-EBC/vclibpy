@@ -198,12 +198,17 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
                            "equal to the superheating of the datasheet. "
                            "State1.T_sh= %s. Datasheet.T_sh = %s",
                            round((self.state_inlet.T - T_eva - 273.15), 2), self.T_sh)
+
         # The datasheet has a given superheating temperature which can
         # vary from the superheating of the real state 1
         # which is given by the user.
         # Thus a new self.state_inlet_datasheet has to
         # be defined for all further calculations
-        state_inlet_datasheet = self.med_prop.calc_state("PT", self.state_inlet.p, T_eva + 273.15 + self.T_sh)
+
+        if self.T_sh != 0:
+            state_inlet_datasheet = self.med_prop.calc_state("PT", self.state_inlet.p, T_eva + 273.15 + self.T_sh)
+        else:
+            state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
 
         m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600  # [kg/s]
 
@@ -284,7 +289,10 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15  # [°C]
         T_con = self.med_prop.calc_state("PQ", p_2, 0).T - 273.15  # [°C]
 
-        state_inlet_datasheet = self.med_prop.calc_state("PT", self.state_inlet.p, T_eva + 273.15 + self.T_sh)
+        if self.T_sh != 0:
+            state_inlet_datasheet = self.med_prop.calc_state("PT", self.state_inlet.p, T_eva + 273.15 + self.T_sh)
+        else:
+            state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
 
         m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600  # [kg/s]
         capacity = self.get_parameter(T_eva, T_con, inputs.n, "capacity")  # [W]
