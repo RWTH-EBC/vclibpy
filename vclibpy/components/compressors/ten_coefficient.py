@@ -167,7 +167,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
             sheet_name (str, optional): Name of the sheet in the datasheet. Defaults to None.
     """
 
-    def __init__(self, N_max, V_h, T_sc, T_sh, capacity_definition, assumed_eta_mech, datasheet, **kwargs):
+    def __init__(self, N_max, V_h, T_sc, T_sh, capacity_definition, assumed_eta_mech, datasheet, scaling_factor, **kwargs):
         super().__init__(N_max=N_max, V_h=V_h, datasheet=datasheet, **kwargs)
         self.T_sc = T_sc
         self.T_sh = T_sh
@@ -176,6 +176,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         self._capacity_definition = capacity_definition
         self.assumed_eta_mech = assumed_eta_mech
         self.datasheet = datasheet
+        self.scaling_factor = scaling_factor
 
     def get_lambda_h(self, inputs: Inputs):
         """
@@ -193,11 +194,11 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15 # [°C]
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T - 273.15  # [°C]
 
-        if round((self.state_inlet.T - T_eva - 273.15), 2) != round(self.T_sh, 2):
-            logger.warning("The superheating of the given state is not "
-                           "equal to the superheating of the datasheet. "
-                           "State1.T_sh= %s. Datasheet.T_sh = %s",
-                           round((self.state_inlet.T - T_eva - 273.15), 2), self.T_sh)
+        # if round((self.state_inlet.T - T_eva - 273.15), 2) != round(self.T_sh, 2):
+        #     logger.warning("The superheating of the given state is not "
+        #                    "equal to the superheating of the datasheet. "
+        #                    "State1.T_sh= %s. Datasheet.T_sh = %s",
+        #                    round((self.state_inlet.T - T_eva - 273.15), 2), self.T_sh)
 
         # The datasheet has a given superheating temperature which can
         # vary from the superheating of the real state 1
@@ -210,7 +211,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         else:
             state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
 
-        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600  # [kg/s]
+        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor # [kg/s] # TODO?
 
         lambda_h = m_flow / (n_abs * state_inlet_datasheet.d * self.V_h)
         return lambda_h
@@ -294,9 +295,9 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         else:
             state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
 
-        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600  # [kg/s]
-        capacity = self.get_parameter(T_eva, T_con, inputs.n, "capacity")  # [W]
-        p_el = self.get_parameter(T_eva, T_con, inputs.n, "input_power")  # [W]
+        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor # [kg/s]
+        capacity = self.get_parameter(T_eva, T_con, inputs.n, "capacity") * self.scaling_factor # [W]
+        p_el = self.get_parameter(T_eva, T_con, inputs.n, "input_power") * self.scaling_factor # [W]
         return T_con, state_inlet_datasheet, m_flow, capacity, p_el
 
 
