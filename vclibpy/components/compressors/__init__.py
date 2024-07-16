@@ -1,5 +1,5 @@
 from .compressor import Compressor
 from .rotary import RotaryCompressor
-from .ten_coefficient import TenCoefficientCompressor, DataSheetCompressor
+from .ten_coefficient import TenCoefficientCompressor, DataSheetCompressor, OpenTenCoefficientCompressor
 from .constant_effectivness import ConstantEffectivenessCompressor
 from .screw_semi_empirical import ScrewCompressorSemiEmpirical
