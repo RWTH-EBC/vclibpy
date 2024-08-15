@@ -120,30 +120,28 @@ class ScrewCompressorSemiEmpirical(Compressor):
         x = [self.limits[idx][0] + val * (self.limits[idx][1] - self.limits[idx][0])
              for idx, val in enumerate(x_norm)]
         return x
-    def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
-        """
-        Calculate the output state based on the high pressure level and the provided inputs.
-        The state is automatically set as the outlet state of this component.
 
-        Args:
-            p_outlet (float): High pressure value.
-            inputs (Inputs): Inputs for calculation.
-            fs_state (FlowsheetState): Flowsheet state.
+    def calc_compressor(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
         """
-        """ Iterate process until error is smaller than tolerance
+         Iterate process until error is smaller than tolerance
 
         Return:
         :return float isen_eff:
             Isentropic compressor efficiency
         :return float vol_eff:
             Volumetric compressor efficiency
+
+        :param p_outlet:
+        :param inputs:
+        :param fs_state:
+        :return:
         """
-        #self.p_outlet = p_outlet
-        #self.state_suc = state_in
-        #self.state_dis_is = self.rp.calc_state("PS", self.p_dis, self.state_suc.s)
-        #self.f = 50
-#
-        #self.limits = ((self.p_dis + 1, self.p_dis + 1000),  # state4.p
+        # self.p_outlet = p_outlet
+        # self.state_suc = state_in
+        # self.state_dis_is = self.rp.calc_state("PS", self.p_dis, self.state_suc.s)
+        # self.f = 50
+        #
+        # self.limits = ((self.p_dis + 1, self.p_dis + 1000),  # state4.p
         #               (self.state_suc.s, self.state_suc.s + 500))  # state4.s
 
         if inputs.T_ambient is not None:
@@ -152,12 +150,11 @@ class ScrewCompressorSemiEmpirical(Compressor):
             self.T_amb = 25 + 273.15
         self.state_is = self.med_prop.calc_state('PS', p_outlet, self.state_inlet.s)
 
-
         self.p_outlet = p_outlet
         self.inputs = inputs
         self.limits = ((self.state_inlet.T, self.state_is.T + 40),  # T_3
-                       (self.state_inlet.p, self.p_outlet),         # p_3
-                       (self.state_inlet.T, self.state_is.T))       # T_w
+                       (self.state_inlet.p, self.p_outlet),  # p_3
+                       (self.state_inlet.T, self.state_is.T))  # T_w
 
         x0 = np.random.rand(3)
 
@@ -175,7 +172,22 @@ class ScrewCompressorSemiEmpirical(Compressor):
         fs_state.set(name="m_flow", value=m_flow, unit="kg/s", description="Refrigerant mass flow rate")
         fs_state.set(name="P_mech", value=P_mech, unit="W", description="Mechanical Power consumption")
 
-        return self.state_out, x0
+        return self.state_out, P_mech, m_flow
+
+    def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
+        """
+        Calculate the output state based on the high pressure level and the provided inputs.
+        The state is automatically set as the outlet state of this component.
+
+        Args:
+            p_outlet (float): High pressure value.
+            inputs (Inputs): Inputs for calculation.
+            fs_state (FlowsheetState): Flowsheet state.
+        """
+
+        self.calc_compressor(p_outlet=p_outlet, inputs=inputs, fs_state=fs_state)
+        return self.state_out
+
 
     def _objective(self, x):
         return self._iterate(self.denormalize(x), mode="err")
@@ -238,7 +250,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         err_h_3 = (h_3-state_3.h)/h_3
 
         P_loss_1 = P_t * self.a_tl_1                                                                                    # Eq. (11)
-        P_loss_2 = self.a_tl_2 * self.V_h * ((np.pi * n_abs / 30) ** 2) * self.my
+        P_loss_2 = self.a_tl_2 * self.V_h * ((2 * np.pi * n_abs) ** 2) * self.my
         P_mech = P_t + P_loss_1 + P_loss_2
 
 
