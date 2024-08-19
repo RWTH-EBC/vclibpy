@@ -211,10 +211,14 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
         m_flow_ges = self.V_h * n_abs * state_3.d
         state_4 = self.med_prop.calc_state("DS", rho_4,state_3.s)
-        state_5 = self.med_prop.calc_state('PD', p_out, state_4.d)
 
-        w_t = (state_4.h - state_3.h) + (1 / state_4.d) * (state_5.p - state_4.p)
-        P_t = w_t * m_flow_ges
+        #state_5 = self.med_prop.calc_state('PD', p_out, state_4.d)
+
+        w_t_34 = state_4.h - state_3.h
+        w_t_45 = (1 / state_4.d) * (p_out - state_4.p)
+        w_t = w_t_34 + w_t_45
+
+        state_5 = self.med_prop.calc_state("PH", p_out, state_4.h+w_t_45)
 
         # Determination of state_6
         cp_5 = self.med_prop.calc_transport_properties(state_5).cp
@@ -239,6 +243,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
         h_2 = (m_flow * state_1.h + m_flow_leak * state_6.h) / m_flow_ges                                             # Eq. (1)
         state_2 = self.med_prop.calc_state('PH', state_1.p, h_2)
         cp_2 = self.med_prop.calc_transport_properties(state_2).cp
+
+        P_t = w_t * m_flow_ges
 
         # Enthalpy_3 --> as mimnimization variable
         AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8                                                    # Eq. (4)
