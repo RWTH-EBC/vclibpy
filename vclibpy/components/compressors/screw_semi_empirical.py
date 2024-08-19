@@ -3,6 +3,9 @@ from vclibpy.datamodels import Inputs, FlowsheetState
 import numpy as np
 import math
 from scipy.optimize import minimize
+from typing import List
+from matplotlib import pyplot as plt
+from vclibpy.media.states import ThermodynamicState
 
 import logging
 logger = logging.getLogger(__name__)
@@ -53,7 +56,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
                  N_max: float,
                  V_h: float,
                  eta_el: float,
-                 my=68,
+                 my_40 = 170 * 1e-6,
+                 my_100 = 18e-6,
                  max_num_iterations=2000):
         """Initialization function
 
@@ -77,17 +81,20 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
         # Model parameters for Bitzer OSN5361-K  118 / 142 (https://www.bitzer.de/ch/de/produkte/schraubenverdichter/offen/fuer-standardkaeltemittel/os-serie/#!OSN5361)
         # Parameters taken from Giuffrida
-        self.m_flow_nom = 0.988
-        self.a_tl_1 = 0.265
-        self.a_tl_2 = 134.5
-        self.A_leak = 3.32e-6
-        self.AU_su_nom = 60.5
-        self.AU_ex_nom = 35.6
-        self.b_hl = 1.82
-        self.BVR = 3.26
+        self.m_flow_nom = 0.988     # in kg/s
+        self.a_tl_1 = 0.265         # in -
+        self.a_tl_2 = 134.5         # in -
+        self.A_leak = 3.32e-6       # in m^2
+        self.AU_su_nom = 60.5       # in W/K
+        self.AU_ex_nom = 35.6       # in W/K
+        self.b_hl = 1.82            # in W * (K^(5/4))
+        self.BVR = 3.26             # in -
         self.eta_el = eta_el
 
-        self.my = my  # dynamic viscosity of the lubricant
+        self.my_40 = my_40  # dynamic viscosity of the lubricant at 40 °C
+        self.my_100 = my_100  # dynamic viscosity of the lubricant at 100 °C
+
+
     def normalize(self, x):
         """ Normalize optimization parameters
 
@@ -138,7 +145,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         """
         # self.p_outlet = p_outlet
         # self.state_suc = state_in
-        # self.state_dis_is = self.rp.calc_state("PS", self.p_dis, self.state_suc.s)
+        # self.state_dis_is = self.medprop.calc_state("PS", self.p_dis, self.state_suc.s)
         # self.f = 50
         #
         # self.limits = ((self.p_dis + 1, self.p_dis + 1000),  # state4.p
@@ -152,15 +159,15 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
         self.p_outlet = p_outlet
         self.inputs = inputs
-        self.limits = ((self.state_inlet.T, self.state_is.T + 40),  # T_3
-                       (self.state_inlet.p, self.p_outlet),  # p_3
+        self.limits = ((self.state_inlet.T, self.state_is.T),  # T_3
+                       #(self.state_inlet.p, self.p_outlet),  # p_3
                        (self.state_inlet.T, self.state_is.T))  # T_w
 
-        x0 = np.random.rand(3)
+        x0 = np.random.rand(2)
 
         res = minimize(fun=self._objective,
                        x0=x0,
-                       bounds=((0, 1), (0, 1), (0, 1)),
+                       bounds=((0, 1), (0, 1), ),# (0, 1)),
                        constraints={"type": "ineq", "fun": self._constraint},
                        method="SLSQP")
 
@@ -196,13 +203,66 @@ class ScrewCompressorSemiEmpirical(Compressor):
         return self._iterate(self.denormalize(x), mode="constr")
 
     def _iterate(self, x, mode):
+        def plot_logph(states: List[ThermodynamicState], labels):
+            pressures = [state.p / 10 ** 5 for state in states]
+            enthalpies = [state.h / 10 ** 3 for state in states]
+
+            plt.figure(figsize=(10, 6))
+            plt.plot(enthalpies, pressures, marker='o', linestyle='-', color='b')
+
+            for label, (h, p) in zip(labels, zip(enthalpies, pressures)):
+                plt.annotate(label, (h, p), textcoords="offset points", xytext=(0, 10), ha='center')
+
+            tau_line = [self.med_prop.calc_state("PQ", p, 1) for p in
+                        range(int(min(pressures) * 10 ** 5), int(max(pressures) * 10 ** 5), 20)]
+            tau_pressures = [state.p / 10 ** 5 for state in tau_line]
+            tau_enthalpies = [state.h / 10 ** 3 for state in tau_line]
+
+            plt.plot([states[0].h / 10 ** 3, self.med_prop.calc_state("PS", states[-1].p, states[0].s).h / 10 ** 3],
+                     [states[0].p / 10 ** 5, self.med_prop.calc_state("PS", states[-1].p, states[0].s).p / 10 ** 5], ':')
+
+            plt.plot(tau_enthalpies, tau_pressures, linestyle='-', color='black')
+
+            plt.yscale('log')
+            plt.xlabel('Specific Enthalpy h in kJ/kg')
+            plt.ylabel('Pressure p in bar')
+            plt.title('Logarithmic Pressure-Enthalpy Diagram')
+            plt.grid(True)
+            plt.show()
+
+        def plot_pv(states: List[ThermodynamicState], labels):
+            pressures = [state.p / 10 ** 5 for state in states]
+            volumes = [state.v for state in states]
+
+            plt.figure(figsize=(10, 6))
+            plt.plot(volumes, pressures, marker='o', linestyle='-', color='b')
+
+            for label, (h, p) in zip(labels, zip(volumes, pressures)):
+                plt.annotate(label, (h, p), textcoords="offset points", xytext=(0, 10), ha='center')
+
+            tau_line = [self.med_prop.calc_state("PQ", p, 1) for p in
+                        range(int(min(pressures) * 10 ** 5), int(max(pressures) * 10 ** 5), 20)]
+            tau_pressures = [state.p / 10 ** 5 for state in tau_line]
+            tau_enthalpies = [state.v for state in tau_line]
+
+            plt.plot([states[0].v, self.med_prop.calc_state("PS", states[-1].p, states[0].s).v],
+                     [states[0].p / 10 ** 5, self.med_prop.calc_state("PS", states[-1].p, states[0].s).p / 10 ** 5], ':')
+
+            plt.plot(tau_enthalpies, tau_pressures, linestyle='-', color='black')
+
+            plt.yscale('log')
+            plt.xlabel('Specific Volume h in kg/m³')
+            plt.ylabel('Pressure p in bar')
+            plt.title('Logarithmic Pressure-Volume Diagram')
+            plt.grid(True)
+            plt.show()
         inputs = self.inputs
         n_abs = self.get_n_absolute(inputs.n)
         T_3 = x[0]
-        p_3 = x[1]
-        T_w = x[2]
+        #p_3 = x[1]
+        T_w = x[1]
         p_out = self.p_outlet
-
+        p_3 = self.state_inlet.p
         state_in = self.state_inlet
         state_out_is = self.state_is
         state_3 = self.med_prop.calc_state("PT", p_3, T_3)
@@ -210,7 +270,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         rho_4 = self.BVR * state_3.d
 
         m_flow_ges = self.V_h * n_abs * state_3.d
-        state_4 = self.med_prop.calc_state("DS", rho_4,state_3.s)
+        state_4 = self.med_prop.calc_state("DS", rho_4, state_3.s)
 
         #state_5 = self.med_prop.calc_state('PD', p_out, state_4.d)
 
@@ -253,13 +313,13 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
         h_3 = h_2 + Q_flow_su / m_flow_ges
 
-        err_h_3 = (h_3-state_3.h)/h_3
 
+        my = self.my_40 + (self.my_100 - self.my_40) * (T_w - (273.15 + 40)) / 60
         P_loss_1 = P_t * self.a_tl_1                                                                                    # Eq. (11)
-        P_loss_2 = self.a_tl_2 * self.V_h * ((2 * np.pi * n_abs) ** 2) * self.my
+        P_loss_2 = self.a_tl_2 * self.V_h * ((2 * np.pi * n_abs) ** 2) * my
         P_mech = P_t + P_loss_1 + P_loss_2
 
-
+        state_3_tilde = self.med_prop.calc_state("PH", p_3, h_3)
         m_flow_tilde = P_mech / (state_6.h - state_in.h)
 
 
@@ -269,14 +329,16 @@ class ScrewCompressorSemiEmpirical(Compressor):
         err_Q_amb = (Q_flow_amb_tilde - Q_flow_amb) / Q_flow_amb_tilde
         #h_out = state_in.h + (P_mech - Q_flow_amb) / m_flow
 
+        Q_flow_su_tilde = m_flow_ges * (state_3.h-state_2.h)
+        err_Q_su = (Q_flow_su_tilde - Q_flow_su)/Q_flow_su_tilde
+
                                                             # Eq. (18)
         err_m_flow = (m_flow-m_flow_tilde)/m_flow
+
+        #calculate efficiencies
         eta_is = (state_out_is.h - state_in.h) / (state_6.h - state_in.h)
         eta_mech = P_t / P_mech
         eta_vol = (m_flow * state_in.d) / (self.V_h * n_abs)
-
-        err = (err_h_3**2+err_Q_amb**2+err_m_flow**2)
-
         self.eta_mech = eta_mech
         self.eta_vol = eta_vol
 
@@ -288,7 +350,9 @@ class ScrewCompressorSemiEmpirical(Compressor):
             return [Q_flow_amb, -Q_flow_su, m_flow_leak, m_flow]
         elif mode == "state_out":
             state_out = state_6
-            return state_out, eta_mech, eta_vol, eta_is, P_mech, m_flow
+            plot_logph(states=[state_1, state_2, state_3, state_4, state_5, state_6, state_leak, state_3_tilde],
+                       labels=["1", "2", "3", "4", "5", "6", "leak","3_tilde"])
+            return state_out, eta_mech, eta_vol, eta_is, P_mech, m_flow,
 
 
     def get_lambda_h(self, inputs: Inputs) -> float:
