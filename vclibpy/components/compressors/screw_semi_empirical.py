@@ -282,7 +282,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
         # Determination of state_6
         cp_5 = self.med_prop.calc_transport_properties(state_5).cp
-        AU_ex = self.AU_ex_nom * (m_flow_ges / self.m_flow_nom) ** 0.8                                                  # Derived from Eq. (4)
+        AU_ex = self.AU_ex_nom * math.pow((m_flow_ges / self.m_flow_nom), 0.8)                                      # Derived from Eq. (4)
         Q_flow_ex = (m_flow_ges * (T_w - state_5.T) * cp_5 *
                      (1 - np.exp(-AU_ex / (m_flow_ges * cp_5))))                                                        # Derived from Eq. (3)
         h_6 = state_5.h + Q_flow_ex / m_flow_ges                                                                        # Derived from Eq. (2)
@@ -306,8 +306,9 @@ class ScrewCompressorSemiEmpirical(Compressor):
 
 
 
+
         # Enthalpy_3 --> as mimnimization variable
-        AU_su = self.AU_su_nom * (m_flow_ges/self.m_flow_nom) ** 0.8                                                    # Eq. (4)
+        AU_su = self.AU_su_nom * math.pow((m_flow_ges/self.m_flow_nom), 0.8)                                        # Eq. (4)
         Q_flow_su = (m_flow_ges * (T_w - state_2.T) * cp_2 *
                      (1 - np.exp(-AU_su / (m_flow_ges * cp_2))))                                                        # Eq. (3)
 
@@ -320,21 +321,25 @@ class ScrewCompressorSemiEmpirical(Compressor):
         P_mech = P_t + P_loss_1 + P_loss_2
 
         delta_T_abs = abs(T_w - self.T_amb)
-        Q_flow_amb = self.b_hl * math.pow(delta_T_abs, 1.25) * np.sign(T_w-self.T_amb)                              # Eq. (16)
+
+        Q_flow_amb = P_loss_1 + P_loss_2 - Q_flow_su - Q_flow_ex
+        factor = abs(Q_flow_amb)/self.b_hl
+        T_w_tilde = self.T_amb + np.sign(T_w-self.T_amb) * math.pow(factor, 0.8)
+
+        # Q_flow_amb = self.b_hl * math.pow(delta_T_abs, 1.25) * np.sign(T_w-self.T_amb)                              # Eq. (16)
 
         # error definition
-        h_3_tilde = h_2 + Q_flow_su/m_flow_ges
+        h_3_tilde = h_2 + Q_flow_su / m_flow_ges
         delta_h3 = (h_3_tilde - h_3)
-        if state_3.h == state_in.h:
-            err_h3 = delta_h3 /1e-10
-        else:
-            err_h3 = delta_h3 / (h_3-state_in.h)
+        err_h3 = delta_h3 / h_3
+
+        err_T_w = (T_w-T_w_tilde)/T_w
 
         m_flow_tilde = (P_mech-Q_flow_amb) /(state_6.h-state_1.h)
         delta_m_flow = (m_flow_tilde-m_flow)
         err_m_flow = delta_m_flow/m_flow
 
-        err = (delta_h3, err_m_flow)
+        err = (err_h3, err_m_flow)
 
         state_3_tilde = self.med_prop.calc_state("PH", p_3, h_3_tilde)
 
@@ -350,11 +355,11 @@ class ScrewCompressorSemiEmpirical(Compressor):
         if mode == "err":
             return np.linalg.norm(np.array(err))
         elif mode == "constr":
-            return [Q_flow_amb, -Q_flow_su, m_flow_leak, m_flow]
+            return [ m_flow_leak, m_flow, T_w_tilde]  #Q_flow_amb, -Q_flow_su, values that must be larger than 0
         elif mode == "state_out":
             state_out = state_6
-            plot_logph(states=[state_1, state_2, state_3, state_4, state_5, state_6, state_leak, state_3_tilde],
-                       labels=["1", "2", "3", "4", "5", "6", "leak", "3_tilde"])
+            plot_logph(states=[state_1, state_2, state_3_tilde, state_3, state_4, state_5, state_6, state_out_is, state_leak],
+                       labels=["1", "2", "3_tilde", "3", "4", "5", "6", "6_is", "leak"])
             return state_out, eta_mech, eta_vol, eta_is, P_mech, m_flow
 
 
