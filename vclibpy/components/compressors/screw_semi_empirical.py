@@ -339,7 +339,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         delta_m_flow = (m_flow_tilde-m_flow)
         err_m_flow = delta_m_flow/m_flow
 
-        err = (err_h3, err_m_flow)
+        err = (1000*err_h3, err_m_flow)
 
         state_3_tilde = self.med_prop.calc_state("PH", p_3, h_3_tilde)
 
