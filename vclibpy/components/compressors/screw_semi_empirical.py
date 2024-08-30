@@ -171,7 +171,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
                        constraints={"type": "ineq", "fun": self._constraint},
                        method="SLSQP")
 
-        state_out, eta_mech, eta_vol, eta_is, P_mech, m_flow = self._iterate(self.denormalize(res.x), mode="state_out")
+        state_out, eta_mech, eta_vol, eta_is, P_mech, m_flow, err = self._iterate(self.denormalize(res.x), mode="state_out")
         self.state_out = state_out
         fs_state.set(name="eta_is", value=eta_is, unit="-", description="Isentropic efficiency")
         fs_state.set(name="eta_vol", value=eta_vol, unit="-", description="Volumetric efficiency")
@@ -179,7 +179,7 @@ class ScrewCompressorSemiEmpirical(Compressor):
         fs_state.set(name="m_flow", value=m_flow, unit="kg/s", description="Refrigerant mass flow rate")
         fs_state.set(name="P_mech", value=P_mech, unit="W", description="Mechanical Power consumption")
 
-        return self.state_out, P_mech, m_flow
+        return self.state_out, P_mech, m_flow, err
 
     def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
         """
@@ -358,9 +358,9 @@ class ScrewCompressorSemiEmpirical(Compressor):
             return [ m_flow_leak, m_flow, T_w_tilde]  #Q_flow_amb, -Q_flow_su, values that must be larger than 0
         elif mode == "state_out":
             state_out = state_6
-            #plot_logph(states=[state_1, state_2, state_3_tilde, state_3, state_4, state_5, state_6, state_out_is, state_leak],
-            #           labels=["1", "2", "3_tilde", "3", "4", "5", "6", "6_is", "leak"])
-            return state_out, eta_mech, eta_vol, eta_is, P_mech, m_flow
+            plot_logph(states=[state_1, state_2, state_3_tilde, state_3, state_4, state_5, state_6, state_out_is, state_leak],
+                       labels=["1", "2", "3_tilde", "3", "4", "5", "6", "6_is", "leak"])
+            return state_out, eta_mech, eta_vol, eta_is, P_mech, m_flow, np.linalg.norm(np.array(err))
 
 
     def get_lambda_h(self, inputs: Inputs) -> float:
