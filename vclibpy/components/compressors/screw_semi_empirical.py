@@ -358,8 +358,8 @@ class ScrewCompressorSemiEmpirical(Compressor):
             return [ m_flow_leak, m_flow, T_w_tilde]  #Q_flow_amb, -Q_flow_su, values that must be larger than 0
         elif mode == "state_out":
             state_out = state_6
-            plot_logph(states=[state_1, state_2, state_3_tilde, state_3, state_4, state_5, state_6, state_out_is, state_leak],
-                       labels=["1", "2", "3_tilde", "3", "4", "5", "6", "6_is", "leak"])
+            #plot_logph(states=[state_1, state_2, state_3_tilde, state_3, state_4, state_5, state_6, state_out_is, state_leak],
+            #           labels=["1", "2", "3_tilde", "3", "4", "5", "6", "6_is", "leak"])
             return state_out, eta_mech, eta_vol, eta_is, P_mech, m_flow, np.linalg.norm(np.array(err))
 
 
