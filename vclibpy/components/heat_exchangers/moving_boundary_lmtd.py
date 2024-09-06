@@ -2,6 +2,8 @@ import abc
 import logging
 import math
 import numpy as np
+
+from vclibpy.components.component import BaseComponent
 from vclibpy.datamodels import FlowsheetState, Inputs
 from vclibpy.components.heat_exchangers.heat_exchanger import HeatExchanger
 from vclibpy.components.heat_exchangers.heat_transfer.heat_transfer import HeatTransfer, TwoPhaseHeatTransfer
@@ -782,3 +784,24 @@ class MVB_LMTD_IHX(BasicLMTD):
             m_flow (float): Mass flow rate to set.
         """
         self._m_flow_low = m_flow_low
+
+
+    @BaseComponent.state_outlet.setter
+    def state_outlet(self, state: ThermodynamicState):
+        """
+        This outlet is disabled for this component.
+
+        Args:
+            state (ThermodynamicState): Outlet state.
+        """
+        raise NotImplementedError("This outlet is disabled for this component")
+
+    @BaseComponent.state_inlet.setter
+    def state_outlet(self, state: ThermodynamicState):
+        """
+        This outlet is disabled for this component.
+
+        Args:
+            state (ThermodynamicState): Outlet state.
+        """
+        raise NotImplementedError("This outlet is disabled for this component")

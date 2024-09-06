@@ -153,6 +153,12 @@ class Compressor(BaseComponent):
         fs_state.set(name="m_flow_ref", value=self.m_flow, unit="kg/s", description="Refrigerant mass flow rate")
         return self.m_flow
 
+    def calc_n(self, inputs: Inputs, fs_state: FlowsheetState):
+        lambda_h = self.get_lambda_h(inputs=inputs)
+        V_flow_ref = self.m_flow/self.state_inlet.d
+        n_abs = V_flow_ref/(lambda_h * self.V_h)
+        return n_abs/self.N_max
+
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState) -> float:
         """
         Calculate the electrical power consumed by the compressor based on an adiabatic energy balance.
