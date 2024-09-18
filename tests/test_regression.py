@@ -155,6 +155,7 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
             m_flow_eva=0.9,
             dT_eva_superheating=5,
             dT_con_subcooling=0,
+            **kwargs
         )
         path_csv_regression = pathlib.Path(__file__).parent.joinpath(
             "regression_data", "reference_results", f"{flowsheet}_{fluid}.csv"
@@ -171,7 +172,7 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
         self._regression_of_examples("VaporInjectionPhaseSeparator", "Propane")
 
     def test_evi_propane(self):
-        self.skipTest("EVI works locally, only CI fails.")
+        #self.skipTest("EVI works locally, only CI fails.")
         self._regression_of_examples("VaporInjectionEconomizer", "Propane")
 
     @unittest.skip("not implemented")

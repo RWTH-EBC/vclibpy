@@ -76,6 +76,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
     def terminate_secondary_med_prop(self):
         if self.med_prop_sec is not None:
             self.med_prop_sec.terminate()
+            self.med_prop_sec = None
 
     @abc.abstractmethod
     def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> Tuple[float, float]:
