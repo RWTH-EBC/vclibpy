@@ -37,11 +37,14 @@ class HeatExchanger(BaseComponent, abc.ABC):
             gas_heat_transfer: HeatTransfer,
             liquid_heat_transfer: HeatTransfer,
             two_phase_heat_transfer: TwoPhaseHeatTransfer,
-            secondary_medium: str
+            secondary_medium: str,
+            ratio_outer_to_inner_area: float = 1,
+            flow_type: str = "counter"
     ):
         super().__init__()
         self.A = A
         self.secondary_medium = secondary_medium.lower()
+        self.ratio_outer_to_inner_area = ratio_outer_to_inner_area
 
         self._wall_heat_transfer = wall_heat_transfer
         self._secondary_heat_transfer = secondary_heat_transfer
@@ -61,7 +64,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
         # Set up the secondary_medium wrapper:
         med_prop_class, med_prop_kwargs = media.get_global_med_prop_and_kwargs()
         if self.secondary_medium == "air" and med_prop_class == media.RefProp:
-            fluid_name = "AIR.PPF"
+            fluid_name = "air.ppf"
         else:
             fluid_name = self.secondary_medium
         if self.med_prop_sec is not None:
@@ -73,6 +76,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
     def terminate_secondary_med_prop(self):
         if self.med_prop_sec is not None:
             self.med_prop_sec.terminate()
+            self.med_prop_sec = None
 
     @abc.abstractmethod
     def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> Tuple[float, float]:
@@ -163,6 +167,26 @@ class HeatExchanger(BaseComponent, abc.ABC):
             transport_properties=transport_properties,
             m_flow=self.m_flow_secondary
         )
+
+    def calc_k(self, alpha_pri: float, alpha_sec: float) -> float:
+        """
+        Calculate the overall heat transfer coefficient (k) of the heat exchanger.
+
+        Args:
+            alpha_pri (float): Heat transfer coefficient for the primary medium.
+            alpha_sec (float): Heat transfer coefficient for the secondary medium.
+
+        Returns:
+            float: Overall heat transfer coefficient (k).
+        """
+        k_wall = self.calc_wall_heat_transfer()
+        k = (1 / (
+                        (1 / alpha_pri) * self.ratio_outer_to_inner_area +
+                        (1 / k_wall) * self.ratio_outer_to_inner_area +
+                        (1 / alpha_sec)
+                )
+             )
+        return k
 
     def calc_wall_heat_transfer(self) -> float:
         """

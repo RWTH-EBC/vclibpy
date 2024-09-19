@@ -85,7 +85,7 @@ solver settings and inputs to vary:
 ```python
 save_path = r"D:\00_temp\vapor_injection"
 T_eva_in_ar = [-10 + 273.15, 273.15, 10 + 273.15]
-T_con_in_ar = [30 + 273.15, 50 + 273.15, 60 + 273.15]
+T_con_ar = [30 + 273.15, 50 + 273.15, 60 + 273.15]
 n_ar = [0.3, 0.7, 1]
 ```
 
@@ -102,9 +102,10 @@ from vclibpy import utils
 utils.full_factorial_map_generation(
     heat_pump=heat_pump,
     save_path=save_path,
-    T_con_in_ar=T_con_in_ar,
+    T_con_ar=T_con_ar,
     T_eva_in_ar=T_eva_in_ar,
     n_ar=n_ar,
+    use_condenser_inlet=True,
     use_multiprocessing=False,
     save_plots=True,
     m_flow_con=0.2,
@@ -161,7 +162,7 @@ heat_pump = VaporInjectionEconomizer(
 utils.full_factorial_map_generation(
     heat_pump=heat_pump,
     save_path=r"D:\00_temp\vapor_injection_economizer",
-    T_con_in_ar=T_con_in_ar,
+    T_con_ar=T_con_ar,
     T_eva_in_ar=T_eva_in_ar,
     n_ar=n_ar,
     use_multiprocessing=False,

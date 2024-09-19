@@ -158,6 +158,6 @@ def _unpack_nd_data(data):
 
 if __name__ == '__main__':
     sdf_to_csv(
-        filepath=pathlib.Path(r"D:\00_temp\calibration_jmo\Optihorst_3D_vclibpy.sdf"),
-        save_path=pathlib.Path(r"D:\04_git\vclibpy\tests\regression_data")
+        filepath=pathlib.Path(r"D:\VCLibMap_old.sdf"),
+        save_path=pathlib.Path(r"D:\00_temp")
     )

@@ -131,7 +131,7 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
 
         # Just for quick study: Specify concrete points:
         T_eva_in_ar = [-10 + 273.15, 273.15]
-        T_con_in_ar = [30 + 273.15, 70 + 273.15]
+        T_con_ar = [30 + 273.15, 70 + 273.15]
         n_ar = [0.3, 1]
 
         os.makedirs(self.working_dir, exist_ok=True)
@@ -146,7 +146,7 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
         _, path_csv = utils.full_factorial_map_generation(
             heat_pump=heat_pump,
             save_path=self.working_dir,
-            T_con_in_ar=T_con_in_ar,
+            T_con_ar=T_con_ar,
             T_eva_in_ar=T_eva_in_ar,
             n_ar=n_ar,
             use_multiprocessing=False,
@@ -155,6 +155,7 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
             m_flow_eva=0.9,
             dT_eva_superheating=5,
             dT_con_subcooling=0,
+            **kwargs
         )
         path_csv_regression = pathlib.Path(__file__).parent.joinpath(
             "regression_data", "reference_results", f"{flowsheet}_{fluid}.csv"
@@ -171,7 +172,7 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
         self._regression_of_examples("VaporInjectionPhaseSeparator", "Propane")
 
     def test_evi_propane(self):
-        self.skipTest("EVI works locally, only CI fails.")
+        #self.skipTest("EVI works locally, only CI fails.")
         self._regression_of_examples("VaporInjectionEconomizer", "Propane")
 
     @unittest.skip("not implemented")
