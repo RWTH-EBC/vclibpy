@@ -21,6 +21,7 @@ def calc_multiple_states(
         inputs: List[Inputs],
         use_multiprocessing: bool = False,
         raise_errors: bool = False,
+        with_unit_and_description: bool = True,
         **kwargs):
     """
     Function to calculate the flowsheet states for all given inputs.
@@ -52,8 +53,8 @@ def calc_multiple_states(
 
     for fs_state, single_inputs in zip(fs_states, inputs):
         hp_state_dic = {
-            **single_inputs.convert_to_str_value_format(with_unit_and_description=True),
-            **fs_state.convert_to_str_value_format(with_unit_and_description=True)
+            **single_inputs.convert_to_str_value_format(with_unit_and_description),
+            **fs_state.convert_to_str_value_format(with_unit_and_description)
         }
         rel_infos.append(hp_state_dic)
     df = pd.DataFrame(rel_infos)
