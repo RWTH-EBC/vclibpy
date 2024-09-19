@@ -19,6 +19,8 @@ def calc_multiple_states(
         save_path: pathlib.Path,
         heat_pump: BaseCycle,
         inputs: List[Inputs],
+        use_multiprocessing: bool = False,
+        raise_errors: bool = False,
         **kwargs):
     """
     Function to calculate the flowsheet states for all given inputs.
@@ -28,20 +30,27 @@ def calc_multiple_states(
         save_path (pathlib.Path): Location where to save the results as xlsx.
         heat_pump (BaseCycle): A valid flowsheet
         inputs (List[Inputs]): A list with all inputs to simulate
+        use_multiprocessing (bool): True to use all cores, default no multiprocessing
         **kwargs: Solver settings for the flowsheet
     """
     rel_infos = []
-    for i, single_inputs in enumerate(inputs):
-        fs_state = None
-        logger.info(f"Running combination {i+1}/{len(inputs)}.")
-        try:
-            fs_state = heat_pump.calc_steady_state(inputs=single_inputs,
-                                                   **kwargs)
-        except Exception as e:
-            # Avoid loss of data if un-excepted errors occur.
-            logger.error(f"An error occurred: {e}")
-        if fs_state is None:
-            fs_state = FlowsheetState()
+    fs_states = []
+    i = 0
+    if use_multiprocessing:
+        mp_inputs = [[heat_pump, inputs_, kwargs, raise_errors] for inputs_ in inputs]
+        pool = multiprocessing.Pool(processes=min(multiprocessing.cpu_count(), len(inputs)))
+        for fs_state in pool.imap(_calc_single_hp_state, mp_inputs):
+            fs_states.append(fs_state)
+            i += 1
+            logger.info(f"Ran {i} of {len(inputs)} points")
+    else:
+        for inputs_ in inputs:
+            fs_state = _calc_single_hp_state([heat_pump, inputs_, kwargs, raise_errors])
+            fs_states.append(fs_state)
+            i += 1
+            logger.info(f"Ran {i} of {len(inputs)} points")
+
+    for fs_state, single_inputs in zip(fs_states, inputs):
         hp_state_dic = {
             **single_inputs.convert_to_str_value_format(with_unit_and_description=True),
             **fs_state.convert_to_str_value_format(with_unit_and_description=True)
@@ -49,7 +58,9 @@ def calc_multiple_states(
         rel_infos.append(hp_state_dic)
     df = pd.DataFrame(rel_infos)
     df.index.name = "State Number"
-    df.to_excel(save_path.joinpath(f"{heat_pump}_{heat_pump.fluid}.xlsx"), sheet_name="HP_states", float_format="%.5f")
+    if os.path.isdir(save_path):
+        save_path = save_path.joinpath(f"{heat_pump}_{heat_pump.fluid}.xlsx")
+    df.to_excel(save_path, sheet_name="HP_states", float_format="%.5f")
 
 
 def full_factorial_map_generation(
