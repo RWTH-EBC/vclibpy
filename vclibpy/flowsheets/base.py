@@ -180,7 +180,7 @@ class BaseCycle:
         error_eva_history = []
         dT_eva_history = []
         dT_con_history = []
-        error_con, dT_min_eva, dT_min_con, error_eva = np.NAN, np.NAN, np.NAN, np.NAN
+        error_con, dT_min_eva, dT_min_con, error_eva = np.nan, np.nan, np.nan, np.nan
         plot_last = -100
 
         if use_quick_solver:
