@@ -100,6 +100,22 @@ class IHX(BaseCycle, abc.ABC):
     def set_ihx_outlet_high_based_on_dh_ihx(self, p_ihx: float, dh_ihx:float):
         self.ihx.state_outlet_high = self.med_prop.calc_state("PH", p_ihx, self.ihx.state_inlet_high.h - dh_ihx)
 
+    def get_states(self):
+
+        return {
+            "1": self.compressor.state_inlet,
+            "1_q1":  self.med_prop.calc_state("PQ", self.compressor.state_inlet.p, 1),
+            "2": self.compressor.state_outlet,
+            "2_s": self.med_prop.calc_state("PS", self.compressor.state_outlet.p, self.compressor.state_inlet.s),
+            "2_q1": self.med_prop.calc_state("PQ", self.compressor.state_outlet.p, 1),
+            "3_q0": self.med_prop.calc_state("PQ", self.compressor.state_outlet.p, 0),
+            "3": self.condenser.state_outlet,
+            "4": self.expansion_valve1.state_outlet,
+            "5":  self.expansion_valve2.state_inlet,
+            "6": self.evaporator.state_inlet,
+            "7": self.evaporator.state_outlet,
+            }
+
     def calc_missing_IHX_states(self, inputs: Inputs, fs_state: FlowsheetState, **kwargs):
 
         min_iteration_step = kwargs.pop("min_iteration_step", 1)
@@ -197,18 +213,7 @@ class IHX(BaseCycle, abc.ABC):
                 unit="K",
                 description="Secondary side evaporator outlet temperature"
             )
-        fs_state.set(
-            name="T_4", value=self.ihx.state_inlet_high.T,
-            unit="K", description="Refrigerant temperature at IHX inlet high pressure"
-        )
-        fs_state.set(
-            name="T_5", value=self.ihx.state_outlet_high.T,
-            unit="K", description="Refrigerant temperature at IHX outlet high pressure"
-        )
-        fs_state.set(
-            name="T_6", value=self.evaporator.state_inlet.T,
-            unit="K", description="Refrigerant temperature at evaporator inlet"
-        )
+
         fs_state.set(name="p_ihx", value=p_ihx, unit="Pa", description="Intermediate pressure")
 
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
@@ -354,27 +359,6 @@ class IHX(BaseCycle, abc.ABC):
                 unit="K",
                 description="Secondary side condenser outlet temperature"
             )
-
-
-        fs_state.set(
-            name="T_1", value=self.evaporator.state_outlet.T,
-            unit="K", description="Refrigerant temperature at evaporator outlet"
-        )
-        fs_state.set(
-            name="T_2", value=self.compressor.state_outlet.T,
-            unit="K", description="Compressor outlet temperature"
-        )
-        fs_state.set(
-            name="T_3", value=self.condenser.state_outlet.T, unit="K",
-            description="Refrigerant temperature at condenser outlet"
-        )
-        fs_state.set(
-            name="T_7", value=self.evaporator.state_inlet.T,
-            unit="K", description="Refrigerant temperature at evaporator inlet"
-        )
-
-        fs_state.set(name="p_con", value=p_2, unit="Pa", description="Condensation pressure")
-        fs_state.set(name="p_eva", value=p_1, unit="Pa", description="Evaporation pressure")
         fs_state.set(name="compressor_speed", value=inputs.n*self.compressor.N_max, unit="1/s",
                      description="Compressor Speed")
         fs_state.set(name="relative_compressor_speed", value=inputs.n , unit="1/s",

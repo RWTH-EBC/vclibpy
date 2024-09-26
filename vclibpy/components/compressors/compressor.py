@@ -149,8 +149,8 @@ class Compressor(BaseComponent):
         )
         self.m_flow = self.state_inlet.d * V_flow_ref
         fs_state.set(name="lambda_h", value=lambda_h, unit="-", description="Volumetric efficiency")
-        fs_state.set(name="V_flow_ref", value=V_flow_ref, unit="m3/s", description="Refrigerant volume flow rate")
-        fs_state.set(name="m_flow_ref", value=self.m_flow, unit="kg/s", description="Refrigerant mass flow rate")
+        fs_state.set(name="REF_V_flow_comp", value=V_flow_ref, unit="m3/s", description="Refrigerant volume flow rate")
+        fs_state.set(name="REF_m_flow_comp", value=self.m_flow, unit="kg/s", description="Refrigerant mass flow rate")
         return self.m_flow
 
     def calc_n(self, inputs: Inputs, fs_state: FlowsheetState):

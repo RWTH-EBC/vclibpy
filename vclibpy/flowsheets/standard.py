@@ -49,6 +49,20 @@ class StandardCycle(BaseCycle):
             self.expansion_valve.state_outlet,
         ]
 
+    def get_states(self):
+
+        return {"1": self.compressor.state_inlet,
+               "1_q1":  self.med_prop.calc_state("PQ", self.compressor.state_inlet.p, 1),
+               "2": self.compressor.state_outlet,
+               "2_s": self.med_prop.calc_state("PS", self.compressor.state_outlet.p, self.compressor.state_inlet.s),
+               "2_q1": self.med_prop.calc_state("PQ", self.compressor.state_outlet.p, 1),
+               "3_q0": self.med_prop.calc_state("PQ", self.compressor.state_outlet.p, 0),
+               "3": self.condenser.state_outlet,
+               "4": self.evaporator.state_inlet
+               }
+
+
+
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
         self.set_condenser_outlet_based_on_subcooling(p_con=p_2, inputs=inputs)
         self.expansion_valve.state_inlet = self.condenser.state_outlet
@@ -65,7 +79,7 @@ class StandardCycle(BaseCycle):
             n_iter = 0
             n_iter_max = 100000
             while n_iter <= n_iter_max:
-                n_iter +=1
+                n_iter += 1
                 inputs.set(
                     name="n",
                     value=n_next,
@@ -77,7 +91,7 @@ class StandardCycle(BaseCycle):
                 self.compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
                 self.condenser.m_flow = self.compressor.m_flow
                 Q_con = self.condenser.calc_Q_flow()
-                rel_error = 100 * (Q_con - inputs.Q_con)/inputs.Q_con
+                rel_error = 100 * (Q_con - inputs.Q_con) / inputs.Q_con
                 if abs(rel_error) < max_rel_error:
                     break
                 elif rel_error < 0:
@@ -90,30 +104,30 @@ class StandardCycle(BaseCycle):
                             description="Relative compressor speed"
                         )
                         break
-                    n_next+= n_step
+                    n_next += n_step
                     bigger = True
                     if bigger and smaller:
                         n_next -= n_step
-                        n_step/=10
+                        n_step /= 10
                         n_next += n_step
                         bigger = False
                         smaller = False
                     continue
                 elif rel_error > 0:
                     if n_next < 0.2:
-                       n_next = 0.2
-                       inputs.set(
-                           name="n",
-                           value=n_next,
-                           unit="-",
-                           description="Relative compressor speed"
-                       )
-                       break
+                        n_next = 0.2
+                        inputs.set(
+                            name="n",
+                            value=n_next,
+                            unit="-",
+                            description="Relative compressor speed"
+                        )
+                        break
                     n_next -= n_step
                     smaller = True
                     if bigger and smaller:
                         n_next += n_step
-                        n_step/=10
+                        n_step /= 10
                         n_next -= n_step
                         bigger = False
                         smaller = False
@@ -153,7 +167,7 @@ class StandardCycle(BaseCycle):
             )
         else:
             self.evaporator.calc_secondary_cp(T=inputs.T_eva_in)
-            T_eva_out = inputs.T_eva_in - (inputs.Q_eva/(inputs.Q_eva*inputs.m_flow_eva))
+            T_eva_out = inputs.T_eva_in - (inputs.Q_eva / (inputs.Q_eva * inputs.m_flow_eva))
             inputs.set(
                 name="T_eva_out",
                 value=T_eva_out,
@@ -171,7 +185,7 @@ class StandardCycle(BaseCycle):
             )
         else:
             self.condenser.calc_secondary_cp(T=inputs.T_con_in)
-            T_con_out = inputs.T_con_in + (inputs.Q_con/self.condenser.secondary_cp*inputs.m_flow_con)
+            T_con_out = inputs.T_con_in + (inputs.Q_con / self.condenser.secondary_cp * inputs.m_flow_con)
             inputs.set(
                 name="T_con_out",
                 value=T_con_out,
@@ -179,42 +193,15 @@ class StandardCycle(BaseCycle):
                 description="Secondary side condenser outlet temperature"
             )
 
-        fs_state.set(
-            name="y_EV", value=self.expansion_valve.calc_opening_at_m_flow(m_flow=self.expansion_valve.m_flow),
-            unit="-", description="Expansion valve opening"
-        )
-        fs_state.set(
-            name="T_1", value=self.evaporator.state_outlet.T,
-            unit="K", description="Refrigerant temperature at evaporator outlet"
-        )
-        fs_state.set(
-            name="T_2", value=self.compressor.state_outlet.T,
-            unit="K", description="Compressor outlet temperature"
-        )
-        fs_state.set(
-            name="T_3", value=self.condenser.state_outlet.T, unit="K",
-            description="Refrigerant temperature at condenser outlet"
-        )
-        fs_state.set(
-            name="T_4", value=self.evaporator.state_inlet.T,
-            unit="K", description="Refrigerant temperature at evaporator inlet"
-        )
-        fs_state.set(
-            name="d_1", value=self.compressor.state_inlet.d,
-            unit="kg/m3", description="Refrigerant Density at compressor inlet"
-        )
-        fs_state.set(
-            name="delta_h_con", value=(self.condenser.state_inlet.h-self.condenser.state_outlet.h),
-            unit="J/kg", description="Enthalpie difference condenser"
-        )
-        fs_state.set(name="p_con", value=p_2, unit="Pa", description="Condensation pressure")
-        fs_state.set(name="p_eva", value=p_1, unit="Pa", description="Evaporation pressure")
-        fs_state.set(name="compressor_speed", value=inputs.n*self.compressor.N_max, unit="1/s",
+
+        #fs_state.set(
+            #name="y_EV", value=self.expansion_valve.calc_opening_at_m_flow(m_flow=self.expansion_valve.m_flow),
+            #unit="-", description="Expansion valve opening"
+        #)
+        fs_state.set(name="compressor_speed", value=inputs.n * self.compressor.N_max, unit="1/s",
                      description="Compressor Speed")
-        fs_state.set(name="relative_compressor_speed", value=inputs.n , unit="1/s",
+        fs_state.set(name="relative_compressor_speed", value=inputs.n, unit="1/s",
                      description="relative Compressor Speed")
-
-
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
         """Based on simple energy balance - Adiabatic"""

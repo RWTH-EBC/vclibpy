@@ -32,6 +32,7 @@ class BaseCycle:
             fluid: str,
             evaporator: HeatExchanger,
             condenser: HeatExchanger,
+            maximise_cop=False
     ):
         self.fluid: str = fluid
         self.evaporator = evaporator
@@ -40,7 +41,6 @@ class BaseCycle:
         self.med_prop = None
         self._p_min = 10000  # So that p>0 at all times
         self._p_max = None  # Is set by med-prop
-
 
     def __str__(self):
         return self.flowsheet_name
@@ -133,18 +133,20 @@ class BaseCycle:
                                for k, v in inputs.get_variables().items()])
         show_iteration = kwargs.get("show_iteration", False)
         use_quick_solver = kwargs.pop("use_quick_solver", True)
-        err_ntu = kwargs.pop("max_err_ntu", 0.5)
+        err_ntu = kwargs.pop("max_err_ntu", 0.001)
         err_dT_min = kwargs.pop("max_err_dT_min", 0.1)
-        max_num_iterations = kwargs.pop("max_num_iterations", 1e5)
+        max_num_iterations = kwargs.pop("max_num_iterations", 1e6)
         p_1_history = []
         p_2_history = []
 
         if use_quick_solver:
-            step_p1 = kwargs.get("step_max", 10000)
-            step_p2 = kwargs.get("step_max", 10000)
+            step_p1 = kwargs.get("step_max", 100000)
+            step_p2 = kwargs.get("step_max", 100000)
         else:
             step_p1 = min_iteration_step
             step_p2 = min_iteration_step
+
+        step_p1_counter = 0
 
         # Setup fluid:
         if fluid is None:
@@ -223,8 +225,14 @@ class BaseCycle:
             error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
             if not isinstance(error_eva, float):
                 print(error_eva)
+
             if error_eva < 0:
                 p_1_next = p_1 - step_p1
+                step_p1_counter += 1
+                if step_p1_counter > 8:
+                    if step_p1 < 1000:
+                        step_p1 *= 10
+                    step_p1_counter = 0
                 continue
             else:
                 if step_p1 > min_iteration_step:
@@ -277,7 +285,7 @@ class BaseCycle:
             plt.close(fig_iterations)
 
         if self.flowsheet_name == "IHX":
-            self.calc_missing_IHX_states(inputs,fs_state,**kwargs)
+            self.calc_missing_IHX_states(inputs, fs_state, **kwargs)
 
         # Calculate the heat flow rates for the selected states.
         Q_con = self.condenser.calc_Q_flow()
@@ -296,11 +304,7 @@ class BaseCycle:
         # Calculate carnot quality as a measure of reliability of model:
         COP_carnot = (T_con_out / (T_con_out - inputs.T_eva_in))
         carnot_quality = COP_inner / COP_carnot
-        # Calc return temperature:
-        fs_state.set(
-            name="T_con_out", value=T_con_out, unit="K",
-            description="Secondary condenser outlet temperature"
-        )
+
         fs_state.set(
             name="P_el", value=P_el, unit="W",
             description="Power consumption"
@@ -310,40 +314,51 @@ class BaseCycle:
             unit="-", description="Carnot Quality"
         )
         fs_state.set(
-            name="Q_con", value=Q_con, unit="W",
-            description="Condenser refrigerant heat flow rate"
-        )
-        # COP based on P_el and Q_con:
-        fs_state.set(
-            name="Q_con_outer", value=Q_con_outer, unit="W",
-            description="Secondary medium condenser heat flow rate"
-        )
-        fs_state.set(
-            name="Q_eva_outer", value=Q_eva_outer, unit="W",
-            description="Secondary medium evaporator heat flow rate"
-        )
-        fs_state.set(
             name="COP", value=COP_inner,
             unit="-", description="Coefficient of Performance"
         )
         fs_state.set(
-            name="COP_outer", value=COP_outer,
-            unit="-", description="Outer COP, including heat losses"
+            name="Q_con", value=Q_con, unit="W",
+            description="Condenser refrigerant heat flow rate"
         )
-        fs_state.set(name="T_con_in_sec", value=inputs.T_con_in - 273.15,
+        # COP based on P_el and Q_con:
+        #fs_state.set(
+        #    name="Q_con_outer", value=Q_con_outer, unit="W",
+        #    description="Secondary medium condenser heat flow rate"
+        #)
+        #fs_state.set(
+        #    name="Q_eva_outer", value=Q_eva_outer, unit="W",
+         #   description="Secondary medium evaporator heat flow rate"
+        #)
+
+        #fs_state.set(
+        #    name="COP_outer", value=COP_outer,
+        #    unit="-", description="Outer COP, including heat losses"
+        #)
+
+        fs_state.set(name="SEC_T_con_in", value=inputs.T_con_in - 273.15,
                      description="Condenser inlet temperature secondary")
-        fs_state.set(name="T_con_out_sec", value=T_con_out - 273.15,
+        fs_state.set(name="SEC_T_con_out", value=T_con_out - 273.15,
                      description="Condenser outlet temperature secondary")
-        fs_state.set(name="m_flow_con", value=self.condenser.m_flow_secondary,
+        fs_state.set(name="SEC_m_flow_con", value=self.condenser.m_flow_secondary,
                      description="Condenser mass flow secondary")
-        fs_state.set(name="T_eva_in_sec", value=inputs.T_eva_in - 273.15,
+        fs_state.set(name="SEC_T_eva_in", value=inputs.T_eva_in - 273.15,
                      description="Evaporator inlet temperature secondary")
-        fs_state.set(name="T_eva_out_sec", value=T_eva_out - 273.15,
+        fs_state.set(name="SEC_T_eva_out", value=T_eva_out - 273.15,
                      description="Evaporator outlet temperature secondary")
-        fs_state.set(name="m_flow_eva", value=self.evaporator.m_flow_secondary,
+        fs_state.set(name="SEC_m_flow_eva", value=self.evaporator.m_flow_secondary,
                      description="Evaporator mass flow secondary")
+        fs_state.set(name="REF_m_flow_con", value=self.condenser.m_flow)
+        fs_state.set(name="REF_m_flow_eva", value=self.evaporator.m_flow)
         if save_path_plots is not None:
             self.plot_cycle(save_path=save_path_plots.joinpath(f"{COP_inner}_final_result.png"), inputs=inputs)
+        all_states = self.get_states()
+        for _state in all_states:
+            fs_state.set(name="REF_T_"+_state, value=all_states[_state].T-273.15)
+        for _state in all_states:
+            fs_state.set(name="REF_p_"+_state, value=all_states[_state].p/100000)
+        for _state in all_states:
+            fs_state.set(name="REF_h_"+_state, value=all_states[_state].h/1000)
 
         return fs_state
 
@@ -359,6 +374,19 @@ class BaseCycle:
             - List with tuples, first entry being the state and second the mass flow rate
         """
         return []
+
+    @abstractmethod
+    def get_states(self):
+        """
+        Function to return all thermodynamic states of cycle
+        in the correct order for plotting.
+        Include phase change states to see if your simulation
+        runs plausible cycles.
+
+        Returns:
+            - Dic
+        """
+        return {}
 
     def set_evaporator_outlet_based_on_superheating(self, p_eva: float, inputs: Inputs):
         """
