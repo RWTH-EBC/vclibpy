@@ -133,8 +133,8 @@ class BaseCycle:
                                for k, v in inputs.get_variables().items()])
         show_iteration = kwargs.get("show_iteration", False)
         use_quick_solver = kwargs.pop("use_quick_solver", True)
-        err_ntu = kwargs.pop("max_err_ntu", 0.001)
-        err_dT_min = kwargs.pop("max_err_dT_min", 0.1)
+        err_ntu = kwargs.pop("max_err_ntu", 0.1)
+        err_dT_min = kwargs.pop("max_err_dT_min", 1)
         max_num_iterations = kwargs.pop("max_num_iterations", 1e6)
         p_1_history = []
         p_2_history = []
@@ -146,7 +146,6 @@ class BaseCycle:
             step_p1 = min_iteration_step
             step_p2 = min_iteration_step
 
-        step_p1_counter = 0
 
         # Setup fluid:
         if fluid is None:
@@ -170,6 +169,7 @@ class BaseCycle:
 
         num_iterations = 0
 
+        error_eva = -100
         while True:
             if isinstance(max_num_iterations, (int, float)):
                 if num_iterations > max_num_iterations:
@@ -220,7 +220,7 @@ class BaseCycle:
                 return
             if save_path_plots is not None and num_iterations == 1 and show_iteration:
                 self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_initialization.png"), inputs=inputs)
-
+            last_error_eva = error_eva
             # Check heat exchangers:
             error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
             if not isinstance(error_eva, float):
@@ -228,35 +228,40 @@ class BaseCycle:
 
             if error_eva < 0:
                 p_1_next = p_1 - step_p1
-                step_p1_counter += 1
-                if step_p1_counter > 8:
-                    if step_p1 < 1000:
-                        step_p1 *= 10
-                    step_p1_counter = 0
                 continue
-            else:
-                if step_p1 > min_iteration_step:
-                    p_1_next = p_1 + step_p1
-                    step_p1 /= 10
-                    continue
-                elif error_eva > err_ntu and dT_min_eva > err_dT_min:
-                    step_p1 = 1000
-                    p_1_next = p_1 + step_p1
-                    continue
+            elif error_eva > err_ntu:
+                p_1_next = p_1 + step_p1
+                if last_error_eva < 0:
+                    step_p1 = max(step_p1/10, min_iteration_step)
+                continue
+
+                #if step_p1 > min_iteration_step:
+                    #p_1_next = p_1 + step_p1
+                    #step_p1 /= 10
+                    #continue
+                #elif error_eva > err_ntu and dT_min_eva > err_dT_min:
+                    #step_p1 = 1000
+                    #p_1_next = p_1 + step_p1
+                    #continue
 
             error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
             if error_con < 0:
                 p_2_next = p_2 + step_p2
                 continue
-            else:
-                if step_p2 > min_iteration_step:
-                    p_2_next = p_2 - step_p2
-                    step_p2 /= 10
-                    continue
-                elif error_con > err_ntu and dT_min_con > err_dT_min:
-                    p_2_next = p_2 - step_p2
-                    step_p2 = 1000
-                    continue
+            elif error_con > err_ntu:
+                p_2_next = p_2 - step_p2
+                step_p2 /= 10
+                step_p2 = max(step_p2 / 10, min_iteration_step)
+                continue
+            #else:
+                #if step_p2 > min_iteration_step:
+                    #p_2_next = p_2 - step_p2
+                    #step_p2 /= 10
+                    #continue
+                #elif error_con > err_ntu and dT_min_con > err_dT_min:
+                    #p_2_next = p_2 - step_p2
+                    #step_p2 = 1000
+                    #continue
 
             # If still here, and the values are equal, we may break.
             if p_1 == p_1_next and p_2 == p_2_next:
@@ -359,7 +364,7 @@ class BaseCycle:
             fs_state.set(name="REF_p_"+_state, value=all_states[_state].p/100000)
         for _state in all_states:
             fs_state.set(name="REF_h_"+_state, value=all_states[_state].h/1000)
-
+        print("Evaluation took " + str(num_iterations) + " iterations")
         return fs_state
 
     @abstractmethod
