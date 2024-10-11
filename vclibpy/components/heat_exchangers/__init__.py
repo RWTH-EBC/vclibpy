@@ -1,3 +1,3 @@
 from .heat_exchanger import HeatExchanger
 from .moving_boundary_ntu import MovingBoundaryNTUCondenser, MovingBoundaryNTUEvaporator
-from .moving_boundary_lmtd import MVBLMTDSensibleSecCon, MVBLMTDSensibleSecEvap, MVB_LMTD_IHX
+from .moving_boundary_lmtd import MVBLMTDSensibleSecCon, MVBLMTDSensibleSecEvap, MVB_LMTD_IHX, FV_LMTD_GC

@@ -519,10 +519,13 @@ class MVB_LMTD_IHX(BasicLMTD):
 
     def start_secondary_med_prop(self):
         return
+
     def terminate_secondary_med_prop(self):
         return
+
     def calc_alpha_secondary(self, transport_properties):
         return
+
     def separte_phases(self,
                        p_low,
                        p_high,
@@ -648,8 +651,8 @@ class MVB_LMTD_IHX(BasicLMTD):
         for i, Q in enumerate(Q_regime):
             lmtd = self.calc_lmtd(
                 Tprim_in=T_low[i],
-                Tprim_out=T_low[i+1],
-                Tsec_in=T_high[i+1],
+                Tprim_out=T_low[i + 1],
+                Tsec_in=T_high[i + 1],
                 Tsec_out=T_high[i]
             )
             A_lmtd += self.calc_A(
@@ -658,8 +661,8 @@ class MVB_LMTD_IHX(BasicLMTD):
                 lmtd=lmtd,
                 Q=Q
             )
-            dT.append(T_high[i+1]-T_low[i])
-            dT.append(T_high[i]-T_low[i+1])
+            dT.append(T_high[i + 1] - T_low[i])
+            dT.append(T_high[i] - T_low[i + 1])
 
         error = (self.A / A_lmtd - 1) * 100
 
@@ -785,7 +788,6 @@ class MVB_LMTD_IHX(BasicLMTD):
         """
         self._m_flow_low = m_flow_low
 
-
     @BaseComponent.state_outlet.setter
     def state_outlet(self, state: ThermodynamicState):
         """
@@ -805,3 +807,83 @@ class MVB_LMTD_IHX(BasicLMTD):
             state (ThermodynamicState): Outlet state.
         """
         raise NotImplementedError("This outlet is disabled for this component")
+
+
+class FV_LMTD_GC(BasicLMTD):
+
+    def __init__(self,
+                 flow_type: str,
+                 ratio_outer_to_inner_area: float,
+                 gas_heat_transfer: HeatTransfer,
+                 n_regimes=50,
+                 **kwargs):
+        super(FV_LMTD_GC, self).__init__(flow_type,
+                                         ratio_outer_to_inner_area,
+                                         **kwargs)
+
+        self._gas_heat_transfer = gas_heat_transfer
+        self.n_regimes = n_regimes
+
+    def calc_alpha_gas(self, transport_properties) -> float:
+        """
+        Calculate the gas-phase heat transfer coefficient.
+
+        Args:
+            transport_properties: Transport properties for the gas phase.
+
+        Returns:
+            float: The gas-phase heat transfer coefficient.
+        """
+        return self._gas_heat_transfer.calc(
+            transport_properties=transport_properties,
+            m_flow=self.m_flow
+        )
+
+    def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
+        dT_min_regimes = []
+        A_lmtd = 0
+
+        dh = self.state_inlet.h - self.state_outlet.h
+        Q = self.m_flow * dh
+
+        dh_step = dh / self.n_regimes
+        dQ_step = Q / self.n_regimes
+        p_con = self.state_inlet.p
+
+        dT_step = (inputs.T_con_out - inputs.T_con_in) / self.n_regimes
+
+        T_sec_in = inputs.T_con_in
+        state_step_out = self.state_outlet
+
+        T_mean = (inputs.T_con_in + inputs.T_con_out)/2
+        tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
+        alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
+
+        while state_step_out.h < self.state_inlet.h:
+            state_step_in = self.med_prop.calc_state("PH", p_con, state_step_out.h + dh_step)
+            T_sec_out = T_sec_in + dT_step
+            tra_prop_ref = self.med_prop.calc_mean_transport_properties(state_step_in, state_step_out)
+            alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref)
+
+            lmtd = self.calc_lmtd(Tprim_in=state_step_in.T,
+                                  Tprim_out=state_step_out.T,
+                                  Tsec_in=T_sec_in,
+                                  Tsec_out=T_sec_in)
+
+            A_lmtd += self.calc_A(lmtd=lmtd,
+                                  alpha_pri=alpha_ref_wall,
+                                  alpha_sec=alpha_med_wall,
+                                  Q=dQ_step)
+
+            dT_min_regimes.append(state_step_in.T - T_sec_out)
+            dT_min_regimes.append(state_step_out.T - T_sec_in)
+            state_step_out = state_step_in
+            T_sec_in = T_sec_out
+
+        error = (self.A / A_lmtd - 1) * 100
+
+        dT_min = min(dT_min_regimes)
+        fs_state.set(name="dT_pinch_con",
+                     value=dT_min,
+                     description="Pinch Condenser")
+        return error, dT_min

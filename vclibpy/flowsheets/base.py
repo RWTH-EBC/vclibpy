@@ -31,8 +31,7 @@ class BaseCycle:
             self,
             fluid: str,
             evaporator: HeatExchanger,
-            condenser: HeatExchanger,
-            maximise_cop=False
+            condenser: HeatExchanger
     ):
         self.fluid: str = fluid
         self.evaporator = evaporator
@@ -127,7 +126,7 @@ class BaseCycle:
                 the calculated state of the vapor compression cycle.
         """
         # Settings
-        min_iteration_step = kwargs.pop("min_iteration_step", 1)
+        min_iteration_step = kwargs.pop("min_iteration_step", 10)
         save_path_plots = kwargs.get("save_path_plots", None)
         input_name = ";".join([k + "=" + str(np.round(v.value, 3)).replace(".", "_")
                                for k, v in inputs.get_variables().items()])
@@ -146,20 +145,19 @@ class BaseCycle:
             step_p1 = min_iteration_step
             step_p2 = min_iteration_step
 
-
         # Setup fluid:
         if fluid is None:
             fluid = self.fluid
         self.setup_new_fluid(fluid)
 
         # First: Iterate with given conditions to get the 4 states and the mass flow rate:
-        T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating
-        T_3_start = inputs.T_con_in + inputs.dT_con_subcooling
-        p_1_start = self.med_prop.calc_state("TQ", T_1_start, 1).p
-        p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
-        p_1_next = p_1_start
-        p_2_next = p_2_start
 
+        T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating
+        p_1_start = self.med_prop.calc_state("TQ", T_1_start, 1).p
+        p_1_next = p_1_start
+        T_3_start = inputs.T_con_in + inputs.dT_con_subcooling
+        p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
+        p_2_next = p_2_start
         fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
         fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
         fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
@@ -183,8 +181,7 @@ class BaseCycle:
 
             p_1 = p_1_next
             p_2 = p_2_next
-            p_1_history.append(p_1)
-            p_2_history.append(p_2)
+
             if show_iteration:
                 ax_iterations[0].cla()
                 ax_iterations[1].cla()
@@ -196,7 +193,7 @@ class BaseCycle:
             # Increase counter
             num_iterations += 1
             # Check critical pressures:
-            if p_2 >= self._p_max:
+            if p_2 >= self._p_max and not self.flowsheet_name.startswith("Tc"):
                 if step_p2 == min_iteration_step:
                     logger.error("Pressure too high. Configuration is infeasible.")
                     return
@@ -229,39 +226,29 @@ class BaseCycle:
             if error_eva < 0:
                 p_1_next = p_1 - step_p1
                 continue
-            elif error_eva > err_ntu:
-                p_1_next = p_1 + step_p1
-                if last_error_eva < 0:
-                    step_p1 = max(step_p1/10, min_iteration_step)
-                continue
-
-                #if step_p1 > min_iteration_step:
-                    #p_1_next = p_1 + step_p1
-                    #step_p1 /= 10
-                    #continue
-                #elif error_eva > err_ntu and dT_min_eva > err_dT_min:
-                    #step_p1 = 1000
-                    #p_1_next = p_1 + step_p1
-                    #continue
+            else:
+                if step_p1 > min_iteration_step:
+                    p_1_next = p_1 + step_p1
+                    step_p1 /= 10
+                    continue
+                elif error_eva > err_ntu and dT_min_eva > err_dT_min:
+                    step_p1 = 1000
+                    p_1_next = p_1 + step_p1
+                    continue
 
             error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
             if error_con < 0:
                 p_2_next = p_2 + step_p2
                 continue
-            elif error_con > err_ntu:
-                p_2_next = p_2 - step_p2
-                step_p2 /= 10
-                step_p2 = max(step_p2 / 10, min_iteration_step)
-                continue
-            #else:
-                #if step_p2 > min_iteration_step:
-                    #p_2_next = p_2 - step_p2
-                    #step_p2 /= 10
-                    #continue
-                #elif error_con > err_ntu and dT_min_con > err_dT_min:
-                    #p_2_next = p_2 - step_p2
-                    #step_p2 = 1000
-                    #continue
+            else:
+                if step_p2 > min_iteration_step:
+                    p_2_next = p_2 - step_p2
+                    step_p2 /= 10
+                    continue
+                elif error_con > err_ntu and dT_min_con > err_dT_min:
+                    p_2_next = p_2 - step_p2
+                    step_p2 = 1000
+                    continue
 
             # If still here, and the values are equal, we may break.
             if p_1 == p_1_next and p_2 == p_2_next:
@@ -279,12 +266,12 @@ class BaseCycle:
                 break
 
             # Check if values are not converging at all:
-            p_1_unique = set(p_1_history[-10:])
-            p_2_unique = set(p_2_history[-10:])
-            if len(p_1_unique) == 2 and len(p_2_unique) == 2 \
-                    and step_p1 == min_iteration_step and step_p2 == min_iteration_step:
-                logger.critical("Breaking: not converging at all")
-                break
+            # p_1_unique = set(p_1_history[-10:])
+            # p_2_unique = set(p_2_history[-10:])
+            # if len(p_1_unique) == 2 and len(p_2_unique) == 2 \
+            # and step_p1 == min_iteration_step and step_p2 == min_iteration_step:
+            # logger.critical("Breaking: not converging at all")
+            # break
 
         if show_iteration:
             plt.close(fig_iterations)
@@ -327,19 +314,19 @@ class BaseCycle:
             description="Condenser refrigerant heat flow rate"
         )
         # COP based on P_el and Q_con:
-        #fs_state.set(
+        # fs_state.set(
         #    name="Q_con_outer", value=Q_con_outer, unit="W",
         #    description="Secondary medium condenser heat flow rate"
-        #)
-        #fs_state.set(
+        # )
+        # fs_state.set(
         #    name="Q_eva_outer", value=Q_eva_outer, unit="W",
-         #   description="Secondary medium evaporator heat flow rate"
-        #)
+        #   description="Secondary medium evaporator heat flow rate"
+        # )
 
-        #fs_state.set(
+        # fs_state.set(
         #    name="COP_outer", value=COP_outer,
         #    unit="-", description="Outer COP, including heat losses"
-        #)
+        # )
 
         fs_state.set(name="SEC_T_con_in", value=inputs.T_con_in - 273.15,
                      description="Condenser inlet temperature secondary")
@@ -359,12 +346,13 @@ class BaseCycle:
             self.plot_cycle(save_path=save_path_plots.joinpath(f"{COP_inner}_final_result.png"), inputs=inputs)
         all_states = self.get_states()
         for _state in all_states:
-            fs_state.set(name="REF_T_"+_state, value=all_states[_state].T-273.15)
+            fs_state.set(name="REF_T_" + _state, value=all_states[_state].T - 273.15)
         for _state in all_states:
-            fs_state.set(name="REF_p_"+_state, value=all_states[_state].p/100000)
+            fs_state.set(name="REF_p_" + _state, value=all_states[_state].p / 100000)
         for _state in all_states:
-            fs_state.set(name="REF_h_"+_state, value=all_states[_state].h/1000)
-        print("Evaluation took " + str(num_iterations) + " iterations")
+            fs_state.set(name="REF_h_" + _state, value=all_states[_state].h / 1000)
+        for _state in all_states:
+            fs_state.set(name="REF_q_" + _state, value=all_states[_state].q)
         return fs_state
 
     @abstractmethod
@@ -520,3 +508,315 @@ class BaseCycle:
             fs_state (FlowsheetState): Flowsheet state to save important variables.
         """
         raise NotImplementedError
+
+
+
+
+class BaseCycleTC(BaseCycle):
+
+    def __init__(
+            self,
+            x4=None,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.x4 = x4
+        self.x4_step = 0.1
+        if self.x4 is None:
+            self.iterate_x4 = True
+        else:
+            self.iterate_x4 = False
+
+
+    def calc_steady_state(self, inputs: Inputs, fluid: str = None, **kwargs):
+        """
+        Calculate the steady-state performance of a vapor compression cycle
+        based on given inputs and assumptions.
+
+        This function ensures consistent assumptions across different cycles.
+        It calculates the performance of the heat pump under
+        specific conditions while adhering to several general assumptions.
+
+        General Assumptions:
+        ---------------------
+        - Isenthalpic expansion valves:
+          The enthalpy at the inlet equals the enthalpy at the outlet.
+        - No heat losses in any component:
+          The heat input to the condenser equals the heat
+          output of the evaporator plus the power input.
+        - Input to the evaporator is always in the two-phase region.
+        - Output of the evaporator and output of the condenser maintain
+          a constant overheating or subcooling (can be set in Inputs).
+
+        Args:
+            inputs (Inputs):
+                An instance of the Inputs class containing the
+                necessary parameters to calculate the flowsheet state.
+            fluid (str):
+                The fluid to be used in the calculations.
+                Required only if 'fluid' is not specified during the object's initialization.
+
+        Keyword Arguments:
+            min_iteration_step (int):
+                The minimum step size for iterations (default: 1).
+            save_path_plots (str or None):
+                The path to save plots (default: None).
+                If None, no plots are created.
+            show_iteration (bool):
+                Whether to display iteration progress (default: False).
+            T_max (float):
+                Maximum temperature allowed (default: 273.15 + 150).
+            use_quick_solver (bool):
+                Whether to use a quick solver (default: True).
+            max_err_ntu (float):
+                Maximum allowable error for the heat exchanger in percent (default: 0.5).
+            max_err_dT_min (float):
+                Maximum allowable error for minimum temperature difference in K (default: 0.1).
+            max_num_iterations (int or None):
+                Maximum number of iterations allowed (default: None).
+
+        Returns:
+            fs_state (FlowsheetState):
+                An instance of the FlowsheetState class representing
+                the calculated state of the vapor compression cycle.
+        """
+        # Settings
+
+        # Setup fluid:
+        if fluid is None:
+            fluid = self.fluid
+        self.setup_new_fluid(fluid)
+
+        # First: Iterate with given conditions to get the 4 states and the mass flow rate:
+
+        T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating
+        p_1_start = self.med_prop.calc_state("TQ", T_1_start, 1).p
+        T_3_start = inputs.T_con_in + 1
+        h4_start = self.med_prop.calc_state("PQ", p_1_start, 0.7).h
+        p_2_start = self.med_prop.calc_state("TH", T_3_start, h4_start).p
+
+        fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
+        fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
+        fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
+
+        last_cop = 1
+        if self.iterate_x4:
+            self.x4 = 0.70
+            self.x4_step = 0.01
+
+        while self.x4_step > 0.0001:
+
+            if self.iterate_x4:
+                self.x4 -= self.x4_step
+
+            self.iterate_pressures(p_1_start, p_2_start, fs_state, inputs, **kwargs)
+            print(self.x4)
+            if not self.iterate_x4:
+                break
+            Q_con = self.condenser.calc_Q_flow()
+            P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
+            current_cop = Q_con / P_el
+            if current_cop < last_cop:
+                self.x4 += self.x4_step
+                self.x4_step /= 10
+                self.x4 -= self.x4_step
+                continue
+            last_cop = current_cop
+
+            # Calculate the heat flow rates for the selected states.
+        Q_con = self.condenser.calc_Q_flow()
+        Q_con_outer = self.condenser.calc_secondary_Q_flow(Q_con)
+        Q_eva = self.evaporator.calc_Q_flow()
+        Q_eva_outer = self.evaporator.calc_secondary_Q_flow(Q_eva)
+        self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+        self.condenser.calc(inputs=inputs, fs_state=fs_state)
+        P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
+        T_con_out = inputs.T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
+        T_eva_out = inputs.T_eva_in - Q_eva_outer / self.evaporator.m_flow_secondary_cp
+
+        # COP based on P_el and Q_con:
+        COP_inner = Q_con / P_el
+        COP_outer = Q_con_outer / P_el
+        # Calculate carnot quality as a measure of reliability of model:
+        COP_carnot = (T_con_out / (T_con_out - inputs.T_eva_in))
+        carnot_quality = COP_inner / COP_carnot
+
+        fs_state.set(
+            name="P_el", value=P_el, unit="W",
+            description="Power consumption"
+        )
+        fs_state.set(
+            name="carnot_quality", value=carnot_quality,
+            unit="-", description="Carnot Quality"
+        )
+        fs_state.set(
+            name="COP", value=COP_inner,
+            unit="-", description="Coefficient of Performance"
+        )
+        fs_state.set(
+            name="Q_con", value=Q_con, unit="W",
+            description="Condenser refrigerant heat flow rate"
+        )
+        # COP based on P_el and Q_con:
+        # fs_state.set(
+        #    name="Q_con_outer", value=Q_con_outer, unit="W",
+        #    description="Secondary medium condenser heat flow rate"
+        # )
+        # fs_state.set(
+        #    name="Q_eva_outer", value=Q_eva_outer, unit="W",
+        #   description="Secondary medium evaporator heat flow rate"
+        # )
+
+        # fs_state.set(
+        #    name="COP_outer", value=COP_outer,
+        #    unit="-", description="Outer COP, including heat losses"
+        # )
+
+        fs_state.set(name="SEC_T_con_in", value=inputs.T_con_in - 273.15,
+                     description="Condenser inlet temperature secondary")
+        fs_state.set(name="SEC_T_con_out", value=T_con_out - 273.15,
+                     description="Condenser outlet temperature secondary")
+        fs_state.set(name="SEC_m_flow_con", value=self.condenser.m_flow_secondary,
+                     description="Condenser mass flow secondary")
+        fs_state.set(name="SEC_T_eva_in", value=inputs.T_eva_in - 273.15,
+                     description="Evaporator inlet temperature secondary")
+        fs_state.set(name="SEC_T_eva_out", value=T_eva_out - 273.15,
+                     description="Evaporator outlet temperature secondary")
+        fs_state.set(name="SEC_m_flow_eva", value=self.evaporator.m_flow_secondary,
+                     description="Evaporator mass flow secondary")
+        fs_state.set(name="REF_m_flow_con", value=self.condenser.m_flow)
+        fs_state.set(name="REF_m_flow_eva", value=self.evaporator.m_flow)
+
+        all_states = self.get_states()
+        for _state in all_states:
+            fs_state.set(name="REF_T_" + _state, value=all_states[_state].T - 273.15)
+        for _state in all_states:
+            fs_state.set(name="REF_p_" + _state, value=all_states[_state].p / 100000)
+        for _state in all_states:
+            fs_state.set(name="REF_h_" + _state, value=all_states[_state].h / 1000)
+        for _state in all_states:
+            fs_state.set(name="REF_q_" + _state, value=all_states[_state].q)
+        return fs_state
+
+    def iterate_pressures(self, p_1_start, p_2_start, fs_state, inputs, **kwargs):
+
+        min_iteration_step = kwargs.pop("min_iteration_step", 0.01)
+        save_path_plots = kwargs.get("save_path_plots", None)
+        input_name = ";".join([k + "=" + str(np.round(v.value, 3)).replace(".", "_")
+                               for k, v in inputs.get_variables().items()])
+        show_iteration = kwargs.get("show_iteration", False)
+        use_quick_solver = kwargs.pop("use_quick_solver", True)
+        err_dT_min = kwargs.pop("max_err_dT_min", 1)
+        err_ntu = kwargs.pop("max_err_ntu", 0.1)
+
+        max_num_iterations = kwargs.pop("max_num_iterations", 10000)
+        p_1_history = []
+        p_2_history = []
+
+        if use_quick_solver:
+            step_p1 = kwargs.get("step_max", 100000)
+            step_p2 = kwargs.get("step_max", 1000000)
+        else:
+            step_p1 = min_iteration_step
+            step_p2 = min_iteration_step
+
+        p_1_next = p_1_start
+        p_2_next = p_2_start
+
+        num_iterations = 0
+
+        step_p1_counter = 0
+
+        while True:
+            if isinstance(max_num_iterations, (int, float)):
+                if num_iterations > max_num_iterations:
+                    logger.warning("Maximum number of iterations %s exceeded. Stopping.",
+                                   max_num_iterations)
+                    return
+
+                if (num_iterations + 1) % (0.1 * max_num_iterations) == 0:
+                    logger.info("Info: %s percent of max_num_iterations %s used",
+                                100 * (num_iterations + 1) / max_num_iterations, max_num_iterations)
+
+            p_1 = p_1_next
+            p_2 = p_2_next
+
+            # Increase counter
+            num_iterations += 1
+
+            # Check critical pressures:
+            if p_2 >= self._p_max and not self.flowsheet_name.startswith("Tc"):
+                if step_p2 == min_iteration_step:
+                    logger.error("Pressure too high. Configuration is infeasible.")
+                    return
+                p_2_next = p_2 - step_p2
+                step_p2 /= 10
+                continue
+            if p_1 <= self._p_min:
+                if p_1_next == min_iteration_step:
+                    logger.error("Pressure too low. Configuration is infeasible.")
+                    return
+                p_1_next = p_1 + step_p1
+                step_p1 /= 10
+                continue
+
+            # Calculate the states based on the given flowsheet
+            try:
+                self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
+            except ValueError as err:
+                logger.error("An error occurred while calculating states. "
+                             "Can't guess next pressures, thus, exiting: %s", err)
+                return
+            if save_path_plots is not None and num_iterations == 1 and show_iteration:
+                self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_initialization.png"), inputs=inputs)
+            # Check heat exchangers:
+            error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+            if not isinstance(error_eva, float):
+                print(error_eva)
+
+            if error_eva < 0:
+                p_1_next = p_1 - step_p1
+                step_p1_counter +=1
+                if step_p1_counter >15 and step_p1 < 1000:
+                    step_p1 *=10
+                    step_p1_counter = 0
+                continue
+            else:
+                if step_p1 > min_iteration_step:
+                    p_1_next = p_1 + step_p1
+                    step_p1 /= 10
+                    continue
+                elif error_eva > err_ntu and dT_min_eva > err_dT_min:
+                    step_p1 = 1000
+                    p_1_next = p_1 + step_p1
+                    continue
+
+            error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
+            if error_con < 0:
+                p_2_next = p_2 + step_p2
+                step_p1 = 100
+                continue
+            else:
+                if step_p2 > min_iteration_step:
+                    p_2_next = p_2 - step_p2
+                    step_p2 /= 10
+                    continue
+                elif error_con > err_ntu and dT_min_con > err_dT_min:
+                    p_2_next = p_2 - step_p2
+                    step_p2 = 1000
+                    continue
+
+            # If still here, and the values are equal, we may break.
+            if p_1 == p_1_next and p_2 == p_2_next:
+                # Check if solution was too far away. If so, jump back
+                # And decrease the iteration step by factor 10.
+                if step_p2 > min_iteration_step:
+                    p_2_next = p_2 - step_p2
+                    step_p2 /= 10
+                    continue
+                if step_p1 > min_iteration_step:
+                    p_1_next = p_1 + step_p1
+                    step_p1 /= 10
+                    continue
+                logger.info("Breaking: Converged")
+                break
