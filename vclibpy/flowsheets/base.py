@@ -327,7 +327,6 @@ class BaseCycle:
         #    name="COP_outer", value=COP_outer,
         #    unit="-", description="Outer COP, including heat losses"
         # )
-
         fs_state.set(name="SEC_T_con_in", value=inputs.T_con_in - 273.15,
                      description="Condenser inlet temperature secondary")
         fs_state.set(name="SEC_T_con_out", value=T_con_out - 273.15,

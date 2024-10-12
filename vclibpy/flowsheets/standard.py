@@ -203,6 +203,7 @@ class StandardCycle(BaseCycle):
                      description="Compressor Speed")
         fs_state.set(name="relative_compressor_speed", value=inputs.n, unit="1/s",
                      description="relative Compressor Speed")
+        fs_state.set(name="Comp_dh",value=0.001*(self.compressor.state_outlet.h-self.compressor.state_inlet.h))
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
         """Based on simple energy balance - Adiabatic"""

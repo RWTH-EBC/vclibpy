@@ -276,6 +276,11 @@ class VaporInjection_TwoStage(BaseCycle):
         fs_state.set(name="p_con", value=p_2 / 100000, unit="bar", description="Condensation pressure")
         fs_state.set(name="p_eva", value=p_1 / 100000, unit="bar", description="Evaporation pressure")
         fs_state.set(name="p_vi", value=p_vi / 100000, unit="bar", description="VI pressure")
+        fs_state.set(name="Comp_dh",
+                     value=0.001*(self.compressor_high.state_outlet.h-self.compressor_high.state_inlet.h +
+                                  (1-x_vapor_injection) *
+                                  (self.compressor_low.state_outlet.h-self.compressor_low.state_inlet.h)))
+
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
         """Based on simple energy balance - Adiabatic"""
