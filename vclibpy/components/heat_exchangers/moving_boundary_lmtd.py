@@ -271,6 +271,8 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
         T_sh = T_sc + self.calc_secondary_Q_flow(Q_lat) / self.m_flow_secondary_cp
         T_out = T_sh + self.calc_secondary_Q_flow(Q_sh) / self.m_flow_secondary_cp
 
+        lmtd_sh, lmtd_lat, lmtd_sc = 0, 0, 0
+
         # 1. Regime: Subcooling
         A_sc = 0
         if Q_sc > 0 and (state_q0.T != self.state_outlet.T):
@@ -280,12 +282,12 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
 
             # Only use still available area:
 
-            lmtd = self.calc_lmtd(Tprim_in=state_q0.T,
-                                  Tprim_out=self.state_outlet.T,
-                                  Tsec_in=inputs.T_con_in,
-                                  Tsec_out=T_sc)
+            lmtd_sc = self.calc_lmtd(Tprim_in=state_q0.T,
+                                     Tprim_out=self.state_outlet.T,
+                                     Tsec_in=inputs.T_con_in,
+                                     Tsec_out=T_sc)
 
-            A_sc = self.calc_A(lmtd=lmtd,
+            A_sc = self.calc_A(lmtd=lmtd_sc,
                                alpha_pri=alpha_ref_wall,
                                alpha_sec=alpha_med_wall,
                                Q=Q_sc)
@@ -302,12 +304,12 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
                 fs_state=fs_state,
                 inputs=inputs
             )
-            lmtd = self.calc_lmtd(Tprim_in=state_q1.T,
-                                  Tprim_out=state_q0.T,
-                                  Tsec_in=T_sc,
-                                  Tsec_out=T_sh)
+            lmtd_lat = self.calc_lmtd(Tprim_in=state_q1.T,
+                                      Tprim_out=state_q0.T,
+                                      Tsec_in=T_sc,
+                                      Tsec_out=T_sh)
 
-            A_lat = self.calc_A(lmtd=lmtd,
+            A_lat = self.calc_A(lmtd=lmtd_lat,
                                 alpha_pri=alpha_ref_wall,
                                 alpha_sec=alpha_med_wall,
                                 Q=Q_lat)
@@ -326,12 +328,12 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
 
             # Only use still available area:
 
-            lmtd = self.calc_lmtd(Tprim_in=self.state_inlet.T,
-                                  Tprim_out=state_q1.T,
-                                  Tsec_in=T_sh,
-                                  Tsec_out=T_out)
+            lmtd_sh = self.calc_lmtd(Tprim_in=self.state_inlet.T,
+                                     Tprim_out=state_q1.T,
+                                     Tsec_in=T_sh,
+                                     Tsec_out=T_out)
 
-            A_sh = self.calc_A(lmtd=lmtd,
+            A_sh = self.calc_A(lmtd=lmtd_sh,
                                alpha_pri=alpha_ref_wall,
                                alpha_sec=alpha_med_wall,
                                Q=Q_sh)
@@ -345,11 +347,31 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
         dT_min_out = self.state_inlet.T - T_out
         dT_min_LatSH = state_q1.T - T_sh
 
-        fs_state.set(name="A_con_sh", value=A_sh, unit="m2",
+        fs_state.set(name="Con_A_sh", value=A_sh, unit="m2",
                      description="Area for superheat heat exchange in condenser")
-        fs_state.set(name="A_con_lat", value=A_lat, unit="m2", description="Area for latent heat exchange in condenser")
-        fs_state.set(name="A_con_sc", value=A_sc, unit="m2",
-                     description="Area for subcooling heat exchange in condenser")
+        fs_state.set(name="Con_A_lat", value=A_lat, unit="m2",
+                     description="Area for latent heat exchange in condenser")
+        fs_state.set(name="Con_A_sc", value=A_sc, unit="m2",
+                     description="Area for subcool heat exchange in condenser")
+        fs_state.set(name="Con_A_sh_rel", value=A_sh / self.A, unit="",
+                     description="relative Area for superheat heat exchange in condenser")
+        fs_state.set(name="Con_A_lat_rel", value=A_lat / self.A, unit="",
+                     description="relative Area for latent heat exchange in condenser")
+        fs_state.set(name="Con_A_sc_rel", value=A_sc / self.A, unit="",
+                     description="relative Area for subcool heat exchange in condenser")
+        fs_state.set(name="Con_Q_sh", value=Q_sh, unit="",
+                     description="superheat heat exchange in condenser")
+        fs_state.set(name="Con_Q_lat", value=Q_lat, unit="",
+                     description="latent heat exchange in condenser")
+        fs_state.set(name="Con_Q_sc", value=Q_sc, unit="",
+                     description="subcooled heat exchange in condenser")
+        fs_state.set(name="Con_lmtd_sh", value=lmtd_sh, unit="K",
+                     description="logartihmic temperature difference sh in condenser")
+        fs_state.set(name="Con_lmtd_lat", value=lmtd_lat, unit="K",
+                     description="logartihmic temperature difference lat in condenser")
+        fs_state.set(name="Con_lmtd_sc", value=lmtd_sc, unit="K",
+                     description="logartihmic temperature difference sc in condenser")
+
         fs_state.set(name="dT_pinch_con",
                      value=min(dT_min_in,
                                dT_min_LatSH,
@@ -413,6 +435,8 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
         T_sc = T_sh - Q_lat / self.m_flow_secondary_cp
         T_out = T_sc - Q_sc / self.m_flow_secondary_cp
 
+        lmtd_sh, lmtd_lat, lmtd_sc = 0, 0, 0
+
         # 1. Regime: Superheating
         A_sh = 0
         if Q_sh and (self.state_outlet.T != state_q1.T):
@@ -420,12 +444,12 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
             tra_prop_ref_eva = self.med_prop.calc_mean_transport_properties(self.state_outlet, state_q1)
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_eva)
 
-            lmtd = self.calc_lmtd(Tprim_in=state_q1.T,
-                                  Tprim_out=self.state_outlet.T,
-                                  Tsec_in=inputs.T_eva_in,
-                                  Tsec_out=T_sh)
+            lmtd_sh = self.calc_lmtd(Tprim_in=state_q1.T,
+                                     Tprim_out=self.state_outlet.T,
+                                     Tsec_in=inputs.T_eva_in,
+                                     Tsec_out=T_sh)
 
-            A_sh = self.calc_A(lmtd=lmtd,
+            A_sh = self.calc_A(lmtd=lmtd_sh,
                                alpha_pri=alpha_ref_wall,
                                alpha_sec=alpha_med_wall,
                                Q=Q_sh)
@@ -442,12 +466,12 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
                 inputs=inputs
             )
 
-            lmtd = self.calc_lmtd(Tprim_in=state_q0.T,
-                                  Tprim_out=state_q1.T,
-                                  Tsec_in=T_sh,
-                                  Tsec_out=T_sc)
+            lmtd_lat = self.calc_lmtd(Tprim_in=state_q0.T,
+                                      Tprim_out=state_q1.T,
+                                      Tsec_in=T_sh,
+                                      Tsec_out=T_sc)
 
-            A_lat = self.calc_A(lmtd=lmtd,
+            A_lat = self.calc_A(lmtd=lmtd_lat,
                                 alpha_pri=alpha_ref_wall,
                                 alpha_sec=alpha_med_wall,
                                 Q=Q_lat)
@@ -462,12 +486,12 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
             alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_eva)
 
             # Only use still available area:
-            lmtd = self.calc_lmtd(Tprim_in=self.state_inlet.T,
-                                  Tprim_out=state_q0.T,
-                                  Tsec_in=T_sc,
-                                  Tsec_out=T_out)
+            lmtd_sc = self.calc_lmtd(Tprim_in=self.state_inlet.T,
+                                     Tprim_out=state_q0.T,
+                                     Tsec_in=T_sc,
+                                     Tsec_out=T_out)
 
-            A_sc = self.calc_A(lmtd=lmtd,
+            A_sc = self.calc_A(lmtd=lmtd_sc,
                                alpha_pri=alpha_ref_wall,
                                alpha_sec=alpha_med_wall,
                                Q=Q_sc)
@@ -478,10 +502,23 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
         dT_min_in = inputs.T_eva_in - self.state_outlet.T
         dT_min_out = T_out - self.state_inlet.T
 
-        fs_state.set(name="A_eva_sh", value=A_sh, unit="m2",
+        fs_state.set(name="Eva_A_sh", value=A_sh, unit="m2",
                      description="Area for superheat heat exchange in evaporator")
-        fs_state.set(name="A_eva_lat", value=A_lat, unit="m2",
+        fs_state.set(name="Eva_A_lat", value=A_lat, unit="m2",
                      description="Area for latent heat exchange in evaporator")
+        fs_state.set(name="Eva_A_sh_rel", value=A_sh / self.A, unit="",
+                     description="relative Area for superheat heat exchange in evaporator")
+        fs_state.set(name="Eva_A_lat_rel", value=A_lat / self.A, unit="",
+                     description="relative Area for latent heat exchange in evaporator")
+        fs_state.set(name="Eva_Q_sh", value=Q_sh, unit="",
+                     description="superheat heat exchange in evaporator")
+        fs_state.set(name="Eva_Q_lat", value=Q_lat, unit="",
+                     description="latent heat exchange in evaporator")
+        fs_state.set(name="Eva_lmtd_sh", value=lmtd_sh, unit="K",
+                     description="logartihmic temperature difference sh in evaporator")
+        fs_state.set(name="Eva_lmtd_lat", value=lmtd_lat, unit="K",
+                     description="logartihmic temperature difference lat in evaporator")
+
         fs_state.set(name="dT_pinch_eva",
                      value=min(dT_min_out,
                                dT_min_in),
@@ -855,7 +892,7 @@ class FV_LMTD_GC(BasicLMTD):
         T_sec_in = inputs.T_con_in
         state_step_out = self.state_outlet
 
-        T_mean = (inputs.T_con_in + inputs.T_con_out)/2
+        T_mean = (inputs.T_con_in + inputs.T_con_out) / 2
         tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
 

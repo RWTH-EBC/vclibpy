@@ -353,6 +353,8 @@ class BaseCycle:
             fs_state.set(name="REF_h_" + _state, value=all_states[_state].h / 1000)
         for _state in all_states:
             fs_state.set(name="REF_q_" + _state, value=all_states[_state].q)
+        for _state in all_states:
+            fs_state.set(name="REF_d_" + _state, value=all_states[_state].d)
         return fs_state
 
     @abstractmethod
