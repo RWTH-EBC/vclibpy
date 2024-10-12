@@ -347,7 +347,7 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
         dT_min_out = self.state_inlet.T - T_out
         dT_min_LatSH = state_q1.T - T_sh
 
-        fs_state.set(name="Eva_dh", value=0.001*(self.state_outlet.h-self.state_inlet.h), unit="kJ/kg",
+        fs_state.set(name="Con_dh", value=-0.001*(self.state_outlet.h-self.state_inlet.h), unit="kJ/kg",
                      description="Enthalpy difference Evaporator")
         fs_state.set(name="Con_A_sh", value=A_sh, unit="m2",
                      description="Area for superheat heat exchange in condenser")
