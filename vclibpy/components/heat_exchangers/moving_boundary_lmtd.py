@@ -367,6 +367,12 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
                      description="latent heat exchange in condenser")
         fs_state.set(name="Con_Q_sc", value=Q_sc, unit="",
                      description="subcooled heat exchange in condenser")
+        fs_state.set(name="Con_Q_sh_rel", value=Q_sh/Q, unit="",
+                     description="superheat heat exchange in condenser")
+        fs_state.set(name="Con_Q_lat_rel", value=Q_lat/Q, unit="",
+                     description="latent heat exchange in condenser")
+        fs_state.set(name="Con_Q_sc_rel", value=Q_sc/Q, unit="",
+                     description="subcooled heat exchange in condenser")
         fs_state.set(name="Con_lmtd_sh", value=lmtd_sh, unit="K",
                      description="logartihmic temperature difference sh in condenser")
         fs_state.set(name="Con_lmtd_lat", value=lmtd_lat, unit="K",
@@ -517,6 +523,10 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
         fs_state.set(name="Eva_Q_sh", value=Q_sh, unit="",
                      description="superheat heat exchange in evaporator")
         fs_state.set(name="Eva_Q_lat", value=Q_lat, unit="",
+                     description="latent heat exchange in evaporator")
+        fs_state.set(name="Eva_Q_sh_rel", value=Q_sh/Q, unit="",
+                     description="superheat heat exchange in evaporator")
+        fs_state.set(name="Eva_Q_lat_rel", value=Q_lat/Q, unit="",
                      description="latent heat exchange in evaporator")
         fs_state.set(name="Eva_lmtd_sh", value=lmtd_sh, unit="K",
                      description="logartihmic temperature difference sh in evaporator")
