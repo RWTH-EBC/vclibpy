@@ -160,6 +160,7 @@ class BaseCycle:
         p_2_next = p_2_start
         fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
         fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
+        fs_state.set(name="Q_eva", value=1, unit="W", description="Condenser heat flow rate")
         fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
 
         if show_iteration:
@@ -312,6 +313,10 @@ class BaseCycle:
         fs_state.set(
             name="Q_con", value=Q_con, unit="W",
             description="Condenser refrigerant heat flow rate"
+        )
+        fs_state.set(
+            name="Q_eva", value=Q_eva, unit="W",
+            description="Evaporator refrigerant heat flow rate"
         )
         # COP based on P_el and Q_con:
         # fs_state.set(
