@@ -341,6 +341,8 @@ class BaseCycle:
                      description="Evaporator mass flow secondary")
         fs_state.set(name="REF_m_flow_con", value=self.condenser.m_flow)
         fs_state.set(name="REF_m_flow_eva", value=self.evaporator.m_flow)
+        fs_state.set(name="REF_p_con", value=self.condenser.state_inlet.p/100000)
+        fs_state.set(name="REF_p_eva", value=self.evaporator.state_inlet.p/100000)
         if save_path_plots is not None:
             self.plot_cycle(save_path=save_path_plots.joinpath(f"{COP_inner}_final_result.png"), inputs=inputs)
         all_states = self.get_states()
