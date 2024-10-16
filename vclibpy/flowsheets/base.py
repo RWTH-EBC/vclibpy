@@ -336,12 +336,16 @@ class BaseCycle:
                      description="Condenser inlet temperature secondary")
         fs_state.set(name="SEC_T_con_out", value=T_con_out - 273.15,
                      description="Condenser outlet temperature secondary")
+        fs_state.set(name="SEC_dT_con", value=T_con_out - inputs.T_con_in,
+                     description="Condenser temperature difference secondary")
         fs_state.set(name="SEC_m_flow_con", value=self.condenser.m_flow_secondary,
                      description="Condenser mass flow secondary")
         fs_state.set(name="SEC_T_eva_in", value=inputs.T_eva_in - 273.15,
                      description="Evaporator inlet temperature secondary")
         fs_state.set(name="SEC_T_eva_out", value=T_eva_out - 273.15,
                      description="Evaporator outlet temperature secondary")
+        fs_state.set(name="SEC_dT_eva", value=inputs.T_eva_in - T_eva_out,
+                     description="Evaporator temperature difference secondary")
         fs_state.set(name="SEC_m_flow_eva", value=self.evaporator.m_flow_secondary,
                      description="Evaporator mass flow secondary")
         fs_state.set(name="REF_m_flow_con", value=self.condenser.m_flow)
