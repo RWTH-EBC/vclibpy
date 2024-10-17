@@ -1,0 +1,50 @@
+vclibpy.flowsheets package
+==========================
+
+.. automodule:: vclibpy.flowsheets
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+vclibpy.flowsheets.base module
+------------------------------
+
+.. automodule:: vclibpy.flowsheets.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.flowsheets.standard module
+----------------------------------
+
+.. automodule:: vclibpy.flowsheets.standard
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.flowsheets.vapor\_injection module
+------------------------------------------
+
+.. automodule:: vclibpy.flowsheets.vapor_injection
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.flowsheets.vapor\_injection\_economizer module
+------------------------------------------------------
+
+.. automodule:: vclibpy.flowsheets.vapor_injection_economizer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.flowsheets.vapor\_injection\_phase\_separator module
+------------------------------------------------------------
+
+.. automodule:: vclibpy.flowsheets.vapor_injection_phase_separator
+   :members:
+   :undoc-members:
+   :show-inheritance:
