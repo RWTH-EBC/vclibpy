@@ -1,3 +1,4 @@
+import numpy as np
 # # Compressor Example
 # This example demonstrates how to use the classes `Compressor`,
 # and its children.
@@ -19,8 +20,8 @@ T_SH = 10   # Superheat in in K
 fs_state = FlowsheetState()
 
 screw_compressor.med_prop= med_prop
-T_cond = 20 + 273.15  # in K
-T_eva = -20 + 273.15  # in K
+T_cond = 40 + 273.15  # in K
+T_eva = -15 + 273.15  # in K
 n = 3500/4500
 inputs = Inputs(n=n)
 # definition of inlet/outlet state
@@ -30,7 +31,30 @@ T_in = T_eva + T_SH
 state_in = med_prop.calc_state("PT", p_in, T_in)
 screw_compressor.state_inlet = state_in
 # calculation of outlet state
-output_state, P_mech, m_flow = screw_compressor.calc_compressor(p_outlet=p_out, inputs=inputs, fs_state=fs_state)
+output_state, P_mech, m_flow, err = screw_compressor.calc_compressor(p_outlet=p_out, inputs=inputs, fs_state=fs_state)
+
+errors = []
+
+T_con_range = np.arange(20, 75, 5)
+T_eva_range = np.arange(-20, 25, 5)
+
+for c in T_con_range:
+    for e in T_eva_range:
+        T_cond = c + 273.15  # in K
+        T_eva = e + 273.15  # in K
+        p_out = med_prop.calc_state("TQ", T_cond, 0).p
+        p_in = med_prop.calc_state("TQ", T_eva, 0).p
+        T_in = T_eva + T_SH
+        state_in = med_prop.calc_state("PT", p_in, T_in)
+        screw_compressor.state_inlet = state_in
+        # calculation of outlet state
+        output_state, P_mech, m_flow, err = screw_compressor.calc_compressor(p_outlet=p_out, inputs=inputs,
+                                                                             fs_state=fs_state)
+        errors.append(err)
+
+
+print(max(errors))
+print("Ende")
 # calculate COP
 #state_con_out = med_prop.calc_state("PQ", output_state.p, 0)
 

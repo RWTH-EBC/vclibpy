@@ -7,6 +7,7 @@ def main():
     # `compressor` package:
     from vclibpy.components.compressors import ScrewCompressorSemiEmpirical
     from vclibpy.media import RefProp
+
     from vclibpy import FlowsheetState, Inputs
     import matplotlib.pyplot as plt
     import numpy as np
@@ -27,6 +28,7 @@ def main():
 
     fs_state = FlowsheetState()
     inputs = Inputs(n=0.5)
+
 
     p_outlet = 6e5
     n = 10
