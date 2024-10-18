@@ -299,7 +299,7 @@ class BaseCycle:
         carnot_quality = COP_inner / COP_carnot
 
         fs_state.set(
-            name="P_el", value=P_el, unit="W",
+            name="P_el", value=P_el/1000, unit="W",
             description="Power consumption"
         )
         fs_state.set(
@@ -311,27 +311,14 @@ class BaseCycle:
             unit="-", description="Coefficient of Performance"
         )
         fs_state.set(
-            name="Q_con", value=Q_con, unit="W",
+            name="Q_con", value=Q_con/1000, unit="W",
             description="Condenser refrigerant heat flow rate"
         )
         fs_state.set(
-            name="Q_eva", value=Q_eva, unit="W",
+            name="Q_eva", value=Q_eva/1000, unit="W",
             description="Evaporator refrigerant heat flow rate"
         )
-        # COP based on P_el and Q_con:
-        # fs_state.set(
-        #    name="Q_con_outer", value=Q_con_outer, unit="W",
-        #    description="Secondary medium condenser heat flow rate"
-        # )
-        # fs_state.set(
-        #    name="Q_eva_outer", value=Q_eva_outer, unit="W",
-        #   description="Secondary medium evaporator heat flow rate"
-        # )
 
-        # fs_state.set(
-        #    name="COP_outer", value=COP_outer,
-        #    unit="-", description="Outer COP, including heat losses"
-        # )
         fs_state.set(name="SEC_T_con_in", value=inputs.T_con_in - 273.15,
                      description="Condenser inlet temperature secondary")
         fs_state.set(name="SEC_T_con_out", value=T_con_out - 273.15,
@@ -654,7 +641,7 @@ class BaseCycleTC(BaseCycle):
         carnot_quality = COP_inner / COP_carnot
 
         fs_state.set(
-            name="P_el", value=P_el, unit="W",
+            name="P_el", value=P_el/1000, unit="W",
             description="Power consumption"
         )
         fs_state.set(
@@ -666,23 +653,10 @@ class BaseCycleTC(BaseCycle):
             unit="-", description="Coefficient of Performance"
         )
         fs_state.set(
-            name="Q_con", value=Q_con, unit="W",
+            name="Q_con", value=Q_con/1000, unit="W",
             description="Condenser refrigerant heat flow rate"
         )
-        # COP based on P_el and Q_con:
-        # fs_state.set(
-        #    name="Q_con_outer", value=Q_con_outer, unit="W",
-        #    description="Secondary medium condenser heat flow rate"
-        # )
-        # fs_state.set(
-        #    name="Q_eva_outer", value=Q_eva_outer, unit="W",
-        #   description="Secondary medium evaporator heat flow rate"
-        # )
 
-        # fs_state.set(
-        #    name="COP_outer", value=COP_outer,
-        #    unit="-", description="Outer COP, including heat losses"
-        # )
 
         fs_state.set(name="SEC_T_con_in", value=inputs.T_con_in - 273.15,
                      description="Condenser inlet temperature secondary")

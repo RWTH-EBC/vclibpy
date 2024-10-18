@@ -52,11 +52,12 @@ class Compressor(BaseComponent):
         self.N_max = N_max
         self.V_h = V_h
 
-    def get_lambda_h(self, inputs: Inputs) -> float:
+    def get_lambda_h(self, p_outlet, inputs: Inputs) -> float:
         """
         Get the volumetric efficiency.
 
         Args:
+            p_outlet:
             inputs (Inputs): Inputs for the calculation.
 
         Returns:
@@ -111,37 +112,46 @@ class Compressor(BaseComponent):
         """
         return self.N_max * n
 
-    def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
+    def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState,
+                          eta_is=None):
         """
         Calculate the output state based on the high pressure level and the provided inputs.
         The state is automatically set as the outlet state of this component.
 
         Args:
+            eta_is:
+            p_outlet_for_eta:
             p_outlet (float): High pressure value.
             inputs (Inputs): Inputs for calculation.
             fs_state (FlowsheetState): Flowsheet state.
         """
         state_outlet_isentropic = self.med_prop.calc_state("PS", p_outlet, self.state_inlet.s)
-        eta_is = self.get_eta_isentropic(p_outlet=p_outlet, inputs=inputs)
+        if eta_is is None:
+            eta_is = self.get_eta_isentropic(p_outlet=p_outlet, inputs=inputs)
         h_outlet = (
                 self.state_inlet.h + (state_outlet_isentropic.h - self.state_inlet.h) /
                 eta_is
         )
         fs_state.set(name="eta_is", value=eta_is, unit="-", description="Isentropic efficiency")
         self.state_outlet = self.med_prop.calc_state("PH", p_outlet, h_outlet)
+        return eta_is
 
-    def calc_m_flow(self, inputs: Inputs, fs_state: FlowsheetState) -> float:
+    def calc_m_flow(self, inputs: Inputs, fs_state: FlowsheetState,
+                    lambda_h=None) -> float:
         """
         Calculate the refrigerant mass flow rate.
 
         Args:
+            lambda_h:
             inputs (Inputs): Inputs for the calculation.
             fs_state (FlowsheetState): Flowsheet state.
 
         Returns:
             float: Refrigerant mass flow rate.
         """
-        lambda_h = self.get_lambda_h(inputs=inputs)
+        if lambda_h is None:
+            lambda_h = self.get_lambda_h(inputs=inputs,
+                                         p_outlet=None)
         V_flow_ref = (
                 lambda_h *
                 self.V_h *
@@ -153,8 +163,11 @@ class Compressor(BaseComponent):
         fs_state.set(name="REF_m_flow_comp", value=self.m_flow, unit="kg/s", description="Refrigerant mass flow rate")
         return self.m_flow
 
-    def calc_n(self, inputs: Inputs, fs_state: FlowsheetState):
-        lambda_h = self.get_lambda_h(inputs=inputs)
+    def calc_n(self, inputs: Inputs, fs_state: FlowsheetState,
+               lambda_h=None):
+        if lambda_h is None:
+            lambda_h = self.get_lambda_h(inputs=inputs,
+                                         p_outlet=None)
         V_flow_ref = self.m_flow/self.state_inlet.d
         n_abs = V_flow_ref/(lambda_h * self.V_h)
         return n_abs/self.N_max

@@ -4,8 +4,7 @@ import logging
 import numpy as np
 from vclibpy.datamodels import FlowsheetState, Inputs
 from vclibpy.components.heat_exchangers.ntu import BasicNTU
-
-from vclibpy.components.heat_exchangers.heat_transfer.heat_transfer import HeatTransfer, TwoPhaseHeatTransfer
+from vclibpy.media import ThermodynamicState
 
 logger = logging.getLogger(__name__)
 
@@ -17,76 +16,88 @@ class MovingBoundaryNTU(BasicNTU, abc.ABC):
     See parent classe for arguments.
     """
 
-    def __init__(self,
-                 flow_type: str,
-                 ratio_outer_to_inner_area: float,
-                 gas_heat_transfer: HeatTransfer,
-                 liquid_heat_transfer: HeatTransfer,
-                 two_phase_heat_transfer: TwoPhaseHeatTransfer,
-                 **kwargs):
-        super(MovingBoundaryNTU, self).__init__(flow_type,
-                                                ratio_outer_to_inner_area,
-                                                **kwargs)
-
-        self._gas_heat_transfer = gas_heat_transfer
-        self._liquid_heat_transfer = liquid_heat_transfer
-        self._two_phase_heat_transfer = two_phase_heat_transfer
-
-        return
-
-    def calc_alpha_two_phase(self, state_q0, state_q1, inputs: Inputs, fs_state: FlowsheetState) -> float:
+    def separate_phases(self, state_max: ThermodynamicState, state_min: ThermodynamicState, p: float):
         """
-        Calculate the two-phase heat transfer coefficient.
+        Separates a flow with possible phase changes into three parts:
+        subcooling (sc), latent phase change (lat), and superheating (sh)
+        at the given pressure.
 
         Args:
-            state_q0: State at vapor quality 0.
-            state_q1: State at vapor quality 1.
-            inputs (Inputs): The inputs for the calculation.
-            fs_state (FlowsheetState): The flowsheet state to save important variables.
+            state_max (ThermodynamicState): State with higher enthalpy.
+            state_min (ThermodynamicState): State with lower enthalpy.
+            p (float): Pressure of phase change.
 
         Returns:
-            float: The two-phase heat transfer coefficient.
+            Tuple[float, float, float, ThermodynamicState, ThermodynamicState]:
+                Q_sc: Heat for subcooling.
+                Q_lat: Heat for latent phase change.
+                Q_sh: Heat for superheating.
+                state_q0: State at vapor quality 0 and the given pressure.
+                state_q1: State at vapor quality 1 and the given pressure.
         """
-        return self._two_phase_heat_transfer.calc(
-            state_q0=state_q0,
-            state_q1=state_q1,
-            inputs=inputs,
-            fs_state=fs_state,
-            m_flow=self.m_flow,
-            med_prop=self.med_prop,
-            state_inlet=self.state_inlet,
-            state_outlet=self.state_outlet
-        )
+        # Get relevant states:
+        state_q0 = self.med_prop.calc_state("PQ", p, 0)
+        state_q1 = self.med_prop.calc_state("PQ", p, 1)
+        Q_sc = max(0.0,
+                   min((state_q0.h - state_min.h),
+                       (state_max.h - state_min.h))) * self.m_flow
+        Q_lat = max(0.0,
+                    (min(state_max.h, state_q1.h) -
+                     max(state_min.h, state_q0.h))) * self.m_flow
+        Q_sh = max(0.0,
+                   min((state_max.h - state_q1.h),
+                       (state_max.h - state_min.h))) * self.m_flow
+        return Q_sc, Q_lat, Q_sh, state_q0, state_q1
 
-    def calc_alpha_liquid(self, transport_properties) -> float:
+    def iterate_area(self, dT_max, alpha_pri, alpha_sec, Q) -> float:
         """
-        Calculate the liquid-phase heat transfer coefficient.
+        Iteratively calculates the required area for the heat exchange.
 
         Args:
-            transport_properties: Transport properties for the liquid phase.
+            dT_max (float): Maximum temperature differential.
+            alpha_pri (float): Heat transfer coefficient for the primary medium.
+            alpha_sec (float): Heat transfer coefficient for the secondary medium.
+            Q (float): Heat flow rate.
 
         Returns:
-            float: The liquid-phase heat transfer coefficient.
+            float: Required area for heat exchange.
         """
-        return self._liquid_heat_transfer.calc(
-            transport_properties=transport_properties,
-            m_flow=self.m_flow
-        )
+        _accuracy = 1e-6  # square mm
+        _step = 1.0
+        R = self.calc_R()
+        k = self.calc_k(alpha_pri, alpha_sec)
+        m_flow_cp_min = self.calc_m_flow_cp_min()
+        # First check if point is feasible at all
+        if dT_max <= 0:
+            return self.A
+        eps_necessary = Q / (m_flow_cp_min * dT_max)
 
-    def calc_alpha_gas(self, transport_properties) -> float:
-        """
-        Calculate the gas-phase heat transfer coefficient.
+        # Special cases:
+        # ---------------
+        # eps is equal or higher than 1, an infinite amount of area would be necessary.
+        if eps_necessary >= 1:
+            return self.A
+        # eps is lower or equal to zero: No Area required (Q<=0)
+        if eps_necessary <= 0:
+            return 0
 
-        Args:
-            transport_properties: Transport properties for the gas phase.
+        area = 0.0
+        while True:
+            NTU = self.calc_NTU(area, k, m_flow_cp_min)
+            eps = self.calc_eps(R, NTU)
+            if eps >= eps_necessary:
+                if _step <= _accuracy:
+                    break
+                else:
+                    # Go back
+                    area -= _step
+                    _step /= 10
+                    continue
+            if _step < _accuracy and area > self.A:
+                break
+            area += _step
 
-        Returns:
-            float: The gas-phase heat transfer coefficient.
-        """
-        return self._gas_heat_transfer.calc(
-            transport_properties=transport_properties,
-            m_flow=self.m_flow
-        )
+        return min(area, self.A)
 
 
 class MovingBoundaryNTUCondenser(MovingBoundaryNTU):
@@ -211,16 +222,9 @@ class MovingBoundaryNTUCondenser(MovingBoundaryNTU):
         dT_min_out = self.state_inlet.T - T_out
         dT_min_LatSH = state_q1.T - T_sh
 
-        fs_state.set(name="A_con_sh", value=A_sh, unit="m2",
-                     description="Area for superheat heat exchange in condenser")
+        fs_state.set(name="A_con_sh", value=A_sh, unit="m2", description="Area for superheat heat exchange in condenser")
         fs_state.set(name="A_con_lat", value=A_lat, unit="m2", description="Area for latent heat exchange in condenser")
-        fs_state.set(name="A_con_sc", value=A_sc, unit="m2",
-                     description="Area for subcooling heat exchange in condenser")
-        fs_state.set(name="dT_pinch_con",
-                     value=min(dT_min_in,
-                               dT_min_LatSH,
-                               dT_min_out),
-                     description="Pinch Condenser")
+        fs_state.set(name="A_con_sc", value=A_sc, unit="m2", description="Area for subcooling heat exchange in condenser")
 
         return error, min(dT_min_in,
                           dT_min_LatSH,
@@ -270,7 +274,7 @@ class MovingBoundaryNTUEvaporator(MovingBoundaryNTU):
 
         # Note: As Q_eva_ntu has to converge to Q_eva (m_ref*delta_h), we can safely
         # calculate the output temperature.
-        T_mean = inputs.T_eva_in + Q / (self.m_flow_secondary_cp * 2)
+        T_mean = inputs.T_eva_in - Q / (self.m_flow_secondary_cp * 2)
         tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
 
@@ -356,13 +360,7 @@ class MovingBoundaryNTUEvaporator(MovingBoundaryNTU):
         dT_min_in = inputs.T_eva_in - self.state_outlet.T
         dT_min_out = T_out - self.state_inlet.T
 
-        fs_state.set(name="A_eva_sh", value=A_sh, unit="m2",
-                     description="Area for superheat heat exchange in evaporator")
-        fs_state.set(name="A_eva_lat", value=A_lat, unit="m2",
-                     description="Area for latent heat exchange in evaporator")
-        fs_state.set(name="dT_pinch_eva",
-                     value=min(dT_min_out,
-                               dT_min_in),
-                     description="Pinch Evaporator")
+        fs_state.set(name="A_eva_sh", value=A_sh, unit="m2", description="Area for superheat heat exchange in evaporator")
+        fs_state.set(name="A_eva_lat", value=A_lat, unit="m2", description="Area for latent heat exchange in evaporator")
 
         return error, min(dT_min_out, dT_min_in)

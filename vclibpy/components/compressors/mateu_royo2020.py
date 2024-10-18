@@ -66,20 +66,24 @@ class MateuRoyo2020(Compressor):
         self.a1 = a1
         self.a2 = a2
 
-    def get_lambda_h(self, inputs: Inputs) -> float:
+    def get_lambda_h(self, p_outlet, inputs: Inputs) -> float:
         """
         Returns the constant volumetric efficiency of the compressor.
 
         Args:
+            p_outlet:
             inputs (Inputs): Input parameters for the calculation.
 
         Returns:
             float: Constant volumetric efficiency.
         """
+        if p_outlet is None and self.state_outlet is None:
+            print("p_outlet is missing or lambda_h")
+            exit()
+        if p_outlet is None:
+            p_outlet = self.state_outlet.p
 
-
-
-        rp = self.state_outlet.p / self.state_inlet.p
+        rp = p_outlet / self.state_inlet.p
 
         return self.a0 + self.a1 * rp + self.a2 * rp ** 2
 
