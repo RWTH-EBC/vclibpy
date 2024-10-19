@@ -8,7 +8,7 @@ from vclibpy.components.compressors import Compressor
 from vclibpy.components.expansion_valves import ExpansionValve
 from vclibpy.media import ThermodynamicState
 from vclibpy.components.phase_separator import PhaseSeparator
-
+from vclibpy.components.heat_exchangers import HeatExchanger
 logger = logging.getLogger(__name__)
 
 
@@ -318,10 +318,3 @@ class VaporInjection_TwoStageFlashTank(VaporInjection_TwoStage):
         return self.flashtank.state_inlet.q, self.flashtank.state_outlet_vapor.h, self.flashtank.state_outlet_liquid
 
 
-class VaporInjection_TwoStageECO(VaporInjection_TwoStage):
-
-    def __init__(self,
-                 ECO,
-                 **kwargs):
-        super().__init__(**kwargs)
-        self.eco = ECO

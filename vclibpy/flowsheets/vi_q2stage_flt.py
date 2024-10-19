@@ -1,18 +1,16 @@
 import math
 import logging
-import numpy as np
-import matplotlib.pyplot as plt
 from vclibpy.flowsheets import BaseCycle
 from vclibpy.datamodels import FlowsheetState, Inputs
 from vclibpy.components.compressors import Compressor
 from vclibpy.components.expansion_valves import ExpansionValve
-from vclibpy.media import ThermodynamicState
 from vclibpy.components.phase_separator import PhaseSeparator
+
 
 logger = logging.getLogger(__name__)
 
 
-class VaporInjection_qTwoStage(BaseCycle):
+class VI_q2StageFLT(BaseCycle):
     """
     Class for a standard cycle with four components.
 
@@ -39,6 +37,7 @@ class VaporInjection_qTwoStage(BaseCycle):
         self.expansion_valve_low = expansion_valve_low
         self.expansion_valve_high = expansion_valve_high
         self.vi_pressure_fac = vi_pressure_fac
+        self.flashtank = PhaseSeparator()
 
     def get_all_components(self):
         return super().get_all_components() + [
@@ -53,20 +52,20 @@ class VaporInjection_qTwoStage(BaseCycle):
         return {
             "1": self.compressor_low.state_inlet,
             "1_q1": self.med_prop.calc_state("PQ", self.compressor_low.state_inlet.p, 1),
-            "2": self.compressor_low.state_outlet,
-            "2_s": self.med_prop.calc_state("PS", self.compressor_low.state_outlet.p,
+            "1*": self.compressor_low.state_outlet,
+            "1*s": self.med_prop.calc_state("PS", self.compressor_low.state_outlet.p,
                                             self.compressor_low.state_inlet.s),
-            "3": self.compressor_high.state_inlet,
-            "4": self.compressor_high.state_outlet,
-            "4s": self.med_prop.calc_state("PS", self.compressor_high.state_outlet.p,
+            "1**": self.compressor_high.state_inlet,
+            "2": self.compressor_high.state_outlet,
+            "2s": self.med_prop.calc_state("PS", self.compressor_high.state_outlet.p,
                                            self.compressor_high.state_inlet.s),
-            "4_q1": self.med_prop.calc_state("PQ", self.compressor_high.state_outlet.p, 1),
-            "5_q0": self.med_prop.calc_state("PQ", self.compressor_high.state_outlet.p, 0),
-            "5": self.condenser.state_outlet,
-            "6": self.expansion_valve_high.state_outlet,
-            "7": self.med_prop.calc_state("PQ", self.expansion_valve_high.state_outlet.p, 1),
-            "8": self.med_prop.calc_state("PQ", self.expansion_valve_high.state_outlet.p, 0),
-            "9": self.evaporator.state_inlet
+            "2_q1": self.med_prop.calc_state("PQ", self.compressor_high.state_outlet.p, 1),
+            "3_q0": self.med_prop.calc_state("PQ", self.compressor_high.state_outlet.p, 0),
+            "3": self.condenser.state_outlet,
+            "4": self.expansion_valve_high.state_outlet,
+            "5": self.med_prop.calc_state("PQ", self.expansion_valve_high.state_outlet.p, 1),
+            "6": self.med_prop.calc_state("PQ", self.expansion_valve_high.state_outlet.p, 0),
+            "7": self.evaporator.state_inlet
         }
 
 
@@ -98,9 +97,18 @@ class VaporInjection_qTwoStage(BaseCycle):
             # state 1*
             self.compressor_low.calc_state_outlet(p_outlet=p_vi, inputs=inputs, fs_state=fs_state, eta_is=eta_is)
             # state 5
-            x_vapor_injection, h_vapor_injection = self.calc_injection()
+
+            # state 4
+            self.flashtank.state_inlet = self.expansion_valve_high.state_outlet
+            # state 6
+            self.expansion_valve_low.state_inlet = self.flashtank.state_outlet_liquid
+            # state 7
+            self.expansion_valve_low.calc_outlet(self.evaporator.state_outlet.p)
+            self.evaporator.state_inlet = self.expansion_valve_low.state_outlet
+
 
             # state 1**
+            x_vapor_injection, h_vapor_injection = self.flashtank.state_inlet.q, self.flashtank.state_outlet_vapor.h
             h_1_VI_mixed = (
                     (1 - x_vapor_injection) * self.compressor_low.state_outlet.h +
                     x_vapor_injection * h_vapor_injection
@@ -276,48 +284,3 @@ class VaporInjection_qTwoStage(BaseCycle):
         return self.compressor_high.calc_electrical_power(inputs=inputs,
                                                           fs_state=fs_state) + self.compressor_low.calc_electrical_power(
             inputs=inputs, fs_state=fs_state)
-
-
-    def calc_injection(self) -> (float, float, ThermodynamicState):
-        """
-        Calculate the injection component, e.g. phase separator
-        or heat exchanger.
-        In this function, child classes must set inlets
-        and calculate outlets of additional components.
-
-        Returns:
-            float: Portion of vapor injected (x)
-            float: Enthalpy of vapor injected
-            ThermodynamicState: Inlet state of low pressure expansion valve
-        """
-        raise NotImplementedError
-
-
-class VaporInjection_qTwoStageFlashTank(VaporInjection_qTwoStage):
-
-    def __init__(self,
-                 **kwargs):
-        self.flashtank = PhaseSeparator()
-        super().__init__(**kwargs)
-
-    def get_all_components(self):
-        return super().get_all_components() + [self.flashtank]
-
-    def calc_injection(self):
-        # state 4
-        self.flashtank.state_inlet = self.expansion_valve_high.state_outlet
-        # state 6
-        self.expansion_valve_low.state_inlet = self.flashtank.state_outlet_liquid
-        # state 7
-        self.expansion_valve_low.calc_outlet(self.evaporator.state_outlet.p)
-        self.evaporator.state_inlet = self.expansion_valve_low.state_outlet
-        return self.flashtank.state_inlet.q, self.flashtank.state_outlet_vapor.h
-
-
-class VaporInjection_qTwoStageECO(VaporInjection_qTwoStage):
-
-    def __init__(self,
-                 ECO,
-                 **kwargs):
-        super().__init__(**kwargs)
-        self.eco = ECO

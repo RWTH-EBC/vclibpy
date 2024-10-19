@@ -5,7 +5,7 @@ from vclibpy.flowsheets import BaseCycle
 from vclibpy.datamodels import FlowsheetState, Inputs
 from vclibpy.components.compressors import Compressor
 from vclibpy.components.expansion_valves import ExpansionValve
-from vclibpy.components.heat_exchangers import HeatExchanger
+from vclibpy.components.heat_exchangers import MVB_LMTD_IHX
 
 
 logger = logging.getLogger(__name__)
@@ -25,7 +25,7 @@ class IHX(BaseCycle, abc.ABC):
             compressor: Compressor,
             expansion_valve1: ExpansionValve,
             expansion_valve2: ExpansionValve,
-            ihx: HeatExchanger,
+            ihx: MVB_LMTD_IHX,
             **kwargs
     ):
         super().__init__(**kwargs)
