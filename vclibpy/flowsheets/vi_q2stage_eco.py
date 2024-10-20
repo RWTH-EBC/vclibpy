@@ -29,6 +29,7 @@ class VI_q2StageECO(BaseCycle):
             expansion_valve_high: ExpansionValve,
             eco: MVB_LMTD_IHX,
             vi_pressure_fac=1,
+            y_inj=None,
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -37,6 +38,7 @@ class VI_q2StageECO(BaseCycle):
         self.expansion_valve_low = expansion_valve_low
         self.expansion_valve_high = expansion_valve_high
         self.vi_pressure_fac = vi_pressure_fac
+        self.y_inj = y_inj
         self.eco = eco
 
     def get_all_components(self):
@@ -111,33 +113,37 @@ class VI_q2StageECO(BaseCycle):
                     description="Relative compressor speed"
                 )
             while True:
-                x_vi_step = 0.01
-                x_vi = 0.0001
+                if self.y_inj is None:
+                    y_inj = 0.0001
+                else:
+                    y_inj = self.y_inj
                 error = 10000
-                while abs(error) > 0.1 and x_vi < 0.3 and x_vi_step > 0.00001:
+                y_inj_step = 0.01
+                while abs(error) > 0.1 and y_inj < 0.19 and y_inj_step > 0.00001:
                     # State 1**
                     h_1_VI_mixed = (
-                            (1 - x_vi) * self.compressor_low.state_outlet.h +
-                            x_vi * self.eco.state_outlet_low.h
+                            (1 - y_inj) * self.compressor_low.state_outlet.h +
+                            y_inj * self.eco.state_outlet_low.h
                     )
                     self.compressor_high.state_inlet = self.med_prop.calc_state("PH", p_vi, h_1_VI_mixed)
 
                     m_flow_ref = self.compressor_high.calc_m_flow(inputs=inputs, fs_state=fs_state, lambda_h=lambda_h)
-                    self.eco.m_flow_low = x_vi * m_flow_ref
-                    self.eco.m_flow_high = (1 - x_vi) * m_flow_ref
+                    self.eco.m_flow_low = y_inj * m_flow_ref
+                    self.eco.m_flow_high = (1 - y_inj) * m_flow_ref
 
                     # State 6
                     Q_eco = self.eco.m_flow_low * (self.eco.state_outlet_low.h - self.eco.state_inlet_low.h)
                     h_6 = self.eco.state_inlet_high.h - Q_eco / self.eco.m_flow_high
                     self.eco.state_outlet_high = self.med_prop.calc_state("PH", p_2, h_6)
-
+                    if self.y_inj is not None:
+                        break
                     error, dT_min = self.eco.calc(inputs, fs_state)
                     if error > 0:
-                        x_vi += x_vi_step
+                        y_inj += y_inj_step
                     else:
-                        x_vi -= x_vi_step
-                        x_vi_step /= 10
-                        x_vi += x_vi_step
+                        y_inj -= y_inj_step
+                        y_inj_step /= 10
+                        y_inj += y_inj_step
 
                 # State 2
                 self.compressor_high.calc_state_outlet(p_outlet=p_2, inputs=inputs, fs_state=fs_state, eta_is=eta_is)
@@ -172,15 +178,16 @@ class VI_q2StageECO(BaseCycle):
             self.expansion_valve_low.state_inlet = self.eco.state_outlet_high
             self.expansion_valve_low.calc_outlet(p_outlet=p_1)
             self.evaporator.state_inlet = self.expansion_valve_low.state_outlet
-            self.evaporator.m_flow = self.compressor_low.calc_m_flow(inputs=inputs, fs_state=fs_state, lambda_h=lambda_h)
+            self.evaporator.m_flow = self.eco.m_flow_high
+            self.compressor_low.m_flow = self.eco.m_flow_high
 
-            n_low = self.compressor_low.calc_n(inputs=inputs,fs_state=fs_state,lambda_h=lambda_h)
-            n_high = self.compressor_high.calc_n(inputs=inputs,fs_state=fs_state,lambda_h=lambda_h)
-            if self.vi_pressure_fac is None:
+            n_low = self.compressor_low.calc_n(inputs=inputs, fs_state=fs_state, lambda_h=lambda_h)
+            n_high = self.compressor_high.calc_n(inputs=inputs, fs_state=fs_state, lambda_h=lambda_h)
+            if self.vi_pressure_fac is not None:
                 break
-            if n_low/n_high < 1:
+            if n_low / n_high < 1:
                 continue
-            elif n_low/n_high < 1.0001:
+            elif n_low / n_high < 1.0001:
                 break
             else:
                 p_vi -= step_p_vi
@@ -225,7 +232,7 @@ class VI_q2StageECO(BaseCycle):
                 description="Secondary side condenser outlet temperature"
             )
 
-        fs_state.set(name="x_vapor_injection", value=x_vi, unit="-", description="VI ratio")
+        fs_state.set(name="x_vapor_injection", value=y_inj, unit="-", description="VI ratio")
         fs_state.set(name="eta_is_low", value=eta_is, unit="1/s",
                      description="Compressor Speed Low isentropic eff")
         fs_state.set(name="eta_is_high", value=eta_is, unit="1/s",
@@ -247,7 +254,7 @@ class VI_q2StageECO(BaseCycle):
         fs_state.set(name="p_eva", value=p_1 / 100000, unit="bar", description="Evaporation pressure")
         fs_state.set(name="p_vi", value=p_vi / 100000, unit="bar", description="VI pressure")
         fs_state.set(name="Comp_dh", value=0.001 * (self.compressor_high.state_outlet.h -
-                                                    self.compressor_high.state_inlet.h + (1 - x_vi) *
+                                                    self.compressor_high.state_inlet.h + (1 - y_inj) *
                                                     (self.compressor_low.state_outlet.h -
                                                      self.compressor_low.state_inlet.h)))
 

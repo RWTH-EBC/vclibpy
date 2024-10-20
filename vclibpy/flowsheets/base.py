@@ -168,7 +168,6 @@ class BaseCycle:
 
         num_iterations = 0
 
-        error_eva = -100
         while True:
             if isinstance(max_num_iterations, (int, float)):
                 if num_iterations > max_num_iterations:
@@ -218,7 +217,6 @@ class BaseCycle:
                 return
             if save_path_plots is not None and num_iterations == 1 and show_iteration:
                 self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_initialization.png"), inputs=inputs)
-            last_error_eva = error_eva
             # Check heat exchangers:
             error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
             if not isinstance(error_eva, float):
