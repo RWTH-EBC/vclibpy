@@ -44,7 +44,8 @@ class VI_q2StageFLT(BaseCycle):
             self.compressor_low,
             self.compressor_high,
             self.expansion_valve_low,
-            self.expansion_valve_high
+            self.expansion_valve_high,
+            self.flashtank
         ]
 
     def get_states(self):
