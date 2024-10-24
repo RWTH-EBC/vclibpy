@@ -77,7 +77,7 @@ class BasicLMTD(HeatExchanger, abc.ABC):
         dT_in = Tsec_in - Tprim_out
         dT_out = Tsec_out - Tprim_in
 
-        if dT_in * dT_out < 0:
+        if dT_in * dT_out <= 0:
             return 0.0000001
         if dT_out == dT_in:
             return dT_out

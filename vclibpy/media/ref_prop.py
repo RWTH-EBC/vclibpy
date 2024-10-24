@@ -162,7 +162,8 @@ class RefProp(MedProp):
                     copy_dll_directory,
                     f"med_prop_{fluid_name}_REFPRP64.dll"
                 )
-                shutil.copyfile(path_to_dll, self._delete_dll_path)
+                if not os.path.isfile(self._delete_dll_path):
+                    shutil.copyfile(path_to_dll, self._delete_dll_path)
                 atexit.register(self.terminate)
                 path_to_dll = self._delete_dll_path
             except (PermissionError, FileExistsError) as err:
