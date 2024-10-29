@@ -5,6 +5,68 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sdf
 
+from vclibpy.media import ThermodynamicState, MedProp
+
+
+def plot_cycle(
+        med_prop: MedProp,
+        states: List[ThermodynamicState],
+        save_path: pathlib.Path = None
+):
+    """
+    Creates T-h and p-h diagrams for a thermodynamic cycle.
+
+    Args:
+        med_prop (MedProp):
+            Object containing the medium properties and two-phase limits.
+        states (List[ThermodynamicState]):
+            List of thermodynamic states defining the cycle points. Each state
+            should contain T, p, and h properties.
+        save_path (pathlib.Path, optional):
+            Path where the plot should be saved. If None, returns the figure
+            and axes objects instead. Defaults to None.
+
+    Returns:
+        tuple(matplotlib.figure.Figure, numpy.ndarray) or None:
+            If save_path is None, returns the figure and axes objects.
+            If save_path is provided, saves the plot and returns None.
+    """
+    states.append(states[0])  # Plot full cycle
+    # Unpack state var:
+    h_T = np.array([state.h for state in states]) / 1000
+    T = [state.T - 273.15 for state in states]
+    p = np.array([state.p for state in states])
+    h_p = h_T
+
+    fig, ax = plt.subplots(2, 1, sharex=True)
+    ax[0].set_ylabel("$T$ in °C")
+    ax[1].set_xlabel("$h$ in kJ/kgK")
+    # Two phase limits
+    ax[0].plot(
+        med_prop.get_two_phase_limits("h") / 1000,
+        med_prop.get_two_phase_limits("T") - 273.15, color="black"
+    )
+
+    ax[0].plot(h_T, T, color="r", marker="s")
+    ax[1].plot(h_p, np.log(p), marker="s", color="r")
+    # Two phase limits
+    ax[1].plot(
+        med_prop.get_two_phase_limits("h") / 1000,
+        np.log(med_prop.get_two_phase_limits("p")),
+        color="black"
+    )
+    ax[1].set_ylabel("$log(p)$")
+    ax[1].set_ylim([np.min(np.log(p)) * 0.9, np.max(np.log(p)) * 1.1])
+    ax[0].set_ylim([np.min(T) - 5, np.max(T) + 5])
+    ax[1].set_xlim([np.min(h_T) * 0.9, np.max(h_T) * 1.1])
+    ax[0].set_xlim([np.min(h_T) * 0.9, np.max(h_T) * 1.1])
+    if save_path is not None:
+        fig.tight_layout()
+        fig.savefig(save_path)
+        plt.close(fig)
+        return
+    return fig, ax
+
 
 def plot_sdf_map(
         filepath_sdf: pathlib.Path,
