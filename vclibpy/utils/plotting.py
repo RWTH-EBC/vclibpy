@@ -11,7 +11,8 @@ from vclibpy.media import ThermodynamicState, MedProp
 def plot_cycle(
         med_prop: MedProp,
         states: List[ThermodynamicState],
-        save_path: pathlib.Path = None
+        save_path: pathlib.Path = None,
+        show: bool = False
 ):
     """
     Creates T-h and p-h diagrams for a thermodynamic cycle.
@@ -25,6 +26,8 @@ def plot_cycle(
         save_path (pathlib.Path, optional):
             Path where the plot should be saved. If None, returns the figure
             and axes objects instead. Defaults to None.
+        show (bool):
+            If True, plots are displayed. Default is False.
 
     Returns:
         tuple(matplotlib.figure.Figure, numpy.ndarray) or None:
@@ -35,7 +38,7 @@ def plot_cycle(
     # Unpack state var:
     h_T = np.array([state.h for state in states]) / 1000
     T = [state.T - 273.15 for state in states]
-    p = np.array([state.p for state in states])
+    p = np.array([state.p / 1e5 for state in states])
     h_p = h_T
 
     fig, ax = plt.subplots(2, 1, sharex=True)
@@ -48,18 +51,21 @@ def plot_cycle(
     )
 
     ax[0].plot(h_T, T, color="r", marker="s")
-    ax[1].plot(h_p, np.log(p), marker="s", color="r")
+    ax[1].set_yscale('log')  # Set y-axis to logarithmic scale
+    ax[1].plot(h_p, p, marker="s", color="r")
     # Two phase limits
     ax[1].plot(
         med_prop.get_two_phase_limits("h") / 1000,
-        np.log(med_prop.get_two_phase_limits("p")),
+        med_prop.get_two_phase_limits("p"),
         color="black"
     )
-    ax[1].set_ylabel("$log(p)$")
-    ax[1].set_ylim([np.min(np.log(p)) * 0.9, np.max(np.log(p)) * 1.1])
+    ax[1].set_ylabel("$log(p)$ in bar")
+    ax[1].set_ylim([np.min(p) * 0.9, np.max(p) * 1.1])
     ax[0].set_ylim([np.min(T) - 5, np.max(T) + 5])
     ax[1].set_xlim([np.min(h_T) * 0.9, np.max(h_T) * 1.1])
     ax[0].set_xlim([np.min(h_T) * 0.9, np.max(h_T) * 1.1])
+    if show:
+        plt.show()
     if save_path is not None:
         fig.tight_layout()
         fig.savefig(save_path)
