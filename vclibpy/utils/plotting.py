@@ -56,7 +56,7 @@ def plot_cycle(
     # Two phase limits
     ax[1].plot(
         med_prop.get_two_phase_limits("h") / 1000,
-        med_prop.get_two_phase_limits("p"),
+        med_prop.get_two_phase_limits("p") / 1e5,
         color="black"
     )
     ax[1].set_ylabel("$log(p)$ in bar")
