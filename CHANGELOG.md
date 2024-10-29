@@ -1,2 +1,4 @@
 - v0.1.0:
    - First implementation based on prior work
+- v0.1.1:
+  - Move plot_cycle function
