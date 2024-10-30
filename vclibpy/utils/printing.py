@@ -12,6 +12,7 @@ import pandas as pd
 def print_states(**kwargs):
     """
     Transforms given states to DataFrame and prints table layout.
+    Declaration of state must start with 'state'
 
     Returns:
     :return pandas.DataFrame df_states:

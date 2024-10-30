@@ -31,8 +31,8 @@ def plot_cycle(
 
     Returns:
         tuple(matplotlib.figure.Figure, numpy.ndarray) or None:
-            If save_path is None, returns the figure and axes objects.
             If save_path is provided, saves the plot and returns None.
+            If show is True, shows the plot.
     """
     states.append(states[0])  # Plot full cycle
     # Unpack state var:
