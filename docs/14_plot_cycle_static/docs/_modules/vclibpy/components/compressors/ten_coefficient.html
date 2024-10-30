@@ -1,0 +1,471 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.components.compressors.ten_coefficient &mdash; vclibpy 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../../../../_static/jquery.js"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+      <script src="../../../../_static/doctools.js"></script>
+      <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">vclibpy.components.compressors.ten_coefficient</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for vclibpy.components.compressors.ten_coefficient</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">abc</span> <span class="kn">import</span> <span class="n">ABC</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">vclibpy.components.compressors.compressor</span> <span class="kn">import</span> <span class="n">Compressor</span>
+<span class="kn">from</span> <span class="nn">vclibpy.datamodels</span> <span class="kn">import</span> <span class="n">Inputs</span>
+
+
+<div class="viewcode-block" id="calc_ten_coefficients"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.calc_ten_coefficients">[docs]</a><span class="k">def</span> <span class="nf">calc_ten_coefficients</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">coef_list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the result using the ten-coefficient method.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        T_eva (float): Evaporator temperature in Celsius.</span>
+<span class="sd">        T_con (float): Condenser temperature in Celsius.</span>
+<span class="sd">        coef_list (list): List of coefficients.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        float: Result of the calculation.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Formula for the ten-coefficient method according to the datasheet</span>
+    <span class="n">z</span> <span class="o">=</span> <span class="n">coef_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">coef_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">T_eva</span> <span class="o">+</span> <span class="n">coef_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">T_con</span> <span class="o">+</span> <span class="n">coef_list</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">*</span> <span class="n">T_eva</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> \
+        <span class="n">coef_list</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">*</span> <span class="n">T_eva</span> <span class="o">*</span> <span class="n">T_con</span> <span class="o">+</span> <span class="n">coef_list</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">*</span> <span class="n">T_con</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">+</span> <span class="n">coef_list</span><span class="p">[</span><span class="mi">6</span><span class="p">]</span> <span class="o">*</span> <span class="n">T_eva</span> <span class="o">**</span> <span class="mi">3</span> <span class="o">+</span> \
+        <span class="n">coef_list</span><span class="p">[</span><span class="mi">7</span><span class="p">]</span> <span class="o">*</span> <span class="n">T_eva</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">T_con</span> <span class="o">+</span> <span class="n">coef_list</span><span class="p">[</span><span class="mi">8</span><span class="p">]</span> <span class="o">*</span> <span class="n">T_con</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">T_eva</span> <span class="o">+</span> <span class="n">coef_list</span><span class="p">[</span><span class="mi">9</span><span class="p">]</span> <span class="o">*</span> <span class="n">T_con</span> <span class="o">**</span> <span class="mi">3</span>
+    <span class="k">return</span> <span class="n">z</span></div>
+
+
+<div class="viewcode-block" id="BaseTenCoefficientCompressor"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.BaseTenCoefficientCompressor">[docs]</a><span class="k">class</span> <span class="nc">BaseTenCoefficientCompressor</span><span class="p">(</span><span class="n">Compressor</span><span class="p">,</span> <span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for compressors using the ten-coefficient method.</span>
+
+<span class="sd">    Used table has to be in this format</span>
+<span class="sd">    (order of the columns is not important).</span>
+<span class="sd">    The values must be the same as in the example tabel.</span>
+<span class="sd">    The column names can be different but must</span>
+<span class="sd">    then be matched with argument parameter_names.</span>
+<span class="sd">    (All typed in numbers are fictional placeholders)</span>
+
+<span class="sd">          Capacity(W)     Input Power(W)      Flow Rate(kg/h)     Capacity(W)     ...     Flow Rate(kg/h)</span>
+<span class="sd">    n     n1              n1                  n1                  n2              ...     n_last</span>
+<span class="sd">    P1    42              12                  243                 32              ...     412</span>
+<span class="sd">    ...   ...             ...                 ...                 ...             ...     ...</span>
+<span class="sd">    P10   10              23                  21                  41              ...     2434</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        N_max (float): Maximal rotations per second of the compressor.</span>
+<span class="sd">        V_h (float): Volume of the compressor in m^3.</span>
+<span class="sd">        datasheet (str): Path of the datasheet file.</span>
+<span class="sd">        **kwargs:</span>
+<span class="sd">            parameter_names (dict, optional):</span>
+<span class="sd">                Dictionary to match internal parameter names (keys) to the names used in the table values.</span>
+<span class="sd">                Default</span>
+<span class="sd">                {</span>
+<span class="sd">                    &quot;m_flow&quot;: &quot;Flow Rate(kg/h)&quot;,</span>
+<span class="sd">                    &quot;capacity&quot;: &quot;Capacity(W)&quot;,</span>
+<span class="sd">                    &quot;input_power&quot;: &quot;Input Power(W)&quot;,</span>
+<span class="sd">                    &quot;eta_s&quot;: &quot;Isentropic Efficiency(-)&quot;,</span>
+<span class="sd">                    &quot;lambda_h&quot;: &quot;Volumentric Efficiency(-)&quot;,</span>
+<span class="sd">                    &quot;eta_mech&quot;: &quot;Mechanical Efficiency(-)&quot;</span>
+<span class="sd">                }</span>
+<span class="sd">            sheet_name (str, optional): Name of the sheet in the datasheet. Defaults to None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N_max</span><span class="p">,</span> <span class="n">V_h</span><span class="p">,</span> <span class="n">datasheet</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the BaseTenCoefficientCompressor.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            N_max (float): Maximal rotations per second of the compressor.</span>
+<span class="sd">            V_h (float): Volume of the compressor in m^3.</span>
+<span class="sd">            datasheet (str): Path of the datasheet file.</span>
+<span class="sd">            parameter_names (dict, optional): Dictionary of parameter names. Defaults to None.</span>
+<span class="sd">            sheet_name (str, optional): Name of the sheet in the datasheet. Defaults to None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">N_max</span><span class="p">,</span> <span class="n">V_h</span><span class="p">)</span>
+        <span class="n">sheet_name</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;sheet_name&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">md</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="n">datasheet</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="n">sheet_name</span><span class="p">)</span>
+        <span class="n">parameter_names</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;parameter_names&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">parameter_names</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;m_flow&quot;</span><span class="p">:</span> <span class="s2">&quot;Flow Rate(kg/h)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;capacity&quot;</span><span class="p">:</span> <span class="s2">&quot;Capacity(W)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;input_power&quot;</span><span class="p">:</span> <span class="s2">&quot;Input Power(W)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;eta_s&quot;</span><span class="p">:</span> <span class="s2">&quot;Isentropic Efficiency(-)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;lambda_h&quot;</span><span class="p">:</span> <span class="s2">&quot;Volumentric Efficiency(-)&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;eta_mech&quot;</span><span class="p">:</span> <span class="s2">&quot;Mechanical Efficiency(-)&quot;</span>
+            <span class="p">}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span> <span class="o">=</span> <span class="n">parameter_names</span>
+
+<div class="viewcode-block" id="BaseTenCoefficientCompressor.get_parameter"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.BaseTenCoefficientCompressor.get_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">get_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">type_</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a parameter based on temperatures, rotations, and parameter type from the datasheet.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            T_eva (float): Evaporator temperature in Celsius.</span>
+<span class="sd">            T_con (float): Condenser temperature in Celsius.</span>
+<span class="sd">            n (float): Rotations per second.</span>
+<span class="sd">            type_ (str): Parameter type in parameter_names.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Interpolated parameter value.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">param_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">n_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">sampling_points</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">[</span><span class="n">type_</span><span class="p">]</span> <span class="ow">in</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">md</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>  <span class="c1"># counts number of sampling points</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">sampling_points</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">coefficients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">md</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">[</span><span class="n">type_</span><span class="p">]]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">coefficients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">md</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parameter_names</span><span class="p">[</span><span class="n">type_</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">))]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+            <span class="n">n_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">coefficients</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+            <span class="n">param_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">calc_ten_coefficients</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">coefficients</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_n_absolute</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="n">n_list</span><span class="p">,</span> <span class="n">param_list</span><span class="p">)</span>  <span class="c1"># linear interpolation</span></div></div>
+
+
+<div class="viewcode-block" id="TenCoefficientCompressor"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.TenCoefficientCompressor">[docs]</a><span class="k">class</span> <span class="nc">TenCoefficientCompressor</span><span class="p">(</span><span class="n">BaseTenCoefficientCompressor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compressor based on the ten coefficient method.</span>
+
+<span class="sd">    Used table has to be in this format</span>
+<span class="sd">    (order of the columns is not important).</span>
+<span class="sd">    The values must be the same as in the example tabel.</span>
+<span class="sd">    The column names can be different but must</span>
+<span class="sd">    then be matched with the keyword argument parameter_names.</span>
+<span class="sd">    (All typed in numbers are fictional placeholders)</span>
+
+<span class="sd">          Capacity(W)     Input Power(W)      Flow Rate(kg/h)     Capacity(W)     ...     Flow Rate(kg/h)</span>
+<span class="sd">    n     n1              n1                  n1                  n2              ...     n_last</span>
+<span class="sd">    P1    42              12                  243                 32              ...     412</span>
+<span class="sd">    ...   ...             ...                 ...                 ...             ...     ...</span>
+<span class="sd">    P10   10              23                  21                  41              ...     2434</span>
+
+<span class="sd">    T_sh and T_sc have to be set according to the data sheet of your compressor. capacity_definition defines the</span>
+<span class="sd">    parameter &quot;capacity&quot; in the datasheet. If capacity is the specific cooling capacity (h1-h4), set it on &quot;cooling&quot;.</span>
+<span class="sd">    If capacity is the specific heating capacity (h2-h3), set it on &quot;heating&quot;.</span>
+<span class="sd">    In the case of cooling capacity, the mechanical efficiency of the compressor has to be assumed (assumed_eta_mech)</span>
+<span class="sd">    as h2 can&#39;t be calculated otherwise. Summary:</span>
+<span class="sd">        - For the case heating capacity: h2 = h3 + capacity / m_flow</span>
+<span class="sd">        - For the case cooling capacity:  h2 = h3 + (capacity + p_el * assumed_eta_mech) / m_flow</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        N_max (float): Maximal rotations per second of the compressor.</span>
+<span class="sd">        V_h (float): Volume of the compressor in m^3.</span>
+<span class="sd">        T_sc (float): Subcooling according to datasheet in K.</span>
+<span class="sd">        T_sh (float): Superheating according to datasheet in K.</span>
+<span class="sd">        capacity_definition (str): Definition of &quot;capacity&quot; in the datasheet. &quot;cooling&quot; or &quot;heating&quot;.</span>
+<span class="sd">        assumed_eta_mech (float): Assumed mechanical efficiency of the compressor (only needed if cooling).</span>
+<span class="sd">        datasheet (str): Path of the modified datasheet.</span>
+<span class="sd">        **kwargs:</span>
+<span class="sd">            parameter_names (dict, optional):</span>
+<span class="sd">                Dictionary to match internal parameter names (keys) to the names used in the table values.</span>
+<span class="sd">                Default</span>
+<span class="sd">                {</span>
+<span class="sd">                    &quot;m_flow&quot;: &quot;Flow Rate(kg/h)&quot;,</span>
+<span class="sd">                    &quot;capacity&quot;: &quot;Capacity(W)&quot;,</span>
+<span class="sd">                    &quot;input_power&quot;: &quot;Input Power(W)&quot;</span>
+<span class="sd">                }</span>
+<span class="sd">            sheet_name (str, optional): Name of the sheet in the datasheet. Defaults to None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N_max</span><span class="p">,</span> <span class="n">V_h</span><span class="p">,</span> <span class="n">T_sc</span><span class="p">,</span> <span class="n">T_sh</span><span class="p">,</span> <span class="n">capacity_definition</span><span class="p">,</span> <span class="n">assumed_eta_mech</span><span class="p">,</span> <span class="n">datasheet</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">N_max</span><span class="o">=</span><span class="n">N_max</span><span class="p">,</span> <span class="n">V_h</span><span class="o">=</span><span class="n">V_h</span><span class="p">,</span> <span class="n">datasheet</span><span class="o">=</span><span class="n">datasheet</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T_sc</span> <span class="o">=</span> <span class="n">T_sc</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T_sh</span> <span class="o">=</span> <span class="n">T_sh</span>
+        <span class="k">if</span> <span class="n">capacity_definition</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;cooling&quot;</span><span class="p">,</span> <span class="s2">&quot;heating&quot;</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;capacity_definition has to be either &#39;heating&#39; or &#39;cooling&#39;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_capacity_definition</span> <span class="o">=</span> <span class="n">capacity_definition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assumed_eta_mech</span> <span class="o">=</span> <span class="n">assumed_eta_mech</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datasheet</span> <span class="o">=</span> <span class="n">datasheet</span>
+
+<div class="viewcode-block" id="TenCoefficientCompressor.get_lambda_h"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.TenCoefficientCompressor.get_lambda_h">[docs]</a>    <span class="k">def</span> <span class="nf">get_lambda_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the volumetric efficiency.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            inputs (Inputs): Input parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Volumetric efficiency.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">p_outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_p_outlet</span><span class="p">()</span>
+
+        <span class="n">n_abs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_n_absolute</span><span class="p">(</span><span class="n">inputs</span><span class="o">.</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">T_eva</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="mf">273.15</span>  <span class="c1"># [°C]</span>
+        <span class="n">T_con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="mf">273.15</span>  <span class="c1"># [°C]</span>
+
+        <span class="k">if</span> <span class="nb">round</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">T_eva</span> <span class="o">-</span> <span class="mf">273.15</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">round</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_sh</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;The superheating of the given state is not &quot;</span>
+                          <span class="s2">&quot;equal to the superheating of the datasheet. &quot;</span>
+                          <span class="s2">&quot;State1.T_sh= &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">T_eva</span> <span class="o">-</span> <span class="mf">273.15</span><span class="p">),</span> <span class="mi">2</span><span class="p">))</span> <span class="o">+</span>
+                          <span class="s2">&quot;. Datasheet.T_sh = &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T_sh</span><span class="p">))</span>
+        <span class="c1"># The datasheet has a given superheating temperature which can</span>
+        <span class="c1"># vary from the superheating of the real state 1</span>
+        <span class="c1"># which is given by the user.</span>
+        <span class="c1"># Thus a new self.state_inlet_datasheet has to</span>
+        <span class="c1"># be defined for all further calculations</span>
+        <span class="n">state_inlet_datasheet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">T_eva</span> <span class="o">+</span> <span class="mf">273.15</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_sh</span><span class="p">)</span>
+
+        <span class="n">m_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="s2">&quot;m_flow&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3600</span>  <span class="c1"># [kg/s]</span>
+
+        <span class="n">lambda_h</span> <span class="o">=</span> <span class="n">m_flow</span> <span class="o">/</span> <span class="p">(</span><span class="n">n_abs</span> <span class="o">*</span> <span class="n">state_inlet_datasheet</span><span class="o">.</span><span class="n">d</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">V_h</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">lambda_h</span></div>
+
+<div class="viewcode-block" id="TenCoefficientCompressor.get_eta_isentropic"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.TenCoefficientCompressor.get_eta_isentropic">[docs]</a>    <span class="k">def</span> <span class="nf">get_eta_isentropic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the isentropic efficiency.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            p_outlet (float): Outlet pressure in Pa.</span>
+<span class="sd">            inputs (Inputs): Input parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Isentropic efficiency.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">T_con</span><span class="p">,</span> <span class="n">state_inlet_datasheet</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">p_el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span>
+            <span class="n">p_2</span><span class="o">=</span><span class="n">p_outlet</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span>
+        <span class="p">)</span>
+
+        <span class="n">h3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">,</span> <span class="n">T_con</span> <span class="o">+</span> <span class="mf">273.15</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_sc</span><span class="p">)</span><span class="o">.</span><span class="n">h</span>  <span class="c1"># [J/kg]</span>
+        <span class="n">h2s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PS&quot;</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">,</span> <span class="n">state_inlet_datasheet</span><span class="o">.</span><span class="n">s</span><span class="p">)</span><span class="o">.</span><span class="n">h</span>  <span class="c1"># [J/kg]</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capacity_definition</span> <span class="o">==</span> <span class="s2">&quot;heating&quot;</span><span class="p">:</span>
+            <span class="n">h2</span> <span class="o">=</span> <span class="n">h3</span> <span class="o">+</span> <span class="n">capacity</span> <span class="o">/</span> <span class="n">m_flow</span>  <span class="c1"># [J/kg]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">h2</span> <span class="o">=</span> <span class="n">h3</span> <span class="o">+</span> <span class="p">(</span><span class="n">capacity</span> <span class="o">+</span> <span class="n">p_el</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">assumed_eta_mech</span><span class="p">)</span> <span class="o">/</span> <span class="n">m_flow</span>  <span class="c1"># [J/kg]</span>
+
+        <span class="k">if</span> <span class="n">h2s</span> <span class="o">&gt;</span> <span class="n">h2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;The calculated eta_s is above 1. You probably chose the wrong capacity_definition&quot;</span><span class="p">)</span>
+
+        <span class="n">eta_s</span> <span class="o">=</span> <span class="p">(</span><span class="n">h2s</span> <span class="o">-</span> <span class="n">state_inlet_datasheet</span><span class="o">.</span><span class="n">h</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">h2</span> <span class="o">-</span> <span class="n">state_inlet_datasheet</span><span class="o">.</span><span class="n">h</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">eta_s</span></div>
+
+<div class="viewcode-block" id="TenCoefficientCompressor.get_eta_mech"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.TenCoefficientCompressor.get_eta_mech">[docs]</a>    <span class="k">def</span> <span class="nf">get_eta_mech</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the mechanical efficiency.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            inputs (Inputs): Input parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Mechanical efficiency.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">p_outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_p_outlet</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_capacity_definition</span> <span class="o">==</span> <span class="s2">&quot;cooling&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">assumed_eta_mech</span>
+        <span class="c1"># Else heating</span>
+        <span class="n">T_con</span><span class="p">,</span> <span class="n">state_inlet_datasheet</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">p_el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_values</span><span class="p">(</span>
+            <span class="n">p_2</span><span class="o">=</span><span class="n">p_outlet</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span>
+        <span class="p">)</span>
+
+        <span class="n">h3</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">,</span> <span class="n">T_con</span> <span class="o">+</span> <span class="mf">273.15</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_sc</span><span class="p">)</span><span class="o">.</span><span class="n">h</span>  <span class="c1"># [J/kg]</span>
+        <span class="n">h2</span> <span class="o">=</span> <span class="n">h3</span> <span class="o">+</span> <span class="n">capacity</span> <span class="o">/</span> <span class="n">m_flow</span>  <span class="c1"># [J/kg]</span>
+
+        <span class="n">eta_mech</span> <span class="o">=</span> <span class="p">(</span><span class="n">m_flow</span> <span class="o">*</span> <span class="p">(</span><span class="n">h2</span> <span class="o">-</span> <span class="n">state_inlet_datasheet</span><span class="o">.</span><span class="n">h</span><span class="p">))</span> <span class="o">/</span> <span class="n">p_el</span>
+        <span class="k">return</span> <span class="n">eta_mech</span></div>
+
+    <span class="k">def</span> <span class="nf">_calculate_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate intermediate values for efficiency calculations.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            p_2 (float): Outlet pressure in Pa.</span>
+<span class="sd">            inputs (Inputs): Input parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Tuple[float, State, float, float, float]: Intermediate values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">T_eva</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="mf">273.15</span>  <span class="c1"># [°C]</span>
+        <span class="n">T_con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="mf">273.15</span>  <span class="c1"># [°C]</span>
+
+        <span class="n">state_inlet_datasheet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">T_eva</span> <span class="o">+</span> <span class="mf">273.15</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">T_sh</span><span class="p">)</span>
+
+        <span class="n">m_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="s2">&quot;m_flow&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">3600</span>  <span class="c1"># [kg/s]</span>
+        <span class="n">capacity</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="s2">&quot;capacity&quot;</span><span class="p">)</span>  <span class="c1"># [W]</span>
+        <span class="n">p_el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="s2">&quot;input_power&quot;</span><span class="p">)</span>  <span class="c1"># [W]</span>
+        <span class="k">return</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">state_inlet_datasheet</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">p_el</span></div>
+
+
+<div class="viewcode-block" id="DataSheetCompressor"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.DataSheetCompressor">[docs]</a><span class="k">class</span> <span class="nc">DataSheetCompressor</span><span class="p">(</span><span class="n">BaseTenCoefficientCompressor</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compressor based on the ten coefficient method.</span>
+
+<span class="sd">    Used table has to be in this format</span>
+<span class="sd">    (order of the columns is not important).</span>
+<span class="sd">    The values must be the same as in the example tabel.</span>
+<span class="sd">    The column names can be different but must</span>
+<span class="sd">    then be matched with the keyword argument parameter_names.</span>
+<span class="sd">    (All typed in numbers are fictional placeholders)</span>
+
+<span class="sd">          Isentropic      Volumetric        Mechanical      Isentropic              Mechanical</span>
+<span class="sd">          Efficiency(-)   Efficiency(-)     Efficiency(-)   Efficiency(-)   ...     Efficiency(-)</span>
+<span class="sd">    n     n1              n1                n1              n2              ...     n_last</span>
+<span class="sd">    P1    42              12                243             32              ...     412</span>
+<span class="sd">    ...   ...             ...               ...             ...             ...     ...</span>
+<span class="sd">    P10   10              23                21              41              ...     2434</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        N_max (float): Maximal rotations per second of the compressor.</span>
+<span class="sd">        V_h (float): Volume of the compressor in m^3.</span>
+<span class="sd">        datasheet (str): Path of the datasheet file.</span>
+<span class="sd">        **kwargs:</span>
+<span class="sd">            parameter_names (dict, optional):</span>
+<span class="sd">                Dictionary to match internal parameter names (keys) to the names used in the table values.</span>
+<span class="sd">                Default</span>
+<span class="sd">                {</span>
+<span class="sd">                    &quot;eta_s&quot;: &quot;Isentropic Efficiency(-)&quot;,</span>
+<span class="sd">                    &quot;lambda_h&quot;: &quot;Volumetric Efficiency(-)&quot;,</span>
+<span class="sd">                    &quot;eta_mech&quot;: &quot;Mechanical Efficiency(-)&quot;</span>
+<span class="sd">                }</span>
+<span class="sd">            sheet_name (str, optional): Name of the sheet in the datasheet. Defaults to None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N_max</span><span class="p">,</span> <span class="n">V_h</span><span class="p">,</span> <span class="n">datasheet</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">N_max</span><span class="o">=</span><span class="n">N_max</span><span class="p">,</span> <span class="n">V_h</span><span class="o">=</span><span class="n">V_h</span><span class="p">,</span> <span class="n">datasheet</span><span class="o">=</span><span class="n">datasheet</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DataSheetCompressor.get_lambda_h"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.DataSheetCompressor.get_lambda_h">[docs]</a>    <span class="k">def</span> <span class="nf">get_lambda_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the volumetric efficiency.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            inputs (Inputs): Input parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Volumetric efficiency.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">p_outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_p_outlet</span><span class="p">()</span>
+        <span class="n">T_eva</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">T_con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="s2">&quot;lambda_h&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DataSheetCompressor.get_eta_isentropic"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.DataSheetCompressor.get_eta_isentropic">[docs]</a>    <span class="k">def</span> <span class="nf">get_eta_isentropic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the isentropic efficiency.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            p_outlet (float): Outlet pressure in Pa.</span>
+<span class="sd">            inputs (Inputs): Input parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Isentropic efficiency.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">T_eva</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">T_con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="s2">&quot;eta_s&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DataSheetCompressor.get_eta_mech"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.ten_coefficient.DataSheetCompressor.get_eta_mech">[docs]</a>    <span class="k">def</span> <span class="nf">get_eta_mech</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the mechanical efficiency.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            inputs (Inputs): Input parameters.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            float: Mechanical efficiency.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">p_outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_p_outlet</span><span class="p">()</span>
+        <span class="n">T_eva</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">T_con</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_parameter</span><span class="p">(</span><span class="n">T_eva</span><span class="p">,</span> <span class="n">T_con</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">n</span><span class="p">,</span> <span class="s2">&quot;eta_mech&quot;</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

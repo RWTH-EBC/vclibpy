@@ -1,0 +1,267 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.utils.sdf_ &mdash; vclibpy 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../../../_static/jquery.js"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/doctools.js"></script>
+      <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">vclibpy.utils.sdf_</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for vclibpy.utils.sdf_</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">pathlib</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">sdf</span>
+
+
+<div class="viewcode-block" id="save_to_sdf"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.sdf_.save_to_sdf">[docs]</a><span class="k">def</span> <span class="nf">save_to_sdf</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Save given input dictionary to a sdf file in the given save_path</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        data (dict):</span>
+<span class="sd">            A dictionary with the following structure:</span>
+<span class="sd">            Keys: Flowsheet_name</span>
+<span class="sd">            Values: A dictionary with the following structure:</span>
+
+<span class="sd">            - Keys: Fluids</span>
+<span class="sd">            - Values: Data dictionaries with the following structure:</span>
+<span class="sd">                A tuple with three values, in that order:</span>
+
+<span class="sd">                - scales: Of the given nd_data, e.g. T_Amb, n</span>
+<span class="sd">                - nd_data: More-dimensional data, e.g. COP</span>
+<span class="sd">                - parameters: Scalar values, like m_flow_con or similar</span>
+
+<span class="sd">        save_path (pathlib.Path): Where to store the data</span>
+<span class="sd">        flowsheet_name (str): Name of the flowsheet. This is the top level group</span>
+<span class="sd">    :return:</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">save_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
+    <span class="n">_all_groups</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">flowsheet_name</span><span class="p">,</span> <span class="n">fluid_dict</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">_all_fluids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">fluid</span><span class="p">,</span> <span class="n">fluid_data</span> <span class="ow">in</span> <span class="n">fluid_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="c1"># First write scales</span>
+            <span class="n">_scales</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">scale_name</span><span class="p">,</span> <span class="n">scale_values</span> <span class="ow">in</span> <span class="n">fluid_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">_scales</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sdf</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">scale_name</span><span class="p">,</span>
+                                           <span class="n">data</span><span class="o">=</span><span class="n">scale_values</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">],</span>
+                                           <span class="n">unit</span><span class="o">=</span><span class="n">scale_values</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">],</span>
+                                           <span class="n">is_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                           <span class="n">display_name</span><span class="o">=</span><span class="n">scale_name</span><span class="p">,</span>
+                                           <span class="n">comment</span><span class="o">=</span><span class="n">scale_values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;comment&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)))</span>
+            <span class="c1"># Now the ND-Data:</span>
+            <span class="n">_nd_data</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">data_name</span><span class="p">,</span> <span class="n">data_values</span> <span class="ow">in</span> <span class="n">fluid_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">_nd_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sdf</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">data_name</span><span class="p">,</span>
+                                            <span class="n">data</span><span class="o">=</span><span class="n">data_values</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">],</span>
+                                            <span class="n">unit</span><span class="o">=</span><span class="n">data_values</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">],</span>
+                                            <span class="n">scales</span><span class="o">=</span><span class="n">_scales</span><span class="p">,</span>
+                                            <span class="n">comment</span><span class="o">=</span><span class="n">data_values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;comment&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)))</span>
+            <span class="c1"># Now the constant parameters</span>
+            <span class="n">_paras</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">para_name</span><span class="p">,</span> <span class="n">para_value</span> <span class="ow">in</span> <span class="n">fluid_data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">_paras</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sdf</span><span class="o">.</span><span class="n">Dataset</span><span class="p">(</span><span class="n">para_name</span><span class="p">,</span>
+                                          <span class="n">data</span><span class="o">=</span><span class="n">para_value</span><span class="p">[</span><span class="s2">&quot;data&quot;</span><span class="p">],</span>
+                                          <span class="n">unit</span><span class="o">=</span><span class="n">para_value</span><span class="p">[</span><span class="s2">&quot;unit&quot;</span><span class="p">],</span>
+                                          <span class="n">comment</span><span class="o">=</span><span class="n">para_value</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;comment&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)))</span>
+
+            <span class="c1"># Save everything</span>
+            <span class="n">fluid_group</span> <span class="o">=</span> <span class="n">sdf</span><span class="o">.</span><span class="n">Group</span><span class="p">(</span><span class="n">fluid</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;Values for fluid&quot;</span><span class="p">,</span> <span class="n">datasets</span><span class="o">=</span><span class="n">_scales</span> <span class="o">+</span> <span class="n">_nd_data</span> <span class="o">+</span> <span class="n">_paras</span><span class="p">)</span>
+            <span class="n">_all_fluids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fluid_group</span><span class="p">)</span>
+
+        <span class="n">flowsheet_group</span> <span class="o">=</span> <span class="n">sdf</span><span class="o">.</span><span class="n">Group</span><span class="p">(</span><span class="n">flowsheet_name</span><span class="p">,</span>
+                                    <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;Multiple fluids for the flowsheet&quot;</span><span class="p">,</span>
+                                    <span class="n">groups</span><span class="o">=</span><span class="n">_all_fluids</span><span class="p">)</span>
+        <span class="n">_all_groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flowsheet_group</span><span class="p">)</span>
+
+    <span class="n">parent_group</span> <span class="o">=</span> <span class="n">sdf</span><span class="o">.</span><span class="n">Group</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;Generated with VCLibPy&quot;</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="n">_all_groups</span><span class="p">)</span>
+    <span class="n">sdf</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="n">parent_group</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">save_path</span></div>
+
+
+<div class="viewcode-block" id="merge_sdfs"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.sdf_.merge_sdfs">[docs]</a><span class="k">def</span> <span class="nf">merge_sdfs</span><span class="p">(</span><span class="n">filepaths</span><span class="p">,</span> <span class="n">save_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Merge given files and return a merged file.</span>
+<span class="sd">    Be careful if both files contain the same combination.</span>
+<span class="sd">    Then, the latter element of the list will overwrite the first one.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepaths (list): List with paths to the files</span>
+<span class="sd">        save_path (str): Save path for the new file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_all_flowsheets</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># Merge to structure</span>
+    <span class="k">for</span> <span class="n">fpath</span> <span class="ow">in</span> <span class="n">filepaths</span><span class="p">:</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">sdf</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">fpath</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">flowsheet</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+            <span class="n">fluid_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">fluid</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">fluid</span> <span class="k">for</span> <span class="n">fluid</span> <span class="ow">in</span> <span class="n">flowsheet</span><span class="o">.</span><span class="n">groups</span><span class="p">}</span>
+            <span class="k">if</span> <span class="n">flowsheet</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_all_flowsheets</span><span class="p">:</span>
+                <span class="n">_all_flowsheets</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">flowsheet</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">fluid_data</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">_all_flowsheets</span><span class="p">[</span><span class="n">flowsheet</span><span class="o">.</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">fluid_data</span><span class="p">)</span>
+
+    <span class="c1"># Write structure</span>
+    <span class="n">_all_groups</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">flowsheet_name</span><span class="p">,</span> <span class="n">fluid_dict</span> <span class="ow">in</span> <span class="n">_all_flowsheets</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">_all_fluids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">fluid</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">fluid_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">_all_fluids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+        <span class="n">flowsheet_group</span> <span class="o">=</span> <span class="n">sdf</span><span class="o">.</span><span class="n">Group</span><span class="p">(</span><span class="n">flowsheet_name</span><span class="p">,</span>
+                                    <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;Multiple fluids for the flowsheet&quot;</span><span class="p">,</span>
+                                    <span class="n">groups</span><span class="o">=</span><span class="n">_all_fluids</span><span class="p">)</span>
+        <span class="n">_all_groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">flowsheet_group</span><span class="p">)</span>
+
+    <span class="n">parent_group</span> <span class="o">=</span> <span class="n">sdf</span><span class="o">.</span><span class="n">Group</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s2">&quot;Generated with python script&quot;</span><span class="p">,</span> <span class="n">groups</span><span class="o">=</span><span class="n">_all_groups</span><span class="p">)</span>
+    <span class="n">sdf</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="n">parent_group</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">save_path</span></div>
+
+
+<div class="viewcode-block" id="sdf_to_csv"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.sdf_.sdf_to_csv">[docs]</a><span class="k">def</span> <span class="nf">sdf_to_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a given .sdf file to multiple excel files,</span>
+<span class="sd">    for each combination of flowsheet and refrigerant one file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        filepath (pathlib.Path): sdf file</span>
+<span class="sd">        save_path (pathlib.Path): Directory where to store the csv files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">sdf</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">filepath</span><span class="p">))</span>
+    <span class="k">for</span> <span class="n">flowsheet</span> <span class="ow">in</span> <span class="n">dataset</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">fluid</span> <span class="ow">in</span> <span class="n">flowsheet</span><span class="o">.</span><span class="n">groups</span><span class="p">:</span>
+            <span class="n">dfs</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">fluid</span><span class="o">.</span><span class="n">datasets</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">_is_nd</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+                    <span class="n">dfs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_unpack_nd_data</span><span class="p">(</span><span class="n">data</span><span class="p">))</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">dfs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="o">~</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">duplicated</span><span class="p">()]</span>
+            <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">save_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">flowsheet</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">fluid</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">))</span></div>
+
+
+<span class="k">def</span> <span class="nf">_get_name</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">comment</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+
+<span class="k">def</span> <span class="nf">_is_nd</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">scales</span> <span class="o">==</span> <span class="p">[</span><span class="kc">None</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="kc">False</span>
+    <span class="k">return</span> <span class="kc">True</span>
+
+
+<span class="k">def</span> <span class="nf">_unpack_nd_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+    <span class="n">column_name</span> <span class="o">=</span> <span class="n">_get_name</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">scale_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">_get_name</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span> <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">scales</span><span class="p">]</span>
+    <span class="n">scales_with_idx</span> <span class="o">=</span> <span class="p">[[(</span><span class="n">idx</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scale</span><span class="o">.</span><span class="n">data</span><span class="p">)]</span> <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">scales</span><span class="p">]</span>
+    <span class="n">all_data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">scales</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">scales_with_idx</span><span class="p">):</span>
+        <span class="n">indexer</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">scale</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="n">scales</span><span class="p">])</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">scale</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="n">scales</span><span class="p">]</span>
+        <span class="n">all_data</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="n">column_name</span><span class="p">:</span> <span class="n">data</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="n">indexer</span><span class="p">],</span>
+            <span class="o">**</span><span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">scale_names</span><span class="p">,</span> <span class="n">values</span><span class="p">)}</span>
+        <span class="p">})</span>
+    <span class="k">return</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">all_data</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">sdf_to_csv</span><span class="p">(</span>
+        <span class="n">filepath</span><span class="o">=</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;D:\00_temp\calibration_jmo\Optihorst_3D_vclibpy.sdf&quot;</span><span class="p">),</span>
+        <span class="n">save_path</span><span class="o">=</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;D:\04_git\vclibpy\tests\regression_data&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

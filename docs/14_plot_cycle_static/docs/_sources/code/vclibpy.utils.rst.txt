@@ -1,0 +1,58 @@
+vclibpy.utils package
+=====================
+
+.. automodule:: vclibpy.utils
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+vclibpy.utils.automation module
+-------------------------------
+
+.. automodule:: vclibpy.utils.automation
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.utils.nominal\_design module
+------------------------------------
+
+.. automodule:: vclibpy.utils.nominal_design
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.utils.plotting module
+-----------------------------
+
+.. automodule:: vclibpy.utils.plotting
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.utils.printing module
+-----------------------------
+
+.. automodule:: vclibpy.utils.printing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.utils.sdf\_ module
+--------------------------
+
+.. automodule:: vclibpy.utils.sdf_
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.utils.ten\_coefficient\_compressor\_reqression module
+-------------------------------------------------------------
+
+.. automodule:: vclibpy.utils.ten_coefficient_compressor_reqression
+   :members:
+   :undoc-members:
+   :show-inheritance:
