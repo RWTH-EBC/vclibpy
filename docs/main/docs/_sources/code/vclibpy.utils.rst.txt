@@ -33,6 +33,14 @@ vclibpy.utils.plotting module
    :undoc-members:
    :show-inheritance:
 
+vclibpy.utils.printing module
+-----------------------------
+
+.. automodule:: vclibpy.utils.printing
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vclibpy.utils.sdf\_ module
 --------------------------
 

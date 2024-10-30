@@ -1,24 +1,22 @@
+
+
 <!DOCTYPE html>
 <html class="writer-html5" lang="en">
 <head>
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>vclibpy.flowsheets package &mdash; vclibpy 0.1.0 documentation</title>
+  <title>vclibpy.flowsheets package &mdash; vclibpy 0.1.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
       <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
 
   
-  <!--[if lt IE 9]>
-    <script src="../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
-  
-        <script src="../_static/jquery.js"></script>
-        <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
-        <script src="../_static/doctools.js"></script>
-        <script src="../_static/sphinx_highlight.js"></script>
+      <script src="../_static/jquery.js"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+      <script src="../_static/doctools.js"></script>
+      <script src="../_static/sphinx_highlight.js"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -37,9 +35,6 @@
           <a href="../index.html" class="icon icon-home">
             vclibpy
           </a>
-              <div class="version">
-                0.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -95,475 +90,25 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="module-vclibpy.flowsheets">
-<span id="vclibpy-flowsheets-package"></span><h1>vclibpy.flowsheets package<a class="headerlink" href="#module-vclibpy.flowsheets" title="Permalink to this heading"></a></h1>
+  <section id="vclibpy-flowsheets-package">
+<h1>vclibpy.flowsheets package<a class="headerlink" href="#vclibpy-flowsheets-package" title="Permalink to this heading"></a></h1>
 <section id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
 </section>
-<section id="module-vclibpy.flowsheets.base">
-<span id="vclibpy-flowsheets-base-module"></span><h2>vclibpy.flowsheets.base module<a class="headerlink" href="#module-vclibpy.flowsheets.base" title="Permalink to this heading"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.flowsheets.base.</span></span><span class="sig-name descname"><span class="pre">BaseCycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fluid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">evaporator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger" title="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger"><span class="pre">HeatExchanger</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">condenser</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger" title="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger"><span class="pre">HeatExchanger</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/base.html#BaseCycle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/functions.html#object" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></a></p>
-<p>Base class for a heat pump. More complex systems may inherit from this class
-All HP have a compressor, two HE and a source and sink.
-Therefore, the parameters defined here are general parameters.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>fluid (str): Name of the fluid
-evaporator (HeatExchanger): Instance of a heat exchanger used for the  evaporator
-condenser (HeatExchanger): Instance of a heat exchanger used for the condenser</p>
-</dd>
-</dl>
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle.calc_electrical_power">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calc_electrical_power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.FlowsheetState" title="vclibpy.datamodels.FlowsheetState"><span class="pre">FlowsheetState</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/base.html#BaseCycle.calc_electrical_power"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle.calc_electrical_power" title="Permalink to this definition"></a></dt>
-<dd><p>Function to calc the electrical power consumption based on the flowsheet used</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle.calc_states">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calc_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.FlowsheetState" title="vclibpy.datamodels.FlowsheetState"><span class="pre">FlowsheetState</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/base.html#BaseCycle.calc_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle.calc_states" title="Permalink to this definition"></a></dt>
-<dd><p>Function to calculate the states and mass flow rates of the flowsheet
-and set these into each component based on the given pressure levels p_1 and p_2.</p>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>p_1 (float):</dt><dd><p>Lower pressure level. If no pressure losses are assumed,
-this equals the evaporation pressure and the compressor inlet pressure.</p>
-</dd>
-<dt>p_2 (float):</dt><dd><p>Higher pressure level. If no pressure losses are assumed,
-this equals the condensing pressure and the compressor outlet pressure.</p>
-</dd>
-</dl>
-<p>inputs (Inputs): Inputs of calculation.
-fs_state (FlowsheetState): Flowsheet state to save important variables.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle.calc_steady_state">
-<span class="sig-name descname"><span class="pre">calc_steady_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/base.html#BaseCycle.calc_steady_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle.calc_steady_state" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate the steady-state performance of a vapor compression cycle
-based on given inputs and assumptions.</p>
-<p>This function ensures consistent assumptions across different cycles.
-It calculates the performance of the heat pump under
-specific conditions while adhering to several general assumptions.</p>
-<section id="general-assumptions">
-<h3>General Assumptions:<a class="headerlink" href="#general-assumptions" title="Permalink to this heading"></a></h3>
-<ul class="simple">
-<li><p>Isenthalpic expansion valves:
-The enthalpy at the inlet equals the enthalpy at the outlet.</p></li>
-<li><p>No heat losses in any component:
-The heat input to the condenser equals the heat
-output of the evaporator plus the power input.</p></li>
-<li><p>Input to the evaporator is always in the two-phase region.</p></li>
-<li><p>Output of the evaporator and output of the condenser maintain
-a constant overheating or subcooling (can be set in Inputs).</p></li>
-</ul>
-<dl class="simple">
-<dt>Args:</dt><dd><dl class="simple">
-<dt>inputs (Inputs):</dt><dd><p>An instance of the Inputs class containing the
-necessary parameters to calculate the flowsheet state.</p>
-</dd>
-<dt>fluid (str):</dt><dd><p>The fluid to be used in the calculations.
-Required only if ‘fluid’ is not specified during the object’s initialization.</p>
-</dd>
-</dl>
-</dd>
-<dt>Keyword Arguments:</dt><dd><dl class="simple">
-<dt>min_iteration_step (int):</dt><dd><p>The minimum step size for iterations (default: 1).</p>
-</dd>
-<dt>save_path_plots (str or None):</dt><dd><p>The path to save plots (default: None).
-If None, no plots are created.</p>
-</dd>
-<dt>show_iteration (bool):</dt><dd><p>Whether to display iteration progress (default: False).</p>
-</dd>
-<dt>T_max (float):</dt><dd><p>Maximum temperature allowed (default: 273.15 + 150).</p>
-</dd>
-<dt>use_quick_solver (bool):</dt><dd><p>Whether to use a quick solver (default: True).</p>
-</dd>
-<dt>max_err_ntu (float):</dt><dd><p>Maximum allowable error for the heat exchanger in percent (default: 0.5).</p>
-</dd>
-<dt>max_err_dT_min (float):</dt><dd><p>Maximum allowable error for minimum temperature difference in K (default: 0.1).</p>
-</dd>
-<dt>max_num_iterations (int or None):</dt><dd><p>Maximum number of iterations allowed (default: None).</p>
-</dd>
-</dl>
-</dd>
-<dt>Returns:</dt><dd><dl class="simple">
-<dt>fs_state (FlowsheetState):</dt><dd><p>An instance of the FlowsheetState class representing
-the calculated state of the vapor compression cycle.</p>
-</dd>
-</dl>
-</dd>
-</dl>
+<section id="vclibpy-flowsheets-base-module">
+<h2>vclibpy.flowsheets.base module<a class="headerlink" href="#vclibpy-flowsheets-base-module" title="Permalink to this heading"></a></h2>
 </section>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle.flowsheet_name">
-<span class="sig-name descname"><span class="pre">flowsheet_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'BaseCLass</span> <span class="pre">of</span> <span class="pre">all</span> <span class="pre">HP</span> <span class="pre">classes</span> <span class="pre">-</span> <span class="pre">not</span> <span class="pre">to</span> <span class="pre">use</span> <span class="pre">for</span> <span class="pre">map</span> <span class="pre">generation'</span></em><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle.flowsheet_name" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle.get_all_components">
-<span class="sig-name descname"><span class="pre">get_all_components</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.12)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="vclibpy.components.html#vclibpy.components.component.BaseComponent" title="vclibpy.components.component.BaseComponent"><span class="pre">BaseComponent</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/vclibpy/flowsheets/base.html#BaseCycle.get_all_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle.get_all_components" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle.get_states_in_order_for_plotting">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_states_in_order_for_plotting</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/base.html#BaseCycle.get_states_in_order_for_plotting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle.get_states_in_order_for_plotting" title="Permalink to this definition"></a></dt>
-<dd><p>Function to return all thermodynamic states of cycle
-in the correct order for plotting.
-Include phase change states to see if your simulation
-runs plausible cycles.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>List with tuples, first entry being the state and second the mass flow rate</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle.plot_cycle">
-<span class="sig-name descname"><span class="pre">plot_cycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.12)"><span class="pre">bool</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#list" title="(in Python v3.12)"><span class="pre">list</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.12)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/base.html#BaseCycle.plot_cycle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle.plot_cycle" title="Permalink to this definition"></a></dt>
-<dd><p>Function to plot the resulting flowsheet of the steady state config.</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle.set_condenser_outlet_based_on_subcooling">
-<span class="sig-name descname"><span class="pre">set_condenser_outlet_based_on_subcooling</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_con</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/base.html#BaseCycle.set_condenser_outlet_based_on_subcooling"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle.set_condenser_outlet_based_on_subcooling" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate the outlet state of the evaporator based on
-the required degree of superheating.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>p_con (float): Condensing pressure
-inputs (Inputs): Inputs with superheating level</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle.set_evaporator_outlet_based_on_superheating">
-<span class="sig-name descname"><span class="pre">set_evaporator_outlet_based_on_superheating</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_eva</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.12)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/base.html#BaseCycle.set_evaporator_outlet_based_on_superheating"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle.set_evaporator_outlet_based_on_superheating" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate the outlet state of the evaporator based on
-the required degree of superheating.</p>
-<dl class="simple">
-<dt>Args:</dt><dd><p>p_eva (float): Evaporation pressure
-inputs (Inputs): Inputs with superheating level</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle.setup_new_fluid">
-<span class="sig-name descname"><span class="pre">setup_new_fluid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fluid</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/base.html#BaseCycle.setup_new_fluid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle.setup_new_fluid" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.base.BaseCycle.terminate">
-<span class="sig-name descname"><span class="pre">terminate</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/base.html#BaseCycle.terminate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.base.BaseCycle.terminate" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<section id="vclibpy-flowsheets-standard-module">
+<h2>vclibpy.flowsheets.standard module<a class="headerlink" href="#vclibpy-flowsheets-standard-module" title="Permalink to this heading"></a></h2>
 </section>
-<section id="module-vclibpy.flowsheets.standard">
-<span id="vclibpy-flowsheets-standard-module"></span><h2>vclibpy.flowsheets.standard module<a class="headerlink" href="#module-vclibpy.flowsheets.standard" title="Permalink to this heading"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.standard.StandardCycle">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.flowsheets.standard.</span></span><span class="sig-name descname"><span class="pre">StandardCycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">compressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor" title="vclibpy.components.compressors.compressor.Compressor"><span class="pre">Compressor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">expansion_valve</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.expansion_valves.html#vclibpy.components.expansion_valves.expansion_valve.ExpansionValve" title="vclibpy.components.expansion_valves.expansion_valve.ExpansionValve"><span class="pre">ExpansionValve</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/standard.html#StandardCycle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.standard.StandardCycle" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#vclibpy.flowsheets.base.BaseCycle" title="vclibpy.flowsheets.base.BaseCycle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseCycle</span></code></a></p>
-<p>Class for a standard cycle with four components.</p>
-<p>For the standard cycle, we have 4 possible states:</p>
-<ol class="arabic simple">
-<li><p>Before compressor, after evaporator</p></li>
-<li><p>Before condenser, after compressor</p></li>
-<li><p>Before EV, after condenser</p></li>
-<li><p>Before Evaporator, after EV</p></li>
-</ol>
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.standard.StandardCycle.calc_electrical_power">
-<span class="sig-name descname"><span class="pre">calc_electrical_power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.FlowsheetState" title="vclibpy.datamodels.FlowsheetState"><span class="pre">FlowsheetState</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/standard.html#StandardCycle.calc_electrical_power"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.standard.StandardCycle.calc_electrical_power" title="Permalink to this definition"></a></dt>
-<dd><p>Based on simple energy balance - Adiabatic</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.standard.StandardCycle.calc_states">
-<span class="sig-name descname"><span class="pre">calc_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.FlowsheetState" title="vclibpy.datamodels.FlowsheetState"><span class="pre">FlowsheetState</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/standard.html#StandardCycle.calc_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.standard.StandardCycle.calc_states" title="Permalink to this definition"></a></dt>
-<dd><p>Function to calculate the states and mass flow rates of the flowsheet
-and set these into each component based on the given pressure levels p_1 and p_2.</p>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>p_1 (float):</dt><dd><p>Lower pressure level. If no pressure losses are assumed,
-this equals the evaporation pressure and the compressor inlet pressure.</p>
-</dd>
-<dt>p_2 (float):</dt><dd><p>Higher pressure level. If no pressure losses are assumed,
-this equals the condensing pressure and the compressor outlet pressure.</p>
-</dd>
-</dl>
-<p>inputs (Inputs): Inputs of calculation.
-fs_state (FlowsheetState): Flowsheet state to save important variables.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.standard.StandardCycle.flowsheet_name">
-<span class="sig-name descname"><span class="pre">flowsheet_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'Standard'</span></em><a class="headerlink" href="#vclibpy.flowsheets.standard.StandardCycle.flowsheet_name" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.standard.StandardCycle.fluid">
-<span class="sig-name descname"><span class="pre">fluid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#vclibpy.flowsheets.standard.StandardCycle.fluid" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.standard.StandardCycle.get_all_components">
-<span class="sig-name descname"><span class="pre">get_all_components</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/standard.html#StandardCycle.get_all_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.standard.StandardCycle.get_all_components" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.standard.StandardCycle.get_states_in_order_for_plotting">
-<span class="sig-name descname"><span class="pre">get_states_in_order_for_plotting</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/standard.html#StandardCycle.get_states_in_order_for_plotting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.standard.StandardCycle.get_states_in_order_for_plotting" title="Permalink to this definition"></a></dt>
-<dd><p>Function to return all thermodynamic states of cycle
-in the correct order for plotting.
-Include phase change states to see if your simulation
-runs plausible cycles.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><ul class="simple">
-<li><p>List with tuples, first entry being the state and second the mass flow rate</p></li>
-</ul>
-</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
+<section id="vclibpy-flowsheets-vapor-injection-module">
+<h2>vclibpy.flowsheets.vapor_injection module<a class="headerlink" href="#vclibpy-flowsheets-vapor-injection-module" title="Permalink to this heading"></a></h2>
 </section>
-<section id="module-vclibpy.flowsheets.vapor_injection">
-<span id="vclibpy-flowsheets-vapor-injection-module"></span><h2>vclibpy.flowsheets.vapor_injection module<a class="headerlink" href="#module-vclibpy.flowsheets.vapor_injection" title="Permalink to this heading"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection.BaseVaporInjection">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.flowsheets.vapor_injection.</span></span><span class="sig-name descname"><span class="pre">BaseVaporInjection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">high_pressure_compressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor" title="vclibpy.components.compressors.compressor.Compressor"><span class="pre">Compressor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_pressure_compressor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor" title="vclibpy.components.compressors.compressor.Compressor"><span class="pre">Compressor</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">high_pressure_valve</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.expansion_valves.html#vclibpy.components.expansion_valves.expansion_valve.ExpansionValve" title="vclibpy.components.expansion_valves.expansion_valve.ExpansionValve"><span class="pre">ExpansionValve</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_pressure_valve</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.expansion_valves.html#vclibpy.components.expansion_valves.expansion_valve.ExpansionValve" title="vclibpy.components.expansion_valves.expansion_valve.ExpansionValve"><span class="pre">ExpansionValve</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection.html#BaseVaporInjection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#vclibpy.flowsheets.base.BaseCycle" title="vclibpy.flowsheets.base.BaseCycle"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseCycle</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.12)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
-<p>Partial cycle with vapor injection, using
-two separated compressors and expansion valves.</p>
-<section id="notes">
-<h3>Notes<a class="headerlink" href="#notes" title="Permalink to this heading"></a></h3>
-<p>See parent docstring for info on further assumptions and parameters.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_electrical_power">
-<span class="sig-name descname"><span class="pre">calc_electrical_power</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.FlowsheetState" title="vclibpy.datamodels.FlowsheetState"><span class="pre">FlowsheetState</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection.html#BaseVaporInjection.calc_electrical_power"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_electrical_power" title="Permalink to this definition"></a></dt>
-<dd><p>Function to calc the electrical power consumption based on the flowsheet used</p>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_injection">
-<span class="sig-name descname"><span class="pre">calc_injection</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'vclibpy.media.states.ThermodynamicState'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection.html#BaseVaporInjection.calc_injection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_injection" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate the injection component, e.g. phase separator
-or heat exchanger.
-In this function, child classes must set inlets
-and calculate outlets of additional components.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>float: Portion of vapor injected (x)
-float: Enthalpy of vapor injected
-ThermodynamicState: Inlet state of low pressure expansion valve</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_states">
-<span class="sig-name descname"><span class="pre">calc_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p_1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.FlowsheetState" title="vclibpy.datamodels.FlowsheetState"><span class="pre">FlowsheetState</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection.html#BaseVaporInjection.calc_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_states" title="Permalink to this definition"></a></dt>
-<dd><p>Function to calculate the states and mass flow rates of the flowsheet
-and set these into each component based on the given pressure levels p_1 and p_2.</p>
-<dl>
-<dt>Args:</dt><dd><dl class="simple">
-<dt>p_1 (float):</dt><dd><p>Lower pressure level. If no pressure losses are assumed,
-this equals the evaporation pressure and the compressor inlet pressure.</p>
-</dd>
-<dt>p_2 (float):</dt><dd><p>Higher pressure level. If no pressure losses are assumed,
-this equals the condensing pressure and the compressor outlet pressure.</p>
-</dd>
-</dl>
-<p>inputs (Inputs): Inputs of calculation.
-fs_state (FlowsheetState): Flowsheet state to save important variables.</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection.BaseVaporInjection.flowsheet_name">
-<span class="sig-name descname"><span class="pre">flowsheet_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'VaporInjectionPhaseSeparator'</span></em><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.flowsheet_name" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection.BaseVaporInjection.fluid">
-<span class="sig-name descname"><span class="pre">fluid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.fluid" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection.BaseVaporInjection.get_all_components">
-<span class="sig-name descname"><span class="pre">get_all_components</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection.html#BaseVaporInjection.get_all_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.get_all_components" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection.BaseVaporInjection.get_states_in_order_for_plotting">
-<span class="sig-name descname"><span class="pre">get_states_in_order_for_plotting</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection.html#BaseVaporInjection.get_states_in_order_for_plotting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.get_states_in_order_for_plotting" title="Permalink to this definition"></a></dt>
-<dd><p>List with all relevant states of two-stage cycle
-except the intermediate component, e.g. phase separator
-or heat exchanger.</p>
-</dd></dl>
-
+<section id="vclibpy-flowsheets-vapor-injection-economizer-module">
+<h2>vclibpy.flowsheets.vapor_injection_economizer module<a class="headerlink" href="#vclibpy-flowsheets-vapor-injection-economizer-module" title="Permalink to this heading"></a></h2>
 </section>
-</dd></dl>
-
-</section>
-<section id="module-vclibpy.flowsheets.vapor_injection_economizer">
-<span id="vclibpy-flowsheets-vapor-injection-economizer-module"></span><h2>vclibpy.flowsheets.vapor_injection_economizer module<a class="headerlink" href="#module-vclibpy.flowsheets.vapor_injection_economizer" title="Permalink to this heading"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.flowsheets.vapor_injection_economizer.</span></span><span class="sig-name descname"><span class="pre">VaporInjectionEconomizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">economizer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU" title="vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU"><span class="pre">VaporInjectionEconomizerNTU</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection_economizer.html#VaporInjectionEconomizer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection" title="vclibpy.flowsheets.vapor_injection.BaseVaporInjection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseVaporInjection</span></code></a></p>
-<p>Cycle with vapor injection using an economizer.</p>
-<p>For this cycle, we have 9 relevant states:</p>
-<ul class="simple">
-<li><p>1: Before compressor, after evaporator</p></li>
-<li><p>2: Before condenser, after compressor</p></li>
-<li><p>3: Before ihx, after condenser</p></li>
-<li><p>4: Before Evaporator, after ihx</p></li>
-<li><p>5_ihx: Before ihx, after condenser and EV</p></li>
-<li><p>6_ihx: Before Mixing with 1_VI, after ihx</p></li>
-<li><p>7_ihx: Before second EV, after ihx</p></li>
-<li><p>1_VI: Before Mixing with 6_ihx, After first stage</p></li>
-<li><p>1_VI_mixed. Before second stage of compressor, after mixing with 6_ihx</p></li>
-</ul>
-<section id="additional-assumptions">
-<h3>Additional Assumptions:<a class="headerlink" href="#additional-assumptions" title="Permalink to this heading"></a></h3>
-<ul class="simple">
-<li><p>No heat losses in ihx</p></li>
-<li><p>No pressure loss in ihx</p></li>
-<li><p>No losses for splitting of streams</p></li>
-<li><p>Isenthalpic second EV</p></li>
-</ul>
-</section>
-<section id="id1">
-<h3>Notes<a class="headerlink" href="#id1" title="Permalink to this heading"></a></h3>
-<p>See parent docstring for info on further assumptions and parameters.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.calc_injection">
-<span class="sig-name descname"><span class="pre">calc_injection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection_economizer.html#VaporInjectionEconomizer.calc_injection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.calc_injection" title="Permalink to this definition"></a></dt>
-<dd><p>This calculation assumes that the heat transfer
-of the higher temperature liquid is always in the subcooling
-region, while the vapor injection is always a two-phase heat
-transfer.
-In reality, you would need to achieve a certain degree of superheat.
-Thus, a moving boundary approach would be more fitting. For simplicity,
-we assume no superheat.</p>
-<p>This function iterates the amount of vapor injected.
-The iteration starts with close to no injection and increases
-the amount of injection as long as enough hotter sub-cooled liquid is
-present to fully vaporize the injected part.</p>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.flowsheet_name">
-<span class="sig-name descname"><span class="pre">flowsheet_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'VaporInjectionEconomizer'</span></em><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.flowsheet_name" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.fluid">
-<span class="sig-name descname"><span class="pre">fluid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.fluid" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_all_components">
-<span class="sig-name descname"><span class="pre">get_all_components</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection_economizer.html#VaporInjectionEconomizer.get_all_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_all_components" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_states_in_order_for_plotting">
-<span class="sig-name descname"><span class="pre">get_states_in_order_for_plotting</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection_economizer.html#VaporInjectionEconomizer.get_states_in_order_for_plotting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_states_in_order_for_plotting" title="Permalink to this definition"></a></dt>
-<dd><p>List with all relevant states of two-stage cycle
-except the intermediate component, e.g. phase separator
-or heat exchanger.</p>
-</dd></dl>
-
-</section>
-</dd></dl>
-
-</section>
-<section id="module-vclibpy.flowsheets.vapor_injection_phase_separator">
-<span id="vclibpy-flowsheets-vapor-injection-phase-separator-module"></span><h2>vclibpy.flowsheets.vapor_injection_phase_separator module<a class="headerlink" href="#module-vclibpy.flowsheets.vapor_injection_phase_separator" title="Permalink to this heading"></a></h2>
-<dl class="py class">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.flowsheets.vapor_injection_phase_separator.</span></span><span class="sig-name descname"><span class="pre">VaporInjectionPhaseSeparator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection_phase_separator.html#VaporInjectionPhaseSeparator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator" title="Permalink to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="#vclibpy.flowsheets.vapor_injection.BaseVaporInjection" title="vclibpy.flowsheets.vapor_injection.BaseVaporInjection"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseVaporInjection</span></code></a></p>
-<p>Cycle with vapor injection using an adiabatic ideal phase seperator.</p>
-<p>For this cycle, we have 9 relevant states:</p>
-<ul class="simple">
-<li><p>1: Before compressor, after evaporator</p></li>
-<li><p>2: Before condenser, after compressor</p></li>
-<li><p>3: Before PS, after condenser</p></li>
-<li><p>4: Before Evaporator, after PS</p></li>
-<li><p>5_vips: Before PS, after first EV</p></li>
-<li><p>6_vips: Before Mixing with 1_VI, after PS</p></li>
-<li><p>7_vips: Before second EV, after PS</p></li>
-<li><p>1_VI: Before Mixing with 6_vips, After first stage</p></li>
-<li><p>1_VI_mixed. Before second stage of compressor, after mixing with 6_vips</p></li>
-</ul>
-<section id="id2">
-<h3>Additional Assumptions:<a class="headerlink" href="#id2" title="Permalink to this heading"></a></h3>
-<ul class="simple">
-<li><p>Ideal mixing in compressor of state 5 and state 4</p></li>
-</ul>
-</section>
-<section id="id3">
-<h3>Notes<a class="headerlink" href="#id3" title="Permalink to this heading"></a></h3>
-<p>See parent docstring for info on further assumptions and parameters.</p>
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.calc_injection">
-<span class="sig-name descname"><span class="pre">calc_injection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection_phase_separator.html#VaporInjectionPhaseSeparator.calc_injection"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.calc_injection" title="Permalink to this definition"></a></dt>
-<dd><p>Calculate the injection component, e.g. phase separator
-or heat exchanger.
-In this function, child classes must set inlets
-and calculate outlets of additional components.</p>
-<dl class="simple">
-<dt>Returns:</dt><dd><p>float: Portion of vapor injected (x)
-float: Enthalpy of vapor injected
-ThermodynamicState: Inlet state of low pressure expansion valve</p>
-</dd>
-</dl>
-</dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.flowsheet_name">
-<span class="sig-name descname"><span class="pre">flowsheet_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'VaporInjectionPhaseSeparator'</span></em><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.flowsheet_name" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.fluid">
-<span class="sig-name descname"><span class="pre">fluid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.12)"><span class="pre">str</span></a></em><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.fluid" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_all_components">
-<span class="sig-name descname"><span class="pre">get_all_components</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection_phase_separator.html#VaporInjectionPhaseSeparator.get_all_components"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_all_components" title="Permalink to this definition"></a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt class="sig sig-object py" id="vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_states_in_order_for_plotting">
-<span class="sig-name descname"><span class="pre">get_states_in_order_for_plotting</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/flowsheets/vapor_injection_phase_separator.html#VaporInjectionPhaseSeparator.get_states_in_order_for_plotting"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_states_in_order_for_plotting" title="Permalink to this definition"></a></dt>
-<dd><p>List with all relevant states of two-stage cycle
-except the intermediate component, e.g. phase separator
-or heat exchanger.</p>
-</dd></dl>
-
-</section>
-</dd></dl>
-
+<section id="vclibpy-flowsheets-vapor-injection-phase-separator-module">
+<h2>vclibpy.flowsheets.vapor_injection_phase_separator module<a class="headerlink" href="#vclibpy-flowsheets-vapor-injection-phase-separator-module" title="Permalink to this heading"></a></h2>
 </section>
 </section>
 
