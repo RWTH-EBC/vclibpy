@@ -1,0 +1,36 @@
+vclibpy.components package
+==========================
+
+.. automodule:: vclibpy.components
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   vclibpy.components.compressors
+   vclibpy.components.expansion_valves
+   vclibpy.components.heat_exchangers
+
+Submodules
+----------
+
+vclibpy.components.component module
+-----------------------------------
+
+.. automodule:: vclibpy.components.component
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.components.phase\_separator module
+------------------------------------------
+
+.. automodule:: vclibpy.components.phase_separator
+   :members:
+   :undoc-members:
+   :show-inheritance:
