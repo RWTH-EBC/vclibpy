@@ -109,8 +109,8 @@ vclibpy/utils/ten_coefficient_compressor_reqression.py:145:33: C0103: Argument n
 vclibpy/utils/ten_coefficient_compressor_reqression.py:168:4: C0103: Variable name "z" doesn't conform to snake_case naming style (invalid-name)
 vclibpy/utils/ten_coefficient_compressor_reqression.py:172:4: C0103: Variable name "X" doesn't conform to snake_case naming style (invalid-name)
 ************* Module vclibpy.utils.printing
-vclibpy/utils/printing.py:30:0: C0301: Line too long (107/100) (line-too-long)
-vclibpy/utils/printing.py:21:15: C0201: Consider iterating the dictionary directly instead of calling .keys() (consider-iterating-dictionary)
+vclibpy/utils/printing.py:31:0: C0301: Line too long (107/100) (line-too-long)
+vclibpy/utils/printing.py:22:15: C0201: Consider iterating the dictionary directly instead of calling .keys() (consider-iterating-dictionary)
 ************* Module vclibpy.utils
 vclibpy/utils/__init__.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 ************* Module vclibpy.utils.plotting
@@ -618,14 +618,14 @@ vclibpy/components/expansion_valves/bernoulli.py:21:0: C0301: Line too long (103
 ************* Module vclibpy.components.expansion_valves
 vclibpy/components/expansion_valves/__init__.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 ************* Module vclibpy.components.expansion_valves.__init__
-vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.ref_prop) (cyclic-import)
-vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.components.expansion_valves -> vclibpy.components.expansion_valves.bernoulli) (cyclic-import)
-vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.standard) (cyclic-import)
+vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.cool_prop -> vclibpy.media.media) (cyclic-import)
 vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
+vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.standard) (cyclic-import)
+vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.components.expansion_valves -> vclibpy.components.expansion_valves.bernoulli) (cyclic-import)
 vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
 vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.utils -> vclibpy.utils.automation) (cyclic-import)
+vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.ref_prop) (cyclic-import)
 vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.media) (cyclic-import)
-vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.cool_prop -> vclibpy.media.media) (cyclic-import)
 
 -----------------------------------
 Your code has been rated at 7.41/10

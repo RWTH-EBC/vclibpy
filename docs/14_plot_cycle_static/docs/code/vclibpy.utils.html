@@ -217,8 +217,8 @@ and axes objects instead. Defaults to None.</p>
 </dl>
 </dd>
 <dt>Returns:</dt><dd><dl class="simple">
-<dt>tuple(matplotlib.figure.Figure, numpy.ndarray) or None:</dt><dd><p>If save_path is None, returns the figure and axes objects.
-If save_path is provided, saves the plot and returns None.</p>
+<dt>tuple(matplotlib.figure.Figure, numpy.ndarray) or None:</dt><dd><p>If save_path is provided, saves the plot and returns None.
+If show is True, shows the plot.</p>
 </dd>
 </dl>
 </dd>
@@ -285,7 +285,8 @@ Default is None, which disables 4D plotting.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="vclibpy.utils.printing.print_states">
 <span class="sig-prename descclassname"><span class="pre">vclibpy.utils.printing.</span></span><span class="sig-name descname"><span class="pre">print_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/utils/printing.html#print_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.utils.printing.print_states" title="Permalink to this definition"></a></dt>
-<dd><p>Transforms given states to DataFrame and prints table layout.</p>
+<dd><p>Transforms given states to DataFrame and prints table layout.
+Declaration of state must start with ‘state’</p>
 <p>Returns:
 :return pandas.DataFrame df_states:</p>
 <blockquote>
