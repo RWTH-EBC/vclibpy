@@ -205,6 +205,19 @@ class StandardCycle(BaseCycle):
                      description="relative Compressor Speed")
         fs_state.set(name="Comp_dh",value=0.001*(self.compressor.state_outlet.h-self.compressor.state_inlet.h))
 
+        h2_is = self.med_prop.calc_state("PS", self.compressor.state_outlet.p, self.compressor.state_inlet.s).h
+        h4_is = self.med_prop.calc_state("PS", self.evaporator.state_inlet.p, self.condenser.state_outlet.s).h
+        Comp_dh_is = 0.001*(h2_is-self.compressor.state_inlet.h)
+        Ex_dh_is = 0.001 * (self.expansion_valve.state_inlet.h - h4_is)
+        comp_dh_is_Ex_dh_is = Comp_dh_is/Ex_dh_is
+        fs_state.set(name="Comp_dh_is", value=Comp_dh_is)
+        fs_state.set(name="Exp_dh_is", value=Ex_dh_is)
+        fs_state.set(name="Comp_dh_is_Exp_dh_is", value=comp_dh_is_Ex_dh_is)
+        fs_state.set(name="Comp_dH_is", value=self.compressor.m_flow*Comp_dh_is)
+        fs_state.set(name="Exp_dH_is", value=self.compressor.m_flow*Ex_dh_is)
+
+
+
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
         """Based on simple energy balance - Adiabatic"""
         return self.compressor.calc_electrical_power(inputs=inputs, fs_state=fs_state)
