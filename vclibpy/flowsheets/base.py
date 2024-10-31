@@ -159,9 +159,11 @@ class BaseCycle:
         p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
         p_2_next = p_2_start
         fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
+        fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
+        fs_state.set(name="COP_Carnot", value=0, unit="-", description="maximal Coefficient of performance")
         fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
         fs_state.set(name="Q_eva", value=1, unit="W", description="Condenser heat flow rate")
-        fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
+
 
         if show_iteration:
             fig_iterations, ax_iterations = plt.subplots(2)
@@ -308,6 +310,8 @@ class BaseCycle:
             name="COP", value=COP_inner,
             unit="-", description="Coefficient of Performance"
         )
+        fs_state.set(name="COP_Carnot", value=COP_carnot,
+                     unit="-", description="maximal Coefficient of performance")
         fs_state.set(
             name="Q_con", value=Q_con/1000, unit="W",
             description="Condenser refrigerant heat flow rate"
