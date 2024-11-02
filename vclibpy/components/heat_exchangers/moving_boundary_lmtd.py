@@ -64,6 +64,13 @@ class BasicLMTD(HeatExchanger, abc.ABC):
 
         return max(A, 0)
 
+    def calc_UA(self, lmtd, Q):
+
+        if lmtd < 0.001:
+            return 0
+
+        return Q / lmtd
+
     def calc_Q_lmtd(self, lmtd, alpha_pri, alpha_sec, A):
         k = self.calc_k(alpha_pri=alpha_pri,
                         alpha_sec=alpha_sec)
@@ -347,7 +354,7 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
         dT_min_out = self.state_inlet.T - T_out
         dT_min_LatSH = state_q1.T - T_sh
 
-        fs_state.set(name="Con_dh", value=-0.001*(self.state_outlet.h-self.state_inlet.h), unit="kJ/kg",
+        fs_state.set(name="Con_dh", value=-0.001 * (self.state_outlet.h - self.state_inlet.h), unit="kJ/kg",
                      description="Enthalpy difference Evaporator")
         fs_state.set(name="Con_A_sh", value=A_sh, unit="m2",
                      description="Area for superheat heat exchange in condenser")
@@ -367,11 +374,11 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
                      description="latent heat exchange in condenser")
         fs_state.set(name="Con_Q_sc", value=Q_sc, unit="",
                      description="subcooled heat exchange in condenser")
-        fs_state.set(name="Con_Q_sh_rel", value=Q_sh/Q, unit="",
+        fs_state.set(name="Con_Q_sh_rel", value=Q_sh / Q, unit="",
                      description="superheat heat exchange in condenser")
-        fs_state.set(name="Con_Q_lat_rel", value=Q_lat/Q, unit="",
+        fs_state.set(name="Con_Q_lat_rel", value=Q_lat / Q, unit="",
                      description="latent heat exchange in condenser")
-        fs_state.set(name="Con_Q_sc_rel", value=Q_sc/Q, unit="",
+        fs_state.set(name="Con_Q_sc_rel", value=Q_sc / Q, unit="",
                      description="subcooled heat exchange in condenser")
         fs_state.set(name="Con_lmtd_sh", value=lmtd_sh, unit="K",
                      description="logartihmic temperature difference sh in condenser")
@@ -385,6 +392,10 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
                                dT_min_LatSH,
                                dT_min_out),
                      description="Pinch Condenser")
+
+        fs_state.set(name="Con_UA_sh", value=self.calc_UA(lmtd_sh, Q_sh))
+        fs_state.set(name="Con_UA_lat", value=self.calc_UA(lmtd_lat, Q_lat))
+        fs_state.set(name="Con_UA_sc", value=self.calc_UA(lmtd_sc, Q_sc))
 
         return error, min(dT_min_in,
                           dT_min_LatSH,
@@ -510,7 +521,7 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
         dT_min_in = inputs.T_eva_in - self.state_outlet.T
         dT_min_out = T_out - self.state_inlet.T
 
-        fs_state.set(name="Eva_dh", value=0.001*(self.state_outlet.h-self.state_inlet.h), unit="kJ/kg",
+        fs_state.set(name="Eva_dh", value=0.001 * (self.state_outlet.h - self.state_inlet.h), unit="kJ/kg",
                      description="Enthalpy difference Evaporator")
         fs_state.set(name="Eva_A_sh", value=A_sh, unit="m2",
                      description="Area for superheat heat exchange in evaporator")
@@ -524,9 +535,9 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
                      description="superheat heat exchange in evaporator")
         fs_state.set(name="Eva_Q_lat", value=Q_lat, unit="",
                      description="latent heat exchange in evaporator")
-        fs_state.set(name="Eva_Q_sh_rel", value=Q_sh/Q, unit="",
+        fs_state.set(name="Eva_Q_sh_rel", value=Q_sh / Q, unit="",
                      description="superheat heat exchange in evaporator")
-        fs_state.set(name="Eva_Q_lat_rel", value=Q_lat/Q, unit="",
+        fs_state.set(name="Eva_Q_lat_rel", value=Q_lat / Q, unit="",
                      description="latent heat exchange in evaporator")
         fs_state.set(name="Eva_lmtd_sh", value=lmtd_sh, unit="K",
                      description="logartihmic temperature difference sh in evaporator")
@@ -537,6 +548,9 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
                      value=min(dT_min_out,
                                dT_min_in),
                      description="Pinch Evaporator")
+
+        fs_state.set(name="Eva_UA_sh", value=self.calc_UA(lmtd_sh, Q_sh))
+        fs_state.set(name="Eva_UA_lat", value=self.calc_UA(lmtd_lat, Q_lat))
 
         return error, min(dT_min_out, dT_min_in)
 
