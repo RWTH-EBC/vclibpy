@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>vclibpy package &mdash; vclibpy 0.1.1 documentation</title>
+  <title>vclibpy package &mdash; vclibpy 0.1.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
       <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
@@ -156,11 +156,70 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="vclibpy.flowsheets.html">vclibpy.flowsheets package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy-flowsheets-base-module">vclibpy.flowsheets.base module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy-flowsheets-standard-module">vclibpy.flowsheets.standard module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy-flowsheets-vapor-injection-module">vclibpy.flowsheets.vapor_injection module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy-flowsheets-vapor-injection-economizer-module">vclibpy.flowsheets.vapor_injection_economizer module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy-flowsheets-vapor-injection-phase-separator-module">vclibpy.flowsheets.vapor_injection_phase_separator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#module-vclibpy.flowsheets.base">vclibpy.flowsheets.base module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle"><code class="docutils literal notranslate"><span class="pre">BaseCycle</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.calc_electrical_power"><code class="docutils literal notranslate"><span class="pre">BaseCycle.calc_electrical_power()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.calc_states"><code class="docutils literal notranslate"><span class="pre">BaseCycle.calc_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.calc_steady_state"><code class="docutils literal notranslate"><span class="pre">BaseCycle.calc_steady_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.flowsheet_name"><code class="docutils literal notranslate"><span class="pre">BaseCycle.flowsheet_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.get_all_components"><code class="docutils literal notranslate"><span class="pre">BaseCycle.get_all_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.get_states_in_order_for_plotting"><code class="docutils literal notranslate"><span class="pre">BaseCycle.get_states_in_order_for_plotting()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.plot_cycle"><code class="docutils literal notranslate"><span class="pre">BaseCycle.plot_cycle()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.set_condenser_outlet_based_on_subcooling"><code class="docutils literal notranslate"><span class="pre">BaseCycle.set_condenser_outlet_based_on_subcooling()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.set_evaporator_outlet_based_on_superheating"><code class="docutils literal notranslate"><span class="pre">BaseCycle.set_evaporator_outlet_based_on_superheating()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.setup_new_fluid"><code class="docutils literal notranslate"><span class="pre">BaseCycle.setup_new_fluid()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle.terminate"><code class="docutils literal notranslate"><span class="pre">BaseCycle.terminate()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#module-vclibpy.flowsheets.standard">vclibpy.flowsheets.standard module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle"><code class="docutils literal notranslate"><span class="pre">StandardCycle</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.calc_electrical_power"><code class="docutils literal notranslate"><span class="pre">StandardCycle.calc_electrical_power()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.calc_states"><code class="docutils literal notranslate"><span class="pre">StandardCycle.calc_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.flowsheet_name"><code class="docutils literal notranslate"><span class="pre">StandardCycle.flowsheet_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.fluid"><code class="docutils literal notranslate"><span class="pre">StandardCycle.fluid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.get_all_components"><code class="docutils literal notranslate"><span class="pre">StandardCycle.get_all_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.get_states_in_order_for_plotting"><code class="docutils literal notranslate"><span class="pre">StandardCycle.get_states_in_order_for_plotting()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#module-vclibpy.flowsheets.vapor_injection">vclibpy.flowsheets.vapor_injection module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_electrical_power"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.calc_electrical_power()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_injection"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.calc_injection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.calc_states"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.calc_states()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.flowsheet_name"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.flowsheet_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.fluid"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.fluid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.get_all_components"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.get_all_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection.BaseVaporInjection.get_states_in_order_for_plotting"><code class="docutils literal notranslate"><span class="pre">BaseVaporInjection.get_states_in_order_for_plotting()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#module-vclibpy.flowsheets.vapor_injection_economizer">vclibpy.flowsheets.vapor_injection_economizer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.calc_injection"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer.calc_injection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.flowsheet_name"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer.flowsheet_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.fluid"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer.fluid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_all_components"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer.get_all_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_states_in_order_for_plotting"><code class="docutils literal notranslate"><span class="pre">VaporInjectionEconomizer.get_states_in_order_for_plotting()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.flowsheets.html#module-vclibpy.flowsheets.vapor_injection_phase_separator">vclibpy.flowsheets.vapor_injection_phase_separator module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.calc_injection"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator.calc_injection()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.flowsheet_name"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator.flowsheet_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.fluid"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator.fluid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_all_components"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator.get_all_components()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_states_in_order_for_plotting"><code class="docutils literal notranslate"><span class="pre">VaporInjectionPhaseSeparator.get_states_in_order_for_plotting()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="vclibpy.media.html">vclibpy.media package</a><ul>
