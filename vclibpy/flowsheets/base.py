@@ -8,7 +8,6 @@ from vclibpy import media, Inputs
 from vclibpy.datamodels import FlowsheetState
 from vclibpy.components.heat_exchangers import HeatExchanger
 from vclibpy.components.component import BaseComponent
-from vclibpy.utils.plotting import plot_cycle
 
 logger = logging.getLogger(__name__)
 
@@ -371,6 +370,7 @@ class BaseCycle:
 
     def plot_cycle(self, save_path: str, inputs: Inputs):
         """Function to plot the resulting flowsheet of the steady state config."""
+        from vclibpy.utils.plotting import plot_cycle
         states = self.get_states_in_order_for_plotting()
         fig, ax = plot_cycle(
             states=states,
