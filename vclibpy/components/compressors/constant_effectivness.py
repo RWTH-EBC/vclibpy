@@ -59,7 +59,7 @@ class ConstantEffectivenessCompressor(Compressor):
         self.eta_mech = eta_mech
         self.lambda_h = lambda_h
 
-    def get_lambda_h(self, inputs: Inputs) -> float:
+    def get_lambda_h(self, p_outlet, inputs: Inputs) -> float:
         """
         Returns the constant volumetric efficiency of the compressor.
 
