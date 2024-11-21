@@ -258,10 +258,12 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
                     p_el * self.assumed_eta_mech(self=self, p_outlet=p_outlet, inputs=inputs)
             ) / m_flow  # [J/kg]
 
-        if h2s > h2:
-            raise ValueError("The calculated eta_s is above 1. You probably chose the wrong capacity_definition")
-
         eta_s = (h2s - state_inlet_datasheet.h) / (h2 - state_inlet_datasheet.h)
+        if eta_s > 0.8:
+            logger.warning(
+                "Calculated eta_is is %s, which is higher than typical maximal values of up to, e.g., 80 %."
+                "You either chose the wrong capacity_definition, or your assumed eta_mech is also not realistic."
+            )
         return eta_s
 
     def get_eta_mech(self, inputs: Inputs):
