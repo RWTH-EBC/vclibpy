@@ -501,6 +501,10 @@ class BaseCycle:
             name="dT_min_con", value=dT_min_con,
             unit="K", description="Condenser pinch temperature"
         )
+        fs_state.set(
+            name="eta_glob", value=fs_state.get("eta_is").value * fs_state.get("eta_mech").value,
+            unit="%", description="Global compressor efficiency"
+        )
         if save_path_plots is not None:
             input_name = inputs.get_name()
             self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_final_result.png"), inputs=inputs)
