@@ -1,8 +1,9 @@
 import logging
 from abc import ABC
+from typing import Union
+
 import numpy as np
 import pandas as pd
-
 from vclibpy.components.compressors.compressor import Compressor
 from vclibpy.datamodels import Inputs
 
@@ -153,7 +154,8 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         T_sc (float): Subcooling according to datasheet in K.
         T_sh (float): Superheating according to datasheet in K.
         capacity_definition (str): Definition of "capacity" in the datasheet. "cooling" or "heating".
-        assumed_eta_mech (float): Assumed mechanical efficiency of the compressor (only needed if cooling).
+        assumed_eta_mech (float, callable): Assumed mechanical efficiency of the compressor (only needed if cooling).
+            If you pass a funtion, it must have this signature `eta_mech(self, p_outlet, inputs)`
         datasheet (str): Path of the modified datasheet.
         **kwargs:
             parameter_names (dict, optional):
@@ -167,14 +169,25 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
             sheet_name (str, optional): Name of the sheet in the datasheet. Defaults to None.
     """
 
-    def __init__(self, N_max, V_h, T_sc, T_sh, capacity_definition, assumed_eta_mech, datasheet, scaling_factor, **kwargs):
+    def __init__(
+            self,
+            N_max, V_h,
+            T_sc, T_sh, capacity_definition,
+            assumed_eta_mech: Union[float, callable],
+            datasheet,
+            scaling_factor,
+            **kwargs
+    ):
         super().__init__(N_max=N_max, V_h=V_h, datasheet=datasheet, **kwargs)
         self.T_sc = T_sc
         self.T_sh = T_sh
         if capacity_definition not in ["cooling", "heating"]:
             raise ValueError("capacity_definition has to be either 'heating' or 'cooling'")
         self._capacity_definition = capacity_definition
-        self.assumed_eta_mech = assumed_eta_mech
+        if isinstance(assumed_eta_mech, (float, int)):
+            self.assumed_eta_mech = lambda self, p_outlet, inputs: assumed_eta_mech
+        else:
+            self.assumed_eta_mech = assumed_eta_mech
         self.datasheet = datasheet
         self.scaling_factor = scaling_factor
 
@@ -191,7 +204,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         p_outlet = self.get_p_outlet()
 
         n_abs = self.get_n_absolute(inputs.n)
-        T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15 # [°C]
+        T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15  # [°C]
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T - 273.15  # [°C]
 
         # if round((self.state_inlet.T - T_eva - 273.15), 2) != round(self.T_sh, 2):
@@ -211,7 +224,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         else:
             state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
 
-        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor # [kg/s] # TODO?
+        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor  # [kg/s] # TODO?
 
         lambda_h = m_flow / (n_abs * state_inlet_datasheet.d * self.V_h)
         return lambda_h
@@ -240,7 +253,10 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         if self._capacity_definition == "heating":
             h2 = h3 + capacity / m_flow  # [J/kg]
         else:
-            h2 = h3 + (capacity + p_el * self.assumed_eta_mech) / m_flow  # [J/kg]
+            h2 = h3 + (
+                    capacity +
+                    p_el * self.assumed_eta_mech(self=self, p_outlet=p_outlet, inputs=inputs)
+            ) / m_flow  # [J/kg]
 
         if h2s > h2:
             raise ValueError("The calculated eta_s is above 1. You probably chose the wrong capacity_definition")
@@ -261,7 +277,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         p_outlet = self.get_p_outlet()
 
         if self._capacity_definition == "cooling":
-            return self.assumed_eta_mech
+            return self.assumed_eta_mech(self=self, p_outlet=p_outlet, inputs=inputs)
         # Else heating
         T_con, state_inlet_datasheet, m_flow, capacity, p_el = self._calculate_values(
             p_2=p_outlet, inputs=inputs
@@ -295,9 +311,9 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         else:
             state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
 
-        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor # [kg/s]
-        capacity = self.get_parameter(T_eva, T_con, inputs.n, "capacity") * self.scaling_factor # [W]
-        p_el = self.get_parameter(T_eva, T_con, inputs.n, "input_power") * self.scaling_factor # [W]
+        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor  # [kg/s]
+        capacity = self.get_parameter(T_eva, T_con, inputs.n, "capacity") * self.scaling_factor  # [W]
+        p_el = self.get_parameter(T_eva, T_con, inputs.n, "input_power") * self.scaling_factor  # [W]
         return T_con, state_inlet_datasheet, m_flow, capacity, p_el
 
 
