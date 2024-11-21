@@ -129,6 +129,7 @@ class MovingBoundaryTmCondenser(HeatExchanger):
         fs_state.set(name="A_con_sh", value=A_sh, unit="m2", description="Area for superheat heat exchange in condenser")
         fs_state.set(name="A_con_lat", value=A_lat, unit="m2", description="Area for latent heat exchange in condenser")
         fs_state.set(name="A_con_sc", value=A_sc, unit="m2", description="Area for subcooling heat exchange in condenser")
+        fs_state.set(name="error_A", value=error_A, unit="%", description="Area-percentage error for heat exchange in condenser")
 
         return error, min(dT_min_in,
                           dT_min_LatSH,
