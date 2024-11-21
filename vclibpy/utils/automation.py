@@ -79,6 +79,7 @@ def full_factorial_map_generation(
         use_multiprocessing: bool = False,
         save_plots: bool = False,
         raise_errors: bool = False,
+        save_sdf: bool = True,
         **kwargs
 ) -> (pathlib.Path, pathlib.Path):
     """
@@ -115,10 +116,12 @@ def full_factorial_map_generation(
             only relevant if `use_condenser_inlet=False`
         use_multiprocessing:
             True to use multiprocessing. May speed up the calculation. Default is False
-        save_plots:
+        save_plots (bool):
             True to save plots of each steady state point. Default is False
-        raise_errors:
+        raise_errors (bool):
             True to raise errors if they occur.
+        save_sdf (bool):
+            = False to not save sdf files. Default is True
         **kwargs: Solver settings for the flowsheet
 
     Returns:
@@ -198,6 +201,11 @@ def full_factorial_map_generation(
         save_path_csv, sep=";"
     )
 
+    # Terminate heat pump med-props:
+    heat_pump.terminate()
+    if not save_sdf:
+        return save_path_csv
+
     for fs_state, idx_triple in zip(fs_states, idx_for_access_later):
         i_n, i_T_con, i_T_eva_in = idx_triple
         for variable_name, variable in fs_state.get_variables().items():
@@ -240,10 +248,7 @@ def full_factorial_map_generation(
                 heat_pump.fluid: (_scales, _nd_data, _parameters)
             }
     }
-    # utils.save_to_sdf(data=sdf_data, save_path=save_path_sdf)
-
-    # Terminate heat pump med-props:
-    heat_pump.terminate()
+    utils.save_to_sdf(data=sdf_data, save_path=save_path_sdf)
 
     return save_path_sdf, save_path_csv
 
