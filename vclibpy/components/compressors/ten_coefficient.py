@@ -58,7 +58,7 @@ class BaseTenCoefficientCompressor(Compressor, ABC):
                     "m_flow": "Flow Rate(kg/h)",
                     "capacity": "Capacity(W)",
                     "input_power": "Input Power(W)",
-                    "eta_s": "Isentropic Efficiency(-)",
+                    "eta_is": "Isentropic Efficiency(-)",
                     "lambda_h": "Volumentric Efficiency(-)",
                     "eta_mech": "Mechanical Efficiency(-)"
                 }
@@ -86,7 +86,7 @@ class BaseTenCoefficientCompressor(Compressor, ABC):
                 "m_flow": "Flow Rate(kg/h)",
                 "capacity": "Capacity(W)",
                 "input_power": "Input Power(W)",
-                "eta_s": "Isentropic Efficiency(-)",
+                "eta_is": "Isentropic Efficiency(-)",
                 "lambda_h": "Volumentric Efficiency(-)",
                 "eta_mech": "Mechanical Efficiency(-)"
             }
@@ -258,13 +258,15 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
                     p_el * self.assumed_eta_mech(self=self, p_outlet=p_outlet, inputs=inputs)
             ) / m_flow  # [J/kg]
 
-        eta_s = (h2s - state_inlet_datasheet.h) / (h2 - state_inlet_datasheet.h)
-        if eta_s > 0.8:
+        eta_is = (h2s - state_inlet_datasheet.h) / (h2 - state_inlet_datasheet.h)
+        if eta_is > 0.8:
             logger.warning(
-                "Calculated eta_is is %s, which is higher than typical maximal values of up to, e.g., 80 %."
-                "You either chose the wrong capacity_definition, or your assumed eta_mech is also not realistic."
+                f"Calculated eta_is is {eta_is * 100} %, which is higher than "
+                f"typical maximal values of up to, e.g., 80 %."
+                "You either chose the wrong capacity_definition, "
+                "or your assumed eta_mech is also not realistic.",
             )
-        return eta_s
+        return eta_is
 
     def get_eta_mech(self, inputs: Inputs):
         """
@@ -346,7 +348,7 @@ class DataSheetCompressor(BaseTenCoefficientCompressor):
                 Dictionary to match internal parameter names (keys) to the names used in the table values.
                 Default
                 {
-                    "eta_s": "Isentropic Efficiency(-)",
+                    "eta_is": "Isentropic Efficiency(-)",
                     "lambda_h": "Volumetric Efficiency(-)",
                     "eta_mech": "Mechanical Efficiency(-)"
                 }
@@ -384,7 +386,7 @@ class DataSheetCompressor(BaseTenCoefficientCompressor):
         """
         T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 0).T
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T
-        return self.get_parameter(T_eva, T_con, inputs.n, "eta_s")
+        return self.get_parameter(T_eva, T_con, inputs.n, "eta_is")
 
     def get_eta_mech(self, inputs: Inputs):
         """
