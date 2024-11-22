@@ -5,6 +5,7 @@
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 [![build](https://rwth-ebc.github.io/vclibpy/main/build/build.svg)](https://rwth-ebc.github.io/vclibpy/main/build/build.svg)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/RWTH-EBC/vclibpy/main?labpath=docs%2Fjupyter_notebooks)
+[![DOI](https://zenodo.org/badge/725581067.svg)](https://doi.org/10.5281/zenodo.14202185)
 
 # VCLibPy
 
@@ -44,9 +45,11 @@ Those examples are the same as the jupyter notebooks.
 
 # How to cite vclibpy
 
-`vclibpy` is currently in the process of publication. A corresponding DOI will be added soon.
+`vclibpy` is currently in the process of publication. 
+Until the paper is published, you may cite the following DOI: https://doi.org/10.5281/zenodo.14202185
+Moreoever, the following list of related publications show `VCLibPy` in use.
 
-# Related publications
+## Related publications
 
 - Vering, C., Wüllhorst, F., Mehrfeld, P., & Müller, D. (2021). Towards an integrated design of heat pump systems: Application of process intensification using two-stage optimization. Energy Conversion and Management, 250, 114888.  https://doi.org/10.1016/j.enconman.2021.114888
 - Vering, Christian; Müller, Dirk (Thesis advisor); Elbel, Stefan (Thesis advisor) (2023). Optimal design of heat pump systems for existing buildings, PhD thesis. https://doi.org/10.18154/RWTH-2023-04070
