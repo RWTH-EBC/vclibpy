@@ -45,8 +45,9 @@ Those examples are the same as the jupyter notebooks.
 
 # How to cite vclibpy
 
-`vclibpy` is currently in the process of publication. 
+`VCLibPy` is currently in the process of publication. 
 Until the paper is published, you may cite the following DOI: https://doi.org/10.5281/zenodo.14202185
+
 Moreoever, the following list of related publications show `VCLibPy` in use.
 
 ## Related publications
