@@ -75,7 +75,7 @@ class BaseTenCoefficientCompressor(Compressor, ABC):
 
         super().__init__(N_max, V_h)
         sheet_name = kwargs.get('sheet_name', None)
-        if str(datasheet).endswith(".xslx"):
+        if str(datasheet).endswith(".xlsx"):
             self.md = pd.read_excel(datasheet, sheet_name=sheet_name)
         else:
             self.md = pd.read_csv(datasheet)
@@ -192,10 +192,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         if capacity_definition not in ["cooling", "heating"]:
             raise ValueError("capacity_definition has to be either 'heating' or 'cooling'")
         self._capacity_definition = capacity_definition
-        if isinstance(assumed_eta_mech, (float, int)):
-            self.assumed_eta_mech = lambda self, p_outlet, inputs: assumed_eta_mech
-        else:
-            self.assumed_eta_mech = assumed_eta_mech
+        self.assumed_eta_mech = assumed_eta_mech
         self.datasheet = datasheet
         self.scaling_factor = scaling_factor
 
@@ -258,13 +255,15 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
 
         h2s = self.med_prop.calc_state("PS", p_outlet, state_inlet_datasheet.s).h  # [J/kg]
 
+        if callable(self.assumed_eta_mech):
+            eta_mech = self.assumed_eta_mech(self=self, p_outlet=p_outlet, inputs=inputs)
+        else:
+            eta_mech = self.assumed_eta_mech
+
         if self._capacity_definition == "heating":
             h2 = h3 + capacity / m_flow  # [J/kg]
         else:
-            h2 = h3 + (
-                    capacity +
-                    p_el * self.assumed_eta_mech(self=self, p_outlet=p_outlet, inputs=inputs)
-            ) / m_flow  # [J/kg]
+            h2 = h3 + (capacity + p_el * eta_mech) / m_flow  # [J/kg]
 
         eta_is = (h2s - state_inlet_datasheet.h) / (h2 - state_inlet_datasheet.h)
         if eta_is > 0.8:
@@ -289,7 +288,10 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         p_outlet = self.get_p_outlet()
 
         if self._capacity_definition == "cooling":
-            return self.assumed_eta_mech(self=self, p_outlet=p_outlet, inputs=inputs)
+            if isinstance(self.assumed_eta_mech, callable):
+                return self.assumed_eta_mech(self=self, p_outlet=p_outlet, inputs=inputs)
+            return self.assumed_eta_mech
+
         # Else heating
         T_con, state_inlet_datasheet, m_flow, capacity, p_el = self._calculate_values(
             p_2=p_outlet, inputs=inputs
