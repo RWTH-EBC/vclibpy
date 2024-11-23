@@ -120,14 +120,14 @@ class BaseTenCoefficientCompressor(Compressor, ABC):
             n_list.append(coefficients.pop(0))
             param_list.append(calc_ten_coefficients(T_eva, T_con, coefficients))
 
-        return np.interp(self.get_n_absolute(n), n_list, param_list)  # linear interpolation
+        return self._interpolate(self.get_n_absolute(n), n_list, param_list)  # linear interpolation
 
-    def _interpolate(self):
+    def _interpolate(self, x_new, x, y):
         if self.extrapolate == "hold":
             # linear interpolation, no extrapolation
-            return np.interp(self.get_n_absolute(n), n_list, param_list)
+            return np.interp(x_new, x, y)
         if self.extrapolate == "linear":
-            return linear_interpolate_extrapolate(self.get_n_absolute(n), n_list, param_list)
+            return linear_interpolate_extrapolate(x_new, x, y)
         raise KeyError(f"Given extrapolate option '{self.extrapolate}' is not supported!")
 
 
@@ -425,14 +425,13 @@ def linear_interpolate_extrapolate(x_new, x, y):
 
     # Handle left extrapolation
     left_mask = x_new < x[0]
-    if np.any(left_mask):
+    if x_new < x[0]:
         slope = (y[1] - y[0]) / (x[1] - x[0])
-        y_new[left_mask] = y[0] + slope * (x_new[left_mask] - x[0])
+        y_new = y[0] + slope * (x_new - x[0])
 
     # Handle right extrapolation
-    right_mask = x_new > x[-1]
-    if np.any(right_mask):
+    if x_new > x[-1]:
         slope = (y[-1] - y[-2]) / (x[-1] - x[-2])
-        y_new[right_mask] = y[-1] + slope * (x_new[right_mask] - x[-1])
+        y_new = y[-1] + slope * (x_new - x[-1])
 
     return y_new
