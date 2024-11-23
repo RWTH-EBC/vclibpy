@@ -63,23 +63,22 @@ class BaseTenCoefficientCompressor(Compressor, ABC):
                     "eta_mech": "Mechanical Efficiency(-)"
                 }
             sheet_name (str, optional): Name of the sheet in the datasheet. Defaults to None.
+            extrapolate (str, optional):
+                Method to handle extrapolation of data.
+                Default "hold" means no extrapolation
     """
 
     def __init__(self, N_max, V_h, datasheet, **kwargs):
         """
         Initialize the BaseTenCoefficientCompressor.
-
-        Args:
-            N_max (float): Maximal rotations per second of the compressor.
-            V_h (float): Volume of the compressor in m^3.
-            datasheet (str): Path of the datasheet file.
-            parameter_names (dict, optional): Dictionary of parameter names. Defaults to None.
-            sheet_name (str, optional): Name of the sheet in the datasheet. Defaults to None.
         """
 
         super().__init__(N_max, V_h)
         sheet_name = kwargs.get('sheet_name', None)
-        self.md = pd.read_excel(datasheet, sheet_name=sheet_name)
+        if str(datasheet).endswith(".xslx"):
+            self.md = pd.read_excel(datasheet, sheet_name=sheet_name)
+        else:
+            self.md = pd.read_csv(datasheet)
         parameter_names = kwargs.get('parameter_names', None)
         if parameter_names is None:
             self.parameter_names = {
@@ -92,6 +91,7 @@ class BaseTenCoefficientCompressor(Compressor, ABC):
             }
         else:
             self.parameter_names = parameter_names
+        self.extrapolate = kwargs.get("extrapolate", "hold")
 
     def get_parameter(self, T_eva, T_con, n, type_):
         """
@@ -121,6 +121,14 @@ class BaseTenCoefficientCompressor(Compressor, ABC):
             param_list.append(calc_ten_coefficients(T_eva, T_con, coefficients))
 
         return np.interp(self.get_n_absolute(n), n_list, param_list)  # linear interpolation
+
+    def _interpolate(self):
+        if self.extrapolate == "hold":
+            # linear interpolation, no extrapolation
+            return np.interp(self.get_n_absolute(n), n_list, param_list)
+        if self.extrapolate == "linear":
+            return linear_interpolate_extrapolate(self.get_n_absolute(n), n_list, param_list)
+        raise KeyError(f"Given extrapolate option '{self.extrapolate}' is not supported!")
 
 
 class TenCoefficientCompressor(BaseTenCoefficientCompressor):
@@ -402,3 +410,29 @@ class DataSheetCompressor(BaseTenCoefficientCompressor):
         T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 0).T
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T
         return self.get_parameter(T_eva, T_con, inputs.n, "eta_mech")
+
+
+def linear_interpolate_extrapolate(x_new, x, y):
+    """
+    Util function for linear 1D extrapolation or interpolation.
+    Used to avoid scipy requirement.
+
+    x_new: points where to interpolate/extrapolate
+    x: known x values
+    y: known y values
+    """
+    y_new = np.interp(x_new, x, y)
+
+    # Handle left extrapolation
+    left_mask = x_new < x[0]
+    if np.any(left_mask):
+        slope = (y[1] - y[0]) / (x[1] - x[0])
+        y_new[left_mask] = y[0] + slope * (x_new[left_mask] - x[0])
+
+    # Handle right extrapolation
+    right_mask = x_new > x[-1]
+    if np.any(right_mask):
+        slope = (y[-1] - y[-2]) / (x[-1] - x[-2])
+        y_new[right_mask] = y[-1] + slope * (x_new[right_mask] - x[-1])
+
+    return y_new

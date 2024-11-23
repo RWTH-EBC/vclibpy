@@ -110,6 +110,10 @@ def create_regression_data(
             )
 
             final_df[cols[m * len(n) + k + 1]] = create_regression_parameters(df, _variable)
+    df_new = final_df.copy()
+    df_new.columns = df_new.columns.get_level_values(0)  # Use only first level
+    df_new.loc[-1] = final_df.columns.get_level_values(1)
+    final_df = df_new.sort_index().reset_index(drop=True)
     final_df.to_csv(save_path, index=False)
 
 
