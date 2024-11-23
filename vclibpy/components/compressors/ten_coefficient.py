@@ -192,6 +192,8 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         if capacity_definition not in ["cooling", "heating"]:
             raise ValueError("capacity_definition has to be either 'heating' or 'cooling'")
         self._capacity_definition = capacity_definition
+        # Don't use lambda function to cast float as a function,
+        # as local functions are not pickable for multiprocessing
         self.assumed_eta_mech = assumed_eta_mech
         self.datasheet = datasheet
         self.scaling_factor = scaling_factor
@@ -288,7 +290,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         p_outlet = self.get_p_outlet()
 
         if self._capacity_definition == "cooling":
-            if isinstance(self.assumed_eta_mech, callable):
+            if callable(self.assumed_eta_mech):
                 return self.assumed_eta_mech(self=self, p_outlet=p_outlet, inputs=inputs)
             return self.assumed_eta_mech
 
