@@ -179,14 +179,21 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
 
     def __init__(
             self,
-            N_max, V_h,
-            T_sc, T_sh, capacity_definition,
-            assumed_eta_mech: Union[float, callable],
+            N_max,
+            V_h,
+            T_sh,
+            capacity_definition,
             datasheet,
-            scaling_factor,
+            T_sc: float = None,
+            assumed_eta_mech: Union[float, callable] = None,
+            scaling_factor: float = 1,
             **kwargs
     ):
         super().__init__(N_max=N_max, V_h=V_h, datasheet=datasheet, **kwargs)
+        if capacity_definition == "cooling" and assumed_eta_mech is None:
+            raise ValueError("capacity_definition cooling requires an assumption for eta_mech")
+        if capacity_definition == "heating" and T_sc is None:
+            raise ValueError("capacity_definition heating requires an assumption for T_sc")
         self.T_sc = T_sc
         self.T_sh = T_sh
         if capacity_definition not in ["cooling", "heating"]:
@@ -195,7 +202,6 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         # Don't use lambda function to cast float as a function,
         # as local functions are not pickable for multiprocessing
         self.assumed_eta_mech = assumed_eta_mech
-        self.datasheet = datasheet
         self.scaling_factor = scaling_factor
 
     def get_lambda_h(self, inputs: Inputs):
@@ -231,7 +237,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         else:
             state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
 
-        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor  # [kg/s] # TODO?
+        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor  # [kg/s]
 
         lambda_h = m_flow / (n_abs * state_inlet_datasheet.d * self.V_h)
         return lambda_h
@@ -250,10 +256,6 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         T_con, state_inlet_datasheet, m_flow, capacity, p_el = self._calculate_values(
             p_2=p_outlet, inputs=inputs
         )
-        if self.T_sc != 0:
-            h3 = self.med_prop.calc_state("PT", p_outlet, T_con + 273.15 - self.T_sc).h  # [J/kg]
-        else:
-            h3 = self.med_prop.calc_state("PQ", p_outlet, 0).h  # [J/kg]
 
         h2s = self.med_prop.calc_state("PS", p_outlet, state_inlet_datasheet.s).h  # [J/kg]
 
@@ -263,15 +265,19 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
             eta_mech = self.assumed_eta_mech
 
         if self._capacity_definition == "heating":
+            if self.T_sc != 0:
+                h3 = self.med_prop.calc_state("PT", p_outlet, T_con + 273.15 - self.T_sc).h  # [J/kg]
+            else:
+                h3 = self.med_prop.calc_state("PQ", p_outlet, 0).h  # [J/kg]
             h2 = h3 + capacity / m_flow  # [J/kg]
         else:
-            h2 = h3 + (capacity + p_el * eta_mech) / m_flow  # [J/kg]
+            h2 = state_inlet_datasheet.h + (p_el * eta_mech) / m_flow  # [J/kg]
 
         eta_is = (h2s - state_inlet_datasheet.h) / (h2 - state_inlet_datasheet.h)
         if eta_is > 0.8:
             logger.warning(
                 f"Calculated eta_is is {eta_is * 100} %, which is higher than "
-                f"typical maximal values of up to, e.g., 80 %."
+                f"typical maximal values of up to, e.g., 80 %. "
                 "You either chose the wrong capacity_definition, "
                 "or your assumed eta_mech is also not realistic.",
             )
