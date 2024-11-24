@@ -5,7 +5,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 from vclibpy.components.compressors.compressor import Compressor
-from vclibpy.datamodels import Inputs
+from vclibpy.datamodels import Inputs, FlowsheetState
 
 logger = logging.getLogger(__name__)
 
@@ -402,3 +402,198 @@ class DataSheetCompressor(BaseTenCoefficientCompressor):
         T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 0).T
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T
         return self.get_parameter(T_eva, T_con, inputs.n, "eta_mech")
+
+
+class OpenTenCoefficientCompressor(BaseTenCoefficientCompressor):
+    """
+    Compressor based on the ten coefficient method.
+
+    Used table has to be in this format
+    (order of the columns is not important).
+    The values must be the same as in the example tabel.
+    The column names can be different but must
+    then be matched with the keyword argument parameter_names.
+    (All typed in numbers are fictional placeholders)
+
+          Capacity(W)     Input Power(W)      Flow Rate(kg/h)     Capacity(W)     ...     Flow Rate(kg/h)
+    n     n1              n1                  n1                  n2              ...     n_last
+    P1    42              12                  243                 32              ...     412
+    ...   ...             ...                 ...                 ...             ...     ...
+    P10   10              23                  21                  41              ...     2434
+
+    T_sh and T_sc have to be set according to the data sheet of your compressor. capacity_definition defines the
+    parameter "capacity" in the datasheet. If capacity is the specific cooling capacity (h1-h4), set it on "cooling".
+    If capacity is the specific heating capacity (h2-h3), set it on "heating".
+    In the case of cooling capacity, the mechanical efficiency of the compressor has to be assumed (assumed_eta_mech)
+    as h2 can't be calculated otherwise. Summary:
+        - For the case heating capacity: h2 = h3 + capacity / m_flow
+        - For the case cooling capacity:  h2 = h3 + (capacity + p_el * assumed_eta_mech) / m_flow
+
+    Args:
+        N_max (float): Maximal rotations per second of the compressor.
+        V_h (float): Volume of the compressor in m^3.
+        T_sc (float): Subcooling according to datasheet in K.
+        T_sh (float): Superheating according to datasheet in K.
+        capacity_definition (str): Definition of "capacity" in the datasheet. "cooling" or "heating".
+        assumed_eta_mech (float): Assumed mechanical efficiency of the compressor (only needed if cooling).
+        assumed_eta_el (float): Assumed electic efficiency of the electric drive (only needed if cooling).
+        datasheet (str): Path of the modified datasheet.
+        **kwargs:
+            parameter_names (dict, optional):
+                Dictionary to match internal parameter names (keys) to the names used in the table values.
+                Default
+                {
+                    "m_flow": "Flow Rate(kg/h)",
+                    "capacity": "Capacity(W)",
+                    "input_power": "Input Power(W)"
+                }
+            sheet_name (str, optional): Name of the sheet in the datasheet. Defaults to None.
+    """
+
+    def __init__(self, N_max, V_h, T_sc, T_sh, capacity_definition, assumed_eta_mech, assumed_eta_el, datasheet, scaling_factor, **kwargs):
+        super().__init__(N_max=N_max, V_h=V_h, datasheet=datasheet, **kwargs)
+        self.T_sc = T_sc
+        self.T_sh = T_sh
+        if capacity_definition not in ["cooling", "heating"]:
+            raise ValueError("capacity_definition has to be either 'heating' or 'cooling'")
+        self._capacity_definition = capacity_definition
+        self.assumed_eta_mech = assumed_eta_mech
+        self.assumed_eta_el = assumed_eta_el
+        self.datasheet = datasheet
+        self.scaling_factor = scaling_factor
+
+    def get_lambda_h(self, inputs: Inputs):
+        """
+        Get the volumetric efficiency.
+
+        Args:
+            inputs (Inputs): Input parameters.
+
+        Returns:
+            float: Volumetric efficiency.
+        """
+        p_outlet = self.get_p_outlet()
+
+        n_abs = self.get_n_absolute(inputs.n)
+        T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15 # [°C]
+        T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T - 273.15  # [°C]
+
+        # if round((self.state_inlet.T - T_eva - 273.15), 2) != round(self.T_sh, 2):
+        #     logger.warning("The superheating of the given state is not "
+        #                    "equal to the superheating of the datasheet. "
+        #                    "State1.T_sh= %s. Datasheet.T_sh = %s",
+        #                    round((self.state_inlet.T - T_eva - 273.15), 2), self.T_sh)
+
+        # The datasheet has a given superheating temperature which can
+        # vary from the superheating of the real state 1
+        # which is given by the user.
+        # Thus a new self.state_inlet_datasheet has to
+        # be defined for all further calculations
+
+        if self.T_sh != 0:
+            state_inlet_datasheet = self.med_prop.calc_state("PT", self.state_inlet.p, T_eva + 273.15 + self.T_sh)
+        else:
+            state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
+
+        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor # [kg/s] # TODO?
+
+        lambda_h = m_flow / (n_abs * state_inlet_datasheet.d * self.V_h)
+        return lambda_h
+
+    def get_eta_isentropic(self, p_outlet: float, inputs: Inputs):
+        """
+        Get the isentropic efficiency.
+
+        Args:
+            p_outlet (float): Outlet pressure in Pa.
+            inputs (Inputs): Input parameters.
+
+        Returns:
+            float: Isentropic efficiency.
+        """
+        T_con, state_inlet_datasheet, m_flow, capacity, p_mech = self._calculate_values(
+            p_2=p_outlet, inputs=inputs
+        )
+        if self.T_sc != 0:
+            h3 = self.med_prop.calc_state("PT", p_outlet, T_con + 273.15 - self.T_sc).h  # [J/kg]
+        else:
+            h3 = self.med_prop.calc_state("PQ", p_outlet, 0).h  # [J/kg]
+
+        h2s = self.med_prop.calc_state("PS", p_outlet, state_inlet_datasheet.s).h  # [J/kg]
+
+        if self._capacity_definition == "heating":
+            h2 = h3 + capacity / m_flow  # [J/kg]
+        else:
+            h2 = h3 + (capacity + p_mech * self.assumed_eta_mech) / m_flow  # [J/kg]
+
+        if h2s > h2:
+            raise ValueError("The calculated eta_s is above 1. You probably chose the wrong capacity_definition")
+
+        eta_s = (h2s - state_inlet_datasheet.h) / (h2 - state_inlet_datasheet.h)
+        return eta_s
+
+    def get_eta_mech(self, inputs: Inputs):
+        """
+        Get the mechanical efficiency.
+
+        Args:
+            inputs (Inputs): Input parameters.
+
+        Returns:
+            float: Mechanical efficiency.
+        """
+        p_outlet = self.get_p_outlet()
+
+        if self._capacity_definition == "cooling":
+            return self.assumed_eta_mech
+        # Else heating
+        T_con, state_inlet_datasheet, m_flow, capacity, p_mech = self._calculate_values(
+            p_2=p_outlet, inputs=inputs
+        )
+        if self.T_sc != 0:
+            h3 = self.med_prop.calc_state("PT", p_outlet, T_con + 273.15 - self.T_sc).h  # [J/kg]
+        else:
+            h3 = self.med_prop.calc_state("PQ", p_outlet, 0).h  # [J/kg]
+
+        h2 = h3 + capacity / m_flow  # [J/kg]
+
+        eta_mech = (m_flow * (h2 - state_inlet_datasheet.h)) / p_mech
+        return eta_mech
+
+    def _calculate_values(self, p_2: float, inputs: Inputs):
+        """
+        Calculate intermediate values for efficiency calculations.
+
+        Args:
+            p_2 (float): Outlet pressure in Pa.
+            inputs (Inputs): Input parameters.
+
+        Returns:
+            Tuple[float, State, float, float, float]: Intermediate values.
+        """
+        T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15  # [°C]
+        T_con = self.med_prop.calc_state("PQ", p_2, 0).T - 273.15  # [°C]
+
+        if self.T_sh != 0:
+            state_inlet_datasheet = self.med_prop.calc_state("PT", self.state_inlet.p, T_eva + 273.15 + self.T_sh)
+        else:
+            state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
+
+        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor # [kg/s]
+        capacity = self.get_parameter(T_eva, T_con, inputs.n, "capacity") * self.scaling_factor # [W]
+        p_mech = self.get_parameter(T_eva, T_con, inputs.n, "input_power") * self.scaling_factor # [W]
+        return T_con, state_inlet_datasheet, m_flow, capacity, p_mech
+
+    def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState) -> float:
+        p_outlet = self.get_p_outlet()
+        p_mech = self._calculate_values(p_2= p_outlet, inputs=inputs).p_mech
+        p_el = p_mech / self.assumed_eta_el
+        return p_el
+
+    def calc_m_flow(self, inputs: Inputs, fs_state: FlowsheetState) -> float:
+        p_outlet = self.get_p_outlet()
+        m_flow = self._calculate_values(p_2=p_outlet, inputs=inputs).m_flow
+        return m_flow
+
+
+
