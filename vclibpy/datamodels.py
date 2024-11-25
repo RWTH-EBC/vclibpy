@@ -432,3 +432,23 @@ class Inputs:
         self.control = control
         self.evaporator = evaporator
         self.condenser = condenser
+
+    def get(self, name: str, default: Any = None):
+        """
+        Get the Variable with the specified name.
+
+        Args:
+            name (str): The name of the variable.
+            default (Any): Default value to return if the variable is not found.
+
+        Returns:
+            Variable: The Variable object.
+
+        """
+        if name in self.condenser.get_variable_names():
+            return self.condenser.get(name, default)
+        if name in self.control.get_variable_names():
+            return self.control.get(name, default)
+        if name in self.evaporator.get_variable_names():
+            return self.evaporator.get(name, default)
+        return default

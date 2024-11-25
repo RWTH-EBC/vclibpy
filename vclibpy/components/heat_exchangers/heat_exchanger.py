@@ -205,6 +205,10 @@ class HeatExchanger(BaseComponent, abc.ABC):
     def m_flow_secondary(self) -> float:
         return self._m_flow_secondary
 
+    @property
+    def cp_secondary(self) -> float:
+        return self._secondary_cp
+
     @m_flow_secondary.setter
     def m_flow_secondary(self, m_flow: float):
         self._m_flow_secondary = m_flow

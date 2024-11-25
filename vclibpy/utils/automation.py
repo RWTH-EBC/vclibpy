@@ -53,7 +53,6 @@ def calc_multiple_states(
 
     for fs_state, single_inputs in zip(fs_states, inputs):
         hp_state_dic = {
-            **single_inputs.convert_to_str_value_format(with_unit_and_description),
             **fs_state.convert_to_str_value_format(with_unit_and_description)
         }
         rel_infos.append(hp_state_dic)
@@ -191,7 +190,6 @@ def full_factorial_map_generation(
         all_variables.update({var: _dummy.copy() for var in fs_state.get_variable_names()})
         all_variables_info.update({var: variable for var, variable in fs_state.get_variables().items()})
         variables_to_excel.append({
-            **inputs.convert_to_str_value_format(with_unit_and_description=False),
             **fs_state.convert_to_str_value_format(with_unit_and_description=False),
         })
 
@@ -227,14 +225,15 @@ def full_factorial_map_generation(
         "T_eva_in": T_eva_in_ar
     }
     inputs: Inputs = list_inputs[0]
+    # TODO: Automatically mark constant values are constant!
     _parameters = {}
-    for name, variable in inputs.items():
-        if name not in list(_scale_values.keys()) + ["T_con_out", "T_con_in"]:
-            _parameters[name] = {
-                "data": variable.value,
-                "unit": variable.unit,
-                "comment": variable.description
-            }
+    #for name, variable in inputs.items():
+    #    if name not in list(_scale_values.keys()) + ["T_con_out", "T_con_in"]:
+    #        _parameters[name] = {
+    #            "data": variable.value,
+    #            "unit": variable.unit,
+    #            "comment": variable.description
+    #        }
     _scales = {}
     for name, data in _scale_values.items():
         _scales[name] = {

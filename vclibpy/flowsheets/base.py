@@ -428,12 +428,13 @@ class BaseCycle:
         error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
         error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
         P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
-        if inputs.condenser.uses_inlet:
-            T_con_in = inputs.condenser.T_in
-            T_con_out = T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
-        else:
-            T_con_out = inputs.condenser.T_out
-            T_con_in = T_con_out - Q_con_outer / self.condenser.m_flow_secondary_cp
+
+        T_con_in, T_con_out, dT_con, m_flow_con = inputs.condenser.get_all_inputs(
+            Q=Q_con_outer, cp=self.condenser.cp_secondary
+        )
+        T_eva_in, T_eva_out, dT_eva, m_flow_eva = inputs.evaporator.get_all_inputs(
+            Q=Q_eva_outer, cp=self.evaporator.cp_secondary
+        )
 
         # COP based on P_el and Q_con:
         COP_inner = Q_con / P_el
@@ -441,18 +442,48 @@ class BaseCycle:
         # Calculate carnot quality as a measure of reliability of model:
         COP_carnot = (T_con_out / (T_con_out - inputs.evaporator.T_in))
         carnot_quality = COP_inner / COP_carnot
-        # Calc return temperature:
-        if inputs.condenser.uses_inlet:
-            fs_state.set(
-                name="T_con_out", value=T_con_out, unit="K",
-                description="Condenser outlet temperature"
-            )
-        else:
-            fs_state.set(
-                name="T_con_in", value=T_con_in, unit="K",
-                description="Condenser inlet temperature"
-            )
 
+        # Set outputs
+        fs_state.set(
+            name="T_con_out", value=T_con_out, unit="K",
+            description="Secondary condenser side outlet temperature"
+        )
+        fs_state.set(
+            name="T_con_in", value=T_con_in, unit="K",
+            description="Secondary condenser side inlet temperature"
+        )
+        fs_state.set(
+            name="T_eva_out", value=T_eva_out, unit="K",
+            description="Secondary evaporator side outlet temperature"
+        )
+        fs_state.set(
+            name="T_eva_in", value=T_eva_in, unit="K",
+            description="Secondary evaporator side inlet temperature"
+        )
+        fs_state.set(
+            name="dT_eva",
+            value=dT_eva,
+            unit="K",
+            description="Secondary evaporator side temperature difference"
+        )
+        fs_state.set(
+            name="m_flow_eva",
+            value=m_flow_eva,
+            unit="kg/s",
+            description="Secondary evaporator side mass flow rate"
+        )
+        fs_state.set(
+            name="dT_con",
+            value=dT_con,
+            unit="K",
+            description="Secondary condenser side temperature difference"
+        )
+        fs_state.set(
+            name="m_flow_con",
+            value=m_flow_con,
+            unit="kg/s",
+            description="Secondary condenser side mass flow rate"
+        )
         fs_state.set(
             name="P_el", value=P_el, unit="W",
             description="Power consumption"
@@ -465,6 +496,14 @@ class BaseCycle:
             name="Q_con", value=Q_con, unit="W",
             description="Condenser refrigerant heat flow rate"
         )
+        for variable in inputs.control.get_variables().values():
+            fs_state.set(
+                name=variable.name,
+                value=variable.value,
+                unit=variable.unit,
+                description=variable.description,
+            )
+
         # COP based on P_el and Q_con:
         fs_state.set(
             name="Q_con_outer", value=Q_con_outer, unit="W",
