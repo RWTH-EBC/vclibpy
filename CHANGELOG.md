@@ -1,5 +1,7 @@
 - v0.1.0:
    - First implementation based on prior work
+- v0.1.1:
+  - Move plot_cycle function
 - v0.2.0:
   - Add LMTD MovingBoundary heat exchangers 
   - Add VDI atlas methods for plate heat exchanger 

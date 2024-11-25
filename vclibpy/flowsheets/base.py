@@ -554,41 +554,16 @@ class BaseCycle:
         else:
             self.condenser.state_outlet = self.med_prop.calc_state("PQ", p_con, 0)
 
-    def plot_cycle(self, save_path: bool, inputs: Inputs, states: list = None):
+    def plot_cycle(self, save_path: str, inputs: Inputs):
         """Function to plot the resulting flowsheet of the steady state config."""
-        if states is None:
-            states = self.get_states_in_order_for_plotting()
-            states.append(states[0])  # Plot full cycle
-        # Unpack state var:
-        h_T = np.array([state.h for state in states]) / 1000
-        T = [state.T - 273.15 for state in states]
-        p = np.array([state.p for state in states])
-        h_p = h_T
-
-        fig, ax = plt.subplots(2, 1, sharex=True)
-        ax[0].set_ylabel("$T$ in °C")
-        ax[1].set_xlabel("$h$ in kJ/kgK")
-        # Two phase limits
-        ax[0].plot(
-            self.med_prop.get_two_phase_limits("h") / 1000,
-            self.med_prop.get_two_phase_limits("T") - 273.15, color="black"
+        from vclibpy.utils.plotting import plot_cycle
+        states = self.get_states_in_order_for_plotting()
+        fig, ax = plot_cycle(
+            states=states,
+            med_prop=self.med_prop,
+            save_path=None
         )
-
-        ax[0].plot(h_T, T, color="r", marker="s")
         self._plot_secondary_heat_flow_rates(ax=ax[0], inputs=inputs)
-        ax[1].plot(h_p, np.log(p), marker="s", color="r")
-        # Two phase limits
-        ax[1].plot(
-            self.med_prop.get_two_phase_limits("h") / 1000,
-            np.log(self.med_prop.get_two_phase_limits("p")),
-            color="black"
-        )
-        plt.plot()
-        ax[1].set_ylabel("$log(p)$")
-        ax[1].set_ylim([np.min(np.log(p)) * 0.9, np.max(np.log(p)) * 1.1])
-        ax[0].set_ylim([np.min(T) - 5, np.max(T) + 5])
-        ax[1].set_xlim([np.min(h_T) * 0.9, np.max(h_T) * 1.1])
-        ax[0].set_xlim([np.min(h_T) * 0.9, np.max(h_T) * 1.1])
         fig.tight_layout()
         fig.savefig(save_path)
         plt.close(fig)
