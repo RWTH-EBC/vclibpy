@@ -300,7 +300,7 @@ class ControlInputs(VariableContainer, abc.ABC):
     """
 
 
-class RelativeCompressorSpeedControl(VariableContainer):
+class RelativeCompressorSpeedControl(ControlInputs):
     """
     Class defining inputs to control the
     vapor compression machine using the relative compressor
@@ -409,9 +409,9 @@ class Inputs:
 
     def __init__(
             self,
-            control: ControlInputs,
-            evaporator: HeatExchangerInputs,
-            condenser: HeatExchangerInputs
+            control: ControlInputs = None,
+            evaporator: HeatExchangerInputs = None,
+            condenser: HeatExchangerInputs = None,
     ):
         """
         Initializes an Inputs object with parameters representing external conditions

@@ -145,7 +145,7 @@ class Compressor(BaseComponent):
         V_flow_ref = (
                 lambda_h *
                 self.V_h *
-                self.get_n_absolute(inputs.n)
+                self.get_n_absolute(inputs.control.n)
         )
         self.m_flow = self.state_inlet.d * V_flow_ref
         fs_state.set(name="lambda_h", value=lambda_h, unit="-", description="Volumetric efficiency")

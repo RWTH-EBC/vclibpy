@@ -4,7 +4,7 @@ import pandas as pd
 from pathlib import Path
 
 from vclibpy.components.compressors import TenCoefficientCompressor
-from vclibpy import media, Inputs
+from vclibpy import media, Inputs, RelativeCompressorSpeedControl
 
 try:
     from sklearn.linear_model import LinearRegression
@@ -92,7 +92,10 @@ def create_regression_data(
                         compressor.state_outlet = state_2
                         T_eva_list.append(T_eva[i])
                         T_con_list.append(T_con[j])
-                        inputs = Inputs(n=_n)
+                        inputs = Inputs(control=RelativeCompressorSpeedControl(
+                            n=_n,
+                            dT_con_subcooling=0, dT_eva_superheating=0  # Irrelevant
+                        ))
 
                         if _variable == "eta_is":
                             result_list.append(compressor.get_eta_isentropic(

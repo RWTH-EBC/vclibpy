@@ -77,27 +77,24 @@ class BaseCycle:
 
     def get_start_condensing_pressure(self, inputs: Inputs):
         if inputs.uses_condenser_inlet:
-            T_3_start = inputs.T_con_in + inputs.dT_con_subcooling
+            T_3_start = inputs.condenser.T_in + inputs.control.dT_con_subcooling
         else:
-            try:
-                dT_con_start = inputs.dT_con_start
-            except AttributeError:
-                dT_con_start = 10
-            T_3_start = inputs.T_con_out - dT_con_start
+            dT_con_start = 10
+            T_3_start = inputs.condenser.T_out - dT_con_start
         p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
         return p_2_start
 
     def improve_first_condensing_guess(self, inputs: Inputs, m_flow_guess, p_2_guess, dT_pinch_assumption=0):
-        self.condenser.m_flow_secondary = inputs.m_flow_con  # [kg/s]
-        self.condenser.calc_secondary_cp(T=inputs.T_con)
+        self.condenser.m_flow_secondary = inputs.condenser.m_flow  # [kg/s]
+        self.condenser.calc_secondary_cp(T=inputs.condenser.T)
 
         def nonlinear_func(p_2, *args):
             _flowsheet, _inputs, _m_flow_ref, _dT_pinch = args
             state_q0 = _flowsheet.med_prop.calc_state("PQ", p_2, 0)
             state_q1 = _flowsheet.med_prop.calc_state("PQ", p_2, 1)
-            state_3 = _flowsheet.med_prop.calc_state("PT", p_2, state_q0.T - _inputs.dT_con_subcooling)
+            state_3 = _flowsheet.med_prop.calc_state("PT", p_2, state_q0.T - _inputs.control.dT_con_subcooling)
             Q_water_till_q1 = (state_q1.h - state_3.h) * _m_flow_ref
-            T_water_q1 = _inputs.T_con_in + Q_water_till_q1 / _flowsheet.condenser.m_flow_secondary_cp
+            T_water_q1 = _inputs.condenser.T_in + Q_water_till_q1 / _flowsheet.condenser.m_flow_secondary_cp
             return T_water_q1 + _dT_pinch - state_q1.T
 
         p_2_guess_optimized = fsolve(
@@ -108,7 +105,7 @@ class BaseCycle:
         return p_2_guess_optimized
 
     def get_start_evaporating_pressure(self, inputs: Inputs, dT_pinch: float = 0):
-        T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating - dT_pinch
+        T_1_start = inputs.evaporator.T_in - inputs.control.dT_eva_superheating - dT_pinch
         return self.med_prop.calc_state("TQ", T_1_start, 1).p
 
     def calc_steady_state(self, inputs: Inputs, fluid: str = None, **kwargs):
@@ -432,17 +429,17 @@ class BaseCycle:
         error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
         P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
         if inputs.uses_condenser_inlet:
-            T_con_in = inputs.T_con_in
+            T_con_in = inputs.condenser.T_in
             T_con_out = T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
         else:
-            T_con_out = inputs.T_con_out
+            T_con_out = inputs.condenser.T_out
             T_con_in = T_con_out - Q_con_outer / self.condenser.m_flow_secondary_cp
 
         # COP based on P_el and Q_con:
         COP_inner = Q_con / P_el
         COP_outer = Q_con_outer / P_el
         # Calculate carnot quality as a measure of reliability of model:
-        COP_carnot = (T_con_out / (T_con_out - inputs.T_eva_in))
+        COP_carnot = (T_con_out / (T_con_out - inputs.evaporator.T_in))
         carnot_quality = COP_inner / COP_carnot
         # Calc return temperature:
         if inputs.uses_condenser_inlet:
@@ -533,8 +530,8 @@ class BaseCycle:
             p_eva (float): Evaporation pressure
             inputs (Inputs): Inputs with superheating level
         """
-        T_1 = self.med_prop.calc_state("PQ", p_eva, 1).T + inputs.dT_eva_superheating
-        if inputs.dT_eva_superheating > 0:
+        T_1 = self.med_prop.calc_state("PQ", p_eva, 1).T + inputs.control.dT_eva_superheating
+        if inputs.control.dT_eva_superheating > 0:
             self.evaporator.state_outlet = self.med_prop.calc_state("PT", p_eva, T_1)
         else:
             self.evaporator.state_outlet = self.med_prop.calc_state("PQ", p_eva, 1)
@@ -548,8 +545,8 @@ class BaseCycle:
             p_con (float): Condensing pressure
             inputs (Inputs): Inputs with superheating level
         """
-        T_3 = self.med_prop.calc_state("PQ", p_con, 0).T - inputs.dT_con_subcooling
-        if inputs.dT_con_subcooling > 0:
+        T_3 = self.med_prop.calc_state("PQ", p_con, 0).T - inputs.control.dT_con_subcooling
+        if inputs.control.dT_con_subcooling > 0:
             self.condenser.state_outlet = self.med_prop.calc_state("PT", p_con, T_3)
         else:
             self.condenser.state_outlet = self.med_prop.calc_state("PQ", p_con, 0)
@@ -580,23 +577,23 @@ class BaseCycle:
             self.evaporator.state_outlet.h * self.evaporator.m_flow,
             self.evaporator.state_outlet.h * self.evaporator.m_flow - Q_eva
         ]) / self.evaporator.m_flow
-        self.condenser.m_flow_secondary = inputs.m_flow_con
-        self.condenser.calc_secondary_cp(T=inputs.T_con)
-        self.evaporator.m_flow_secondary = inputs.m_flow_eva
-        self.evaporator.calc_secondary_cp(T=inputs.T_eva_in)
+        self.condenser.m_flow_secondary = inputs.condenser.m_flow
+        self.condenser.calc_secondary_cp(T=inputs.condenser.T)
+        self.evaporator.m_flow_secondary = inputs.evaporator.m_flow
+        self.evaporator.calc_secondary_cp(T=inputs.evaporator.T_in)
         if inputs.uses_condenser_inlet:
             ax.plot(delta_H_con / 1000, [
-                inputs.T_con_in - 273.15,
-                inputs.T_con_in + Q_con / self.condenser.m_flow_secondary_cp - 273.15
+                inputs.condenser.T_in - 273.15,
+                inputs.condenser.T_in + Q_con / self.condenser.m_flow_secondary_cp - 273.15
             ], color="b")
         else:
             ax.plot(delta_H_con / 1000, [
-                inputs.T_con_out - Q_con / self.condenser.m_flow_secondary_cp - 273.15,
-                inputs.T_con_out - 273.15
+                inputs.condenser.T_out - Q_con / self.condenser.m_flow_secondary_cp - 273.15,
+                inputs.condenser.T_out - 273.15
             ], color="b")
         ax.plot(delta_H_eva / 1000, [
-            inputs.T_eva_in - 273.15,
-            inputs.T_eva_in - Q_eva / self.evaporator.m_flow_secondary_cp - 273.15
+            inputs.evaporator.T_in - 273.15,
+            inputs.evaporator.T_in - Q_eva / self.evaporator.m_flow_secondary_cp - 273.15
         ], color="b")
 
     @abstractmethod

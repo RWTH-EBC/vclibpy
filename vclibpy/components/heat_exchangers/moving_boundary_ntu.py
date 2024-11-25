@@ -92,8 +92,8 @@ class MovingBoundaryNTUCondenser(BasicNTU):
                 error: Error in percentage between the required and calculated heat flow rates.
                 dT_min: Minimal temperature difference (can be negative).
         """
-        self.m_flow_secondary = inputs.m_flow_con  # [kg/s]
-        self.calc_secondary_cp(T=inputs.T_con)
+        self.m_flow_secondary = inputs.condenser.m_flow  # [kg/s]
+        self.calc_secondary_cp(T=inputs.condenser.T)
 
         # First we separate the flow:
         Q_sc, Q_lat, Q_sh, state_q0, state_q1 = separate_phases(
@@ -224,8 +224,8 @@ class MovingBoundaryNTUEvaporator(BasicNTU):
                 error: Error in percentage between the required and calculated heat flow rates.
                 dT_min: Minimal temperature difference (can be negative).
         """
-        self.m_flow_secondary = inputs.m_flow_eva  # [kg/s]
-        self.calc_secondary_cp(T=inputs.T_eva_in)
+        self.m_flow_secondary = inputs.evaporator.m_flow  # [kg/s]
+        self.calc_secondary_cp(T=inputs.evaporator.T_in)
 
         # First we separate the flow:
         Q_sc, Q_lat, Q_sh, state_q0, state_q1 = separate_phases(
@@ -240,12 +240,12 @@ class MovingBoundaryNTUEvaporator(BasicNTU):
 
         # Note: As Q_eva_ntu has to converge to Q_eva (m_ref*delta_h), we can safely
         # calculate the output temperature.
-        T_mean = inputs.T_eva_in - Q / (self.m_flow_secondary_cp * 2)
+        T_mean = inputs.evaporator.T_in - Q / (self.m_flow_secondary_cp * 2)
         tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
 
         # Calculate secondary_medium side temperatures:
-        T_sh = inputs.T_eva_in - Q_sh / self.m_flow_secondary_cp
+        T_sh = inputs.evaporator.T_in - Q_sh / self.m_flow_secondary_cp
         T_sc = T_sh - Q_lat / self.m_flow_secondary_cp
         T_out = T_sc - Q_sc / self.m_flow_secondary_cp
 
@@ -259,7 +259,7 @@ class MovingBoundaryNTUEvaporator(BasicNTU):
 
             if Q_lat > 0:
                 A_sh = iterate_area(heat_exchanger=self,
-                                    dT_max=(inputs.T_eva_in - state_q1.T),
+                                    dT_max=(inputs.evaporator.T_in - state_q1.T),
                                     alpha_pri=alpha_ref_wall,
                                     alpha_sec=alpha_med_wall,
                                     Q=Q_sh)
@@ -270,7 +270,7 @@ class MovingBoundaryNTUEvaporator(BasicNTU):
             # Only use still available area
             A_sh = min(self.A, A_sh)
 
-            Q_sh_ntu, k_sh = self.calc_Q_ntu(dT_max=(inputs.T_eva_in - state_q1.T),
+            Q_sh_ntu, k_sh = self.calc_Q_ntu(dT_max=(inputs.evaporator.T_in - state_q1.T),
                                              alpha_pri=alpha_ref_wall,
                                              alpha_sec=alpha_med_wall,
                                              A=A_sh)
@@ -324,7 +324,7 @@ class MovingBoundaryNTUEvaporator(BasicNTU):
         Q_ntu = Q_sh_ntu + Q_sc_ntu + Q_lat_ntu
         error = (Q_ntu / Q - 1) * 100
         # Get dT_min
-        dT_min_in = inputs.T_eva_in - self.state_outlet.T
+        dT_min_in = inputs.evaporator.T_in - self.state_outlet.T
         dT_min_out = T_out - self.state_inlet.T
 
         fs_state.set(name="A_eva_sh", value=A_sh, unit="m2",

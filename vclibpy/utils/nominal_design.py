@@ -53,8 +53,8 @@ def nominal_hp_design(
         # Set values
         m_flow_eva = m_flow_eva_next
         m_flow_con = m_flow_con_next
-        inputs.set("m_flow_con", m_flow_con)
-        inputs.set("m_flow_eva", m_flow_eva)
+        inputs.condenser.set("m_flow", m_flow_con)
+        inputs.evaporator.set("m_flow", m_flow_eva)
         # Get nominal value:
         fs_state = heat_pump.calc_steady_state(fluid=fluid, inputs=inputs)
         if fs_state is None:

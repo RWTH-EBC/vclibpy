@@ -216,7 +216,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         """
         p_outlet = self.get_p_outlet()
 
-        n_abs = self.get_n_absolute(inputs.n)
+        n_abs = self.get_n_absolute(inputs.control.n)
         T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15  # [°C]
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T - 273.15  # [°C]
 
@@ -237,7 +237,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         else:
             state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
 
-        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor  # [kg/s]
+        m_flow = self.get_parameter(T_eva, T_con, inputs.control.n, "m_flow") / 3600 * self.scaling_factor  # [kg/s]
 
         lambda_h = m_flow / (n_abs * state_inlet_datasheet.d * self.V_h)
         return lambda_h
@@ -333,9 +333,9 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         else:
             state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
 
-        m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600 * self.scaling_factor  # [kg/s]
-        capacity = self.get_parameter(T_eva, T_con, inputs.n, "capacity") * self.scaling_factor  # [W]
-        p_el = self.get_parameter(T_eva, T_con, inputs.n, "input_power") * self.scaling_factor  # [W]
+        m_flow = self.get_parameter(T_eva, T_con, inputs.control.n, "m_flow") / 3600 * self.scaling_factor  # [kg/s]
+        capacity = self.get_parameter(T_eva, T_con, inputs.control.n, "capacity") * self.scaling_factor  # [W]
+        p_el = self.get_parameter(T_eva, T_con, inputs.control.n, "input_power") * self.scaling_factor  # [W]
         return T_con, state_inlet_datasheet, m_flow, capacity, p_el
 
 
@@ -389,7 +389,7 @@ class DataSheetCompressor(BaseTenCoefficientCompressor):
         p_outlet = self.get_p_outlet()
         T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 0).T
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T
-        return self.get_parameter(T_eva, T_con, inputs.n, "lambda_h")
+        return self.get_parameter(T_eva, T_con, inputs.control.n, "lambda_h")
 
     def get_eta_isentropic(self, p_outlet: float, inputs: Inputs):
         """
@@ -404,7 +404,7 @@ class DataSheetCompressor(BaseTenCoefficientCompressor):
         """
         T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 0).T
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T
-        return self.get_parameter(T_eva, T_con, inputs.n, "eta_is")
+        return self.get_parameter(T_eva, T_con, inputs.control.n, "eta_is")
 
     def get_eta_mech(self, inputs: Inputs):
         """
@@ -419,7 +419,7 @@ class DataSheetCompressor(BaseTenCoefficientCompressor):
         p_outlet = self.get_p_outlet()
         T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 0).T
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T
-        return self.get_parameter(T_eva, T_con, inputs.n, "eta_mech")
+        return self.get_parameter(T_eva, T_con, inputs.control.n, "eta_mech")
 
 
 def linear_interpolate_extrapolate(x_new, x, y):

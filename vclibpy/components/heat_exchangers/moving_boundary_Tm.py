@@ -38,8 +38,8 @@ class MovingBoundaryTmCondenser(HeatExchanger):
                 error: Error in percentage between the required and calculated heat flow rates.
                 dT_min: Minimal temperature difference (can be negative).
         """
-        self.m_flow_secondary = inputs.m_flow_con  # [kg/s]
-        self.calc_secondary_cp(T=inputs.T_con)
+        self.m_flow_secondary = inputs.condenser.m_flow  # [kg/s]
+        self.calc_secondary_cp(T=inputs.condenser.T)
 
         # First we separate the flow:
         Q_sc, Q_lat, Q_sh, state_q0, state_q1 = utils.separate_phases(
@@ -165,8 +165,8 @@ class MovingBoundaryTmEvaporator(HeatExchanger):
                 error: Error in percentage between the required and calculated heat flow rates.
                 dT_min: Minimal temperature difference (can be negative).
         """
-        self.m_flow_secondary = inputs.m_flow_eva  # [kg/s]
-        self.calc_secondary_cp(T=inputs.T_eva_in)
+        self.m_flow_secondary = inputs.evaporator.m_flow  # [kg/s]
+        self.calc_secondary_cp(T=inputs.evaporator.T_in)
 
         # First we separate the flow:
         Q_sc, Q_lat, Q_sh, state_q0, state_q1 = utils.separate_phases(
@@ -181,13 +181,13 @@ class MovingBoundaryTmEvaporator(HeatExchanger):
 
         # Note: As Q_eva_Tm has to converge to Q_eva (m_ref*delta_h), we can safely
         # calculate the output temperature.
-        T_mean = inputs.T_eva_in - Q / (self.m_flow_secondary_cp * 2)
+        T_mean = inputs.evaporator.T_in - Q / (self.m_flow_secondary_cp * 2)
         tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
         # alpha_med_wall = 26
 
         # Calculate secondary_medium side temperatures:
-        T_sh = inputs.T_eva_in - Q_sh / self.m_flow_secondary_cp
+        T_sh = inputs.evaporator.T_in - Q_sh / self.m_flow_secondary_cp
         T_sc = T_sh - Q_lat / self.m_flow_secondary_cp
         T_out = T_sc - Q_sc / self.m_flow_secondary_cp
 
@@ -200,7 +200,7 @@ class MovingBoundaryTmEvaporator(HeatExchanger):
 
             k_sh = self.calc_k(alpha_pri=alpha_ref_wall, alpha_sec=alpha_med_wall)
             T_m_sh = utils.calc_mean_temperature(
-                T_hot_in=inputs.T_eva_in, T_hot_out=T_sh,
+                T_hot_in=inputs.evaporator.T_in, T_hot_out=T_sh,
                 T_cold_in=state_q1.T, T_cold_out=self.state_outlet.T
             )
             # Only use still available area:
@@ -253,7 +253,7 @@ class MovingBoundaryTmEvaporator(HeatExchanger):
         error_A = (A_necessary / self.A - 1) * 100
         error = (Q_Tm / Q - 1) * 100
         # Get dT_min
-        dT_min_in = inputs.T_eva_in - self.state_outlet.T
+        dT_min_in = inputs.evaporator.T_in - self.state_outlet.T
         dT_min_out = T_out - self.state_inlet.T
 
         fs_state.set(name="A_eva_sh", value=A_sh, unit="m2", description="Area for superheat heat exchange in evaporator")

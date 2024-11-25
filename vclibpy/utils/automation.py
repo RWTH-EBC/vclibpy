@@ -8,7 +8,7 @@ from typing import List, Union
 import multiprocessing
 import numpy as np
 import pandas as pd
-from vclibpy.datamodels import FlowsheetState, Inputs
+from vclibpy.datamodels import FlowsheetState, Inputs, RelativeCompressorSpeedControl, HeatExchangerInputs
 from vclibpy.flowsheets import BaseCycle
 from vclibpy import utils
 
@@ -75,7 +75,6 @@ def full_factorial_map_generation(
         dT_eva_superheating=5,
         dT_con_subcooling=0,
         use_condenser_inlet: bool = True,
-        dT_con_start: float = 10,
         use_multiprocessing: bool = False,
         save_plots: bool = False,
         raise_errors: bool = False,
@@ -111,9 +110,6 @@ def full_factorial_map_generation(
             Condenser subcooling
         use_condenser_inlet (bool):
             True to consider T_con_ar as inlet, false for outlet.
-        dT_con_start (float):
-            Guess value for starting condenser pressure,
-            only relevant if `use_condenser_inlet=False`
         use_multiprocessing:
             True to use multiprocessing. May speed up the calculation. Default is False
         save_plots (bool):
@@ -141,25 +137,30 @@ def full_factorial_map_generation(
         for i_n, n in enumerate(n_ar):
             for i_T_con, T_con in enumerate(T_con_ar):
                 idx_for_access_later.append([i_n, i_T_con, i_T_eva_in])
-                base_inputs = dict(
+                control_inputs = RelativeCompressorSpeedControl(
                     n=n,
-                    T_eva_in=T_eva_in,
-                    m_flow_eva=m_flow_eva,
-                    m_flow_con=m_flow_con,
                     dT_eva_superheating=dT_eva_superheating,
                     dT_con_subcooling=dT_con_subcooling
                 )
+                evaporator_inputs = HeatExchangerInputs(
+                    T_in=T_eva_in,
+                    m_flow=m_flow_eva
+                )
                 if use_condenser_inlet:
-                    inputs = Inputs(
-                        T_con_in=T_con,
-                        **base_inputs
+                    condenser_inputs = HeatExchangerInputs(
+                        T_in=T_con,
+                        m_flow=m_flow_eva
                     )
                 else:
-                    inputs = Inputs(
-                        T_con_out=T_con,
-                        **base_inputs
+                    condenser_inputs = HeatExchangerInputs(
+                        T_out=T_con,
+                        m_flow=m_flow_con
                     )
-                    inputs.set(name="dT_con_start", value=dT_con_start, unit="K")
+                inputs = Inputs(
+                    control=control_inputs,
+                    evaporator=evaporator_inputs,
+                    condenser=condenser_inputs
+                )
                 list_mp_inputs.append([heat_pump, inputs, kwargs, raise_errors])
                 list_inputs.append(inputs)
     fs_states = []
