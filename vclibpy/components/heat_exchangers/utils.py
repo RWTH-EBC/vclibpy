@@ -80,7 +80,7 @@ def get_condenser_phase_temperatures_and_alpha(
 
     # Calculate secondary_medium side temperatures:
     # Assumption loss is the same correlation for each regime
-    if inputs.inputs.condenser.uses_inlet:
+    if inputs.condenser.uses_inlet:
         T_in = inputs.condenser.T_in
         T_sc = inputs.condenser.T_in + heat_exchanger.calc_secondary_Q_flow(Q_sc) / cp
         T_sh = T_sc + heat_exchanger.calc_secondary_Q_flow(Q_lat) / cp
