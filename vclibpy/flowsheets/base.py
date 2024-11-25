@@ -1,6 +1,7 @@
 import logging
 from typing import List
 import numpy as np
+from scipy.optimize import fsolve
 
 from abc import abstractmethod
 import matplotlib.pyplot as plt
@@ -64,12 +65,51 @@ class BaseCycle:
         self.fluid = fluid
 
     def terminate(self):
-        self.med_prop.terminate()
+        if self.med_prop is not None:
+            self.med_prop.terminate()
+            self.med_prop = None
         for component in self.get_all_components():
             component.terminate_secondary_med_prop()
+            component.med_prop = None
 
     def get_all_components(self) -> List[BaseComponent]:
         return [self.condenser, self.evaporator]
+
+    def get_start_condensing_pressure(self, inputs: Inputs):
+        if inputs.uses_condenser_inlet:
+            T_3_start = inputs.T_con_in + inputs.dT_con_subcooling
+        else:
+            try:
+                dT_con_start = inputs.dT_con_start
+            except AttributeError:
+                dT_con_start = 10
+            T_3_start = inputs.T_con_out - dT_con_start
+        p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
+        return p_2_start
+
+    def improve_first_condensing_guess(self, inputs: Inputs, m_flow_guess, p_2_guess, dT_pinch_assumption=0):
+        self.condenser.m_flow_secondary = inputs.m_flow_con  # [kg/s]
+        self.condenser.calc_secondary_cp(T=inputs.T_con)
+
+        def nonlinear_func(p_2, *args):
+            _flowsheet, _inputs, _m_flow_ref, _dT_pinch = args
+            state_q0 = _flowsheet.med_prop.calc_state("PQ", p_2, 0)
+            state_q1 = _flowsheet.med_prop.calc_state("PQ", p_2, 1)
+            state_3 = _flowsheet.med_prop.calc_state("PT", p_2, state_q0.T - _inputs.dT_con_subcooling)
+            Q_water_till_q1 = (state_q1.h - state_3.h) * _m_flow_ref
+            T_water_q1 = _inputs.T_con_in + Q_water_till_q1 / _flowsheet.condenser.m_flow_secondary_cp
+            return T_water_q1 + _dT_pinch - state_q1.T
+
+        p_2_guess_optimized = fsolve(
+            func=nonlinear_func,
+            x0=p_2_guess,
+            args=(self, inputs, m_flow_guess, dT_pinch_assumption)
+        )[0]
+        return p_2_guess_optimized
+
+    def get_start_evaporating_pressure(self, inputs: Inputs, dT_pinch: float = 0):
+        T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating - dT_pinch
+        return self.med_prop.calc_state("TQ", T_1_start, 1).p
 
     def calc_steady_state(self, inputs: Inputs, fluid: str = None, **kwargs):
         """
@@ -126,15 +166,22 @@ class BaseCycle:
         # Settings
         min_iteration_step = kwargs.pop("min_iteration_step", 1)
         save_path_plots = kwargs.get("save_path_plots", None)
-        input_name = ";".join([k + "=" + str(np.round(v.value, 3)).replace(".", "_")
-                               for k, v in inputs.get_variables().items()])
         show_iteration = kwargs.get("show_iteration", False)
         use_quick_solver = kwargs.pop("use_quick_solver", True)
         err_ntu = kwargs.pop("max_err_ntu", 0.5)
         err_dT_min = kwargs.pop("max_err_dT_min", 0.1)
         max_num_iterations = kwargs.pop("max_num_iterations", 1e5)
+        dT_pinch_con_guess = kwargs.pop("dT_pinch_con_guess", 0)
+        dT_pinch_eva_guess = kwargs.pop("dT_pinch_eva_guess", 0)
+        improve_first_condensing_guess = kwargs.pop("improve_first_condensing_guess", False)
         p_1_history = []
         p_2_history = []
+        error_con_history = []
+        error_eva_history = []
+        dT_eva_history = []
+        dT_con_history = []
+        error_con, dT_min_eva, dT_min_con, error_eva = np.nan, np.nan, np.nan, np.nan
+        plot_last = -100
 
         if use_quick_solver:
             step_p1 = kwargs.get("step_max", 10000)
@@ -149,19 +196,15 @@ class BaseCycle:
         self.setup_new_fluid(fluid)
 
         # First: Iterate with given conditions to get the 4 states and the mass flow rate:
-        T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating
-        T_3_start = inputs.T_con_in + inputs.dT_con_subcooling
-        p_1_start = self.med_prop.calc_state("TQ", T_1_start, 1).p
-        p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
-        p_1_next = p_1_start
-        p_2_next = p_2_start
+        p_1_next = self.get_start_evaporating_pressure(inputs=inputs, dT_pinch=dT_pinch_eva_guess)
+        p_2_next = self.get_start_condensing_pressure(inputs=inputs)
 
         fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
         fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
         fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
 
         if show_iteration:
-            fig_iterations, ax_iterations = plt.subplots(2)
+            fig_iterations, ax_iterations = plt.subplots(3, 2, sharex=True)
 
         num_iterations = 0
 
@@ -178,13 +221,29 @@ class BaseCycle:
 
             p_1 = p_1_next
             p_2 = p_2_next
-            p_1_history.append(p_1)
-            p_2_history.append(p_2)
+            p_1_history.append(p_1 / 1e5)
+            p_2_history.append(p_2 / 1e5)
+            error_con_history.append(error_con)
+            error_eva_history.append(error_eva)
+            dT_con_history.append(dT_min_con)
+            dT_eva_history.append(dT_min_eva)
+
             if show_iteration:
-                ax_iterations[0].cla()
-                ax_iterations[1].cla()
-                ax_iterations[0].scatter(list(range(len(p_1_history))), p_1_history)
-                ax_iterations[1].scatter(list(range(len(p_2_history))), p_2_history)
+                for ax in ax_iterations.flatten():
+                    ax.clear()
+                iterations = list(range(len(p_1_history)))[plot_last:]
+                ax_iterations[0, 0].set_ylabel("error_eva in %")
+                ax_iterations[0, 1].set_ylabel("error_con in %")
+                ax_iterations[1, 0].set_ylabel("$\Delta T_\mathrm{Min}$ in K")
+                ax_iterations[1, 1].set_ylabel("$\Delta T_\mathrm{Min}$ in K")
+                ax_iterations[2, 0].set_ylabel("$p_1$ in bar")
+                ax_iterations[2, 1].set_ylabel("$p_2$ in bar")
+                ax_iterations[0, 0].scatter(iterations, error_eva_history[plot_last:])
+                ax_iterations[0, 1].scatter(iterations, error_con_history[plot_last:])
+                ax_iterations[1, 0].scatter(iterations, dT_eva_history[plot_last:])
+                ax_iterations[1, 1].scatter(iterations, dT_con_history[plot_last:])
+                ax_iterations[2, 0].scatter(iterations, p_1_history[plot_last:])
+                ax_iterations[2, 1].scatter(iterations, p_2_history[plot_last:])
                 plt.draw()
                 plt.pause(1e-5)
 
@@ -206,18 +265,31 @@ class BaseCycle:
                 step_p1 /= 10
                 continue
 
-            # Calculate the states based on the given flowsheet
             try:
-                self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
+                error_eva, dT_min_eva, error_con, dT_min_con = self.calculate_cycle_for_pressures(
+                    p_1=p_1, p_2=p_2, inputs=inputs, fs_state=fs_state
+                )
             except ValueError as err:
                 logger.error("An error occurred while calculating states. "
                              "Can't guess next pressures, thus, exiting: %s", err)
                 return
-            if save_path_plots is not None and num_iterations == 1 and show_iteration:
-                self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_initialization.png"), inputs=inputs)
 
-            # Check heat exchangers:
-            error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+            if num_iterations == 1:
+                if improve_first_condensing_guess:
+                    p_2_next = self.improve_first_condensing_guess(
+                       inputs=inputs,
+                       m_flow_guess=self.condenser.m_flow,
+                       p_2_guess=p_2,
+                       dT_pinch_assumption=dT_pinch_con_guess
+                    )
+
+                if save_path_plots is not None and show_iteration:
+                    input_name = inputs.get_name()
+                    self.plot_cycle(
+                        save_path=save_path_plots.joinpath(f"{input_name}_initialization.png"),
+                        inputs=inputs
+                    )
+
             if not isinstance(error_eva, float):
                 print(error_eva)
             if error_eva < 0:
@@ -233,7 +305,6 @@ class BaseCycle:
                     p_1_next = p_1 + step_p1
                     continue
 
-            error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
             if error_con < 0:
                 p_2_next = p_2 + step_p2
                 continue
@@ -273,15 +344,99 @@ class BaseCycle:
         if show_iteration:
             plt.close(fig_iterations)
 
+        return self.calculate_outputs_for_valid_pressures(
+            p_1=p_1, p_2=p_2, inputs=inputs, fs_state=fs_state,
+            save_path_plots=save_path_plots
+        )
+
+    def calc_steady_state_fsolve(self, inputs: Inputs, fluid: str = None, **kwargs):
+        # Settings
+        max_err = kwargs.pop("max_err_ntu", 0.5)
+
+        save_path_plots = kwargs.get("save_path_plots", None)
+        dT_pinch_eva_guess = kwargs.pop("dT_pinch_eva_guess", 0)
+
+        # Setup fluid:
+        if fluid is None:
+            fluid = self.fluid
+        self.setup_new_fluid(fluid)
+
+        # First: Iterate with given conditions to get the 4 states and the mass flow rate:
+        p_1_next = self.get_start_evaporating_pressure(inputs=inputs, dT_pinch=dT_pinch_eva_guess)
+        p_2_next = self.get_start_condensing_pressure(inputs=inputs)
+
+        def nonlinear_func(x, *args):
+            _flowsheet, _inputs, _fs_state, _max_err = args
+            _p_1, _p_2 = x
+            if not (_p_1 < _p_2 < self._p_max):
+                return 1000, 1000
+            if not (self._p_min < _p_1 < _p_2):
+                return 1000, 1000
+            _error_eva, dT_min_eva, _error_con, dT_min_con = _flowsheet.calculate_cycle_for_pressures(
+                p_1=x[0], p_2=x[1], inputs=_inputs, fs_state=_fs_state
+            )
+
+            if 0 <= _error_eva < _max_err:
+                _error_eva = 0
+            if 0 <= _error_con < _max_err:
+                _error_con = 0
+            if 0 > _error_eva:
+                _error_eva *= 5
+            if 0 > _error_con:
+                _error_con *= 5
+            return _error_eva, _error_con
+
+        fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
+        try:
+            args = (self, inputs, fs_state, max_err)
+            p_optimized = fsolve(
+                func=nonlinear_func,
+                x0=np.array([p_1_next, p_2_next]),
+                args=args
+            )
+        except Exception as err:
+            logger.error("An error occurred while calculating states using fsolve: %s", err)
+            return
+        error_con, error_eva = nonlinear_func(p_optimized, *args)
+        print(f"{error_con=}, {error_eva=}")
+
+        p_1, p_2 = p_optimized
+        return self.calculate_outputs_for_valid_pressures(
+            p_1=p_1, p_2=p_2, inputs=inputs, fs_state=fs_state,
+            save_path_plots=save_path_plots
+        )
+
+    def calculate_cycle_for_pressures(self, p_1: float, p_2: float, inputs: Inputs, fs_state: FlowsheetState):
+        # Calculate the states based on the given flowsheet
+        self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
+        # Check heat exchangers:
+        error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+        error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
+        return error_eva, dT_min_eva, error_con, dT_min_con
+
+    def calculate_outputs_for_valid_pressures(
+            self,
+            p_1,
+            p_2,
+            fs_state: FlowsheetState,
+            inputs: Inputs,
+            save_path_plots
+    ):
+        self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
         # Calculate the heat flow rates for the selected states.
         Q_con = self.condenser.calc_Q_flow()
         Q_con_outer = self.condenser.calc_secondary_Q_flow(Q_con)
         Q_eva = self.evaporator.calc_Q_flow()
         Q_eva_outer = self.evaporator.calc_secondary_Q_flow(Q_eva)
-        self.evaporator.calc(inputs=inputs, fs_state=fs_state)
-        self.condenser.calc(inputs=inputs, fs_state=fs_state)
+        error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
+        error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
         P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
-        T_con_out = inputs.T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
+        if inputs.uses_condenser_inlet:
+            T_con_in = inputs.T_con_in
+            T_con_out = T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
+        else:
+            T_con_out = inputs.T_con_out
+            T_con_in = T_con_out - Q_con_outer / self.condenser.m_flow_secondary_cp
 
         # COP based on P_el and Q_con:
         COP_inner = Q_con / P_el
@@ -290,6 +445,17 @@ class BaseCycle:
         COP_carnot = (T_con_out / (T_con_out - inputs.T_eva_in))
         carnot_quality = COP_inner / COP_carnot
         # Calc return temperature:
+        if inputs.uses_condenser_inlet:
+            fs_state.set(
+                name="T_con_out", value=T_con_out, unit="K",
+                description="Condenser outlet temperature"
+            )
+        else:
+            fs_state.set(
+                name="T_con_in", value=T_con_in, unit="K",
+                description="Condenser inlet temperature"
+            )
+
         fs_state.set(
             name="P_el", value=P_el, unit="W",
             description="Power consumption"
@@ -319,8 +485,28 @@ class BaseCycle:
             name="COP_outer", value=COP_outer,
             unit="-", description="Outer COP, including heat losses"
         )
-
+        fs_state.set(
+            name="error_con", value=error_con,
+            unit="%", description="Error in condenser heat exchanger model"
+        )
+        fs_state.set(
+            name="error_eva", value=error_eva,
+            unit="%", description="Error in evaporator heat exchanger model"
+        )
+        fs_state.set(
+            name="dT_min_eva", value=dT_min_eva,
+            unit="K", description="Evaporator pinch temperature"
+        )
+        fs_state.set(
+            name="dT_min_con", value=dT_min_con,
+            unit="K", description="Condenser pinch temperature"
+        )
+        fs_state.set(
+            name="eta_glob", value=fs_state.get("eta_is").value * fs_state.get("eta_mech").value,
+            unit="%", description="Global compressor efficiency"
+        )
         if save_path_plots is not None:
+            input_name = inputs.get_name()
             self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_final_result.png"), inputs=inputs)
 
         return fs_state
@@ -395,13 +581,19 @@ class BaseCycle:
             self.evaporator.state_outlet.h * self.evaporator.m_flow - Q_eva
         ]) / self.evaporator.m_flow
         self.condenser.m_flow_secondary = inputs.m_flow_con
-        self.condenser.calc_secondary_cp(T=inputs.T_con_in)
+        self.condenser.calc_secondary_cp(T=inputs.T_con)
         self.evaporator.m_flow_secondary = inputs.m_flow_eva
         self.evaporator.calc_secondary_cp(T=inputs.T_eva_in)
-        ax.plot(delta_H_con / 1000, [
-            inputs.T_con_in - 273.15,
-            inputs.T_con_in + Q_con / self.condenser.m_flow_secondary_cp - 273.15
-        ], color="b")
+        if inputs.uses_condenser_inlet:
+            ax.plot(delta_H_con / 1000, [
+                inputs.T_con_in - 273.15,
+                inputs.T_con_in + Q_con / self.condenser.m_flow_secondary_cp - 273.15
+            ], color="b")
+        else:
+            ax.plot(delta_H_con / 1000, [
+                inputs.T_con_out - Q_con / self.condenser.m_flow_secondary_cp - 273.15,
+                inputs.T_con_out - 273.15
+            ], color="b")
         ax.plot(delta_H_eva / 1000, [
             inputs.T_eva_in - 273.15,
             inputs.T_eva_in - Q_eva / self.evaporator.m_flow_secondary_cp - 273.15

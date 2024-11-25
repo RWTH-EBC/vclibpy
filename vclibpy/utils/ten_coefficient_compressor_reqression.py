@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Union
 import csv
 import pandas as pd
+from pathlib import Path
 
 from vclibpy.components.compressors import TenCoefficientCompressor
 from vclibpy import media, Inputs
@@ -8,72 +9,58 @@ from vclibpy import media, Inputs
 try:
     from sklearn.linear_model import LinearRegression
     from sklearn.preprocessing import PolynomialFeatures
-    from xlsxwriter.workbook import Workbook
 except ImportError as err:
-    raise ImportError("You have to install xlsxwriter and "
-                      "sklearn to use this regression tool")
+    raise ImportError("You have to install sklearn to use this regression tool")
 
 
 def create_regression_data(
-        variables: List[str],
-        T_con: List[float], T_eva: List[float], n: List[float],
-        T_sh: float, T_sc: float, n_max: int, V_h: float, fluid: str, datasheet: str,
-        capacity_definition: str, assumed_eta_mech: int,
-        folder_path: str):
+        T_con: List[float],
+        T_eva: List[float],
+        n: List[float],
+        compressor: TenCoefficientCompressor,
+        save_path: Union[Path, str],
+        fluid: str = None,
+):
     """
     Performs multidimensional linear regression to create compressor learning data.
 
     Args:
-        variables: (List[str]):
-            Variable names to create regressions for.
-            Options are: eta_s, lambda_h, and eta_mech
         T_con (List[float]): Condensing temperatures in K
         T_eva (List[float]): Evaporation temperatures in K
         n (List[float]): Compressor speeds from 0 to 1
-        T_sh (float): Superheat temperature.
-        T_sc (float): Subcooling temperature.
-        n_max (int): Maximum compressor speed.
-        V_h (float): Compressor volume.
-        fluid (str): Type of refrigerant.
-        datasheet (str): Path to the modified datasheet.
-        capacity_definition (str): Definition of compressor capacity (e.g., "cooling").
-        assumed_eta_mech (int): Assumed mechanical efficiency.
-        folder_path (str): Path to the folder where the newly created table will be saved.
+        save_path (str): Path to the folder where the newly created table will be saved.
+        compressor (TenCoefficientCompressor):
+            Instance to create regression for.
+            If med_prop is not set, the given fluid will be used.
+        fluid (str): Type of refrigerant. Only used if not already specified in compressor.
 
     Returns:
         List[float]: A list containing the regression parameters [P0, P1, ..., P9].
 
     Raises:
         ValueError: If any specified variable column is not present in the DataFrame.
-
-    Example:
-        >>> create_regression_data(11.1, 8.3, 120, 20.9e-6, "PROPANE", "path/to/datasheet.xlsx",
-        ...                        "cooling", 1, 6, 5, 5, 5, 303.15, 243.15, "path/to/save", 3)
-        [intercept, P1, P2, P3, P4, P5, P6, P7, P8, P9]
     """
-    # create RefProp, fluid & compressor instance
-    med_prop = media.CoolProp(fluid)
+    if compressor.med_prop is None:
+        med_prop_class, med_prop_kwargs = media.get_global_med_prop_and_kwargs()
+        med_prop = med_prop_class(fluid_name=fluid, **med_prop_kwargs)
+        compressor.med_prop = med_prop
+    else:
+        med_prop = compressor.med_prop
 
-    compressor = TenCoefficientCompressor(
-        N_max=n_max, V_h=V_h, T_sc=T_sc, T_sh=T_sh,
-        capacity_definition=capacity_definition,
-        assumed_eta_mech=assumed_eta_mech,
-        datasheet=datasheet
-    )
-
-    compressor.med_prop = med_prop
     keywords = {
-        "eta_s": "Isentropic Efficiency(-)",
+        "eta_is": "Isentropic Efficiency(-)",
         "lambda_h": "Volumentric Efficiency(-)",
         "eta_mech": "Mechanical Efficiency(-)"
     }
+
+    variables = ["eta_is", "eta_mech", "lambda_h"]
 
     tuples_for_cols = [("", "n")]
     for _variable in variables:
         for _n in n:
             tuples_for_cols.append((keywords[_variable], compressor.get_n_absolute(_n)))
     # tuples_for_cols:
-    #     eta_s   eta_s   eta_s   lambda_h    lambda_h    lambda_h    eta_mech    ...
+    #     eta_is   eta_is   eta_is   lambda_h    lambda_h    lambda_h    eta_mech    ...
     # n   30      60      90      30          60          90          30          ...
     cols = pd.MultiIndex.from_tuples(tuples_for_cols)
     final_df = pd.DataFrame(
@@ -83,7 +70,7 @@ def create_regression_data(
     # final_df: column names are tuples (tuples_for_cols).
     # First column is filled with P1, P2, ...
 
-    # for-loop for multiple types(eta_s, eta_mech, etc)
+    # for-loop for multiple types(eta_is, eta_mech, etc)
     for m, _variable in enumerate(variables):
         for k, _n in enumerate(n):  # for-loop for multiple rotation speeds
             T_eva_list = []
@@ -95,7 +82,7 @@ def create_regression_data(
                 for j in range(len(T_con)):
                     if T_eva[i] < T_con[j]:
                         p1 = med_prop.calc_state("TQ", T_eva[i], 1).p
-                        state_1 = med_prop.calc_state("PT", p1, (T_eva[i] + T_sh))
+                        state_1 = med_prop.calc_state("PT", p1, (T_eva[i] + compressor.T_sh))
                         compressor.state_inlet = state_1
                         p2 = med_prop.calc_state("TQ", T_con[j], 1).p
                         # The enthalpy and entropy of the outlet
@@ -107,7 +94,7 @@ def create_regression_data(
                         T_con_list.append(T_con[j])
                         inputs = Inputs(n=_n)
 
-                        if _variable == "eta_s":
+                        if _variable == "eta_is":
                             result_list.append(compressor.get_eta_isentropic(
                                 p_outlet=p2, inputs=inputs)
                             )
@@ -123,23 +110,11 @@ def create_regression_data(
             )
 
             final_df[cols[m * len(n) + k + 1]] = create_regression_parameters(df, _variable)
-
-    # dataframes with a double column header can't be saved as a
-    # .xlsx yet, if index = False (NotImplementedError).
-    # .xlsx format is necessary, because TenCoefficientCompressor.get_parameter()
-    # expects a .xlsx as an input
-    # --> workaround: save the dataframe as a .csv, read it again and save it as a .xlsx
-    # TODO: Revert once this feature is in pandas.
-    final_df.to_csv(folder_path + r"\regressions.csv", index=False)
-
-    workbook = Workbook(folder_path + r"\regressions.xlsx")
-    worksheet = workbook.add_worksheet()
-    with open(folder_path + r"\regressions.csv", 'rt', encoding='utf8') as f:
-        reader = csv.reader(f)
-        for r, row in enumerate(reader):
-            for c, col in enumerate(row):
-                worksheet.write(r, c, col)
-    workbook.close()
+    df_new = final_df.copy()
+    df_new.columns = df_new.columns.get_level_values(0)  # Use only first level
+    df_new.loc[-1] = final_df.columns.get_level_values(1)
+    final_df = df_new.sort_index().reset_index(drop=True)
+    final_df.to_csv(save_path, index=False)
 
 
 def create_regression_parameters(df: pd.DataFrame, variable: str):
