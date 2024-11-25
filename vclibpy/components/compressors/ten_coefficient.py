@@ -220,11 +220,11 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15  # [°C]
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T - 273.15  # [°C]
 
-        # if round((self.state_inlet.T - T_eva - 273.15), 2) != round(self.T_sh, 2):
-        #     logger.warning("The superheating of the given state is not "
-        #                    "equal to the superheating of the datasheet. "
-        #                    "State1.T_sh= %s. Datasheet.T_sh = %s",
-        #                    round((self.state_inlet.T - T_eva - 273.15), 2), self.T_sh)
+        if round((self.state_inlet.T - T_eva - 273.15), 2) != round(self.T_sh, 2):
+            logger.debug("The superheating of the given state is not "
+                           "equal to the superheating of the datasheet. "
+                           "State: T_sh=%s; Datasheet: T_sh=%s",
+                           round((self.state_inlet.T - T_eva - 273.15), 2), self.T_sh)
 
         # The datasheet has a given superheating temperature which can
         # vary from the superheating of the real state 1
@@ -279,7 +279,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
                 f"Calculated eta_is is {eta_is * 100} %, which is higher than "
                 f"typical maximal values of up to, e.g., 80 %. "
                 "You either chose the wrong capacity_definition, "
-                "or your assumed eta_mech is also not realistic.",
+                "or your assumed eta_mech is not realistic.",
             )
         return eta_is
 
