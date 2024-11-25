@@ -18,7 +18,7 @@ def main():
     # Also, note again that the expansion valve model does not influence the results
     # for the current algorithm. But, you could size the expansion valve
     # using vclibpy, including off-design, but this is one for another example.
-    from vclibpy.components.heat_exchangers import moving_boundary_ntu, simple_ntu, simple_lmtd, moving_boundary_lmtd
+    from vclibpy.components.heat_exchangers import moving_boundary_ntu
     from vclibpy.components.heat_exchangers import heat_transfer
     condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
         A=5,
@@ -31,7 +31,6 @@ def main():
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000)
     )
-
     evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
         A=15,
         secondary_medium="air",
@@ -43,7 +42,6 @@ def main():
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=25)
     )
-
     from vclibpy.components.expansion_valves import Bernoulli
     expansion_valve = Bernoulli(A=0.1)
 
@@ -97,7 +95,7 @@ def main():
     # the values using e.g. pandas. It is also the second return value of the function.
     import pandas as pd
     df = pd.read_csv(save_path_csv, index_col=0)
-
+    df
     # Now, we can plot variables, for example as a scatter plot using matplotlib.
     # You have to know the names, which are the column headers.
     import matplotlib.pyplot as plt
