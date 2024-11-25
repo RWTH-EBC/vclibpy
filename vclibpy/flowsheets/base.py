@@ -76,7 +76,7 @@ class BaseCycle:
         return [self.condenser, self.evaporator]
 
     def get_start_condensing_pressure(self, inputs: Inputs):
-        if inputs.uses_condenser_inlet:
+        if inputs.inputs.condenser.uses_inlet:
             T_3_start = inputs.condenser.T_in + inputs.control.dT_con_subcooling
         else:
             dT_con_start = 10
@@ -428,7 +428,7 @@ class BaseCycle:
         error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
         error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
         P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
-        if inputs.uses_condenser_inlet:
+        if inputs.inputs.condenser.uses_inlet:
             T_con_in = inputs.condenser.T_in
             T_con_out = T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
         else:
@@ -442,7 +442,7 @@ class BaseCycle:
         COP_carnot = (T_con_out / (T_con_out - inputs.evaporator.T_in))
         carnot_quality = COP_inner / COP_carnot
         # Calc return temperature:
-        if inputs.uses_condenser_inlet:
+        if inputs.inputs.condenser.uses_inlet:
             fs_state.set(
                 name="T_con_out", value=T_con_out, unit="K",
                 description="Condenser outlet temperature"
@@ -581,7 +581,7 @@ class BaseCycle:
         self.condenser.calc_secondary_cp(T=inputs.condenser.T)
         self.evaporator.m_flow_secondary = inputs.evaporator.m_flow
         self.evaporator.calc_secondary_cp(T=inputs.evaporator.T_in)
-        if inputs.uses_condenser_inlet:
+        if inputs.inputs.condenser.uses_inlet:
             ax.plot(delta_H_con / 1000, [
                 inputs.condenser.T_in - 273.15,
                 inputs.condenser.T_in + Q_con / self.condenser.m_flow_secondary_cp - 273.15
