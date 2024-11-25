@@ -32,38 +32,6 @@ def main():
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000)
     )
 
-    condenser = simple_ntu.SimpleNTUCondenser(
-        A=5,
-        secondary_medium="water",
-        flow_type="counter",
-        ratio_outer_to_inner_area=1,
-        primary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
-        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
-        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000)
-    )
-
-    condenser = simple_lmtd.SimpleLMTDCondenser(
-        A=5,
-        secondary_medium="water",
-        flow_type="counter",
-        ratio_outer_to_inner_area=1,
-        primary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=2000),
-        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
-        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=2000)
-    )
-
-    condenser = moving_boundary_lmtd.MovingBoundaryLMTDCondenser(
-        A=5,
-        secondary_medium="water",
-        flow_type="counter",
-        ratio_outer_to_inner_area=1,
-        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=5000),
-        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
-        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
-        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
-        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000)
-    )
-
     evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
         A=15,
         secondary_medium="air",
@@ -76,38 +44,13 @@ def main():
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=25)
     )
 
-    evaporator = simple_lmtd.SimpleLMTDEvaporator(
-        A=5,
-        secondary_medium="water",
-        flow_type="counter",
-        ratio_outer_to_inner_area=1,
-        primary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=2000),
-        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
-        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=2000)
-    )
-
-    evaporator = moving_boundary_lmtd.MovingBoundaryLMTDEvaporator(
-        A=5,
-        secondary_medium="water",
-        flow_type="counter",
-        ratio_outer_to_inner_area=10,
-        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=1000),
-        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1000),
-        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
-        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
-        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=25)
-    )
     from vclibpy.components.expansion_valves import Bernoulli
     expansion_valve = Bernoulli(A=0.1)
 
     from vclibpy.components.compressors import RotaryCompressor
     compressor = RotaryCompressor(
         N_max=125,
-        V_h=19e-6,
-        #eps_vol=2.2,
-        # eta_isentropic=0.92,
-        # lambda_h=0.92,
-        # eta_mech=1
+        V_h=19e-6
     )
 
     # Now, we can plug everything into the flowsheet:
@@ -120,10 +63,10 @@ def main():
     )
     # As in the other example, we can specify save-paths,
     # solver settings and inputs to vary:
-    save_path = r"N:\Forschung\EBC0933_BMWK_Enlarge_KAP\Data\WorkingZone\Development\ORCA"
-    T_eva_in_ar = [10+ 273.15, 15 + 273.15]
-    T_con_in_ar = [30 + 273.15]
-    n_ar = [0.7]
+    save_path = r"D:\00_temp\simple_heat_pump"
+    T_eva_in_ar = [-10 + 273.15, 273.15, 10 + 273.15]
+    T_con_in_ar = [30 + 273.15, 50 + 273.15, 70 + 273.15]
+    n_ar = [0.3, 0.7, 1]
 
     # Now, we can generate the full-factorial performance map
     # using all inputs. The results will be stored under the
@@ -140,7 +83,7 @@ def main():
         T_eva_in_ar=T_eva_in_ar,
         n_ar=n_ar,
         use_multiprocessing=False,
-        save_plots=False,
+        save_plots=True,
         m_flow_con=0.2,
         m_flow_eva=0.9,
         dT_eva_superheating=5,
@@ -153,7 +96,7 @@ def main():
     # One file should be: `Standard_Propane.csv`. We can load this file and plot
     # the values using e.g. pandas. It is also the second return value of the function.
     import pandas as pd
-    df = pd.read_csv(save_path_csv, index_col=0, sep= ";")
+    df = pd.read_csv(save_path_csv, index_col=0)
 
     # Now, we can plot variables, for example as a scatter plot using matplotlib.
     # You have to know the names, which are the column headers.

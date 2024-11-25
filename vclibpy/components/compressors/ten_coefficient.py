@@ -23,7 +23,6 @@ def calc_ten_coefficients(T_eva, T_con, coef_list):
     z = coef_list[0] + coef_list[1] * T_eva + coef_list[2] * T_con + coef_list[3] * T_eva ** 2 + \
         coef_list[4] * T_eva * T_con + coef_list[5] * T_con ** 2 + coef_list[6] * T_eva ** 3 + \
         coef_list[7] * T_eva ** 2 * T_con + coef_list[8] * T_con ** 2 * T_eva + coef_list[9] * T_con ** 3
-    # print(f'coef_list: {coef_list}')
     return z
 
 
@@ -78,7 +77,6 @@ class BaseTenCoefficientCompressor(Compressor, ABC):
         super().__init__(N_max, V_h)
         sheet_name = kwargs.get('sheet_name', None)
         self.md = pd.read_excel(datasheet, sheet_name=sheet_name)
-        # print(self.md)
         parameter_names = kwargs.get('parameter_names', None)
         if parameter_names is None:
             self.parameter_names = {
@@ -118,9 +116,6 @@ class BaseTenCoefficientCompressor(Compressor, ABC):
                 coefficients = self.md[str(self.parameter_names[type_] + "." + str(i))].tolist()
             n_list.append(coefficients.pop(0))
             param_list.append(calc_ten_coefficients(T_eva, T_con, coefficients))
-
-        # print(f'coefficients: {coefficients}')
-        # print(f'parameter: {np.interp(self.get_n_absolute(n), n_list, param_list)}')
 
         return np.interp(self.get_n_absolute(n), n_list, param_list)  # linear interpolation
 
@@ -178,7 +173,6 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
             raise ValueError("capacity_definition has to be either 'heating' or 'cooling'")
         self._capacity_definition = capacity_definition
         self.assumed_eta_mech = assumed_eta_mech
-        # print(f'assumed_eta_mech: {assumed_eta_mech}')
         self.datasheet = datasheet
 
     def get_lambda_h(self, inputs: Inputs):
@@ -194,7 +188,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         p_outlet = self.get_p_outlet()
 
         n_abs = self.get_n_absolute(inputs.n)
-        T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15 #+ self.T_sh  # [°C] #jkl
+        T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15  # [°C]
         T_con = self.med_prop.calc_state("PQ", p_outlet, 0).T - 273.15  # [°C]
 
         if round((self.state_inlet.T - T_eva - 273.15), 2) != round(self.T_sh, 2):
@@ -210,12 +204,6 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         state_inlet_datasheet = self.med_prop.calc_state("PT", self.state_inlet.p, T_eva + 273.15 + self.T_sh)
 
         m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600  # [kg/s]
-
-        #tests for error search
-        # print(f'm_flow:[kg/s] {m_flow}')
-        # print(f'V_h: {self.V_h}')
-        # print(f'n_abs: {n_abs}')
-        # print(f'state_inlet_datasheet.d: {state_inlet_datasheet.d}')
 
         lambda_h = m_flow / (n_abs * state_inlet_datasheet.d * self.V_h)
         return lambda_h
@@ -285,7 +273,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         Returns:
             Tuple[float, State, float, float, float]: Intermediate values.
         """
-        T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15 #+ self.T_sh  # [°C] #jkl
+        T_eva = self.med_prop.calc_state("PQ", self.state_inlet.p, 1).T - 273.15  # [°C]
         T_con = self.med_prop.calc_state("PQ", p_2, 0).T - 273.15  # [°C]
 
         state_inlet_datasheet = self.med_prop.calc_state("PT", self.state_inlet.p, T_eva + 273.15 + self.T_sh)
@@ -293,11 +281,6 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         m_flow = self.get_parameter(T_eva, T_con, inputs.n, "m_flow") / 3600  # [kg/s]
         capacity = self.get_parameter(T_eva, T_con, inputs.n, "capacity")  # [W]
         p_el = self.get_parameter(T_eva, T_con, inputs.n, "input_power")  # [W]
-        # print(f'p_el: {p_el}')
-        # print(f'capacity: {capacity}')
-        # print(f'm_flow: {m_flow}')
-        # print(f'T_eva: {T_eva}')
-        # print(f'T_con: {T_con}')
         return T_con, state_inlet_datasheet, m_flow, capacity, p_el
 
 

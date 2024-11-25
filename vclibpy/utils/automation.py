@@ -151,9 +151,6 @@ def full_factorial_map_generation(
     # Save to excel
     save_path_sdf = save_path.joinpath(f"{heat_pump.flowsheet_name}_{heat_pump.fluid}.sdf")
     save_path_csv = save_path.joinpath(f"{heat_pump.flowsheet_name}_{heat_pump.fluid}.csv")
-    #pd.DataFrame(variables_to_excel).to_csv(
-    #    save_path_csv, sep=";"
-    #)
 
     for fs_state, idx_triple in zip(fs_states, idx_for_access_later):
         i_n, i_T_con_in, i_T_eva_in = idx_triple
