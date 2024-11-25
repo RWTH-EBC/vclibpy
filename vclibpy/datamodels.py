@@ -159,35 +159,27 @@ class HeatExchangerInputs(VariableContainer):
     """
     Class defining inputs for a heat exchanger.
 
-    Note that some inputs presuppose each other.
-    You may only specify values which follow this equation:
+    Note that some inputs presuppose each other. The equation
     Q = m_flow * cp * abs(T_out - T_in) = m_flow * cp * dT
+    must be satisfied. For example, if you provide T_in, T_out, and cp, the code
+    will calculate Q and dT. If you provide T_in, dT, and cp, it will calculate
+    T_out and Q.
 
-    Moreover, the amount of required inputs depend on the
-    control inputs you specify.
+    The amount of required inputs depends on the control inputs you specify.
     For example, when providing dT_superheating, dT_subcooling, and n,
-    both at least two arguments must be free.
+    at least two other arguments (e.g., T_in and T_out) must be provided.
     However, you always have to specify either T_in or T_out to define
     the absolute temperature levels.
 
     Args:
-        T_in (float):
-            Secondary side inlet temperature in [K].
-        T_out (float):
-            Secondary side outlet temperature in [K].
-        dT (float):
-            Secondary side temperature difference in between inlet and outlet[K].
-            May be provided instead of m_flow or both T_in and T_out.
-        m_flow (float):
-            Secondary side mass flow rate in [kg/s].
-            May be provided instead of m_flow or both T_in and T_out.
-        Q (float):
-            Heat flow rate in [W].
-            May be provided
-        T_ambient (float):
-            Ambient temperature of the heat exchanger in [K].
-            Only used if the heat exchnager models account for
-            heat losses.
+        T_in (float, optional): Secondary side inlet temperature in [K].
+        T_out (float, optional): Secondary side outlet temperature in [K].
+        dT (float, optional): Secondary side temperature difference between inlet and outlet [K].
+        m_flow (float, optional): Secondary side mass flow rate in [kg/s].
+        Q (float, optional): Heat flow rate in [W].
+        T_ambient (float, optional): Ambient temperature of the heat exchanger in [K].
+            If not provided, it defaults to the mean temperature T.
+
     """
 
     def __init__(
@@ -273,7 +265,21 @@ class HeatExchangerInputs(VariableContainer):
             return self.T_in
         return self.T_out
 
-    def get_all_inputs(self, cp: float, Q: float):
+    def get_all_inputs(self, Q: float, cp: float):
+        """
+        Returns a tuple of (T_in, T_out, dT, m_flow) based on the provided inputs and the
+        given cp and Q values.
+
+        If both T_in and T_out are provided, it calculates dT and m_flow.
+        If only T_in is provided, it calculates T_out and m_flow.
+        If only T_out is provided, it calculates T_in and m_flow.
+
+        If m_flow cannot be calculated due to insufficient inputs, it raises a ValueError.
+
+        Args:
+            Q (float): Heat flow rate  [W].
+            cp (float): Heat capacity of secondary medium [J/kg/K].
+        """
         # Case with both inlet and outlet
         if self.uses_inlet and self.uses_outlet:
             T_in = self.T_in
@@ -297,6 +303,10 @@ class ControlInputs(VariableContainer, abc.ABC):
     """
     Abstract class defining inputs to control the
     vapor compression machine.
+
+    Control inputs are the parameters that determine the operating conditions
+    of the vapor compression cycle, such as compressor speed, superheat levels,
+    or condenser heat flow rate.
     """
 
 
@@ -372,8 +382,8 @@ class CondenserPowerControl(ControlInputs):
         self.set(
             name="Q_con",
             value=Q_con,
-            unit="-",
-            description="Relative compressor speed"
+            unit="W",
+            description="Condenser heat flow rate"
         )
         self.set(
             name="dT_eva_superheating",
@@ -392,6 +402,8 @@ class CondenserPowerControl(ControlInputs):
 class Inputs:
     """
     Class defining inputs to calculate the FlowsheetState.
+    This class acts as a container or wrapper for the different types
+    of inputs required for the vapor compression cycle calculations.
 
     Args:
         control (ControlInputs):
@@ -420,31 +432,3 @@ class Inputs:
         self.control = control
         self.evaporator = evaporator
         self.condenser = condenser
-
-
-if __name__ == '__main__':
-    print(HeatExchangerInputs(T_in=273.15, dT=5))
-    print("-----")
-    print(HeatExchangerInputs(T_out=273.15, dT=5))
-    print("-----")
-    print(HeatExchangerInputs(T_in=273.15, T_out=278.15, dT=5))
-    print("-----")
-    print(HeatExchangerInputs(T_in=273.15, m_flow=5))
-    print("-----")
-    print(HeatExchangerInputs(T_out=273.15, m_flow=5))
-    try:
-        HeatExchangerInputs(dT=5)
-    except ValueError as err:
-        print("-----")
-        print(err)
-    try:
-        HeatExchangerInputs(m_flow=5)
-    except ValueError as err:
-        print("-----")
-        print(err)
-    try:
-        HeatExchangerInputs(T_in=273.15, T_out=278.15, m_flow=5)
-    except ValueError as err:
-        print("-----")
-        print(err)
-    print(HeatExchangerInputs(T_out=273.15, dT=5).get_all_inputs(cp=4184, Q=1000))
