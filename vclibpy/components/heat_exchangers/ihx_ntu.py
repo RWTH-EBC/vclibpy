@@ -14,8 +14,10 @@ class IHX_NTU(InternalHeatExchanger):
             self,
             gas_heat_transfer: HeatTransfer,
             two_phase_heat_transfer_high: TwoPhaseHeatTransfer,
+            dT_pinch_min: float = 0,
             **kwargs):
         super().__init__(**kwargs)
+        self.dT_pinch_min = dT_pinch_min
         assert self.flow_type == "counter", "Other types are not implemented"
         self._gas_heat_transfer = gas_heat_transfer
         self._two_phase_heat_transfer_high = two_phase_heat_transfer_high

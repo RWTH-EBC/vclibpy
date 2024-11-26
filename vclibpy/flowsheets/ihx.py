@@ -101,6 +101,13 @@ class IHX(BaseCycle):
             m_flow=self.compressor.m_flow,
             opening=opening
         )
+        if self.expansion_valve_high.state_outlet.T - self.ihx.dT_pinch_min < self.ihx.state_outlet_low.T:
+            T_min = self.ihx.state_outlet_low.T + self.ihx.dT_pinch_min
+            self.expansion_valve_high.calc_outlet(p_outlet=self.med_prop.calc_state("TQ", T_min, 0).p)
+            logger.info(
+                "Pressure to low to at given opening to match dT_pinch_min=%s. "
+                "Setting minimal required pressure."
+            )
         self.ihx.state_inlet_high = self.expansion_valve_high.state_outlet
         # State 5
         self.ihx.calc(inputs=inputs, fs_state=fs_state)
