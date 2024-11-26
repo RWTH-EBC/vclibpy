@@ -156,7 +156,7 @@ def full_factorial_map_generation(
                 if use_condenser_inlet:
                     condenser_inputs = HeatExchangerInputs(
                         T_in=T_con,
-                        m_flow=m_flow_eva
+                        m_flow=m_flow_con
                     )
                 else:
                     condenser_inputs = HeatExchangerInputs(

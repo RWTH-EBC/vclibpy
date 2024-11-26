@@ -1,12 +1,11 @@
 """
 Module with constant heat transfer assumptions
 """
-import abc
-
 from vclibpy.media import TransportProperties
+from vclibpy.components.heat_exchangers.heat_transfer.heat_transfer import HeatTransfer, TwoPhaseHeatTransfer
 
 
-class ConstantHeatTransfer(abc.ABC):
+class ConstantHeatTransfer(HeatTransfer):
     """
     Constant heat transfer assumption
 
@@ -33,7 +32,7 @@ class ConstantHeatTransfer(abc.ABC):
         return self.alpha
 
 
-class ConstantTwoPhaseHeatTransfer(abc.ABC):
+class ConstantTwoPhaseHeatTransfer(TwoPhaseHeatTransfer):
     """
     Constant heat transfer assumption.
 
