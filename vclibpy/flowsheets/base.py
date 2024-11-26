@@ -6,7 +6,7 @@ from abc import abstractmethod
 import matplotlib.pyplot as plt
 from vclibpy import media, Inputs
 from vclibpy.datamodels import FlowsheetState
-from vclibpy.components.heat_exchangers import HeatExchanger
+from vclibpy.components.heat_exchangers import HeatExchanger, ExternalHeatExchanger
 from vclibpy.components.component import BaseComponent
 
 logger = logging.getLogger(__name__)
@@ -20,8 +20,8 @@ class BaseCycle:
 
     Args:
         fluid (str): Name of the fluid
-        evaporator (HeatExchanger): Instance of a heat exchanger used for the  evaporator
-        condenser (HeatExchanger): Instance of a heat exchanger used for the condenser
+        evaporator (ExternalHeatExchanger): Instance of a heat exchanger used for the  evaporator
+        condenser (ExternalHeatExchanger): Instance of a heat exchanger used for the condenser
      """
 
     flowsheet_name: str = "BaseCLass of all HP classes - not to use for map generation"
@@ -55,7 +55,8 @@ class BaseCycle:
         # Write the instance to the components
         for component in self.get_all_components():
             component.med_prop = self.med_prop
-            component.start_secondary_med_prop()
+            if isinstance(component, ExternalHeatExchanger):
+                component.start_secondary_med_prop()
 
         self.fluid = fluid
 
@@ -64,7 +65,8 @@ class BaseCycle:
             self.med_prop.terminate()
             self.med_prop = None
         for component in self.get_all_components():
-            component.terminate_secondary_med_prop()
+            if isinstance(component, ExternalHeatExchanger):
+                component.terminate_secondary_med_prop()
             component.med_prop = None
 
     def get_all_components(self) -> List[BaseComponent]:

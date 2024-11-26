@@ -4,12 +4,12 @@ import numpy as np
 
 from vclibpy.components.heat_exchangers import utils
 from vclibpy.datamodels import FlowsheetState, Inputs
-from vclibpy.components.heat_exchangers import HeatExchanger
+from vclibpy.components.heat_exchangers import ExternalHeatExchanger
 
 logger = logging.getLogger(__name__)
 
 
-class MovingBoundaryTmCondenser(HeatExchanger):
+class MovingBoundaryTmCondenser(ExternalHeatExchanger):
     """
     Condenser class which implements the actual `calc` method.
 
@@ -135,7 +135,7 @@ class MovingBoundaryTmCondenser(HeatExchanger):
                           dT_min_out)
 
 
-class MovingBoundaryTmEvaporator(HeatExchanger):
+class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
     """
     Evaporator class which implements the actual `calc` method.
 

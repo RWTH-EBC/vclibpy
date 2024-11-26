@@ -4,13 +4,105 @@ from typing import Tuple
 
 from vclibpy import media
 from vclibpy.datamodels import FlowsheetState, Inputs
-from vclibpy.components.component import BaseComponent
+from vclibpy.components.component import FourPortComponent, TwoPortComponent
 from vclibpy.components.heat_exchangers.heat_transfer.heat_transfer import HeatTransfer, TwoPhaseHeatTransfer
 
 
-class HeatExchanger(BaseComponent, abc.ABC):
+class HeatExchanger(abc.ABC):
     """
     Class for a heat exchanger.
+
+    Args:
+        A (float):
+            Area of HE in m^2 for NTU calculation
+        wall_heat_transfer (HeatTransfer):
+            Model for heat transfer inside wall
+        ratio_outer_to_inner_area (float):
+            The NTU method uses the overall heat transfer coefficient `k`
+            and multiplies it with the overall area `A`.
+            However, depending on the heat exchanger type, the areas may
+            differ drastically. For instance in an air-to-water heat exchanger.
+            The VDI-Atlas proposes the ratio of outer area to inner pipe area
+            to account for this mismatch in sizes.
+            The calculation follows the code in the function `calc_k`.
+        flow_type (str): Flow direction. Supported are counter, cross, or parallel
+    """
+
+    def __init__(
+            self,
+            A: float,
+            wall_heat_transfer: HeatTransfer,
+            ratio_outer_to_inner_area: float = 1,
+            flow_type: str = "counter"
+    ):
+        super(HeatExchanger, self).__init__()
+        self.A = A
+        self.ratio_outer_to_inner_area = ratio_outer_to_inner_area
+        self._wall_heat_transfer = wall_heat_transfer
+        # Type of HE:
+        self.flow_type = flow_type.lower()
+        if self.flow_type not in ["counter", "cross", "parallel"]:
+            raise TypeError("Given flow_type is not supported")
+
+    @abc.abstractmethod
+    def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> Tuple[float, float]:
+        """
+        Calculate the heat exchanger based on the given inputs.
+
+        The flowsheet state can be used to save important variables
+        during calculation for later analysis.
+
+        Both return values are used to check if the heat transfer is valid or not.
+
+        Args:
+            inputs (Inputs): The inputs for the calculation.
+            fs_state (FlowsheetState): The flowsheet state to save important variables.
+
+        Returns:
+            Tuple[float, float]:
+                error: Error in percentage between the required and calculated heat flow rates.
+                dT_min: Minimal temperature difference (can be negative).
+        """
+        raise NotImplementedError
+
+    def calc_k(self, alpha_pri: float, alpha_sec: float) -> float:
+        """
+        Calculate the overall heat transfer coefficient (k) of the heat exchanger.
+
+        Args:
+            alpha_pri (float): Heat transfer coefficient for the primary medium.
+            alpha_sec (float): Heat transfer coefficient for the secondary medium.
+
+        Returns:
+            float: Overall heat transfer coefficient (k).
+        """
+        k_wall = self.calc_wall_heat_transfer()
+        k = (1 / (
+                        (1 / alpha_pri) * self.ratio_outer_to_inner_area +
+                        (1 / k_wall) * self.ratio_outer_to_inner_area +
+                        (1 / alpha_sec)
+                )
+             )
+        return k
+
+    def calc_wall_heat_transfer(self) -> float:
+        """
+        Calculate the heat transfer coefficient inside the wall.
+
+        Returns:
+            float: The wall heat transfer coefficient.
+        """
+        # Arguments are not required
+        return self._wall_heat_transfer.calc(
+            transport_properties=media.TransportProperties(),
+            m_flow=0
+        )
+
+
+class ExternalHeatExchanger(HeatExchanger, TwoPortComponent, abc.ABC):
+    """
+    Class for an external heat exchanger, i.e.
+    transferring heat from or to a secondary medium
 
     Args:
         A (float):
@@ -28,7 +120,6 @@ class HeatExchanger(BaseComponent, abc.ABC):
         two_phase_heat_transfer (TwoPhaseHeatTransfer):
             Model for heat transfer from refrigerant two phase to wall
     """
-
     def __init__(
             self,
             A: float,
@@ -41,12 +132,14 @@ class HeatExchanger(BaseComponent, abc.ABC):
             ratio_outer_to_inner_area: float = 1,
             flow_type: str = "counter"
     ):
-        super().__init__()
-        self.A = A
+        super(ExternalHeatExchanger, self).__init__(
+            A=A,
+            wall_heat_transfer=wall_heat_transfer,
+            ratio_outer_to_inner_area=ratio_outer_to_inner_area,
+            flow_type=flow_type
+        )
         self.secondary_medium = secondary_medium.lower()
-        self.ratio_outer_to_inner_area = ratio_outer_to_inner_area
 
-        self._wall_heat_transfer = wall_heat_transfer
         self._secondary_heat_transfer = secondary_heat_transfer
         self._gas_heat_transfer = gas_heat_transfer
         self._liquid_heat_transfer = liquid_heat_transfer
@@ -77,27 +170,6 @@ class HeatExchanger(BaseComponent, abc.ABC):
         if self.med_prop_sec is not None:
             self.med_prop_sec.terminate()
             self.med_prop_sec = None
-
-    @abc.abstractmethod
-    def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> Tuple[float, float]:
-        """
-        Calculate the heat exchanger based on the given inputs.
-
-        The flowsheet state can be used to save important variables
-        during calculation for later analysis.
-
-        Both return values are used to check if the heat transfer is valid or not.
-
-        Args:
-            inputs (Inputs): The inputs for the calculation.
-            fs_state (FlowsheetState): The flowsheet state to save important variables.
-
-        Returns:
-            Tuple[float, float]:
-                error: Error in percentage between the required and calculated heat flow rates.
-                dT_min: Minimal temperature difference (can be negative).
-        """
-        raise NotImplementedError
 
     def calc_alpha_two_phase(self, state_q0, state_q1, inputs: Inputs, fs_state: FlowsheetState) -> float:
         """
@@ -168,39 +240,6 @@ class HeatExchanger(BaseComponent, abc.ABC):
             m_flow=self.m_flow_secondary
         )
 
-    def calc_k(self, alpha_pri: float, alpha_sec: float) -> float:
-        """
-        Calculate the overall heat transfer coefficient (k) of the heat exchanger.
-
-        Args:
-            alpha_pri (float): Heat transfer coefficient for the primary medium.
-            alpha_sec (float): Heat transfer coefficient for the secondary medium.
-
-        Returns:
-            float: Overall heat transfer coefficient (k).
-        """
-        k_wall = self.calc_wall_heat_transfer()
-        k = (1 / (
-                        (1 / alpha_pri) * self.ratio_outer_to_inner_area +
-                        (1 / k_wall) * self.ratio_outer_to_inner_area +
-                        (1 / alpha_sec)
-                )
-             )
-        return k
-
-    def calc_wall_heat_transfer(self) -> float:
-        """
-        Calculate the heat transfer coefficient inside the wall.
-
-        Returns:
-            float: The wall heat transfer coefficient.
-        """
-        # Arguments are not required
-        return self._wall_heat_transfer.calc(
-            transport_properties=media.TransportProperties(),
-            m_flow=0
-        )
-
     @property
     def m_flow_secondary(self) -> float:
         return self._m_flow_secondary
@@ -265,3 +304,9 @@ class HeatExchanger(BaseComponent, abc.ABC):
         state = self.med_prop_sec.calc_state("PT", p, T)
         # Return properties
         return self.med_prop_sec.calc_transport_properties(state)
+
+
+class InternalHeatExchanger(HeatExchanger, FourPortComponent, abc.ABC):
+    """
+    Class for internal heat exchanger with a high and low pressure side.
+    """

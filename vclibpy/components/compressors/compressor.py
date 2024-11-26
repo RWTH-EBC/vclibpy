@@ -2,11 +2,11 @@
 Module for different compressor models
 """
 
-from vclibpy.components.component import BaseComponent
+from vclibpy.components.component import TwoPortComponent
 from vclibpy.datamodels import Inputs, FlowsheetState
 
 
-class Compressor(BaseComponent):
+class Compressor(TwoPortComponent):
     """
     Base compressor class to be extended for specific compressor models.
 
