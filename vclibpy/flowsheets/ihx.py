@@ -54,15 +54,22 @@ class IHX(BaseCycle):
             self.med_prop.calc_state("PQ", self.compressor.state_inlet.p, 1),
             self.compressor.state_inlet,
             self.compressor.state_outlet,
-            self.med_prop.calc_state("PQ", self.compressor.state_outlet.p, 1),
-            self.med_prop.calc_state("PQ", self.compressor.state_outlet.p, 0),
+            self.condenser.state_inlet,
+            self.med_prop.calc_state("PQ", self.condenser.state_outlet.p, 1),
+            self.med_prop.calc_state("PQ", self.condenser.state_outlet.p, 0),
             self.condenser.state_outlet,
+            self.expansion_valve_high.state_inlet,
             self.expansion_valve_high.state_outlet,
+            self.ihx.state_inlet_high,
             # TODO: Case for phase change in IHX
+            self.ihx.state_outlet_high,
             self.expansion_valve_low.state_inlet,
+            self.expansion_valve_low.state_outlet,
             self.evaporator.state_inlet,
-            self.evaporator.state_outlet
+            self.evaporator.state_outlet,
             # TODO: Case for phase change in IHX
+            self.ihx.state_inlet_low,
+            self.ihx.state_outlet_low
         ]
 
     def set_ihx_outlet_based_on_superheating(self, p_eva: float, inputs: Inputs):
