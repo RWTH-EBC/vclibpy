@@ -17,6 +17,7 @@ from vclibpy.components.heat_exchangers.economizer import VaporInjectionEconomiz
 from vclibpy.flowsheets import StandardCycle, VaporInjectionEconomizer, VaporInjectionPhaseSeparator
 from vclibpy.components.heat_exchangers import moving_boundary_ntu
 from vclibpy.components.heat_exchangers import heat_transfer
+from vclibpy.algorithms import Iteration
 
 
 def _load_flowsheet(fluid: str, flowsheet: str = None):
@@ -123,11 +124,13 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
             "carnot_quality in - (Carnot Quality)",
         ]
 
-        # Select the settings / parameters of the hp:
-        kwargs = {"max_err_ntu": 0.5,
-                  "max_err_dT_min": 0.1,
-                  "show_iteration": False,
-                  "max_num_iterations": 5000}
+        # Select the settings / parameters of the algorithm:
+        algorithm = Iteration(
+            max_err=0.5,
+            max_err_dT_min=0.1,
+            show_iteration=False,
+            max_num_iterations=5000
+        )
 
         # Just for quick study: Specify concrete points:
         T_eva_in_ar = [-10 + 273.15, 273.15]
@@ -136,15 +139,12 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
 
         os.makedirs(self.working_dir, exist_ok=True)
 
-        kwargs["save_path_plots"] = pathlib.Path(self.working_dir).joinpath("plots")
-        os.makedirs(pathlib.Path(self.working_dir).joinpath("plots"), exist_ok=True)
-
-        heat_pump = _load_flowsheet(
+        flowsheet = _load_flowsheet(
             fluid=fluid,
             flowsheet=flowsheet
         )
         _, path_csv = utils.full_factorial_map_generation(
-            heat_pump=heat_pump,
+            flowsheet=flowsheet,
             save_path=self.working_dir,
             T_con_ar=T_con_ar,
             T_eva_in_ar=T_eva_in_ar,
@@ -155,7 +155,7 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
             m_flow_eva=0.9,
             dT_eva_superheating=5,
             dT_con_subcooling=0,
-            **kwargs
+            algorithm=algorithm
         )
         path_csv_regression = pathlib.Path(__file__).parent.joinpath(
             "regression_data", "reference_results", f"{flowsheet}_{fluid}.csv"

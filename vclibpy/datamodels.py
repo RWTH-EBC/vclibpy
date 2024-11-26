@@ -176,7 +176,6 @@ class HeatExchangerInputs(VariableContainer):
         T_out (float, optional): Secondary side outlet temperature in [K].
         dT (float, optional): Secondary side temperature difference between inlet and outlet [K].
         m_flow (float, optional): Secondary side mass flow rate in [kg/s].
-        Q (float, optional): Heat flow rate in [W].
         T_ambient (float, optional): Ambient temperature of the heat exchanger in [K].
             If not provided, it defaults to the mean temperature T.
 
@@ -452,3 +451,11 @@ class Inputs:
         if name in self.evaporator.get_variable_names():
             return self.evaporator.get(name, default)
         return default
+
+    def get_name(self):
+        """Get the name based on variable names and rounded values"""
+        return ";".join([
+            self.control.get_name(),
+            self.evaporator.get_name(),
+            self.condenser.get_name(),
+        ])

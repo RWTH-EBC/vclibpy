@@ -3,28 +3,34 @@ import logging
 
 from vclibpy import Inputs
 from vclibpy.flowsheets import BaseCycle
+from vclibpy.algorithms import Algorithm, Iteration
 
 logger = logging.getLogger(__name__)
 
 
-def nominal_hp_design(
-        heat_pump: BaseCycle, 
+def nominal_design(
+        flowsheet: BaseCycle,
         inputs: Inputs, 
         fluid: str,
+        algorithm: Algorithm = None,
         dT_con: float = None,
         dT_eva: float = None,
-        **kwargs) -> dict:
+        **kwargs
+) -> dict:
     """
     Function to calculate the heat pump design
     at a given nominal point. 
     Args:
-        heat_pump (BaseCycle): A supported flowsheet
+        flowsheet (BaseCycle): A supported flowsheet
         inputs (Inputs):
             The input values at the nominal point.
             If the mass flow rates are not given, you
             can use dT_con and dT_eva to iteratively calculate
             the mass flow rates in order to achieve the required
             temperature differences at the nominal point.
+        algorithm (Algorithm):
+            A supported algorithm to calculate a steady state.
+            If None, Iteration algorithm is used with default settings.
         dT_con (float):
             Condenser temperature difference to calculate mass flow rate
         dT_eva (float):
@@ -40,6 +46,9 @@ def nominal_hp_design(
         dict: A dictionary with all flowsheet states and inputs containing
               information about the nominal design.
     """
+    if algorithm is None:
+        algorithm = Iteration()
+
     t0 = time.time()
     # Define nominal values:
     m_flow_con_start = kwargs.get("m_flow_con_start", 0.2)
@@ -56,11 +65,11 @@ def nominal_hp_design(
         inputs.condenser.set("m_flow", m_flow_con)
         inputs.evaporator.set("m_flow", m_flow_eva)
         # Get nominal value:
-        fs_state = heat_pump.calc_steady_state(fluid=fluid, inputs=inputs)
+        fs_state = algorithm.calc_steady_state(flowsheet=flowsheet, fluid=fluid, inputs=inputs)
         if fs_state is None:
             raise ValueError("Given configuration is infeasible at nominal point.")
-        cp_eva = heat_pump.evaporator._secondary_cp
-        cp_con = heat_pump.condenser._secondary_cp
+        cp_eva = flowsheet.evaporator._secondary_cp
+        cp_con = flowsheet.condenser._secondary_cp
         m_flow_con_next = fs_state.get("Q_con").value / (dT_con * cp_con)
         m_flow_eva_next = (fs_state.get("Q_con").value * (1 - 1 / fs_state.get("COP").value)) / (dT_eva * cp_eva)
         # Check convergence:

@@ -56,7 +56,7 @@ def main():
     )
 
     # Now, we can plug everything into the flowsheet:
-    heat_pump = VaporInjectionPhaseSeparator(
+    flowsheet = VaporInjectionPhaseSeparator(
         evaporator=evaporator,
         condenser=condenser,
         fluid="Propane",
@@ -81,7 +81,7 @@ def main():
 
     from vclibpy import utils
     utils.full_factorial_map_generation(
-        heat_pump=heat_pump,
+        flowsheet=flowsheet,
         save_path=save_path,
         T_con_ar=T_con_ar,
         T_eva_in_ar=T_eva_in_ar,
@@ -115,7 +115,7 @@ def main():
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=50000),
     )
     # And create the heat pump, and run the map generation:
-    heat_pump = VaporInjectionEconomizer(
+    flowsheet = VaporInjectionEconomizer(
         evaporator=evaporator,
         condenser=condenser,
         fluid="Propane",
@@ -126,7 +126,7 @@ def main():
         low_pressure_valve=low_pressure_valve
     )
     utils.full_factorial_map_generation(
-        heat_pump=heat_pump,
+        flowsheet=flowsheet,
         save_path=r"D:\00_temp\vapor_injection_economizer",
         T_con_ar=T_con_ar,
         T_eva_in_ar=T_eva_in_ar,

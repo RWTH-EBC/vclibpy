@@ -52,7 +52,7 @@ def main(use_condenser_inlet: bool = True):
     )
 
     # Now, we can plug everything into the flowsheet:
-    heat_pump = StandardCycle(
+    flowsheet = StandardCycle(
         evaporator=evaporator,
         condenser=condenser,
         fluid="Propane",
@@ -77,7 +77,7 @@ def main(use_condenser_inlet: bool = True):
 
     from vclibpy import utils
     save_path_sdf, save_path_csv = utils.full_factorial_map_generation(
-        heat_pump=heat_pump,
+        flowsheet=flowsheet,
         save_path=save_path,
         T_con_ar=T_con_ar,
         T_eva_in_ar=T_eva_in_ar,

@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from vclibpy.datamodels import FlowsheetState, Inputs, RelativeCompressorSpeedControl, HeatExchangerInputs
 from vclibpy.flowsheets import BaseCycle
+from vclibpy.algorithms import Algorithm, Iteration
 from vclibpy import utils
 
 logger = logging.getLogger(__name__)
@@ -17,36 +18,37 @@ logger = logging.getLogger(__name__)
 
 def calc_multiple_states(
         save_path: pathlib.Path,
-        heat_pump: BaseCycle,
+        flowsheet: BaseCycle,
         inputs: List[Inputs],
+        algorithm: Algorithm,
         use_multiprocessing: bool = False,
         raise_errors: bool = False,
-        with_unit_and_description: bool = True,
-        **kwargs):
+        with_unit_and_description: bool = True
+):
     """
     Function to calculate the flowsheet states for all given inputs.
     All results are stored as a .xlsx file in the given save-path
 
     Args:
         save_path (pathlib.Path): Location where to save the results as xlsx.
-        heat_pump (BaseCycle): A valid flowsheet
+        flowsheet (BaseCycle): A valid flowsheet
         inputs (List[Inputs]): A list with all inputs to simulate
+        algorithm (Algorithm): A supported algorithm to calculate a steady state.
         use_multiprocessing (bool): True to use all cores, default no multiprocessing
-        **kwargs: Solver settings for the flowsheet
     """
     rel_infos = []
     fs_states = []
     i = 0
     if use_multiprocessing:
-        mp_inputs = [[heat_pump, inputs_, kwargs, raise_errors] for inputs_ in inputs]
+        mp_inputs = [[algorithm, flowsheet, inputs_, raise_errors] for inputs_ in inputs]
         pool = multiprocessing.Pool(processes=min(multiprocessing.cpu_count(), len(inputs)))
-        for fs_state in pool.imap(_calc_single_hp_state, mp_inputs):
+        for fs_state in pool.imap(_calc_single_state, mp_inputs):
             fs_states.append(fs_state)
             i += 1
             logger.info(f"Ran {i} of {len(inputs)} points")
     else:
         for inputs_ in inputs:
-            fs_state = _calc_single_hp_state([heat_pump, inputs_, kwargs, raise_errors])
+            fs_state = _calc_single_state([algorithm, flowsheet, inputs_, raise_errors])
             fs_states.append(fs_state)
             i += 1
             logger.info(f"Ran {i} of {len(inputs)} points")
@@ -59,26 +61,26 @@ def calc_multiple_states(
     df = pd.DataFrame(rel_infos)
     df.index.name = "State Number"
     if os.path.isdir(save_path):
-        save_path = save_path.joinpath(f"{heat_pump}_{heat_pump.fluid}.xlsx")
+        save_path = save_path.joinpath(f"{flowsheet}_{flowsheet.fluid}.xlsx")
     df.to_excel(save_path, sheet_name="HP_states", float_format="%.5f")
 
 
 def full_factorial_map_generation(
-        heat_pump: BaseCycle,
+        flowsheet: BaseCycle,
         T_eva_in_ar: Union[list, np.ndarray],
         T_con_ar: Union[list, np.ndarray],
         n_ar: Union[list, np.ndarray],
         m_flow_con: float,
         m_flow_eva: float,
         save_path: Union[pathlib.Path, str],
+        algorithm: Algorithm = None,
         dT_eva_superheating=5,
         dT_con_subcooling=0,
         use_condenser_inlet: bool = True,
         use_multiprocessing: bool = False,
         save_plots: bool = False,
         raise_errors: bool = False,
-        save_sdf: bool = True,
-        **kwargs
+        save_sdf: bool = True
 ) -> (pathlib.Path, pathlib.Path):
     """
     Run a full-factorial simulation to create performance maps
@@ -90,7 +92,7 @@ def full_factorial_map_generation(
     is not much work. In this case, please raise an issue.
 
     Args:
-        heat_pump (BaseCycle): The flowsheet to use
+        flowsheet (BaseCycle): The flowsheet to use
         T_eva_in_ar (list):
             Array with inputs for T_eva_in
         T_con_ar (list):
@@ -103,6 +105,9 @@ def full_factorial_map_generation(
             Evaporator mass flow rate
         save_path (Path):
             Where to save all results.
+        algorithm (Algorithm):
+            A supported algorithm to calculate a steady state.
+            If None, Iteration algorithm is used with default settings.
         dT_eva_superheating (float):
             Evaporator superheating
         dT_con_subcooling (float):
@@ -117,7 +122,6 @@ def full_factorial_map_generation(
             True to raise errors if they occur.
         save_sdf (bool):
             = False to not save sdf files. Default is True
-        **kwargs: Solver settings for the flowsheet
 
     Returns:
         tuple (pathlib.Path, pathlib.Path):
@@ -125,9 +129,13 @@ def full_factorial_map_generation(
     """
     if isinstance(save_path, str):
         save_path = pathlib.Path(save_path)
+    if algorithm is None:
+        algorithm = Iteration()
     if save_plots:
-        kwargs["save_path_plots"] = pathlib.Path(save_path).joinpath(f"plots_{heat_pump.flowsheet_name}_{heat_pump.fluid}")
-        os.makedirs(kwargs["save_path_plots"], exist_ok=True)
+        algorithm.save_path_plots = pathlib.Path(save_path).joinpath(
+            f"plots_{flowsheet.flowsheet_name}_{flowsheet.fluid}"
+        )
+        os.makedirs(algorithm.save_path_plots, exist_ok=True)
 
     list_mp_inputs = []
     list_inputs = []
@@ -160,20 +168,20 @@ def full_factorial_map_generation(
                     evaporator=evaporator_inputs,
                     condenser=condenser_inputs
                 )
-                list_mp_inputs.append([heat_pump, inputs, kwargs, raise_errors])
+                list_mp_inputs.append([algorithm, flowsheet, inputs, raise_errors])
                 list_inputs.append(inputs)
     fs_states = []
     i = 0
     if use_multiprocessing:
         # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
         pool = multiprocessing.Pool(processes=10)
-        for fs_state in pool.imap(_calc_single_hp_state, list_mp_inputs):
+        for fs_state in pool.imap(_calc_single_state, list_mp_inputs):
             fs_states.append(fs_state)
             i += 1
             logger.info(f"Ran {i} of {len(list_mp_inputs)} points")
     else:
         for inputs in list_inputs:
-            fs_state = _calc_single_hp_state([heat_pump, inputs, kwargs, raise_errors])
+            fs_state = _calc_single_state([algorithm, flowsheet, inputs, raise_errors])
             fs_states.append(fs_state)
             i += 1
             logger.info(f"Ran {i} of {len(list_mp_inputs)} points")
@@ -194,14 +202,14 @@ def full_factorial_map_generation(
         })
 
     # Save to excel
-    save_path_sdf = save_path.joinpath(f"{heat_pump.flowsheet_name}_{heat_pump.fluid}.sdf")
-    save_path_csv = save_path.joinpath(f"{heat_pump.flowsheet_name}_{heat_pump.fluid}.csv")
+    save_path_sdf = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.sdf")
+    save_path_csv = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.csv")
     pd.DataFrame(variables_to_excel).to_csv(
         save_path_csv, sep=";"
     )
 
     # Terminate heat pump med-props:
-    heat_pump.terminate()
+    flowsheet.terminate()
     if not save_sdf:
         return save_path_csv
 
@@ -243,9 +251,9 @@ def full_factorial_map_generation(
         }
 
     sdf_data = {
-        heat_pump.flowsheet_name:
+        flowsheet.flowsheet_name:
             {
-                heat_pump.fluid: (_scales, _nd_data, _parameters)
+                flowsheet.fluid: (_scales, _nd_data, _parameters)
             }
     }
     utils.save_to_sdf(data=sdf_data, save_path=save_path_sdf)
@@ -253,13 +261,14 @@ def full_factorial_map_generation(
     return save_path_sdf, save_path_csv
 
 
-def _calc_single_hp_state(data):
+def _calc_single_state(data):
     """Helper function for a single state to enable multiprocessing"""
-    heat_pump, inputs, kwargs, raise_errors = data
+    algorithm, flowsheet, inputs, raise_errors = data
     fs_state = None
     try:
-        fs_state = heat_pump.calc_steady_state(inputs=inputs,
-                                               **kwargs)
+        fs_state = algorithm.calc_steady_state(
+            flowsheet=flowsheet, inputs=inputs
+        )
     except Exception as e:
         if raise_errors:
             raise e

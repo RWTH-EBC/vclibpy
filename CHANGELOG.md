@@ -13,3 +13,4 @@
   - SDF saving is optional in automation
   - Improve nominal design util
   - Improve C10 regression generation, add .csv support for TenCoefficientCompressor
+  - Add Algorithm classes for calc_steady_state function
