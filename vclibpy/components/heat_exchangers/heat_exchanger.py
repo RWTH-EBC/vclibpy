@@ -53,7 +53,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
         self._two_phase_heat_transfer = two_phase_heat_transfer
 
         self.med_prop_sec = None  # Later start in start_secondary_med_prop
-        self._m_flow_secondary = None
+        self._m_flow_secondary = 0  # Allow initial calculation of _m_flow_secondary_cp if m_flow is not set
         self._secondary_cp = 0  # Allow initial calculation of _m_flow_secondary_cp if cp is not set
         self._m_flow_secondary_cp = 0
 

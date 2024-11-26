@@ -205,7 +205,7 @@ def full_factorial_map_generation(
     save_path_sdf = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.sdf")
     save_path_csv = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.csv")
     pd.DataFrame(variables_to_excel).to_csv(
-        save_path_csv, sep=";"
+        save_path_csv, sep=","
     )
 
     # Terminate heat pump med-props:
@@ -218,37 +218,39 @@ def full_factorial_map_generation(
         for variable_name, variable in fs_state.get_variables().items():
             all_variables[variable_name][i_n][i_T_con][i_T_eva_in] = variable.value
 
-    _nd_data = {}
-    for variable, nd_data in all_variables.items():
-        _nd_data.update({
-            variable: {
-                "data": nd_data,
-                "unit": all_variables_info[variable].unit,
-                "comment": all_variables_info[variable].description}
-        })
-
     _scale_values = {
         "n": n_ar,
         "T_con_in" if use_condenser_inlet else "T_con_out": T_con_ar,
         "T_eva_in": T_eva_in_ar
     }
-    inputs: Inputs = list_inputs[0]
-    # TODO: Automatically mark constant values are constant!
-    _parameters = {}
-    #for name, variable in inputs.items():
-    #    if name not in list(_scale_values.keys()) + ["T_con_out", "T_con_in"]:
-    #        _parameters[name] = {
-    #            "data": variable.value,
-    #            "unit": variable.unit,
-    #            "comment": variable.description
-    #        }
+    fs_state = fs_states[0]  # Use the first entry, only relevant for unit and description
     _scales = {}
     for name, data in _scale_values.items():
         _scales[name] = {
             "data": data,
-            "unit": inputs.get(name).unit,
-            "comment": inputs.get(name).description
+            "unit": fs_state.get(name).unit,
+            "comment": fs_state.get(name).description
         }
+
+    _nd_data = {}
+    _parameters = {}
+    for variable, nd_data in all_variables.items():
+        if variable in _scales:
+            continue
+        if (nd_data == nd_data.min()).all():
+            # All values are constant:
+            _parameters[variable] = {
+                "data": nd_data.min(),
+                "unit": all_variables_info[variable].unit,
+                "comment": all_variables_info[variable].description
+            }
+        else:
+            _nd_data.update({
+                variable: {
+                    "data": nd_data,
+                    "unit": all_variables_info[variable].unit,
+                    "comment": all_variables_info[variable].description}
+            })
 
     sdf_data = {
         flowsheet.flowsheet_name:

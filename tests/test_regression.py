@@ -100,28 +100,28 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
         os.makedirs(self.working_dir, exist_ok=True)
 
         self.inputs_to_compare = [
-            "n in - (Relative compressor speed)",
-            "T_eva_in in K (Secondary side evaporator inlet temperature)",
-            "T_con_in in K (Secondary side condenser inlet temperature)",
+            "n",
+            "T_eva_in",
+            "T_con_in",
         ]
 
     def _regression_of_examples(self, flowsheet, fluid):
         self.results_to_compare = [
-            "Q_con in W (Condenser heat flow rate)",
-            "COP in - (Coefficient of performance)",
-            "m_flow_ref in kg/s (Refrigerant mass flow rate)",
-            "T_1 in K (Refrigerant temperature at evaporator outlet)",
-            "T_2 in K (Compressor outlet temperature)",
-            "T_3 in K (Refrigerant temperature at condenser outlet)",
-            "T_4 in K (Refrigerant temperature at evaporator inlet)",
-            "p_con in Pa (Condensation pressure)",
-            "p_eva in Pa (Evaporation pressure)",
-            "A_eva_sh in m2 (Area for superheat heat exchange in evaporator)",
-            "A_eva_lat in m2 (Area for latent heat exchange in evaporator)",
-            "A_con_sh in m2 (Area for superheat heat exchange in condenser)",
-            "A_con_lat in m2 (Area for latent heat exchange in condenser)",
-            "A_con_sc in m2 (Area for subcooling heat exchange in condenser)",
-            "carnot_quality in - (Carnot Quality)",
+            "Q_con",
+            "COP",
+            "m_flow_ref",
+            "T_1",
+            "T_2",
+            "T_3",
+            "T_4",
+            "p_con",
+            "p_eva",
+            "A_eva_sh",
+            "A_eva_lat",
+            "A_con_sh",
+            "A_con_lat",
+            "A_con_sc",
+            "carnot_quality",
         ]
 
         # Select the settings / parameters of the algorithm:
@@ -151,6 +151,7 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
             n_ar=n_ar,
             use_multiprocessing=False,
             save_plots=False,
+            raise_errors=True,
             m_flow_con=0.2,
             m_flow_eva=0.9,
             dT_eva_superheating=5,
@@ -178,22 +179,22 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
     @unittest.skip("not implemented")
     def test_opti_horst_regression(self):
         self.results_to_compare = [
-            "Q_con in W (Condenser heat flow rate)",
-            "COP in - (Coefficient of performance)",
-            "m_flow_ref in kg/s (Refrigerant mass flow rate)",
-            "T_1 in K (Refrigerant temperature at compressor inlet)",
-            "T_2 in K (Compressor outlet temperature)",
-            "T_3 in K (Refrigerant temperature at condenser outlet)",
-            "T_4 in K (Refrigerant temperature at evaporator inlet)",
-            "p_con in Pa (Condensation pressure)",
-            "p_eva in Pa (Evaporation pressure)",
-            "p_2 in Pa (Pressure after compressor)",
-            "A_eva_sh in m2 (Area for superheat heat exchange in evaporator)",
-            "A_eva_lat in m2 (Area for latent heat exchange in evaporator)",
-            "A_con_sh in m2 (Area for superheat heat exchange in condenser)",
-            "A_con_lat in m2 (Area for latent heat exchange in condenser)",
-            "A_con_sc in m2 (Area for subcooling heat exchange in condenser)",
-            "carnot_quality in - (Carnot Quality)",
+            "Q_con",
+            "COP",
+            "m_flow_ref",
+            "T_1",
+            "T_2",
+            "T_3",
+            "T_4",
+            "p_con",
+            "p_eva",
+            "p_2",
+            "A_eva_sh",
+            "A_eva_lat",
+            "A_con_sh",
+            "A_con_lat",
+            "A_con_sc",
+            "carnot_quality",
         ]
         path_csv = pathlib.Path(__file__).parent.joinpath(
             "regression_data", "temp", "OptiHorst_R410A.csv"
@@ -207,6 +208,8 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
     def _compare_results(self, path_csv, path_csv_regression):
         df = pd.read_csv(path_csv, index_col=0)
         df_regression = pd.read_csv(path_csv_regression, index_col=0)
+        # Rename columns as with_unit_and_description=False in automation:
+        df_regression.columns = [col.split(" ")[0] for col in df_regression.columns]
         # Compare if all inputs are present
         # Use this result object to pretty print any errors
         results_comparison = {col: {} for col in self.results_to_compare}

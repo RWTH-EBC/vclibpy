@@ -77,7 +77,6 @@ def nominal_design(
             break
 
     nominal_design_info = {
-        **inputs.convert_to_str_value_format(with_unit_and_description=False),
         **fs_state.convert_to_str_value_format(with_unit_and_description=False),
         "dT_con": dT_con,
         "dT_eva": dT_eva

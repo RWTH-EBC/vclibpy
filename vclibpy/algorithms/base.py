@@ -114,7 +114,7 @@ class Algorithm(abc.ABC):
             inputs=inputs,
             dT_start_guess=self.dT_con_start_guess
         )
-        if self.get_improved_start_condensing_pressure:
+        if self.improve_first_condensing_guess:
             p_2_start = self.get_improved_start_condensing_pressure(
                 inputs=inputs,
                 m_flow_guess=flowsheet.condenser.m_flow,

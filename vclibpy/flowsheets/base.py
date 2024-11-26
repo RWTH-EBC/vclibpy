@@ -106,6 +106,8 @@ class BaseCycle:
         return self.med_prop.calc_state("TQ", T_1_start, 1).p
 
     def calculate_cycle_for_pressures(self, p_1: float, p_2: float, inputs: Inputs, fs_state: FlowsheetState):
+        self.evaporator.calc_secondary_cp(T=inputs.evaporator.T)
+        self.condenser.calc_secondary_cp(T=inputs.condenser.T)
         # Calculate the states based on the given flowsheet
         self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
         self.add_all_states_to_fs_state(inputs=inputs, fs_state=fs_state)
@@ -313,9 +315,7 @@ class BaseCycle:
 
     def _plot_secondary_heat_flow_rates(self, ax, inputs):
         self.condenser.m_flow_secondary = inputs.condenser.m_flow
-        self.condenser.calc_secondary_cp(T=inputs.condenser.T)
         self.evaporator.m_flow_secondary = inputs.evaporator.m_flow
-        self.evaporator.calc_secondary_cp(T=inputs.evaporator.T)
         Q_con = self.condenser.calc_Q_flow()
         Q_eva = self.evaporator.calc_Q_flow()
         delta_H_con = np.array([
