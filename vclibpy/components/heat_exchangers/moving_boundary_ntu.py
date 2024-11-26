@@ -225,7 +225,7 @@ class MovingBoundaryNTUEvaporator(BasicNTU):
                 dT_min: Minimal temperature difference (can be negative).
         """
         self.m_flow_secondary = inputs.evaporator.m_flow  # [kg/s]
-        self.calc_secondary_cp(T=inputs.evaporator.T_in)
+        self.calc_secondary_cp(T=inputs.evaporator.T)
 
         # First we separate the flow:
         Q_sc, Q_lat, Q_sh, state_q0, state_q1 = separate_phases(

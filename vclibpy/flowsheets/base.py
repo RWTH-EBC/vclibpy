@@ -105,7 +105,12 @@ class BaseCycle:
         return p_2_guess_optimized
 
     def get_start_evaporating_pressure(self, inputs: Inputs, dT_pinch: float = 0):
-        T_1_start = inputs.evaporator.T_in - inputs.control.dT_eva_superheating - dT_pinch
+        if inputs.evaporator.uses_inlet:
+            T_eva_in = inputs.evaporator.T_in
+        else:
+            dT_eva_start = 3
+            T_eva_in = inputs.evaporator.T_out + dT_eva_start
+        T_1_start = T_eva_in - inputs.control.dT_eva_superheating - dT_pinch
         return self.med_prop.calc_state("TQ", T_1_start, 1).p
 
     def calc_steady_state(self, inputs: Inputs, fluid: str = None, **kwargs):
@@ -605,9 +610,12 @@ class BaseCycle:
         plt.close(fig)
 
     def _plot_secondary_heat_flow_rates(self, ax, inputs):
+        self.condenser.m_flow_secondary = inputs.condenser.m_flow
+        self.condenser.calc_secondary_cp(T=inputs.condenser.T)
+        self.evaporator.m_flow_secondary = inputs.evaporator.m_flow
+        self.evaporator.calc_secondary_cp(T=inputs.evaporator.T)
         Q_con = self.condenser.calc_Q_flow()
         Q_eva = self.evaporator.calc_Q_flow()
-
         delta_H_con = np.array([
             self.condenser.state_outlet.h * self.condenser.m_flow,
             self.condenser.state_outlet.h * self.condenser.m_flow + Q_con
@@ -616,24 +624,10 @@ class BaseCycle:
             self.evaporator.state_outlet.h * self.evaporator.m_flow,
             self.evaporator.state_outlet.h * self.evaporator.m_flow - Q_eva
         ]) / self.evaporator.m_flow
-        self.condenser.m_flow_secondary = inputs.condenser.m_flow
-        self.condenser.calc_secondary_cp(T=inputs.condenser.T)
-        self.evaporator.m_flow_secondary = inputs.evaporator.m_flow
-        self.evaporator.calc_secondary_cp(T=inputs.evaporator.T_in)
-        if inputs.condenser.uses_inlet:
-            ax.plot(delta_H_con / 1000, [
-                inputs.condenser.T_in - 273.15,
-                inputs.condenser.T_in + Q_con / self.condenser.m_flow_secondary_cp - 273.15
-            ], color="b")
-        else:
-            ax.plot(delta_H_con / 1000, [
-                inputs.condenser.T_out - Q_con / self.condenser.m_flow_secondary_cp - 273.15,
-                inputs.condenser.T_out - 273.15
-            ], color="b")
-        ax.plot(delta_H_eva / 1000, [
-            inputs.evaporator.T_in - 273.15,
-            inputs.evaporator.T_in - Q_eva / self.evaporator.m_flow_secondary_cp - 273.15
-        ], color="b")
+        T_eva_in, T_eva_out, _, _ = inputs.evaporator.get_all_inputs(Q=-Q_eva, cp=self.evaporator.cp_secondary)
+        T_con_in, T_con_out, _, _ = inputs.condenser.get_all_inputs(Q=Q_con, cp=self.condenser.cp_secondary)
+        ax.plot(delta_H_con / 1000, [T_con_in - 273.15, T_con_out - 273.15], color="b")
+        ax.plot(delta_H_eva / 1000, [T_eva_in - 273.15, T_eva_out - 273.15], color="b")
 
     @abstractmethod
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
