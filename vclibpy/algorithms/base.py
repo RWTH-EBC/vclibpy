@@ -44,9 +44,9 @@ class Algorithm(abc.ABC):
         else:
             self.save_path_plots = None
         self.max_err = kwargs.pop("max_err", 0.5)
-        self.dT_eva_start_guess = kwargs.pop("dT_start_guess", 3)
+        self.dT_eva_start_guess = kwargs.pop("dT_eva_start_guess", 3)
         self.dT_pinch_eva_guess = kwargs.pop("dT_pinch_eva_guess", 0)
-        self.dT_con_start_guess = kwargs.pop("dT_start_guess", 10)
+        self.dT_con_start_guess = kwargs.pop("dT_con_start_guess", 10)
         self.dT_pinch_con_guess = kwargs.pop("dT_pinch_con_guess", 0)
         self.improve_first_condensing_guess = kwargs.pop("improve_first_condensing_guess", False)
         self._p_min = kwargs.pop("p_min", 10000)
