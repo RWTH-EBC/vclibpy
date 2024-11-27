@@ -23,6 +23,6 @@ class Bernoulli(ExpansionValve):
 
     def calc_outlet_pressure_at_m_flow_and_opening(self, m_flow, opening):
         p_outlet = (
-            self.state_inlet.p - 1 / (2 * self.state_inlet.d) * (m_flow / (self.A * opening)) ** 2
+            self.state_inlet.p - (m_flow / (self.A * opening)) ** 2 / (2 * self.state_inlet.d)
         )
         self.calc_outlet(p_outlet)
