@@ -50,7 +50,7 @@ class IHX(BaseCycle):
         ]
 
     def get_states_in_order_for_plotting(self):
-        return [
+        first_states = [
             self.compressor.state_inlet,
             self.compressor.state_outlet,
             self.condenser.state_inlet,
@@ -59,19 +59,29 @@ class IHX(BaseCycle):
             self.condenser.state_outlet,
             self.expansion_valve_high.state_inlet,
             self.expansion_valve_high.state_outlet,
-            self.ihx.state_inlet_high,
-            # TODO: Case for phase change in IHX
-            self.med_prop.calc_state("PQ", self.ihx.state_inlet_high.p, 0),
+            self.ihx.state_inlet_high
+        ]
+        second_part_states = [
             self.ihx.state_outlet_high,
             self.expansion_valve_low.state_inlet,
             self.expansion_valve_low.state_outlet,
             self.evaporator.state_inlet,
             self.evaporator.state_outlet,
-            # TODO: Case for phase change in IHX
             self.ihx.state_inlet_low,
-            self.med_prop.calc_state("PQ", self.ihx.state_inlet_low.p, 1),
+        ]
+        third_part_states = [
             self.ihx.state_outlet_low
         ]
+        # ihx_high in tp region:
+        state_ihx_high_q0 = self.med_prop.calc_state("PQ", self.ihx.state_inlet_high.p, 0)
+        if state_ihx_high_q0.h < self.ihx.state_inlet_high.h:
+            states_until_low_side = first_states + [state_ihx_high_q0] + second_part_states
+        else:
+            states_until_low_side = first_states + second_part_states
+        state_ihx_low_q1 = self.med_prop.calc_state("PQ", self.ihx.state_inlet_low.p, 1)
+        if state_ihx_low_q1.h > self.ihx.state_inlet_low.h:
+            return states_until_low_side + [state_ihx_low_q1] + third_part_states
+        return states_until_low_side + third_part_states
 
     def set_ihx_outlet_based_on_superheating(self, p_eva: float, inputs: Inputs):
         T_1 = self.med_prop.calc_state("PQ", p_eva, 1).T + inputs.control.dT_eva_superheating

@@ -35,6 +35,14 @@ class IHX_NTU(InternalHeatExchanger):
 
         dh_max_high = self.state_inlet_high.h - state_high_q0.h
         dh_max_low = self.state_outlet_low.h - state_low_q1.h
+        if dh_max_low < 0:
+            raise ValueError("This heat exchanger only allows low-pressure outlet states with superheat")
+
+        # In case dh_max_high < 0, high side is already in subcooling,
+        # no need for first regime in Option 1 (see svg)
+        Q_high_tp_to_q0 = self.m_flow_high * max(0, dh_max_high)
+        Q_low_sh_to_q1 = self.m_flow_low * dh_max_low
+
         # First part of the HX:
         m_flow_primary_cp = (
                 (self.state_outlet_low.h - state_low_q1.h) /
@@ -42,8 +50,6 @@ class IHX_NTU(InternalHeatExchanger):
         ) * self.m_flow_low
         m_flow_secondary_cp = self.m_flow_high * np.inf
 
-        Q_high_tp_to_q0 = self.m_flow_high * (self.state_inlet_high.h - state_high_q0.h)
-        Q_low_sh_to_q1 = self.m_flow_low * (self.state_outlet_low.h - state_low_q1.h)
         Q_first_regime = min(Q_high_tp_to_q0, Q_low_sh_to_q1)
         dT_max_first_regim = self.state_inlet_high.T - state_low_q1.T
         Q_ntu_first_regime, A_required_first_regime = ntu.calc_Q_with_available_area(
@@ -55,7 +61,6 @@ class IHX_NTU(InternalHeatExchanger):
             m_flow_primary_cp=m_flow_primary_cp,
             m_flow_secondary_cp=m_flow_secondary_cp
         )
-
         if Q_ntu_first_regime < Q_first_regime:
             # Area is only sufficient for first regime.
             self.set_missing_states(Q_ntu_first_regime)
