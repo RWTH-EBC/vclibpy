@@ -68,22 +68,16 @@ class MovingBoundaryNTUCondenser(ExternalHeatExchanger):
 
             # Only use still available area:
             k_sc = self.calc_k(alpha_pri=alpha_ref_wall, alpha_sec=alpha_med_wall)
-            A_sc = ntu.iterate_area(
+            Q_sc_ntu, A_sc = ntu.calc_Q_with_available_area(
                 heat_exchanger=self,
+                k=k_sc,
+                Q_required=Q_sc,
+                A_available=self.A,
+                dT_max=(state_q0.T - T_in),
                 m_flow_secondary_cp=self.m_flow_secondary_cp,
                 m_flow_primary_cp=self.m_flow * primary_cp,
-                dT_max=(state_q0.T - T_in),
-                k=k_sc,
-                Q=Q_sc)
-            A_sc = min(self.A, A_sc)
-            Q_sc_ntu = ntu.calc_Q_ntu(
-                dT_max=(state_q0.T - T_in),
-                k=k_sc,
-                m_flow_secondary_cp=self.m_flow_secondary_cp,
-                m_flow_primary_cp=self.m_flow * primary_cp,
-                flow_type=self.flow_type,
-                A=A_sc
             )
+
 
         # 2. Regime: Latent heat exchange
         Q_lat_ntu, A_lat = 0, 0
@@ -100,23 +94,14 @@ class MovingBoundaryNTUCondenser(ExternalHeatExchanger):
                 alpha_pri=alpha_ref_wall,
                 alpha_sec=alpha_med_wall
             )
-            A_lat = ntu.iterate_area(
+            Q_lat_ntu, A_lat = ntu.calc_Q_with_available_area(
                 heat_exchanger=self,
-                dT_max=(state_q1.T - T_sc),
                 k=k_lat,
+                Q_required=Q_lat,
+                A_available=self.A - A_sc,
+                dT_max=(state_q1.T - T_sc),
                 m_flow_secondary_cp=self.m_flow_secondary_cp,
                 m_flow_primary_cp=self.m_flow * primary_cp,
-                Q=Q_lat)
-            # Only use still available area:
-            A_lat = min(self.A - A_sc, A_lat)
-
-            Q_lat_ntu = ntu.calc_Q_ntu(
-                dT_max=(state_q1.T - T_sc),
-                k=k_lat,
-                m_flow_secondary_cp=self.m_flow_secondary_cp,
-                m_flow_primary_cp=self.m_flow * primary_cp,
-                flow_type=self.flow_type,
-                A=A_lat
             )
             logger.debug(f"con_lat: pri: {round(alpha_ref_wall, 2)} sec: {round(alpha_med_wall, 2)}")
 
@@ -130,7 +115,6 @@ class MovingBoundaryNTUCondenser(ExternalHeatExchanger):
 
             # Only use still available area:
             A_sh = self.A - A_sc - A_lat
-
             k_sh = self.calc_k(
                 alpha_pri=alpha_ref_wall,
                 alpha_sec=alpha_med_wall
@@ -228,30 +212,15 @@ class MovingBoundaryNTUEvaporator(ExternalHeatExchanger):
                 alpha_pri=alpha_ref_wall,
                 alpha_sec=alpha_med_wall
             )
-            if Q_lat > 0:
-                A_sh = ntu.iterate_area(
-                    heat_exchanger=self,
-                    dT_max=(inputs.evaporator.T_in - state_q1.T),
-                    k=k_sh,
-                    m_flow_secondary_cp=self.m_flow_secondary_cp,
-                    m_flow_primary_cp=self.m_flow * primary_cp,
-                    Q=Q_sh)
-            else:
-                # if only sh is present --> full area:
-                A_sh = self.A
-
-            # Only use still available area
-            A_sh = min(self.A, A_sh)
-
-            Q_sh_ntu = ntu.calc_Q_ntu(
+            Q_sh_ntu, A_sh = ntu.calc_Q_with_available_area(
+                heat_exchanger=self,
+                Q_required=Q_sh,
+                A_available=self.A,
                 dT_max=(inputs.evaporator.T_in - state_q1.T),
-                A=A_sh,
                 k=k_sh,
                 m_flow_secondary_cp=self.m_flow_secondary_cp,
                 m_flow_primary_cp=self.m_flow * primary_cp,
-                flow_type=self.flow_type
             )
-
             logger.debug(f"eva_sh: pri: {round(alpha_ref_wall, 2)} sec: {round(alpha_med_wall, 2)}")
 
         # 2. Regime: Latent heat exchange
