@@ -141,6 +141,8 @@ class Iteration(Algorithm):
             except ValueError as err:
                 logger.error("An error occurred while calculating states. "
                              "Can't guess next pressures, thus, exiting: %s", err)
+                if self.raise_errors:
+                    raise err
                 return
 
             if num_iterations == 1:
