@@ -173,7 +173,6 @@ def calc_Q_with_available_area(
         k: float,
         dT_max: float,
         A_available: float,
-        flow_type: str
 ) -> (float, float):
     A_required = iterate_area(
         heat_exchanger=heat_exchanger,
@@ -191,6 +190,6 @@ def calc_Q_with_available_area(
         A=A_required,
         m_flow_primary_cp=m_flow_primary_cp,
         m_flow_secondary_cp=m_flow_secondary_cp,
-        flow_type=self.flow_type
+        flow_type=heat_exchanger.flow_type
     )
     return Q_achievable, A_required
