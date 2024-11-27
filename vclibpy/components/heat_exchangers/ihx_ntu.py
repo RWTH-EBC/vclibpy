@@ -67,8 +67,8 @@ class IHX_NTU(InternalHeatExchanger):
         )
         state_high_first_regime = self.med_prop.calc_state(
             "PH",
-            self.state_outlet_high.p,
-            self.state_outlet_high.h - Q_ntu_first_regime / self.m_flow_high
+            self.state_inlet_high.p,
+            self.state_inlet_high.h - Q_ntu_first_regime / self.m_flow_high
         )
         if Q_ntu_first_regime < Q_low_sh_to_q1:
             Q_low_first_to_second_regime = self.m_flow_low * (
@@ -116,7 +116,8 @@ class IHX_NTU(InternalHeatExchanger):
             A=self.A - A_required_first_regime - A_required_second_regime,
             dT_max=dT_max_third_regime,
             m_flow_primary_cp=m_flow_primary_cp,
-            m_flow_secondary_cp=m_flow_secondary_cp
+            m_flow_secondary_cp=m_flow_secondary_cp,
+            flow_type=self.flow_type
         )
         self.set_missing_states(Q=Q_ntu_first_regime + Q_ntu_second_regime + Q_ntu_third_regime)
         return None, None  # Irrelevant for this heat exchanger for now.
