@@ -51,7 +51,6 @@ class IHX(BaseCycle):
 
     def get_states_in_order_for_plotting(self):
         return [
-            self.med_prop.calc_state("PQ", self.compressor.state_inlet.p, 1),
             self.compressor.state_inlet,
             self.compressor.state_outlet,
             self.condenser.state_inlet,
@@ -62,6 +61,7 @@ class IHX(BaseCycle):
             self.expansion_valve_high.state_outlet,
             self.ihx.state_inlet_high,
             # TODO: Case for phase change in IHX
+            self.med_prop.calc_state("PQ", self.ihx.state_inlet_high.p, 0),
             self.ihx.state_outlet_high,
             self.expansion_valve_low.state_inlet,
             self.expansion_valve_low.state_outlet,
@@ -69,6 +69,7 @@ class IHX(BaseCycle):
             self.evaporator.state_outlet,
             # TODO: Case for phase change in IHX
             self.ihx.state_inlet_low,
+            self.med_prop.calc_state("PQ", self.ihx.state_inlet_low.p, 1),
             self.ihx.state_outlet_low
         ]
 

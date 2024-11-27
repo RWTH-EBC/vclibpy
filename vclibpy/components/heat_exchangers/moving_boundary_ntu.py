@@ -1,68 +1,12 @@
 import logging
 
 import numpy as np
+
 from vclibpy.datamodels import FlowsheetState, Inputs
 from vclibpy.components.heat_exchangers import ntu, ExternalHeatExchanger
 from vclibpy.components.heat_exchangers.utils import separate_phases, get_condenser_phase_temperatures_and_alpha
 
 logger = logging.getLogger(__name__)
-
-
-def iterate_area(heat_exchanger: ExternalHeatExchanger, dT_max, alpha_pri, alpha_sec, Q) -> float:
-    """
-    Iteratively calculates the required area for the heat exchange.
-
-    Args:
-        heat_exchanger (BasicNTU): An instance of the BasicNTU or children classes
-        dT_max (float): Maximum temperature differential.
-        alpha_pri (float): Heat transfer coefficient for the primary medium.
-        alpha_sec (float): Heat transfer coefficient for the secondary medium.
-        Q (float): Heat flow rate.
-
-    Returns:
-        float: Required area for heat exchange.
-    """
-    _accuracy = 1e-6  # square mm
-    _step = 1.0
-    m_flow_primary_cp = heat_exchanger.m_flow_secondary_cp
-    m_flow_secondary_cp = heat_exchanger.m_flow_secondary_cp
-    R = ntu.calc_R(m_flow_primary_cp, m_flow_secondary_cp)
-    k = heat_exchanger.calc_k(alpha_pri, alpha_sec)
-    m_flow_cp_min = ntu.calc_m_flow_cp_min(m_flow_primary_cp, m_flow_secondary_cp)
-    # First check if point is feasible at all
-    if dT_max <= 0:
-        return heat_exchanger.A
-    eps_necessary = Q / (m_flow_cp_min * dT_max)
-
-    # Special cases:
-    # ---------------
-    # eps is equal or higher than 1, an infinite amount of area would be necessary.
-    if eps_necessary >= 1:
-        return heat_exchanger.A
-    # eps is lower or equal to zero: No Area required (Q<=0)
-    if eps_necessary <= 0:
-        return 0
-
-    area = 0.0
-    while True:
-        if heat_exchanger.flow_type == "cross" and area == 0.0:
-            eps = 0.0
-        else:
-            NTU = ntu.calc_NTU(area, k, m_flow_cp_min)
-            eps = ntu.calc_eps(R, NTU, heat_exchanger.flow_type)
-        if eps >= eps_necessary:
-            if _step <= _accuracy:
-                break
-            else:
-                # Go back
-                area -= _step
-                _step /= 10
-                continue
-        if _step < _accuracy and area > heat_exchanger.A:
-            break
-        area += _step
-
-    return min(area, heat_exchanger.A)
 
 
 class MovingBoundaryNTUCondenser(ExternalHeatExchanger):
@@ -123,14 +67,15 @@ class MovingBoundaryNTUCondenser(ExternalHeatExchanger):
             alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_con)
 
             # Only use still available area:
-            A_sc = iterate_area(heat_exchanger=self,
-                                dT_max=(state_q0.T - T_in),
-                                alpha_pri=alpha_ref_wall,
-                                alpha_sec=alpha_med_wall,
-                                Q=Q_sc)
-            A_sc = min(self.A, A_sc)
-
             k_sc = self.calc_k(alpha_pri=alpha_ref_wall, alpha_sec=alpha_med_wall)
+            A_sc = ntu.iterate_area(
+                heat_exchanger=self,
+                m_flow_secondary_cp=self.m_flow_secondary_cp,
+                m_flow_primary_cp=self.m_flow * primary_cp,
+                dT_max=(state_q0.T - T_in),
+                k=k_sc,
+                Q=Q_sc)
+            A_sc = min(self.A, A_sc)
             Q_sc_ntu = ntu.calc_Q_ntu(
                 dT_max=(state_q0.T - T_in),
                 k=k_sc,
@@ -151,19 +96,20 @@ class MovingBoundaryNTUCondenser(ExternalHeatExchanger):
                 fs_state=fs_state,
                 inputs=inputs
             )
-
-            A_lat = iterate_area(heat_exchanger=self,
-                                 dT_max=(state_q1.T - T_sc),
-                                 alpha_pri=alpha_ref_wall,
-                                 alpha_sec=alpha_med_wall,
-                                 Q=Q_lat)
-            # Only use still available area:
-            A_lat = min(self.A - A_sc, A_lat)
-
             k_lat = self.calc_k(
                 alpha_pri=alpha_ref_wall,
                 alpha_sec=alpha_med_wall
             )
+            A_lat = ntu.iterate_area(
+                heat_exchanger=self,
+                dT_max=(state_q1.T - T_sc),
+                k=k_lat,
+                m_flow_secondary_cp=self.m_flow_secondary_cp,
+                m_flow_primary_cp=self.m_flow * primary_cp,
+                Q=Q_lat)
+            # Only use still available area:
+            A_lat = min(self.A - A_sc, A_lat)
+
             Q_lat_ntu = ntu.calc_Q_ntu(
                 dT_max=(state_q1.T - T_sc),
                 k=k_lat,
@@ -278,12 +224,18 @@ class MovingBoundaryNTUEvaporator(ExternalHeatExchanger):
             tra_prop_ref_eva = self.med_prop.calc_mean_transport_properties(self.state_outlet, state_q1)
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_eva)
 
+            k_sh = self.calc_k(
+                alpha_pri=alpha_ref_wall,
+                alpha_sec=alpha_med_wall
+            )
             if Q_lat > 0:
-                A_sh = iterate_area(heat_exchanger=self,
-                                    dT_max=(inputs.evaporator.T_in - state_q1.T),
-                                    alpha_pri=alpha_ref_wall,
-                                    alpha_sec=alpha_med_wall,
-                                    Q=Q_sh)
+                A_sh = ntu.iterate_area(
+                    heat_exchanger=self,
+                    dT_max=(inputs.evaporator.T_in - state_q1.T),
+                    k=k_sh,
+                    m_flow_secondary_cp=self.m_flow_secondary_cp,
+                    m_flow_primary_cp=self.m_flow * primary_cp,
+                    Q=Q_sh)
             else:
                 # if only sh is present --> full area:
                 A_sh = self.A
@@ -291,10 +243,6 @@ class MovingBoundaryNTUEvaporator(ExternalHeatExchanger):
             # Only use still available area
             A_sh = min(self.A, A_sh)
 
-            k_sh = self.calc_k(
-                alpha_pri=alpha_ref_wall,
-                alpha_sec=alpha_med_wall
-            )
             Q_sh_ntu = ntu.calc_Q_ntu(
                 dT_max=(inputs.evaporator.T_in - state_q1.T),
                 A=A_sh,
@@ -318,19 +266,22 @@ class MovingBoundaryNTUEvaporator(ExternalHeatExchanger):
                 inputs=inputs
             )
 
-            if Q_sc > 0:
-                A_lat = iterate_area(heat_exchanger=self, dT_max=(T_sh - self.state_inlet.T),
-                                     alpha_pri=alpha_ref_wall,
-                                     alpha_sec=alpha_med_wall,
-                                     Q=Q_lat)
-            else:
-                A_lat = self.A - A_sh
-
-            # Only use still available area:
             k_lat = self.calc_k(
                 alpha_pri=alpha_ref_wall,
                 alpha_sec=alpha_med_wall
             )
+            if Q_sc > 0:
+                A_lat = ntu.iterate_area(
+                    heat_exchanger=self,
+                    m_flow_secondary_cp=self.m_flow_secondary_cp,
+                    m_flow_primary_cp=self.m_flow * primary_cp,
+                    dT_max=(T_sh - self.state_inlet.T),
+                    k=k_lat,
+                    Q=Q_lat)
+            else:
+                A_lat = self.A - A_sh
+
+            # Only use still available area:
             A_lat = min(self.A - A_sh, A_lat)
             Q_lat_ntu = ntu.calc_Q_ntu(
                 dT_max=(T_sh - self.state_inlet.T),

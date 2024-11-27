@@ -9,78 +9,126 @@ logger = logging.getLogger(__name__)
 
 
 class IHX_NTU(InternalHeatExchanger):
+    """
+    Logic for an internal heat exchanger in counter flow arrangement.
+    The regime logics are depicted here: docs/source/ihx_logic.svg
+    """
 
     def __init__(
             self,
-            gas_heat_transfer: HeatTransfer,
-            two_phase_heat_transfer_high: TwoPhaseHeatTransfer,
+            alpha_low_side: float,
+            alpha_high_side: float,
             dT_pinch_min: float = 0,
             **kwargs):
         super().__init__(**kwargs)
         self.dT_pinch_min = dT_pinch_min
         assert self.flow_type == "counter", "Other types are not implemented"
-        self._gas_heat_transfer = gas_heat_transfer
-        self._two_phase_heat_transfer_high = two_phase_heat_transfer_high
+        self.k = self.calc_k(
+            alpha_pri=alpha_high_side,
+            alpha_sec=alpha_low_side
+        )
 
     def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
         # First calculate the heat assuming q1 at inlet of lower side:
         state_low_q1 = self.med_prop.calc_state("PQ", self.state_outlet_low.p, 1)
         state_high_q0 = self.med_prop.calc_state("PQ", self.state_inlet_high.p, 0)
-        state_high_q1 = self.med_prop.calc_state("PQ", self.state_inlet_high.p, 1)
 
         dh_max_high = self.state_inlet_high.h - state_high_q0.h
         dh_max_low = self.state_outlet_low.h - state_low_q1.h
+        # First part of the HX:
+        m_flow_primary_cp = (
+                (self.state_outlet_low.h - state_low_q1.h) /
+                (self.state_outlet_low.T - state_low_q1.T)
+        ) * self.m_flow_low
+        m_flow_secondary_cp = self.m_flow_high * np.inf
 
-        primary_cp = ((self.state_outlet_low.h - state_low_q1.h) / (self.state_outlet_low.T - state_low_q1.T))
-        transport_gas_low = self.med_prop.calc_mean_transport_properties(state_low_q1, self.state_outlet_low)
-        alpha_gas_low = self._gas_heat_transfer.calc(transport_gas_low, self.m_flow_low)
-
-        # Most of those settings have no effect, only if the twp-phase correlation actually includes these points
-        alpha_two_phase_high = self._two_phase_heat_transfer_high.calc(
-            state_q0=state_high_q0,
-            state_q1=state_high_q1,
-            inputs=inputs,
-            fs_state=fs_state,
-            m_flow=self.m_flow_high,
-            med_prop=self.med_prop,
-            state_inlet=self.state_inlet_high,
-            state_outlet=state_high_q0
-        )
-        k = self.calc_k(
-            alpha_pri=alpha_gas_low,
-            alpha_sec=alpha_two_phase_high
-        )
-        Q_ntu = ntu.calc_Q_ntu(
-            dT_max=self.state_inlet_high.T - self.state_outlet_low.T,
-            k=k,
-            A=self.A,
-            m_flow_primary_cp=self.m_flow_low * primary_cp,
-            m_flow_secondary_cp=self.m_flow_high * np.inf,
-            flow_type=self.flow_type
+        Q_high_tp_to_q0 = self.m_flow_high * (self.state_inlet_high.h - state_high_q0.h)
+        Q_low_sh_to_q1 = self.m_flow_low * (self.state_outlet_low.h - state_low_q1.h)
+        Q_first_regime = min(Q_high_tp_to_q0, Q_low_sh_to_q1)
+        dT_max_first_regim = self.state_inlet_high.T - state_low_q1.T
+        Q_ntu_first_regime, A_required_first_regime = ntu.calc_Q_with_available_area(
+            heat_exchanger=self,
+            k=self.k,
+            Q_required=Q_first_regime,
+            A_available=self.A,
+            dT_max=dT_max_first_regim,
+            m_flow_primary_cp=m_flow_primary_cp,
+            m_flow_secondary_cp=m_flow_secondary_cp
         )
 
-        dh = Q_ntu / self.m_flow_high
-        # Both regimes are exceeded
-        if dh > dh_max_low:
-            remaining_dh_low = dh - dh_max_low
-            logger.warning(
-                f"High side still in two-phase region, but low side passed "
-                f"to two-phase as well. Error in dh: %s", remaining_dh_low
+        if Q_ntu_first_regime < Q_first_regime:
+            # Area is only sufficient for first regime.
+            self.set_missing_states(Q_ntu_first_regime)
+            return
+        state_low_first_regime = self.med_prop.calc_state(
+            "PH",
+            self.state_outlet_low.p,
+            self.state_outlet_low.h - Q_ntu_first_regime / self.m_flow_low
+        )
+        state_high_first_regime = self.med_prop.calc_state(
+            "PH",
+            self.state_outlet_high.p,
+            self.state_outlet_high.h - Q_ntu_first_regime / self.m_flow_high
+        )
+        if Q_ntu_first_regime < Q_low_sh_to_q1:
+            Q_low_first_to_second_regime = self.m_flow_low * (
+                state_low_first_regime.h - state_low_q1.h
             )
-        if dh > dh_max_high:
-            remaining_dh_high = dh - dh_max_high
-            logger.warning(
-                f"High side still in subcooling region, but low side still in gas region"
-                f"Error in dh: %s", remaining_dh_high
+        else:
+            Q_low_first_to_second_regime = np.inf
+            m_flow_primary_cp = np.inf
+        if Q_ntu_first_regime < Q_high_tp_to_q0:
+            Q_high_first_to_second_regime = self.m_flow_high * (
+                self.state_inlet_high.h - state_high_q0.h
             )
+        else:
+            Q_high_first_to_second_regime = np.inf
+            state_artificial = self.med_prop.calc_state(
+                "PT",
+                state_high_first_regime.p,
+                state_high_first_regime.T - 5  # Some dT to get cp
+            )
+            m_flow_secondary_cp = (
+                (state_high_first_regime.h - state_artificial.h) /
+                (state_high_first_regime.T - state_artificial.T)
+            )
+        Q_second_regime = min(Q_high_first_to_second_regime, Q_low_first_to_second_regime)
+        dT_max_second_regime = state_high_first_regime.T - state_low_q1.T
+        Q_ntu_second_regime, A_required_second_regime = ntu.calc_Q_with_available_area(
+            heat_exchanger=self,
+            k=self.k,
+            Q_required=Q_second_regime,
+            A_available=self.A - A_required_first_regime,
+            dT_max=dT_max_second_regime,
+            m_flow_primary_cp=m_flow_primary_cp,
+            m_flow_secondary_cp=m_flow_secondary_cp
+        )
+        state_high_second_regime = self.med_prop.calc_state(
+            "PH",
+            state_high_first_regime.p,
+            state_high_first_regime.h - Q_ntu_second_regime / self.m_flow_high
+        )
+        if self.A - A_required_first_regime - A_required_second_regime < 0:
+            raise ValueError("NTU calculation lead to area above 100 %")
+        dT_max_third_regime = state_high_second_regime.T - state_low_q1.T
+        Q_ntu_third_regime = ntu.calc_Q_ntu(
+            k=self.k,
+            A=self.A - A_required_first_regime - A_required_second_regime,
+            dT_max=dT_max_third_regime,
+            m_flow_primary_cp=m_flow_primary_cp,
+            m_flow_secondary_cp=m_flow_secondary_cp
+        )
+        self.set_missing_states(Q=Q_ntu_first_regime + Q_ntu_second_regime + Q_ntu_third_regime)
+        return None, None  # Irrelevant for this heat exchanger for now.
+
+    def set_missing_states(self, Q: float):
         self.state_inlet_low = self.med_prop.calc_state(
             "PH",
             self.state_outlet_low.p,
-            self.state_outlet_low.h - dh
+            self.state_outlet_low.h - Q / self.m_flow_low
         )
         self.state_outlet_high = self.med_prop.calc_state(
             "PH",
             self.state_inlet_high.p,
-            self.state_inlet_high.h - dh
+            self.state_inlet_high.h - Q / self.m_flow_high
         )
-        return None, None  # Irrelevant for this heat exchanger for now.
