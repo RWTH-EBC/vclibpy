@@ -80,7 +80,9 @@ class Algorithm(abc.ABC):
         """
         raise NotImplementedError
 
-    def initial_setup(self, flowsheet: BaseCycle, fluid: str, inputs: Inputs) -> (float, float, float):
+    def initial_setup(
+            self, flowsheet: BaseCycle, fluid: str, inputs: Inputs
+    ) -> (float, float, float, FlowsheetState):
         """
         Calculate values required for all algorithms at the initial setup
 
@@ -120,8 +122,12 @@ class Algorithm(abc.ABC):
                 m_flow_guess=flowsheet.condenser.m_flow,
                 p_2_guess=p_2_start
             )
+        fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
+        inputs.add_inputs_to_fs_state(fs_state=fs_state)
+        fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
+        fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
 
-        return p_1_start, p_2_start, _p_max
+        return p_1_start, p_2_start, _p_max, fs_state
 
     def get_improved_start_condensing_pressure(
             self, flowsheet: BaseCycle,

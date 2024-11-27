@@ -140,47 +140,17 @@ class BaseCycle:
         COP_carnot = (T_con_out / (T_con_out - inputs.evaporator.T_in))
         carnot_quality = COP_inner / COP_carnot
 
+        # Update input values as not all in/out/dT/m_flow values are provided by the user.
+        fs_state.set(name="T_con_out", value=T_con_out)
+        fs_state.set(name="T_con_in", value=T_con_in)
+        fs_state.set(name="T_eva_out", value=T_eva_out)
+        fs_state.set(name="T_eva_in", value=T_eva_in)
+        fs_state.set(name="dT_eva", value=dT_eva)
+        fs_state.set(name="m_flow_eva", value=m_flow_eva)
+        fs_state.set(name="dT_con", value=dT_con)
+        fs_state.set(name="m_flow_con", value=m_flow_con)
+
         # Set outputs
-        fs_state.set(
-            name="T_con_out", value=T_con_out, unit="K",
-            description="Secondary condenser side outlet temperature"
-        )
-        fs_state.set(
-            name="T_con_in", value=T_con_in, unit="K",
-            description="Secondary condenser side inlet temperature"
-        )
-        fs_state.set(
-            name="T_eva_out", value=T_eva_out, unit="K",
-            description="Secondary evaporator side outlet temperature"
-        )
-        fs_state.set(
-            name="T_eva_in", value=T_eva_in, unit="K",
-            description="Secondary evaporator side inlet temperature"
-        )
-        fs_state.set(
-            name="dT_eva",
-            value=dT_eva,
-            unit="K",
-            description="Secondary evaporator side temperature difference"
-        )
-        fs_state.set(
-            name="m_flow_eva",
-            value=m_flow_eva,
-            unit="kg/s",
-            description="Secondary evaporator side mass flow rate"
-        )
-        fs_state.set(
-            name="dT_con",
-            value=dT_con,
-            unit="K",
-            description="Secondary condenser side temperature difference"
-        )
-        fs_state.set(
-            name="m_flow_con",
-            value=m_flow_con,
-            unit="kg/s",
-            description="Secondary condenser side mass flow rate"
-        )
         fs_state.set(
             name="P_el", value=P_el, unit="W",
             description="Power consumption"
@@ -193,13 +163,6 @@ class BaseCycle:
             name="Q_con", value=Q_con, unit="W",
             description="Condenser refrigerant heat flow rate"
         )
-        for variable in inputs.control.get_variables().values():
-            fs_state.set(
-                name=variable.name,
-                value=variable.value,
-                unit=variable.unit,
-                description=variable.description,
-            )
 
         # COP based on P_el and Q_con:
         fs_state.set(
