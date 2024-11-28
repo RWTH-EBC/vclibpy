@@ -23,7 +23,9 @@ class FSolve(Algorithm):
             inputs: Inputs,
             fluid: str = None
     ) -> Union[FlowsheetState, None]:
-        p_1_start, p_2_start, _p_max = self.initial_setup(flowsheet=flowsheet, inputs=inputs, fluid=fluid)
+        p_1_start, p_2_start, _p_max, fs_state = self.initial_setup(
+            flowsheet=flowsheet, inputs=inputs, fluid=fluid
+        )
 
         def nonlinear_func(x, *_args):
             _flowsheet, _inputs, _fs_state, _max_err = _args
@@ -46,7 +48,6 @@ class FSolve(Algorithm):
                 _error_con *= 5
             return _error_eva, _error_con
 
-        fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
         try:
             args = (flowsheet, inputs, fs_state, self.max_err)
             p_optimized = fsolve(

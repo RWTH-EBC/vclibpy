@@ -48,7 +48,9 @@ class Iteration(Algorithm):
             inputs: Inputs,
             fluid: str = None
     ) -> Union[FlowsheetState, None]:
-        p_1_next, p_2_next, _p_max = self.initial_setup(flowsheet=flowsheet, inputs=inputs, fluid=fluid)
+        p_1_next, p_2_next, _p_max, fs_state = self.initial_setup(
+            flowsheet=flowsheet, inputs=inputs, fluid=fluid
+        )
 
         # Settings
         if self.use_quick_solver:
@@ -68,10 +70,6 @@ class Iteration(Algorithm):
         plot_last = -100
 
         # First: Iterate with given conditions to get the 4 states and the mass flow rate:
-        fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
-        fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
-        fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
-
         if self.show_iteration:
             fig_iterations, ax_iterations = plt.subplots(3, 2, sharex=True)
 

@@ -459,3 +459,31 @@ class Inputs:
             self.evaporator.get_name(),
             self.condenser.get_name(),
         ])
+
+    def add_inputs_to_fs_state(self, fs_state: FlowsheetState):
+        map_heat_exchanger_inputs_to_fs_state = {
+            "T_out": lambda hx_name: f"T_{hx_name}_out",
+            "T_out": lambda hx_name: f"T_{hx_name}_in",
+            "T_out": lambda hx_name: f"dT_{hx_name}",
+            "m_flow": lambda hx_name: f"m_flow_{hx_name}",
+        }
+        for heat_exchanger, instance in zip(
+                ["evaporator", "condenser"],
+                [self.evaporator, self.condenser]
+        ):
+            for input_name, get_fs_name in map_heat_exchanger_inputs_to_fs_state.items():
+                fs_name = get_fs_name(heat_exchanger[:3])  # only use eva or con
+                variable = instance.get(input_name)
+                fs_state.set(
+                    name=fs_name,
+                    value=variable.value,
+                    unit=variable.unit,
+                    description=f"{variable.description} in {heat_exchanger}"
+                )
+        for fs_name, variable in self.control.items():
+            fs_state.set(
+                name=fs_name,
+                value=variable.value,
+                unit=variable.unit,
+                description=variable.description
+            )
