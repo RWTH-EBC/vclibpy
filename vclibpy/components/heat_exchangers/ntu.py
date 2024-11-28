@@ -28,6 +28,10 @@ def calc_Q_ntu(
     """
     R = calc_R(m_flow_primary_cp, m_flow_secondary_cp)
     m_flow_cp_min = calc_m_flow_cp_min(m_flow_primary_cp, m_flow_secondary_cp)
+    if np.isinf(m_flow_cp_min):
+        # Special case with both capacity rates are inf, then dTMax is
+        # dTLog and Q is analytically determined
+        return A * k * dT_max
     NTU = calc_NTU(A, k, m_flow_cp_min)
     eps = calc_eps(R, NTU, flow_type=flow_type)
 
@@ -44,6 +48,8 @@ def calc_R(m_flow_primary_cp, m_flow_secondary_cp) -> float:
     Returns:
         float: R value.
     """
+    if np.isinf(m_flow_primary_cp) and np.isinf(m_flow_secondary_cp):
+        return 1
     if m_flow_primary_cp > m_flow_secondary_cp:
         return m_flow_secondary_cp / m_flow_primary_cp
     return m_flow_primary_cp / m_flow_secondary_cp
@@ -142,6 +148,9 @@ def iterate_area(
     # eps is lower or equal to zero: No Area required (Q<=0)
     if eps_necessary <= 0:
         return 0
+    # Both capacity rates are inf, then dTMax is dTLog and A is analytically determined
+    if np.isinf(m_flow_cp_min):
+        return min(heat_exchanger.A, Q / (dT_max * k))
 
     area = 0.0
     while True:

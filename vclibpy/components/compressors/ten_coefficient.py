@@ -275,7 +275,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
 
         eta_is = (h2s - state_inlet_datasheet.h) / (h2 - state_inlet_datasheet.h)
         if eta_is > 0.8:
-            logger.warning(
+            logger.info(
                 f"Calculated eta_is is {eta_is * 100} %, which is higher than "
                 f"typical maximal values of up to, e.g., 80 %. "
                 "You either chose the wrong capacity_definition, "
