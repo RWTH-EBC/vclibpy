@@ -35,6 +35,9 @@ class Algorithm(abc.ABC):
             (default: False)
         p_min (float):
             Minimal pressure allowed to ensure p>0 at all times. (default: 10000)
+        raise_errors (bool):
+            If true, errors during solving will be raised. Default, False, will just
+            return None.
     """
 
     def __init__(self, **kwargs):
@@ -50,6 +53,7 @@ class Algorithm(abc.ABC):
         self.dT_pinch_con_guess = kwargs.pop("dT_pinch_con_guess", 0)
         self.improve_first_condensing_guess = kwargs.pop("improve_first_condensing_guess", False)
         self._p_min = kwargs.pop("p_min", 10000)
+        self.raise_errors = kwargs.pop("raise_errors")
 
     @abc.abstractmethod
     def calc_steady_state(

@@ -119,6 +119,7 @@ class IHX(BaseCycle):
             m_flow=self.compressor.m_flow,
             opening=opening
         )
+        dp_ev_high = self.expansion_valve_high.state_inlet.p - self.expansion_valve_high.state_outlet.p
         if self.expansion_valve_high.state_outlet.T - self.ihx.dT_pinch_min < self.ihx.state_outlet_low.T:
             T_min = self.ihx.state_outlet_low.T + self.ihx.dT_pinch_min
             self.expansion_valve_high.calc_outlet(p_outlet=self.med_prop.calc_state("TQ", T_min, 0).p)
@@ -126,6 +127,7 @@ class IHX(BaseCycle):
                 "Pressure to low to at given opening to match dT_pinch_min=%s. "
                 "Setting minimal required pressure."
             )
+            # TODO: Re-calculate required opening
         self.ihx.state_inlet_high = self.expansion_valve_high.state_outlet
         # State 5
         self.ihx.calc(inputs=inputs, fs_state=fs_state)
@@ -135,6 +137,7 @@ class IHX(BaseCycle):
         self.evaporator.state_inlet = self.expansion_valve_low.state_outlet
         # State 7
         self.evaporator.state_outlet = self.ihx.state_inlet_low
+        fs_state.set(name="dp_ev_high", value=dp_ev_high, unit="Pa", description="Pressure difference due to first EV")
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
         """Based on simple energy balance - Adiabatic"""

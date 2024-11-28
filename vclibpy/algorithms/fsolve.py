@@ -57,6 +57,8 @@ class FSolve(Algorithm):
             )
         except Exception as err:
             logger.error("An error occurred while calculating states using fsolve: %s", err)
+            if self.raise_errors:
+                raise err
             return
         error_con, error_eva = nonlinear_func(p_optimized, *args)
         logger.info(f"{error_con=}, {error_eva=}")

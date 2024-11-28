@@ -274,7 +274,7 @@ def _calc_single_state(data):
     except Exception as e:
         if raise_errors:
             raise e
-        logger.error(f"An error occurred for input: {inputs.__dict__}: {e}")
+        logger.error(f"An error occurred for input: {inputs.get_name()}: {e}")
     if fs_state is None:
         fs_state = FlowsheetState()
     # Append the data to the dataframe
