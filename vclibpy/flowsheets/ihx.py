@@ -115,10 +115,16 @@ class IHX(BaseCycle):
             opening = inputs.control.opening
         else:
             opening = 1
-        self.expansion_valve_high.calc_outlet_pressure_at_m_flow_and_opening(
-            m_flow=self.compressor.m_flow,
-            opening=opening
-        )
+        try:
+            self.expansion_valve_high.calc_outlet_pressure_at_m_flow_and_opening(
+                m_flow=self.compressor.m_flow,
+                opening=opening
+            )
+        except ValueError as err:
+            # During iteration, p_1 and p_2 can get very close together,
+            # leading to high m_flows and then p_outlets below zero, depending on the EV model
+            T_min = self.ihx.state_outlet_low.T + self.ihx.dT_pinch_min
+            self.expansion_valve_high.calc_outlet(p_outlet=self.med_prop.calc_state("TQ", T_min, 0).p)
         dp_ev_high = self.expansion_valve_high.state_inlet.p - self.expansion_valve_high.state_outlet.p
         if self.expansion_valve_high.state_outlet.T - self.ihx.dT_pinch_min < self.ihx.state_outlet_low.T:
             T_min = self.ihx.state_outlet_low.T + self.ihx.dT_pinch_min

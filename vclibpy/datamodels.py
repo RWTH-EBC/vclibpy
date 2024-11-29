@@ -221,6 +221,8 @@ class HeatExchangerInputs(VariableContainer):
                     raise ValueError(f"Given {dT=} does not match {T_in=} and {T_out=}")
         if m_flow is not None and dT is not None:
             raise ValueError("You can either specify the temperature difference or m_flow, not both")
+        if m_flow is not None and m_flow <= 0:
+            raise ValueError("Given m_flow is equal or smaller than zero, only supporting positive values.")
         self.set(
             name="T_in",
             value=T_in,
