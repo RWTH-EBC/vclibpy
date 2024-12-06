@@ -143,7 +143,20 @@ class IHX(BaseCycle):
         self.evaporator.state_inlet = self.expansion_valve_low.state_outlet
         # State 7
         self.evaporator.state_outlet = self.ihx.state_inlet_low
-        fs_state.set(name="dp_ev_high", value=dp_ev_high, unit="Pa", description="Pressure difference due to first EV")
+        fs_state.set(name="dp_ev_high", value=dp_ev_high / 1e5, unit="bar", description="Pressure difference due to first EV")
+        for no, state in enumerate([
+            self.compressor.state_inlet,
+            self.compressor.state_outlet,
+            self.condenser.state_outlet,
+            self.expansion_valve_high.state_outlet,
+            self.ihx.state_outlet_high,
+            self.expansion_valve_low.state_outlet,
+            self.evaporator.state_outlet,
+        ]):
+            fs_state.set(name=f"T_{no+1}", value=state.T, unit="K", description=f"Temperature in state {no+1}")
+
+        fs_state.set(name="p_con", value=p_2 / 1e5, unit="bar", description="Condensation pressure")
+        fs_state.set(name="p_eva", value=p_1 / 1e5, unit="bar", description="Evaporation pressure")
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
         """Based on simple energy balance - Adiabatic"""
