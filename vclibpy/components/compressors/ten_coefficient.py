@@ -203,6 +203,7 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         # as local functions are not pickable for multiprocessing
         self.assumed_eta_mech = assumed_eta_mech
         self.scaling_factor = scaling_factor
+        self.lambda_h_max = 1
 
     def get_lambda_h(self, inputs: Inputs):
         """
@@ -222,9 +223,9 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
 
         if round((self.state_inlet.T - T_eva - 273.15), 2) != round(self.T_sh, 2):
             logger.debug("The superheating of the given state is not "
-                           "equal to the superheating of the datasheet. "
-                           "State: T_sh=%s; Datasheet: T_sh=%s",
-                           round((self.state_inlet.T - T_eva - 273.15), 2), self.T_sh)
+                         "equal to the superheating of the datasheet. "
+                         "State: T_sh=%s; Datasheet: T_sh=%s",
+                         round((self.state_inlet.T - T_eva - 273.15), 2), self.T_sh)
 
         # The datasheet has a given superheating temperature which can
         # vary from the superheating of the real state 1
@@ -240,6 +241,11 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
         m_flow = self.get_parameter(T_eva, T_con, inputs.control.n, "m_flow") / 3600 * self.scaling_factor  # [kg/s]
 
         lambda_h = m_flow / (n_abs * state_inlet_datasheet.d * self.V_h)
+        if lambda_h > self.lambda_h_max:
+            logger.info(
+                f"Calculated {lambda_h=} is higher than "
+                f"the maximum {self.lambda_h_max}. Using the maximum.")
+            return self.lambda_h_max
         return lambda_h
 
     def get_eta_isentropic(self, p_outlet: float, inputs: Inputs):
@@ -334,6 +340,10 @@ class TenCoefficientCompressor(BaseTenCoefficientCompressor):
             state_inlet_datasheet = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
 
         m_flow = self.get_parameter(T_eva, T_con, inputs.control.n, "m_flow") / 3600 * self.scaling_factor  # [kg/s]
+        m_flow_max = (
+                             self.get_n_absolute(inputs.control.n) * state_inlet_datasheet.d * self.V_h
+                     ) * self.lambda_h_max  # Assumes a lambda_h of 1
+        m_flow = min(m_flow, m_flow_max)
         capacity = self.get_parameter(T_eva, T_con, inputs.control.n, "capacity") * self.scaling_factor  # [W]
         p_el = self.get_parameter(T_eva, T_con, inputs.control.n, "input_power") * self.scaling_factor  # [W]
         return T_con, state_inlet_datasheet, m_flow, capacity, p_el
