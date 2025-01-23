@@ -141,14 +141,54 @@ class BaseCycle:
         carnot_quality = COP_inner / COP_carnot
 
         # Update input values as not all in/out/dT/m_flow values are provided by the user.
-        fs_state.set(name="T_con_out", value=T_con_out)
-        fs_state.set(name="T_con_in", value=T_con_in)
-        fs_state.set(name="T_eva_out", value=T_eva_out)
-        fs_state.set(name="T_eva_in", value=T_eva_in)
-        fs_state.set(name="dT_eva", value=dT_eva)
-        fs_state.set(name="m_flow_eva", value=m_flow_eva)
-        fs_state.set(name="dT_con", value=dT_con)
-        fs_state.set(name="m_flow_con", value=m_flow_con)
+        fs_state.set(
+            name="T_con_out",
+            value=T_con_out,
+            unit=inputs.condenser.get('T_out').unit,
+            description=f"Condenser {inputs.condenser.get('T_out').description}"
+        )
+        fs_state.set(
+            name="T_con_in",
+            value=T_con_in,
+            unit=inputs.condenser.get('T_in').unit,
+            description=f"Condenser {inputs.condenser.get('T_in').description}"
+        )
+        fs_state.set(
+            name="dT_con",
+            value=dT_con,
+            unit=inputs.condenser.get('m_flow').unit,
+            description=f"Condenser {inputs.condenser.get('m_flow').description}"
+        )
+        fs_state.set(
+            name="m_flow_con",
+            value=m_flow_con,
+            unit=inputs.condenser.get('dT').unit,
+            description=f"Condenser {inputs.condenser.get('dT').description}"
+        )
+        fs_state.set(
+            name="T_eva_out",
+            value=T_eva_out,
+            unit=inputs.evaporator.get('T_out').unit,
+            description=f"Evaporator {inputs.evaporator.get('T_out').description}"
+        )
+        fs_state.set(
+            name="T_eva_in",
+            value=T_eva_in,
+            unit=inputs.evaporator.get('T_in').unit,
+            description=f"Evaporator {inputs.evaporator.get('T_in').description}"
+        )
+        fs_state.set(
+            name="dT_eva",
+            value=dT_eva,
+            unit=inputs.evaporator.get('m_flow').unit,
+            description=f"Evaporator {inputs.evaporator.get('m_flow').description}"
+        )
+        fs_state.set(
+            name="m_flow_eva",
+            value=m_flow_eva,
+            unit=inputs.evaporator.get('dT').unit,
+            description=f"Evaporator {inputs.evaporator.get('dT').description}"
+        )
 
         # Set outputs
         fs_state.set(

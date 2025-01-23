@@ -11,7 +11,7 @@ import pandas as pd
 from vclibpy.datamodels import FlowsheetState, Inputs, RelativeCompressorSpeedControl, HeatExchangerInputs
 from vclibpy.flowsheets import BaseCycle
 from vclibpy.algorithms import Algorithm, Iteration
-from vclibpy import utils
+from vclibpy import utils, media
 
 logger = logging.getLogger(__name__)
 
@@ -39,8 +39,9 @@ def calc_multiple_states(
     rel_infos = []
     fs_states = []
     i = 0
+    global_med_prop_data = media.get_global_med_prop_and_kwargs()
     if use_multiprocessing:
-        mp_inputs = [[algorithm, flowsheet, inputs_, raise_errors] for inputs_ in inputs]
+        mp_inputs = [[algorithm, flowsheet, inputs_, raise_errors, global_med_prop_data] for inputs_ in inputs]
         pool = multiprocessing.Pool(processes=min(multiprocessing.cpu_count(), len(inputs)))
         for fs_state in pool.imap(_calc_single_state, mp_inputs):
             fs_states.append(fs_state)
@@ -48,7 +49,7 @@ def calc_multiple_states(
             logger.info(f"Ran {i} of {len(inputs)} points")
     else:
         for inputs_ in inputs:
-            fs_state = _calc_single_state([algorithm, flowsheet, inputs_, raise_errors])
+            fs_state = _calc_single_state([algorithm, flowsheet, inputs_, raise_errors, global_med_prop_data])
             fs_states.append(fs_state)
             i += 1
             logger.info(f"Ran {i} of {len(inputs)} points")
@@ -140,6 +141,7 @@ def full_factorial_map_generation(
     list_mp_inputs = []
     list_inputs = []
     idx_for_access_later = []
+    global_med_prop_data = media.get_global_med_prop_and_kwargs()
     for i_T_eva_in, T_eva_in in enumerate(T_eva_in_ar):
         for i_n, n in enumerate(n_ar):
             for i_T_con, T_con in enumerate(T_con_ar):
@@ -168,10 +170,11 @@ def full_factorial_map_generation(
                     evaporator=evaporator_inputs,
                     condenser=condenser_inputs
                 )
-                list_mp_inputs.append([algorithm, flowsheet, inputs, raise_errors])
+                list_mp_inputs.append([algorithm, flowsheet, inputs, raise_errors, global_med_prop_data])
                 list_inputs.append(inputs)
     fs_states = []
     i = 0
+
     if use_multiprocessing:
         # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
         pool = multiprocessing.Pool(processes=10)
@@ -181,7 +184,7 @@ def full_factorial_map_generation(
             logger.info(f"Ran {i} of {len(list_mp_inputs)} points")
     else:
         for inputs in list_inputs:
-            fs_state = _calc_single_state([algorithm, flowsheet, inputs, raise_errors])
+            fs_state = _calc_single_state([algorithm, flowsheet, inputs, raise_errors, global_med_prop_data])
             fs_states.append(fs_state)
             i += 1
             logger.info(f"Ran {i} of {len(list_mp_inputs)} points")
@@ -265,8 +268,9 @@ def full_factorial_map_generation(
 
 def _calc_single_state(data):
     """Helper function for a single state to enable multiprocessing"""
-    algorithm, flowsheet, inputs, raise_errors = data
+    algorithm, flowsheet, inputs, raise_errors, global_med_prop_data = data
     fs_state = None
+    media.set_global_media_properties(global_med_prop_data[0], **global_med_prop_data[1])
     try:
         fs_state = algorithm.calc_steady_state(
             flowsheet=flowsheet, inputs=inputs
