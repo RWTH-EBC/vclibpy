@@ -64,9 +64,9 @@ def main(use_condenser_inlet: bool = True):
     # Note that T_con can either be inlet or outlet, depending on the setting
     # of `use_condenser_inlet`. Per default, we simulate the inlet, T_con_in
     save_path = r"D:\00_temp\simple_heat_pump"
-    T_eva_in_ar = [-10 + 273.15, 273.15, 10 + 273.15]
-    T_con_ar = [30 + 273.15, 50 + 273.15, 70 + 273.15]
-    n_ar = [0.3, 0.7, 1]
+    T_eva_in = [-10 + 273.15, 273.15, 10 + 273.15]
+    T_con = [30 + 273.15, 50 + 273.15, 70 + 273.15]
+    n = [0.3, 0.7, 1]
 
     # Now, we can generate the full-factorial performance map
     # using all inputs. The results will be stored under the
@@ -79,9 +79,9 @@ def main(use_condenser_inlet: bool = True):
     save_path_sdf, save_path_csv = utils.full_factorial_map_generation(
         flowsheet=flowsheet,
         save_path=save_path,
-        T_con_ar=T_con_ar,
-        T_eva_in_ar=T_eva_in_ar,
-        n_ar=n_ar,
+        T_con=T_con,
+        T_eva_in=T_eva_in,
+        n=n,
         use_condenser_inlet=use_condenser_inlet,
         use_multiprocessing=False,
         save_plots=True,

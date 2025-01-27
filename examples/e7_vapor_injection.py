@@ -68,9 +68,9 @@ def main():
     # As in the other example, we can specify save-paths,
     # solver settings and inputs to vary:
     save_path = r"D:\00_temp\vapor_injection"
-    T_eva_in_ar = [-10 + 273.15, 273.15, 10 + 273.15]
-    T_con_ar = [30 + 273.15, 50 + 273.15, 60 + 273.15]
-    n_ar = [0.3, 0.7, 1]
+    T_eva_in = [-10 + 273.15, 273.15, 10 + 273.15]
+    T_con = [30 + 273.15, 50 + 273.15, 60 + 273.15]
+    n = [0.3, 0.7, 1]
 
     # Now, we can generate the full-factorial performance map
     # using all inputs. The results will be stored under the
@@ -83,9 +83,9 @@ def main():
     utils.full_factorial_map_generation(
         flowsheet=flowsheet,
         save_path=save_path,
-        T_con_ar=T_con_ar,
-        T_eva_in_ar=T_eva_in_ar,
-        n_ar=n_ar,
+        T_con=T_con,
+        T_eva_in=T_eva_in,
+        n=n,
         use_condenser_inlet=True,
         use_multiprocessing=False,
         save_plots=True,
@@ -128,9 +128,9 @@ def main():
     utils.full_factorial_map_generation(
         flowsheet=flowsheet,
         save_path=r"D:\00_temp\vapor_injection_economizer",
-        T_con_ar=T_con_ar,
-        T_eva_in_ar=T_eva_in_ar,
-        n_ar=n_ar,
+        T_con=T_con,
+        T_eva_in=T_eva_in,
+        n=n,
         use_multiprocessing=False,
         save_plots=True,
         m_flow_con=0.2,

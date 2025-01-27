@@ -68,15 +68,15 @@ def calc_multiple_states(
 
 def full_factorial_map_generation(
         flowsheet: BaseCycle,
-        T_eva_in_ar: Union[list, np.ndarray],
-        T_con_ar: Union[list, np.ndarray],
-        n_ar: Union[list, np.ndarray],
-        m_flow_con: float,
-        m_flow_eva: float,
+        T_eva_in: Union[list, np.ndarray, float],
+        T_con: Union[list, np.ndarray, float],
+        n: Union[list, np.ndarray, float],
+        m_flow_con: Union[list, np.ndarray, float],
+        m_flow_eva: Union[list, np.ndarray, float],
         save_path: Union[pathlib.Path, str],
         algorithm: Algorithm = None,
-        dT_eva_superheating=5,
-        dT_con_subcooling=0,
+        dT_eva_superheating: Union[list, np.ndarray, float] = 5,
+        dT_con_subcooling: Union[list, np.ndarray, float] = 0,
         use_condenser_inlet: bool = True,
         use_multiprocessing: bool = False,
         save_plots: bool = False,
@@ -94,12 +94,12 @@ def full_factorial_map_generation(
 
     Args:
         flowsheet (BaseCycle): The flowsheet to use
-        T_eva_in_ar (list):
+        T_eva_in (list):
             Array with inputs for T_eva_in
-        T_con_ar (list):
+        T_con (list):
             Array with inputs for T_con_in or T_con_out, see `use_condenser_inlet`
-        n_ar (list):
-            Array with inputs for n_ar
+        n (list):
+            Array with inputs for n
         m_flow_con (float):
             Condenser mass flow rate
         m_flow_eva (float):
@@ -114,7 +114,7 @@ def full_factorial_map_generation(
         dT_con_subcooling (float):
             Condenser subcooling
         use_condenser_inlet (bool):
-            True to consider T_con_ar as inlet, false for outlet.
+            True to consider T_con as inlet, false for outlet.
         use_multiprocessing:
             True to use multiprocessing. May speed up the calculation. Default is False
         save_plots (bool):
@@ -128,6 +128,30 @@ def full_factorial_map_generation(
         tuple (pathlib.Path, pathlib.Path):
             Path to the created .sdf file and to the .csv file
     """
+    # Convert single values to arrays
+    def ensure_array(x):
+        if isinstance(x, (list, np.ndarray)):
+            return np.array(x)
+        return np.array([x])
+
+    T_eva_in = ensure_array(T_eva_in)
+    T_con = ensure_array(T_con)
+    n = ensure_array(n)
+    m_flow_con = ensure_array(m_flow_con)
+    m_flow_eva = ensure_array(m_flow_eva)
+    dT_eva_superheating = ensure_array(dT_eva_superheating)
+    dT_con_subcooling = ensure_array(dT_con_subcooling)
+
+    all_arrays = [
+        n,
+        T_con,
+        T_eva_in,
+        m_flow_con,
+        m_flow_eva,
+        dT_eva_superheating,
+        dT_con_subcooling
+    ]
+
     if isinstance(save_path, str):
         save_path = pathlib.Path(save_path)
     if algorithm is None:
@@ -142,57 +166,81 @@ def full_factorial_map_generation(
     list_inputs = []
     idx_for_access_later = []
     global_med_prop_data = media.get_global_med_prop_and_kwargs()
-    for i_T_eva_in, T_eva_in in enumerate(T_eva_in_ar):
-        for i_n, n in enumerate(n_ar):
-            for i_T_con, T_con in enumerate(T_con_ar):
-                idx_for_access_later.append([i_n, i_T_con, i_T_eva_in])
-                control_inputs = RelativeCompressorSpeedControl(
-                    n=n,
-                    dT_eva_superheating=dT_eva_superheating,
-                    dT_con_subcooling=dT_con_subcooling
-                )
-                evaporator_inputs = HeatExchangerInputs(
-                    T_in=T_eva_in,
-                    m_flow=m_flow_eva
-                )
-                if use_condenser_inlet:
-                    condenser_inputs = HeatExchangerInputs(
-                        T_in=T_con,
-                        m_flow=m_flow_con
-                    )
-                else:
-                    condenser_inputs = HeatExchangerInputs(
-                        T_out=T_con,
-                        m_flow=m_flow_con
-                    )
-                inputs = Inputs(
-                    control=control_inputs,
-                    evaporator=evaporator_inputs,
-                    condenser=condenser_inputs
-                )
-                list_mp_inputs.append([algorithm, flowsheet, inputs, raise_errors, global_med_prop_data])
-                list_inputs.append(inputs)
+
+    # Create meshgrid for all input combinations
+    meshgrid = np.meshgrid(*all_arrays, indexing='ij')
+
+    # Flatten arrays for iteration
+    combinations = [arr.flatten() for arr in meshgrid]
+
+    # Check which inputs are nd
+    is_nd = np.array([len(arr) > 1 for arr in all_arrays])
+
+    for i in range(len(combinations[0])):
+        single_n = float(combinations[0][i])
+        single_T_con = float(combinations[1][i])
+        single_T_eva_in = float(combinations[2][i])
+        single_m_flow_con_val = float(combinations[3][i])
+        single_m_flow_eva_val = float(combinations[4][i])
+        single_dT_eva_sh = float(combinations[5][i])
+        single_dT_con_sc = float(combinations[6][i])
+
+        idx = np.unravel_index(i, [len(arr) for arr in all_arrays])
+        idx_for_access_later.append(idx)
+
+        control_inputs = RelativeCompressorSpeedControl(
+            n=single_n,
+            dT_eva_superheating=single_dT_eva_sh,
+            dT_con_subcooling=single_dT_con_sc
+        )
+
+        evaporator_inputs = HeatExchangerInputs(
+            T_in=single_T_eva_in,
+            m_flow=single_m_flow_eva_val
+        )
+
+        if use_condenser_inlet:
+            condenser_inputs = HeatExchangerInputs(
+                T_in=single_T_con,
+                m_flow=single_m_flow_con_val
+            )
+        else:
+            condenser_inputs = HeatExchangerInputs(
+                T_out=single_T_con,
+                m_flow=single_m_flow_con_val
+            )
+
+        inputs = Inputs(
+            control=control_inputs,
+            evaporator=evaporator_inputs,
+            condenser=condenser_inputs
+        )
+
+        list_mp_inputs.append([algorithm, flowsheet, inputs, raise_errors, global_med_prop_data])
+        list_inputs.append(inputs)
+
     fs_states = []
     i = 0
 
     if use_multiprocessing:
-        # pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
         pool = multiprocessing.Pool(processes=10)
         for fs_state in pool.imap(_calc_single_state, list_mp_inputs):
             fs_states.append(fs_state)
             i += 1
             logger.info(f"Ran {i} of {len(list_mp_inputs)} points")
     else:
-        for inputs in list_inputs:
-            fs_state = _calc_single_state([algorithm, flowsheet, inputs, raise_errors, global_med_prop_data])
+        for single_input in list_mp_inputs:
+            fs_state = _calc_single_state(single_input)
             fs_states.append(fs_state)
             i += 1
             logger.info(f"Ran {i} of {len(list_mp_inputs)} points")
 
-    # Save to sdf
-    result_shape = (len(n_ar), len(T_con_ar), len(T_eva_in_ar))
-    _dummy = np.zeros(result_shape)  # Use a copy to avoid overwriting of values of any sort.
-    _dummy[:] = np.nan
+    # Result shape based on input dimensions
+    result_shape = tuple(len(arr) for arr in all_arrays if len(arr) > 1)
+
+    _dummy = np.zeros(result_shape)
+    if result_shape:
+        _dummy[:] = np.nan
     # Get all possible values:
     all_variables = {}
     all_variables_info = {}
@@ -216,16 +264,28 @@ def full_factorial_map_generation(
     if not save_sdf:
         return save_path_csv
 
-    for fs_state, idx_triple in zip(fs_states, idx_for_access_later):
-        i_n, i_T_con, i_T_eva_in = idx_triple
-        for variable_name, variable in fs_state.get_variables().items():
-            all_variables[variable_name][i_n][i_T_con][i_T_eva_in] = variable.value
+    if not result_shape:
+        raise IndexError("No inputs are varied, saving as sdf is not possible")
 
-    _scale_values = {
-        "n": n_ar,
-        "T_con_in" if use_condenser_inlet else "T_con_out": T_con_ar,
-        "T_eva_in": T_eva_in_ar
+    for fs_state, idx in zip(fs_states, idx_for_access_later):
+        idx_nd = tuple(i for i, i_is_nd in zip(idx, is_nd) if i_is_nd)
+        for variable_name, variable in fs_state.get_variables().items():
+            all_variables[variable_name][idx_nd] = variable.value
+
+    possible_scale_values = {
+        "n": n,
+        "T_con_in" if use_condenser_inlet else "T_con_out": T_con,
+        "T_eva_in": T_eva_in,
+        "m_flow_con": m_flow_con,
+        "m_flow_eva": m_flow_eva,
+        "dT_eva_superheating": dT_eva_superheating,
+        "dT_con_subcooling": dT_con_subcooling,
     }
+    _scale_values = {}
+    for scale_name, values in possible_scale_values.items():
+        if len(values) > 1:
+            _scale_values[scale_name] = values
+
     fs_state = fs_states[0]  # Use the first entry, only relevant for unit and description
     _scales = {}
     for name, data in _scale_values.items():
