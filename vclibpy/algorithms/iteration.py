@@ -3,6 +3,7 @@ from typing import Union
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from vclibpy import Inputs, FlowsheetState
 from vclibpy.algorithms.base import Algorithm
@@ -204,6 +205,14 @@ class Iteration(Algorithm):
 
         if self.show_iteration:
             plt.close(fig_iterations)
+            pd.DataFrame({
+                "p_1": p_1_history,
+                "p_2": p_2_history,
+                "error_con": error_con_history,
+                "error_eva": error_eva_history,
+                "dT_con": dT_con_history,
+                "dT_eva": dT_eva_history,
+            }).to_excel(self.save_path_plots.joinpath(f"{inputs.get_name()}.xlsx"))
 
         return flowsheet.calculate_outputs_for_valid_pressures(
             p_1=p_1, p_2=p_2, inputs=inputs, fs_state=fs_state,
