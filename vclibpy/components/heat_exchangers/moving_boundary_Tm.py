@@ -125,10 +125,13 @@ class MovingBoundaryTmCondenser(ExternalHeatExchanger):
         dT_min_out = self.state_inlet.T - T_out
         dT_min_LatSH = state_q1.T - T_sh
 
-        fs_state.set(name="A_con_sh", value=A_sh, unit="m2", description="Area for superheat heat exchange in condenser")
+        fs_state.set(name="A_con_sh", value=A_sh, unit="m2",
+                     description="Area for superheat heat exchange in condenser")
         fs_state.set(name="A_con_lat", value=A_lat, unit="m2", description="Area for latent heat exchange in condenser")
-        fs_state.set(name="A_con_sc", value=A_sc, unit="m2", description="Area for subcooling heat exchange in condenser")
-        fs_state.set(name="error_A", value=error_A, unit="%", description="Area-percentage error for heat exchange in condenser")
+        fs_state.set(name="A_con_sc", value=A_sc, unit="m2",
+                     description="Area for subcooling heat exchange in condenser")
+        fs_state.set(name="error_A", value=error_A, unit="%",
+                     description="Area-percentage error for heat exchange in condenser")
 
         return error, min(dT_min_in,
                           dT_min_LatSH,
@@ -249,12 +252,21 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
         A_necessary = A_sc + A_lat + A_sh
         Q_Tm = Q_sh_Tm + Q_sc_Tm + Q_lat_Tm
         error_A = (A_necessary / self.A - 1) * 100
-        error = (Q_Tm / Q - 1) * 100
+        if Q == 0:
+            logger.critical(
+                "Somehow the required heat flow rate is zero, "
+                "most likely due to bad iteration values or a systematic issue"
+            )
+            error = 100
+        else:
+            error = (Q_Tm / Q - 1) * 100
         # Get dT_min
         dT_min_in = inputs.evaporator.T_in - self.state_outlet.T
         dT_min_out = T_out - self.state_inlet.T
 
-        fs_state.set(name="A_eva_sh", value=A_sh, unit="m2", description="Area for superheat heat exchange in evaporator")
-        fs_state.set(name="A_eva_lat", value=A_lat, unit="m2", description="Area for latent heat exchange in evaporator")
+        fs_state.set(name="A_eva_sh", value=A_sh, unit="m2",
+                     description="Area for superheat heat exchange in evaporator")
+        fs_state.set(name="A_eva_lat", value=A_lat, unit="m2",
+                     description="Area for latent heat exchange in evaporator")
 
         return error, min(dT_min_out, dT_min_in)
