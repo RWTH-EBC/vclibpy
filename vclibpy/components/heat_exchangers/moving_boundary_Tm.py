@@ -38,8 +38,6 @@ class MovingBoundaryTmCondenser(ExternalHeatExchanger):
                 error: Error in percentage between the required and calculated heat flow rates.
                 dT_min: Minimal temperature difference (can be negative).
         """
-        self.m_flow_secondary = inputs.condenser.m_flow  # [kg/s]
-
         # First we separate the flow:
         Q_sc, Q_lat, Q_sh, state_q0, state_q1 = utils.separate_phases(
             m_flow=self.m_flow,
@@ -49,6 +47,9 @@ class MovingBoundaryTmCondenser(ExternalHeatExchanger):
             p=self.state_inlet.p
         )
         Q = Q_sc + Q_lat + Q_sh
+
+        T_in, T_out, dT, m_flow = inputs.condenser.get_all_inputs(cp=self.cp_secondary, Q=Q)
+        self.m_flow_secondary = m_flow
 
         T_in, T_sc, T_sh, T_out = utils.get_condenser_phase_temperatures_and_alpha(
             heat_exchanger=self, inputs=inputs,
@@ -167,8 +168,6 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
                 error: Error in percentage between the required and calculated heat flow rates.
                 dT_min: Minimal temperature difference (can be negative).
         """
-        self.m_flow_secondary = inputs.evaporator.m_flow  # [kg/s]
-
         # First we separate the flow:
         Q_sc, Q_lat, Q_sh, state_q0, state_q1 = utils.separate_phases(
             m_flow=self.m_flow,
@@ -179,6 +178,9 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
         )
 
         Q = Q_sc + Q_lat + Q_sh
+
+        T_in, T_out, dT, m_flow = inputs.evaporator.get_all_inputs(cp=self.cp_secondary, Q=Q)
+        self.m_flow_secondary = m_flow
 
         # Note: As Q_eva_Tm has to converge to Q_eva (m_ref*delta_h), we can safely
         # calculate the output temperature.

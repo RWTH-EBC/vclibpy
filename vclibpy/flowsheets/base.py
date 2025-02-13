@@ -132,6 +132,9 @@ class BaseCycle:
         T_eva_in, T_eva_out, dT_eva, m_flow_eva = inputs.evaporator.get_all_inputs(
             Q=Q_eva_outer, cp=self.evaporator.cp_secondary
         )
+        # In case dT_con is used
+        inputs.condenser.set("m_flow", m_flow_con)
+        inputs.evaporator.set("m_flow", m_flow_eva)
 
         # COP based on P_el and Q_con:
         COP_inner = Q_con / P_el

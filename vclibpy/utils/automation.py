@@ -71,9 +71,10 @@ def full_factorial_map_generation(
         T_eva_in: Union[list, np.ndarray, float],
         T_con: Union[list, np.ndarray, float],
         n: Union[list, np.ndarray, float],
-        m_flow_con: Union[list, np.ndarray, float],
         m_flow_eva: Union[list, np.ndarray, float],
         save_path: Union[pathlib.Path, str],
+        m_flow_con: Union[list, np.ndarray, float] = None,
+        dT_con: Union[list, np.ndarray, float] = None,
         algorithm: Algorithm = None,
         dT_eva_superheating: Union[list, np.ndarray, float] = 5,
         dT_con_subcooling: Union[list, np.ndarray, float] = 0,
@@ -100,12 +101,14 @@ def full_factorial_map_generation(
             Array with inputs for T_con_in or T_con_out, see `use_condenser_inlet`
         n (list):
             Array with inputs for n
-        m_flow_con (float):
-            Condenser mass flow rate
         m_flow_eva (float):
             Evaporator mass flow rate
         save_path (Path):
             Where to save all results.
+        m_flow_con (float):
+            Condenser mass flow rate, required if dT_con is None. Default is None.
+        dT_con (float):
+            Condenser temperature spread, required if m_flow_con is None. Default is None.
         algorithm (Algorithm):
             A supported algorithm to calculate a steady state.
             If None, Iteration algorithm is used with default settings.
@@ -137,16 +140,25 @@ def full_factorial_map_generation(
     T_eva_in = ensure_array(T_eva_in)
     T_con = ensure_array(T_con)
     n = ensure_array(n)
-    m_flow_con = ensure_array(m_flow_con)
     m_flow_eva = ensure_array(m_flow_eva)
     dT_eva_superheating = ensure_array(dT_eva_superheating)
     dT_con_subcooling = ensure_array(dT_con_subcooling)
+    if m_flow_con is not None and dT_con is not None:
+        raise ValueError("Can only run m_flow_con or dT_con, not both")
+    if m_flow_con is None and dT_con is None:
+        raise ValueError("Either m_flow_con or dT_con are required")
+    if m_flow_con is not None:
+        con_array = ensure_array(m_flow_con)
+        use_m_flow_con = True
+    else:
+        use_m_flow_con = False
+        con_array = ensure_array(dT_con)
 
     all_arrays = [
         n,
         T_con,
         T_eva_in,
-        m_flow_con,
+        con_array,
         m_flow_eva,
         dT_eva_superheating,
         dT_con_subcooling
@@ -180,7 +192,7 @@ def full_factorial_map_generation(
         single_n = float(combinations[0][i])
         single_T_con = float(combinations[1][i])
         single_T_eva_in = float(combinations[2][i])
-        single_m_flow_con_val = float(combinations[3][i])
+        single_con_val = float(combinations[3][i])
         single_m_flow_eva_val = float(combinations[4][i])
         single_dT_eva_sh = float(combinations[5][i])
         single_dT_con_sc = float(combinations[6][i])
@@ -198,17 +210,16 @@ def full_factorial_map_generation(
             T_in=single_T_eva_in,
             m_flow=single_m_flow_eva_val
         )
+        if use_m_flow_con:
+            con_kwargs = dict(m_flow=single_con_val)
+        else:
+            con_kwargs = dict(dT=single_con_val)
 
         if use_condenser_inlet:
-            condenser_inputs = HeatExchangerInputs(
-                T_in=single_T_con,
-                m_flow=single_m_flow_con_val
-            )
+            T_con_kwargs = dict(T_in=single_T_con)
         else:
-            condenser_inputs = HeatExchangerInputs(
-                T_out=single_T_con,
-                m_flow=single_m_flow_con_val
-            )
+            T_con_kwargs = dict(T_out=single_T_con)
+        condenser_inputs = HeatExchangerInputs(**T_con_kwargs, **con_kwargs)
 
         inputs = Inputs(
             control=control_inputs,
@@ -276,11 +287,14 @@ def full_factorial_map_generation(
         "n": n,
         "T_con_in" if use_condenser_inlet else "T_con_out": T_con,
         "T_eva_in": T_eva_in,
-        "m_flow_con": m_flow_con,
         "m_flow_eva": m_flow_eva,
         "dT_eva_superheating": dT_eva_superheating,
         "dT_con_subcooling": dT_con_subcooling,
     }
+    if use_m_flow_con:
+        possible_scale_values["m_flow_con"] = m_flow_con
+    else:
+        possible_scale_values["dT_con"] = dT_con
     _scale_values = {}
     for scale_name, values in possible_scale_values.items():
         if len(values) > 1:
