@@ -1,5 +1,7 @@
 from typing import List, Union
 import csv
+
+import matplotlib.pyplot as plt
 import pandas as pd
 from pathlib import Path
 
@@ -20,6 +22,7 @@ def create_regression_data(
         compressor: TenCoefficientCompressor,
         save_path: Union[Path, str],
         fluid: str = None,
+        with_plot: bool = False
 ):
     """
     Performs multidimensional linear regression to create compressor learning data.
@@ -33,6 +36,9 @@ def create_regression_data(
             Instance to create regression for.
             If med_prop is not set, the given fluid will be used.
         fluid (str): Type of refrigerant. Only used if not already specified in compressor.
+        with_plot (bool):
+            True to plot regression result for each variable and compressor speed.
+            Default is False.
 
     Returns:
         List[float]: A list containing the regression parameters [P0, P1, ..., P9].
@@ -53,6 +59,7 @@ def create_regression_data(
         "eta_mech": "Mechanical Efficiency(-)"
     }
 
+    save_path = Path(save_path)
     variables = ["eta_is", "eta_mech", "lambda_h"]
 
     tuples_for_cols = [("", "n")]
@@ -112,7 +119,11 @@ def create_regression_data(
                       _variable: result_list}
             )
 
-            final_df[cols[m * len(n) + k + 1]] = create_regression_parameters(df, _variable)
+            final_df[cols[m * len(n) + k + 1]] = create_regression_parameters(
+                df=df,
+                variable=_variable,
+                save_path_plot=save_path.parent.joinpath(f"{save_path.stem}_plot_{_variable}_n={_n}.png")
+            )
     df_new = final_df.copy()
     df_new.columns = df_new.columns.get_level_values(0)  # Use only first level
     df_new.loc[-1] = final_df.columns.get_level_values(1)
@@ -120,7 +131,11 @@ def create_regression_data(
     final_df.to_csv(save_path, index=False)
 
 
-def create_regression_parameters(df: pd.DataFrame, variable: str):
+def create_regression_parameters(
+        df: pd.DataFrame,
+        variable: str,
+        save_path_plot: Path = None
+):
     """
     Performs multidimensional linear regression to calculate
     ten coefficient regression parameters.
@@ -128,6 +143,7 @@ def create_regression_parameters(df: pd.DataFrame, variable: str):
     Args:
         df (pd.DataFrame): The input DataFrame containing the necessary columns.
         variable (str): The column name for the dependent variable.
+        save_path_plot (Path): Path to save the plot. If provided, a regression result plot will be created.
 
     Returns:
         List[float]: A list containing the ten regression parameters.
@@ -151,6 +167,16 @@ def create_regression_parameters(df: pd.DataFrame, variable: str):
 
     # Execute the multidimensional linear regression
     model = LinearRegression().fit(X, z)
+
+    # Plot the regression quality
+    if save_path_plot is not None:
+        plt.figure()
+        plt.scatter(z, model.predict(X))
+        plt.plot([z.min(), z.max()], [z.min(), z.max()], color="black")
+        plt.ylabel(f"{variable} Regression")
+        plt.xlabel(f"{variable} 10C")
+        plt.savefig(save_path_plot)
+        plt.close("all")
 
     output = [model.intercept_, model.coef_[0], model.coef_[1], model.coef_[2],
               model.coef_[3], model.coef_[4],
