@@ -154,10 +154,3 @@ def _unpack_nd_data(data):
             **{name: value for name, value in zip(scale_names, values)}
         })
     return pd.DataFrame(all_data)
-
-
-if __name__ == '__main__':
-    sdf_to_csv(
-        filepath=pathlib.Path(r"D:\VCLibMap_old.sdf"),
-        save_path=pathlib.Path(r"D:\00_temp")
-    )

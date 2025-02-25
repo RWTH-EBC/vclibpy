@@ -283,18 +283,17 @@ def full_factorial_map_generation(
         for variable_name, variable in fs_state.get_variables().items():
             all_variables[variable_name][idx_nd] = variable.value
 
+    # The order needs to be the same as all_arrays
     possible_scale_values = {
         "n": n,
         "T_con_in" if use_condenser_inlet else "T_con_out": T_con,
         "T_eva_in": T_eva_in,
+        "m_flow_con" if use_m_flow_con else "dT_con": m_flow_con if use_m_flow_con else dT_con,
         "m_flow_eva": m_flow_eva,
         "dT_eva_superheating": dT_eva_superheating,
         "dT_con_subcooling": dT_con_subcooling,
     }
-    if use_m_flow_con:
-        possible_scale_values["m_flow_con"] = m_flow_con
-    else:
-        possible_scale_values["dT_con"] = dT_con
+
     _scale_values = {}
     for scale_name, values in possible_scale_values.items():
         if len(values) > 1:
