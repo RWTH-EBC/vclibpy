@@ -49,6 +49,8 @@ class Iteration(Algorithm):
             inputs: Inputs,
             fluid: str = None
     ) -> Union[FlowsheetState, None]:
+        flowsheet.iteration_converged = False
+
         p_1_next, p_2_next, _p_max, fs_state = self.initial_setup(
             flowsheet=flowsheet, inputs=inputs, fluid=fluid
         )
@@ -205,15 +207,17 @@ class Iteration(Algorithm):
 
         if self.show_iteration:
             plt.close(fig_iterations)
-            pd.DataFrame({
-                "p_1": p_1_history,
-                "p_2": p_2_history,
-                "error_con": error_con_history,
-                "error_eva": error_eva_history,
-                "dT_con": dT_con_history,
-                "dT_eva": dT_eva_history,
-            }).to_excel(self.save_path_plots.joinpath(f"{inputs.get_name()}.xlsx"))
+            if self.save_path_plots is not None:
+                pd.DataFrame({
+                    "p_1": p_1_history,
+                    "p_2": p_2_history,
+                    "error_con": error_con_history,
+                    "error_eva": error_eva_history,
+                    "dT_con": dT_con_history,
+                    "dT_eva": dT_eva_history,
+                }).to_excel(self.save_path_plots.joinpath(f"{inputs.get_name()}.xlsx"))
 
+        flowsheet.iteration_converged = True
         return flowsheet.calculate_outputs_for_valid_pressures(
             p_1=p_1, p_2=p_2, inputs=inputs, fs_state=fs_state,
             save_path_plots=self.save_path_plots

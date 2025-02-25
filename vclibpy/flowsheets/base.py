@@ -37,6 +37,8 @@ class BaseCycle:
         self.condenser = condenser
         # Instantiate dummy values
         self.med_prop = None
+        # Add helper to improve log levels
+        self.iteration_converged = False
 
     def __str__(self):
         return self.flowsheet_name
