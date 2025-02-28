@@ -24,8 +24,14 @@ class Iteration(Algorithm):
             Whether to display iteration progress (default: False).
         use_quick_solver (bool):
             Whether to use a quick solver (default: True).
-        max_err_dT_min (float):
-            Maximum allowable error for minimum temperature difference in K (default: 0.1).
+        min_allowed_dT_min (float):
+            Allowable minimum temperature difference in K (default: 0.01).
+            This setting is relevant in combination with `max_err`.
+            If the error is bigger than the allowed error but the temperature difference
+            is lower than this value, the pressure won't be adjusted further.
+            If the heat exchanger is too big in some points the error
+            values will be larger than `max_err`, but if the temperature difference
+            approaches zero the area has no impact, as dT approaches zero.
         max_num_iterations (int or None):
             Maximum number of iterations allowed (default: None).
         step_max (int):
@@ -38,7 +44,7 @@ class Iteration(Algorithm):
         self.min_iteration_step = kwargs.pop("min_iteration_step", 1)
         self.show_iteration = kwargs.get("show_iteration", False)
         self.use_quick_solver = kwargs.pop("use_quick_solver", True)
-        self.max_err_dT_min = kwargs.pop("max_err_dT_min", 0.1)
+        self.min_allowed_dT_min = kwargs.pop("min_allowed_dT_min", 0.01)
         self.max_num_iterations = kwargs.pop("max_num_iterations", int(1e5))
         self.step_max = kwargs.pop("step_max", 10000)
         super().__init__(**kwargs)
@@ -164,7 +170,9 @@ class Iteration(Algorithm):
                     p_1_next = p_1 + step_p1
                     step_p1 /= 10
                     continue
-                elif error_eva > self.max_err and dT_min_eva > self.max_err_dT_min:
+                # Only increase if the error is bigger than zero (or the allowed error) and
+                # there is still a temperature difference left to change.
+                elif error_eva > self.max_err and dT_min_eva > self.min_allowed_dT_min:
                     step_p1 = 1000
                     p_1_next = p_1 + step_p1
                     continue
@@ -177,7 +185,9 @@ class Iteration(Algorithm):
                     p_2_next = p_2 - step_p2
                     step_p2 /= 10
                     continue
-                elif error_con > self.max_err and dT_min_con > self.max_err_dT_min:
+                # Only decrease if the error is bigger than zero (or the allowed error) and
+                # there is still a temperature difference left to change.
+                elif error_con > self.max_err and dT_min_con > self.min_allowed_dT_min:
                     p_2_next = p_2 - step_p2
                     step_p2 = 1000
                     continue
