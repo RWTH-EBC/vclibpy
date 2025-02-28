@@ -60,7 +60,8 @@ class MovingBoundaryTmCondenser(ExternalHeatExchanger):
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
 
         # 1. Regime: Subcooling
-        Q_sc_Tm, A_sc, A_sc_available = 0, 0, 0
+        Q_sc_Tm, A_sc_required, A_sc_used = 0, 0, 0
+        A_sc_available = self.A
         if not np.isclose(Q_sc, 0) and not np.isclose(state_q0.T, self.state_outlet.T):
             # Get transport properties:
             tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(state_q0, self.state_outlet)
@@ -72,12 +73,13 @@ class MovingBoundaryTmCondenser(ExternalHeatExchanger):
                 T_hot_in=state_q0.T, T_hot_out=self.state_outlet.T,
                 T_cold_in=T_in, T_cold_out=T_sc
             )
-            A_sc = utils.calc_area(Q_sc, k_sc, T_m_sc)
-            A_sc_available = min(self.A, A_sc)
-            Q_sc_Tm = A_sc_available * k_sc * T_m_sc
+            A_sc_required = utils.calc_area(Q_sc, k_sc, T_m_sc)
+            A_sc_used = min(A_sc_available, A_sc_required)
+            Q_sc_Tm = A_sc_used * k_sc * T_m_sc
 
         # 2. Regime: Latent heat exchange
-        Q_lat_Tm, A_lat, A_lat_available = 0, 0, 0
+        Q_lat_Tm, A_lat_required, A_lat_used = 0, 0, 0
+        A_lat_available = self.A - A_sc_used
         if not np.isclose(Q_lat, 0):
             # Get transport properties:
             alpha_ref_wall = self.calc_alpha_two_phase(
@@ -91,15 +93,16 @@ class MovingBoundaryTmCondenser(ExternalHeatExchanger):
                 T_hot_in=state_q1.T, T_hot_out=state_q0.T,
                 T_cold_in=T_sc, T_cold_out=T_sh
             )
-            A_lat = utils.calc_area(Q_lat, k_lat, T_m_lat)
+            A_lat_required = utils.calc_area(Q_lat, k_lat, T_m_lat)
             # Only use still available area:
-            A_lat_available = min(max(self.A - A_sc_available, 0), A_lat)
-            Q_lat_Tm = A_lat_available * k_lat * T_m_lat
+            A_lat_used = min(A_lat_available, A_lat_required)
+            Q_lat_Tm = A_lat_used * k_lat * T_m_lat
 
             logger.debug(f"con_lat: pri: {round(alpha_ref_wall, 2)} sec: {round(alpha_med_wall, 2)}")
 
         # 3. Regime: Superheat heat exchange
-        Q_sh_Tm, A_sh = 0, 0
+        Q_sh_Tm, A_sh_used, A_sh_required = 0, 0, 0
+        A_sh_available = A_lat_available - A_lat_used
         if not np.isclose(Q_sh, 0) and not np.isclose(self.state_inlet.T, state_q1.T):
             # Get transport properties:
             tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(self.state_inlet, state_q1)
@@ -110,29 +113,32 @@ class MovingBoundaryTmCondenser(ExternalHeatExchanger):
                 T_hot_in=self.state_inlet.T, T_hot_out=state_q1.T,
                 T_cold_in=T_sh, T_cold_out=T_out
             )
-            A_sh = utils.calc_area(Q_sh, k_sh, T_m_sh)
-            # Only use still available area:
-            A_sh_available = min(max(self.A - A_sc_available - A_lat_available, 0), A_sh)
-            Q_sh_Tm = A_sh_available * k_sh * T_m_sh
+            # Not required, may be helpful for debugging
+            A_sh_required = utils.calc_area(Q_sh, k_sh, T_m_sh)
+            # Use still available area:
+            A_sh_used = A_sh_available
+            Q_sh_Tm = A_sh_used * k_sh * T_m_sh
 
             logger.debug(f"con_sh: pri: {round(alpha_ref_wall, 2)} sec: {round(alpha_med_wall, 2)}")
 
-        A_necessary = A_sh + A_lat + A_sc
+        # May be used to get a better indication for required area sizes
+        A_required = A_sc_required + A_lat_required + A_sh_required
+        error_A = A_required - self.A
         Q_Tm = Q_sh_Tm + Q_sc_Tm + Q_lat_Tm
-        error_A = (1 - A_necessary / self.A) * 100
         error = (Q_Tm / Q - 1) * 100
         # Get possible dT_min:
         dT_min_in = self.state_outlet.T - T_in
         dT_min_out = self.state_inlet.T - T_out
         dT_min_LatSH = state_q1.T - T_sh
 
-        fs_state.set(name="A_con_sh", value=A_sh, unit="m2",
+        fs_state.set(name="A_con_sh", value=A_sh_used, unit="m2",
                      description="Area for superheat heat exchange in condenser")
-        fs_state.set(name="A_con_lat", value=A_lat, unit="m2", description="Area for latent heat exchange in condenser")
-        fs_state.set(name="A_con_sc", value=A_sc, unit="m2",
+        fs_state.set(name="A_con_lat", value=A_lat_used, unit="m2",
+                     description="Area for latent heat exchange in condenser")
+        fs_state.set(name="A_con_sc", value=A_sc_used, unit="m2",
                      description="Area for subcooling heat exchange in condenser")
-        fs_state.set(name="error_A", value=error_A, unit="%",
-                     description="Area-percentage error for heat exchange in condenser")
+        fs_state.set(name="error_A_con", value=error_A, unit="m2",
+                     description="Mismatch between required and avaiable area in condenser")
 
         return error, min(dT_min_in,
                           dT_min_LatSH,
@@ -177,6 +183,11 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
             p=self.state_outlet.p
         )
 
+        with_subcooling = not np.isclose(Q_sc, 0) and not np.isclose(state_q0.T, self.state_inlet.T)
+        with_latent = not np.isclose(Q_lat, 0)
+        with_superheat = not np.isclose(Q_sh, 0) and not np.isclose(self.state_outlet.T, state_q1.T)
+
+
         Q = Q_sc + Q_lat + Q_sh
 
         T_in, T_out, dT, m_flow = inputs.evaporator.get_all_inputs(cp=self.cp_secondary, Q=Q)
@@ -195,8 +206,9 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
         T_out = T_sc - Q_sc / self.m_flow_secondary_cp
 
         # 1. Regime: Superheating
-        Q_sh_Tm, A_sh, A_sh_available = 0, 0, 0
-        if not np.isclose(Q_sh, 0) and not np.isclose(self.state_outlet.T, state_q1.T):
+        Q_sh_Tm, A_sh_required, A_sh_used = 0, 0, 0
+        A_sh_available = self.A
+        if with_superheat:
             # Get transport properties:
             tra_prop_ref_eva = self.med_prop.calc_mean_transport_properties(self.state_outlet, state_q1)
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_eva)
@@ -207,15 +219,16 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
                 T_cold_in=state_q1.T, T_cold_out=self.state_outlet.T
             )
             # Only use still available area:
-            A_sh = utils.calc_area(Q_sh, k_sh, T_m_sh)
-            A_sh_available = min(self.A, A_sh)
-            Q_sh_Tm = A_sh_available * k_sh * T_m_sh
+            A_sh_required = utils.calc_area(Q_sh, k_sh, T_m_sh)
+            A_sh_used = min(A_sh_available, A_sh_required)
+            Q_sh_Tm = A_sh_used * k_sh * T_m_sh
 
             logger.debug(f"eva_sh: pri: {round(alpha_ref_wall, 2)} sec: {round(alpha_med_wall, 2)}")
 
         # 2. Regime: Latent heat exchange
-        Q_lat_Tm, A_lat, A_lat_available = 0, 0, 0
-        if not np.isclose(Q_lat, 0):
+        Q_lat_Tm, A_lat_required, A_lat_used = 0, 0, 0
+        A_lat_available = self.A - A_sh_used
+        if with_latent:
             alpha_ref_wall = self.calc_alpha_two_phase(
                 state_q0=state_q0,
                 state_q1=state_q1,
@@ -227,16 +240,20 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
                 T_hot_in=T_sh, T_hot_out=T_sc,
                 T_cold_in=state_q0.T, T_cold_out=state_q1.T
             )
-            A_lat = utils.calc_area(Q_lat, k_lat, T_m_lat)
-            # Only use still available area:
-            A_lat_available = min(max(self.A - A_sh_available, 0), A_lat)
-            Q_lat_Tm = A_lat_available * k_lat * T_m_lat
+            A_lat_required = utils.calc_area(Q_lat, k_lat, T_m_lat)
+            if with_subcooling:
+                A_lat_used = min(A_lat_available, A_lat_required)
+            else:
+                # Use available area
+                A_lat_used = A_lat_available
+            Q_lat_Tm = A_lat_used * k_lat * T_m_lat
 
             logger.debug(f"eva_lat: pri: {round(alpha_ref_wall, 2)} sec: {round(alpha_med_wall, 2)}")
 
         # 3. Regime: Subcooling
-        Q_sc_Tm, A_sc = 0, 0
-        if not np.isclose(Q_sc, 0) and not np.isclose(state_q0.T, self.state_inlet.T):
+        Q_sc_Tm, A_sc_required, A_sc_used = 0, 0, 0
+        A_sc_available = A_lat_available - A_lat_used
+        if with_subcooling:
             # Get transport properties:
             tra_prop_ref_eva = self.med_prop.calc_mean_transport_properties(state_q0, self.state_inlet)
             alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_eva)
@@ -247,13 +264,14 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
                 T_hot_in=T_sc, T_hot_out=T_out,
                 T_cold_in=self.state_inlet.T, T_cold_out=state_q0.T
             )
-            A_sc = utils.calc_area(Q_sc, k_sc, T_m_sc)
-            A_sc_available = min(max(self.A - A_sh_available - A_lat_available, 0), A_sc)
-            Q_sc_Tm = A_sc_available * k_sc * T_m_sc
+            A_sc_required = utils.calc_area(Q_sc, k_sc, T_m_sc)
+            # Use available area
+            A_sc_used = A_sc_available
+            Q_sc_Tm = A_sc_used * k_sc * T_m_sc
 
-        A_necessary = A_sc + A_lat + A_sh
+        A_required = A_sc_required + A_lat_required + A_sh_required
         Q_Tm = Q_sh_Tm + Q_sc_Tm + Q_lat_Tm
-        error_A = (A_necessary / self.A - 1) * 100
+        error_A = A_required - self.A
         if Q == 0:
             logger.critical(
                 "Somehow the required heat flow rate is zero, "
@@ -266,9 +284,11 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
         dT_min_in = inputs.evaporator.T_in - self.state_outlet.T
         dT_min_out = T_out - self.state_inlet.T
 
-        fs_state.set(name="A_eva_sh", value=A_sh, unit="m2",
+        fs_state.set(name="A_eva_sh", value=A_sh_used, unit="m2",
                      description="Area for superheat heat exchange in evaporator")
-        fs_state.set(name="A_eva_lat", value=A_lat, unit="m2",
+        fs_state.set(name="A_eva_lat", value=A_lat_used, unit="m2",
                      description="Area for latent heat exchange in evaporator")
+        fs_state.set(name="error_A_eva", value=error_A,
+                     unit="m2", description="Mismatch of required and available area in evaporator")
 
         return error, min(dT_min_out, dT_min_in)
