@@ -127,7 +127,7 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
         # Select the settings / parameters of the algorithm:
         algorithm = Iteration(
             max_err=0.5,
-            max_err_dT_min=0.1,
+            min_allowed_dT_min=0.1,
             show_iteration=False,
             max_num_iterations=5000
         )

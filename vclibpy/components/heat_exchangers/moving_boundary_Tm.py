@@ -187,7 +187,6 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
         with_latent = not np.isclose(Q_lat, 0)
         with_superheat = not np.isclose(Q_sh, 0) and not np.isclose(self.state_outlet.T, state_q1.T)
 
-
         Q = Q_sc + Q_lat + Q_sh
 
         T_in, T_out, dT, m_flow = inputs.evaporator.get_all_inputs(cp=self.cp_secondary, Q=Q)

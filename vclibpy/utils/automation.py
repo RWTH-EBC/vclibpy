@@ -299,13 +299,19 @@ def full_factorial_map_generation(
         if len(values) > 1:
             _scale_values[scale_name] = values
 
-    fs_state = fs_states[0]  # Use the first entry, only relevant for unit and description
+    # Use the first non-None entry, only relevant for unit and description
+    for fs_state in fs_states:
+        if fs_state == FlowsheetState():  # Empty means None
+            fs_state_for_scales = fs_state
+            break
+    else:
+        raise ValueError("Only empty flowsheet states, can't generate sdf.")
     _scales = {}
     for name, data in _scale_values.items():
         _scales[name] = {
             "data": data,
-            "unit": fs_state.get(name).unit,
-            "comment": fs_state.get(name).description
+            "unit": fs_state_for_scales.get(name).unit,
+            "comment": fs_state_for_scales.get(name).description
         }
 
     _nd_data = {}
