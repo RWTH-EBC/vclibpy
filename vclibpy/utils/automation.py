@@ -301,7 +301,7 @@ def full_factorial_map_generation(
 
     # Use the first non-None entry, only relevant for unit and description
     for fs_state in fs_states:
-        if fs_state == FlowsheetState():  # Empty means None
+        if fs_state != FlowsheetState():  # Empty means None
             fs_state_for_scales = fs_state
             break
     else:
