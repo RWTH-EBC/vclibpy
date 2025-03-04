@@ -9,7 +9,6 @@ from vclibpy import Inputs, FlowsheetState
 from vclibpy.algorithms.base import Algorithm
 from vclibpy.flowsheets import BaseCycle
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -47,6 +46,7 @@ class Iteration(Algorithm):
         self.min_allowed_dT_min = kwargs.pop("min_allowed_dT_min", 0.01)
         self.max_num_iterations = kwargs.pop("max_num_iterations", int(1e5))
         self.step_max = kwargs.pop("step_max", 10000)
+        self.return_least_error_if_max_reached = kwargs.pop("return_least_error_if_max_reached", False)
         super().__init__(**kwargs)
 
     def calc_steady_state(
@@ -89,7 +89,34 @@ class Iteration(Algorithm):
                 if num_iterations > self.max_num_iterations:
                     logger.warning("Maximum number of iterations %s exceeded. Stopping.",
                                    self.max_num_iterations)
-                    return
+                    if not self.return_least_error_if_max_reached:
+                        return
+                    # Try to find the best available solution
+                    df_history = pd.DataFrame({
+                        "p_1": p_1_history,
+                        "p_2": p_2_history,
+                        "error_con": error_con_history,
+                        "error_eva": error_eva_history,
+                        "dT_con": dT_con_history,
+                        "dT_eva": dT_eva_history,
+                    })
+                    # No errors left
+                    df_history = df_history.loc[(df_history["error_con"] > 0) & (df_history["error_eva"] > 0)]
+                    if df_history.empty:
+                        logger.error("No iteration yielded pressures where heat transfer would be possible.")
+                        return
+                        # Take the pressures with the least error
+                    least_error_arg = (df_history["error_con"] + df_history["error_eva"]).argmin()
+                    fs_state.set(
+                        name="converged", value=0, unit="-",
+                        description="Algorithm converged (1 true, 0 false)"
+                    )
+                    return flowsheet.calculate_outputs_for_valid_pressures(
+                        p_1=df_history.iloc[least_error_arg]["p_1"] * 1e5,
+                        p_2=df_history.iloc[least_error_arg]["p_2"] * 1e5,
+                        inputs=inputs, fs_state=fs_state,
+                        save_path_plots=self.save_path_plots
+                    )
 
                 if (num_iterations + 1) % (0.1 * self.max_num_iterations) == 0:
                     logger.info("Info: %s percent of max_num_iterations %s used",
@@ -128,14 +155,14 @@ class Iteration(Algorithm):
             # Check critical pressures:
             if p_2 >= _p_max:
                 if step_p2 == self.min_iteration_step:
-                    logger.error("Pressure too high. Configuration is infeasible.")
+                    logger.error("Pressure too high. Inputs %s are infeasible.", inputs.get_name())
                     return
                 p_2_next = p_2 - step_p2
                 step_p2 /= 10
                 continue
             if p_1 <= self._p_min:
                 if p_1_next == self.min_iteration_step:
-                    logger.error("Pressure too low. Configuration is infeasible.")
+                    logger.error("Pressure too low. Inputs %s are infeasible.", inputs.get_name())
                     return
                 p_1_next = p_1 + step_p1
                 step_p1 /= 10
@@ -146,8 +173,11 @@ class Iteration(Algorithm):
                     p_1=p_1, p_2=p_2, inputs=inputs, fs_state=fs_state
                 )
             except ValueError as err:
-                logger.error("An error occurred while calculating states. "
-                             "Can't guess next pressures, thus, exiting: %s", err)
+                logger.error(
+                    "An error occurred while calculating states. "
+                    "Can't guess next pressures for inputs %s, thus, exiting: %s",
+                    inputs.get_name(), err
+                )
                 if self.raise_errors:
                     raise err
                 return
@@ -228,6 +258,7 @@ class Iteration(Algorithm):
                 }).to_excel(self.save_path_plots.joinpath(f"{inputs.get_name()}.xlsx"))
 
         flowsheet.iteration_converged = True
+        fs_state.set(name="converged", value=1, unit="-", description="Algorithm converged (1 true, 0 false)")
         return flowsheet.calculate_outputs_for_valid_pressures(
             p_1=p_1, p_2=p_2, inputs=inputs, fs_state=fs_state,
             save_path_plots=self.save_path_plots
