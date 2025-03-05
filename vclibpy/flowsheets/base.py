@@ -228,7 +228,7 @@ class BaseCycle:
         )
         fs_state.set(
             name="eta_glob", value=fs_state.get("eta_is").value * fs_state.get("eta_mech").value,
-            unit="%", description="Global compressor efficiency"
+            unit="-", description="Global compressor efficiency"
         )
 
     def calculate_outputs_for_valid_pressures(
