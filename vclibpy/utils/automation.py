@@ -197,7 +197,7 @@ def full_factorial_map_generation(
                 heat_pump.fluid: (_scales, _nd_data, _parameters)
             }
     }
-    # utils.save_to_sdf(data=sdf_data, save_path=save_path_sdf)
+     #utils.save_to_sdf(data=sdf_data, save_path=save_path_sdf)
 
     # Terminate heat pump med-props:
     heat_pump.terminate()
