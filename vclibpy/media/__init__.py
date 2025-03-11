@@ -1,5 +1,5 @@
 from .states import ThermodynamicState, TransportProperties
-from .media import get_two_phase_limits, MedProp
+from .media import get_two_phase_limits, MedProp, Fluid
 from .cool_prop import CoolProp
 from .ref_prop import RefProp
 

@@ -60,7 +60,7 @@ def save_to_sdf(data: dict, save_path: pathlib.Path):
                                           comment=para_value.get("comment", "")))
 
             # Save everything
-            fluid_group = sdf.Group(fluid, comment="Values for fluid", datasets=_scales + _nd_data + _paras)
+            fluid_group = sdf.Group(str(fluid), comment="Values for fluid", datasets=_scales + _nd_data + _paras)
             _all_fluids.append(fluid_group)
 
         flowsheet_group = sdf.Group(flowsheet_name,

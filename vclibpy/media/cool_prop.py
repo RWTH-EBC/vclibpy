@@ -5,7 +5,7 @@ import logging
 
 import CoolProp.CoolProp as CoolPropInternal
 
-from vclibpy.media.media import MedProp
+from vclibpy.media.media import MedProp, Fluid
 from vclibpy.media.states import ThermodynamicState, TransportProperties
 
 logger = logging.getLogger(__name__)
@@ -31,12 +31,26 @@ class CoolProp(MedProp):
         "PQ": (CoolPropInternal.PQ_INPUTS, True)
     }
 
-    def __init__(self, fluid_name, use_high_level_api: bool = False):
-        super().__init__(fluid_name=fluid_name)
-        # Set molar mass and trigger a possible fluid-name error
-        # if the fluid is not supported.
-        self._helmholtz_equation_of_state = CoolPropInternal.AbstractState("HEOS", self.fluid_name)
-        self.M = self._helmholtz_equation_of_state.molar_mass()
+    _modes_mixtures = ["PQ", "TQ", "PT"]
+    _modes_incomp = ["PT", "PH", "PD", "PS"]
+
+    _fluid_mapper = {}
+
+    # TODO: incompressible fluids (require INCOMP-Backend and can be mass- or volume-based)
+    # TODO: mixtures only allow modes PQ, TQ, TP
+    def __init__(self, fluid: Fluid, use_high_level_api: bool = False):
+        super().__init__(fluid=fluid)
+
+        self._backend = fluid.backend
+
+        self._Ref = f"{self._backend}::" + "&".join([self._fluid_mapper.get(c, c)+"[{}]" for c in self.components]).format(*self._mol_frac)
+        self._fluidnames = "&".join([self._fluid_mapper.get(c, c) for c in self.components])
+        self._is_mixture = (len(self.components) > 1)
+
+        # Set molar mass and trigger a possible fluid-name error if the fluid is not supported.
+        self._state = CoolPropInternal.AbstractState(self._backend, self._fluidnames)
+        if self._is_mixture:
+            self._state.set_mole_fractions(self._mol_frac)
         self.use_high_level_api = use_high_level_api
 
     def calc_state(self, mode: str, var1: float, var2: float):
@@ -45,32 +59,35 @@ class CoolProp(MedProp):
         if self.use_high_level_api:
             _var1_str, _var2_str = mode[0], mode[1]
             # CoolProp returns Pa
-            p = CoolPropInternal.PropsSI('P', _var1_str, var1, _var2_str, var2, self.fluid_name)
+            p = CoolPropInternal.PropsSI('P', _var1_str, var1, _var2_str, var2, self._Ref)
             # CoolProp returns kg/m^3
-            d = CoolPropInternal.PropsSI('D', _var1_str, var1, _var2_str, var2, self.fluid_name)
+            d = CoolPropInternal.PropsSI('D', _var1_str, var1, _var2_str, var2, self._Ref)
             # CoolProp returns K
-            T = CoolPropInternal.PropsSI('T', _var1_str, var1, _var2_str, var2, self.fluid_name)
+            T = CoolPropInternal.PropsSI('T', _var1_str, var1, _var2_str, var2, self._Ref)
             # CoolProp returns J/kg
-            u = CoolPropInternal.PropsSI('U', _var1_str, var1, _var2_str, var2, self.fluid_name)
+            u = CoolPropInternal.PropsSI('U', _var1_str, var1, _var2_str, var2, self._Ref)
             # CoolProp returns J/kg
-            h = CoolPropInternal.PropsSI('H', _var1_str, var1, _var2_str, var2, self.fluid_name)
+            h = CoolPropInternal.PropsSI('H', _var1_str, var1, _var2_str, var2, self._Ref)
             # CoolProp returns J/kg/K
-            s = CoolPropInternal.PropsSI('S', _var1_str, var1, _var2_str, var2, self.fluid_name)
-            # CoolProp returns mol/mol
-            q = CoolPropInternal.PropsSI('Q', _var1_str, var1, _var2_str, var2, self.fluid_name)
+            s = CoolPropInternal.PropsSI('S', _var1_str, var1, _var2_str, var2, self._Ref)
+            # CoolProp returns mol/mol TODO: RefProp returns kg/kg (only different for mixtures)
+            if self._backend == "INCOMP":
+                q = 0
+            else:
+                q = CoolPropInternal.PropsSI('Q', _var1_str, var1, _var2_str, var2, self._Ref)
             # Return new state
             return ThermodynamicState(p=p, T=T, u=u, h=h, s=s, d=d, q=q)
 
         self._update_coolprop_heos(mode=mode, var1=var1, var2=var2)
         # Return new state
         return ThermodynamicState(
-            p=self._helmholtz_equation_of_state.p(),
-            T=self._helmholtz_equation_of_state.T(),
-            u=self._helmholtz_equation_of_state.umass(),
-            h=self._helmholtz_equation_of_state.hmass(),
-            s=self._helmholtz_equation_of_state.smass(),
-            d=self._helmholtz_equation_of_state.rhomass(),
-            q=self._helmholtz_equation_of_state.Q()
+            p=self._state.p(),
+            T=self._state.T(),
+            u=self._state.umass(),
+            h=self._state.hmass(),
+            s=self._state.smass(),
+            d=self._state.rhomass(),
+            q=self._state.Q()
         )
 
     def calc_transport_properties(self, state: ThermodynamicState):
@@ -83,7 +100,7 @@ class CoolProp(MedProp):
             var1, var2 = state.p, state.T
 
         if self.use_high_level_api:
-            args = [mode[0], var1, mode[1], var2, self.fluid_name]
+            args = [mode[0], var1, mode[1], var2, self._Ref]
             # CoolProp returns -
             pr = CoolPropInternal.PropsSI('PRANDTL', *args)
             # CoolProp returns J/kg/K
@@ -105,12 +122,12 @@ class CoolProp(MedProp):
         self._update_coolprop_heos(mode=mode, var1=var1, var2=var2)
         # Create transport properties instance
         return TransportProperties(
-            lam=self._helmholtz_equation_of_state.conductivity(),
-            dyn_vis=self._helmholtz_equation_of_state.viscosity(),
-            kin_vis=self._helmholtz_equation_of_state.viscosity() / state.d,
-            pr=self._helmholtz_equation_of_state.Prandtl(),
-            cp=self._helmholtz_equation_of_state.cpmass(),
-            cv=self._helmholtz_equation_of_state.cvmass(),
+            lam=self._state.conductivity(),
+            dyn_vis=self._state.viscosity(),
+            kin_vis=self._state.viscosity() / state.d,
+            pr=self._state.Prandtl(),
+            cp=self._state.cpmass(),
+            cv=self._state.cvmass(),
             state=state
         )
 
@@ -124,19 +141,26 @@ class CoolProp(MedProp):
             )
         i_input, not_reverse_variables = self._mode_map[mode]
         if not_reverse_variables:
-            self._helmholtz_equation_of_state.update(i_input, var1, var2)
+            self._state.update(i_input, var1, var2)
         else:
-            self._helmholtz_equation_of_state.update(i_input, var2, var1)
+            self._state.update(i_input, var2, var1)
 
     def get_critical_point(self):
-        Tc = CoolPropInternal.PropsSI("TCRIT", self.fluid_name)
-        pc = CoolPropInternal.PropsSI("PCRIT", self.fluid_name)
-        dc = CoolPropInternal.PropsSI("RHOCRIT", self.fluid_name)
+        Tc = CoolPropInternal.PropsSI("TCRIT", self._Ref)
+        pc = CoolPropInternal.PropsSI("PCRIT", self._Ref)
+        dc = CoolPropInternal.PropsSI("RHOCRIT", self._Ref)
         return Tc, pc, dc
 
     def get_molar_mass(self):
-        return self.M
+        try:
+            return self._state.molar_mass()
+        except ValueError as err:
+            if "not implemented" in str(err):
+                logger.error(str(err))
+                raise NotImplementedError(str(err))
+            else:
+                raise err
 
 
 if __name__ == '__main__':
-    CoolProp("Propan")
+    CoolProp("Propane")

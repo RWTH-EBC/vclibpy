@@ -18,7 +18,7 @@ import atexit
 
 from ctREFPROP.ctREFPROP import REFPROPFunctionLibrary
 
-from vclibpy.media import ThermodynamicState, TransportProperties, MedProp
+from vclibpy.media import ThermodynamicState, TransportProperties, MedProp, Fluid
 
 
 logger = logging.getLogger(__name__)
@@ -29,16 +29,8 @@ class RefProp(MedProp):
     Class to connect to refProp package.
 
     Args:
-    :param string fluid_name:
-        Fluid name for RefProp use
-    :param list or None z:
-        Fluid composition. Should only be used, when a self-design mixture shall be used. Further information
-        see notes.
-        When you want to use a self-design mixture to as follows:
-        - Fluid-name needs to contain all component names within mixture: "R32.FLD|R125.FLD"
-        - z needs to be a list with molar fractions: [0.697, 0.303]
-        - Used example would be similar to R410A
-
+    :param Fluid fluid:
+        container class containing fluid name, components and molar fractions
     :param string dll_path:
         Specifier for the dll path used for RefProp,
         e.g. dll_path='C:\\path_to_dll\\RefProp64.dll'.
@@ -56,6 +48,8 @@ class RefProp(MedProp):
     :param str copy_dll_directory:
         If `copy_dll` is True, the DLL is copied to this directory.
         If None (default), the current working directory is used.
+    :param bool set_reference_state:
+        If True, reference state is set to DEF (default)
 
     Note:
         - You need to install package ctREFPROP Package
@@ -137,68 +131,71 @@ class RefProp(MedProp):
     _fluid_mapper = {'air': 'air.ppf'}
 
     def __init__(self,
-                 fluid_name,
-                 z=None,
+                 fluid: Fluid,
                  dll_path: str = None,
                  use_error_check: bool = True,
                  use_warnings: bool = True,
                  ref_prop_path: str = None,
                  copy_dll: bool = True,
-                 copy_dll_directory: str = None
+                 copy_dll_directory: str = None,
+                 set_reference_state: bool = False
                  ):
-        if ref_prop_path is None:
-            # Get environment variable for path to dll
-            ref_prop_path = os.environ["RPPREFIX"]
-        if dll_path is None:
-            path_to_dll = self.get_dll_path(ref_prop_path)
-        else:
-            path_to_dll = dll_path
-
-        if copy_dll:
-            if copy_dll_directory is None:
-                copy_dll_directory = os.getcwd()
-            try:
-                self._delete_dll_path = os.path.join(
-                    copy_dll_directory,
-                    f"med_prop_{fluid_name}_REFPRP64.dll"
-                )
-                shutil.copyfile(path_to_dll, self._delete_dll_path)
-                atexit.register(self.terminate)
-                path_to_dll = self._delete_dll_path
-            except (PermissionError, FileExistsError) as err:
-                logger.error("Can't copy file to new path: %s", err)
-        else:
-            self._delete_dll_path = None
-        logger.info("Using dll: %s", path_to_dll)
-
-        super().__init__(fluid_name=fluid_name)
+        super().__init__(fluid=fluid)
+        self._hFld = ";".join([self._fluid_mapper.get(c, c) for c in self.components])
+        self.is_custom_mixture = (len(self.components) > 1)
 
         self._flag_check_errors = use_error_check
         self._flag_warnings = use_warnings
-        # Set path to RefProp package
+        self._delete_dll_path = None
+
+        # REFPROP path
+        if ref_prop_path is None:
+            # if not given, use environment variable
+            ref_prop_path = os.environ["RPPREFIX"]
         self._ref_prop_path = ref_prop_path
-        self.rp = REFPROPFunctionLibrary(path_to_dll)
+
+        # DLL path
+        if dll_path is None:
+            # if not given, use ref_prop_path
+            dll_path = self.get_dll_path(ref_prop_path)
+        if copy_dll:
+            self.path_of_dll = self._copy_dll(old_path=dll_path, new_dir=copy_dll_directory)
+        else:
+            self.path_of_dll = dll_path
+        logger.info("Using dll: %s", self.path_of_dll)
+
+        # setup REFPROP api
+        self.rp = REFPROPFunctionLibrary(self.path_of_dll)
         self.rp.SETPATHdll(ref_prop_path)
         self.molar_base_si = self.rp.GETENUMdll(0, "MOLAR BASE SI").iEnum
-        # Set fluid name
-        self.fluid_name = fluid_name
-        # Get mass and mol fraction and number of components
-        self._get_comp_frac(z)
-        # Get component names
-        self._comp_names = self._get_comp_names()
-        # Mixture flag
-        if self._n_comp > 1:
-            self._mix_flag = True
-        else:
-            self._mix_flag = False
 
-        # Setup
-        self._setup_rp()
-        # Calculate molar mass in kg/mol
-        # self.M = self._call_refprop_allprop("M").Output[0]
-        self.M = self._call_refprop(inp_name="", out_name="M").Output[0]  # kg/mol
+        self._setup()
 
-        self._nbp = None
+        # TODO: might be unnecessary,
+        #  see https://refprop-docs.readthedocs.io/en/latest/GUI/Menu%20Commands/Options%20Menu/reference.html
+        if set_reference_state:
+            self._set_reference_point()
+
+        self._nbp = None  # nbp = normal boiling point
+
+    def _copy_dll(self, old_path, new_dir):
+        if new_dir is None:
+            new_dir = os.getcwd()
+        new_path = os.path.join(new_dir, f"med_prop_{self.fluid_name}_REFPRP64.dll")
+        # TODO: calling isfile() causes a bug.
+        #  The RefProp instance which created this file is not able to delete it at termination.
+        if os.path.isfile(new_path):
+            new_path = os.path.join(new_dir, f"med_prop_{self.fluid_name}_{id(self)}_REFPRP64.dll")
+        try:
+            shutil.copyfile(old_path, new_path)
+            atexit.register(self.terminate)
+            self._delete_dll_path = new_path
+        except PermissionError as err:
+            new_path = old_path
+            logger.error("Can't copy file to new path: %s", err,
+                         "\n Unexpected behavior might occur, when evualiting multiple fluids,"
+                         "esp. when multithreading")
+        return new_path
 
     def terminate(self):
         if self._delete_dll_path is not None:
@@ -219,7 +216,7 @@ class RefProp(MedProp):
         except (FileNotFoundError, PermissionError) as err:
             logger.error(
                 "Could not automatically delete the copied RefProp dll at %s. "
-                "Delete it yourself! Error message: %s", self._delete_dll_path, err
+                "\nDelete it yourself! Error message: %s", self._delete_dll_path, err
             )
 
     def _call_refprop_abflsh(self,
@@ -327,13 +324,13 @@ class RefProp(MedProp):
         :param string out_name:
             Output string name
         :param float value_a:
-            Value of parameter b defined in inp_name. In case of None 0 will be used.
+            Value of parameter a defined in inp_name. In case of None 0 will be used.
         :param float value_b:
             Value of parameter b defined in inp_name. In case of None 0 will be used.
         :param integer i_flag:
             Defines further settings (see documentation)
         :param int i_mass:
-            Specifies which units the inputs are given in.  # TODO: WRONG! iMass determines composition, iUnits determines properties (except q)
+            Specifies which units the composition is given in.
                 - 0: Molar based
                 - 1: Mass based
             Note: In current version (10.0.0.72) Ian Bell says in multiple Git-Issues that you should stick to molar
@@ -354,20 +351,15 @@ class RefProp(MedProp):
             value_b = 0
 
         if fluid is None:
-            if self._predefined:
-                fluid = self.fluid_name  # TODO: in general not necessary, decreases performance
-            else:
-                fluid = ""
+            fluid = self._hFld
+
         if frac is None:
-            if self._predefined:
-                frac = ""
+            if i_mass == 0:
+                frac = self._mol_frac
+            elif i_mass == 1:
+                frac = self._mass_frac
             else:
-                if i_mass == 0:
-                    frac = self._mol_frac
-                elif i_mass == 1:
-                    frac = self._mass_frac
-                else:
-                    raise ValueError("Variable i_mass has invalid input '{}'".format(i_mass))
+                raise ValueError(f"Variable i_mass has invalid input '{i_mass}'")
 
         # Call refprop function
         tmp = self.rp.REFPROPdll(fluid,
@@ -379,177 +371,80 @@ class RefProp(MedProp):
                                  value_a,
                                  value_b,
                                  frac)
-
         return tmp
 
     def _check_error(self,
-                     err_num,
-                     err_msg,
-                     func_name=""):
+                     err_num: int,
+                     err_msg: str,
+                     func_name: str = ""):
         """ Check error code and raise error in case it is critical
 
         Parameters:
         -----------
-        :param integer err_num:
+        :param int err_num:
             Error return code
-        :param string err_msg:
+        :param str err_msg:
             Error message given in RefProp call
-        :param string func_name:
+        :param str func_name:
             Name of function error needs to be checked in
         """
         # All fine in case error number is 0
         # Throw warning in case error number different than 0 and smaller than 100 is given
         # Throw error in case error number higher than 100 is given
-        if err_num:
-            if err_num < 100:
-                if self._flag_warnings:
-                    warnings.warn("[WARNING] Error number {} was given in function '{}'. No critical error but "
-                                  "something went wrong maybe. \n Error message is: '{}'".format(str(err_num),
-                                                                                                 func_name, err_msg))
+        if err_num == 0:
+            return
+        if err_num < 100:
+            msg = ("[WARNING] Error number {} was given in function '{}'. No critical error but "
+                  "something went wrong maybe. \n Error message is: '{}'".format(str(err_num), func_name, err_msg))
+            if self._flag_warnings:
+                warnings.warn(msg)
             else:
-                if self._flag_check_errors:
-                    raise TypeError("[ERROR] When calling RefProp in function '{}' error number {} was "
-                                    "returned. \n Error message is: '{}'".format(func_name, str(err_num), err_msg))
-
-    def _get_comp_names(self):
-        """ Get component names. In case current fluid is mixture, only component names will be returned.
-        In case fluid is a pure substance, substance name is returned.
-
-        Return:
-        -------
-        :return list comp_names:
-            List with pure substances in current refrigerant
-        """
-        comp_names = []
-        if self._predefined:
-            # Note: While trying it was possible to get fluid name as well, therefore n_comp+1 is used.
-            if self._n_comp > 1:
-                for i in range(1, self._n_comp + 3):
-                    test = self.rp.NAMEdll(i)
-                    tmp = test.hn80.replace(".FLD", "")
-                    if not tmp == "":
-                        comp_names.append(tmp)
-            else:
-                for i in range(self._n_comp + 3):
-                    tmp = self.rp.NAMEdll(i).hnam
-                    if not tmp == "":
-                        comp_names.append(tmp)
-
+                logger.warning(msg)
         else:
-            # Self-defined
-            tmp_str = self.fluid_name.split("|")
-            for i in tmp_str:
-                i = i.replace(".FLD", "")
-                i = i.replace(".MIX", "")
-                if len(i) < 2:
+            msg = ("[ERROR] When calling RefProp in function '{}' error number {} was "
+                  "returned. \n Error message is: '{}'".format(func_name, str(err_num), err_msg))
+            if self._flag_check_errors:
+                raise TypeError(msg)
+            else:
+                logger.warning(msg)
+
+    def _setup(self):
+        """
+        setup REFPROP and determine is_mixture, components, _mol_frac, and _mass_frac
+        """
+        # Reset (Errors can occur in case REFPROP is initialized multiple times with same fluid)
+        self.rp.SETFLUIDSdll("Argon")
+        # Dummy function to get values for z in order to specify number of components
+        tmp_mol = self.rp.REFPROPdll(self._hFld, "PQ", "H", self.molar_base_si, 0, 0, 101325, 0, self._mol_frac)
+        self._check_error(tmp_mol.ierr, tmp_mol.herr, self._setup.__name__)
+        self._mol_frac = [zi for zi in tmp_mol.z if zi > 0]
+        self._num_components = len(self._mol_frac)
+        self.is_mixture = (self._num_components > 1)
+
+        # Get mass fraction
+        self._mass_frac = self._transform_to_massfraction(self._mol_frac)
+
+        # Get molar mass in kg/mol
+        self.M = self._call_refprop(inp_name="", out_name="M").Output[0]  # kg/mol
+
+        # Get component names
+        if self.is_mixture:
+            comp_names = []
+            for i in range(1, self._num_components+1):
+                tmp = self.rp.NAMEdll(i).hnam
+                if tmp == "":
                     continue
-                else:
-                    comp_names.append(i)
+                if "Carbon dio" in tmp:
+                    tmp = "CO2"
+                comp_names.append(tmp)
+            self.components = comp_names
 
-        # Replace Carbon Dioxide for CO2
-        for i, tmp in enumerate(comp_names):
-            if "Carbon dio" in tmp:
-                comp_names[i] = "CO2"
-
-        return comp_names
-
-    def _get_comp_frac(self, z):
-        """ Get mass/mol fraction and number of components of current fluid
-
-        Parameters:
-        -----------
-        :param list z:
-            Contains predefined molar fractions in case one is given. Otherwise, z will be None
-        """
-        # Check if predefined or not
-        # Predefined
-        if z is None:
-            self._predefined = True
-        # Pure substance
-        elif len(z) == 1:
-            self._predefined = True
-        # Self-designed mixture
-        else:
-            self._predefined = False
-
-        # In case predefined mixture or pure substance is used
-        if self._predefined:
-            # Dummy function to get values for z in order to specify number of components
-            tmp_mol = self.rp.REFPROPdll(self.fluid_name, "PQ", "H", self.molar_base_si, 0, 0, 101325, 0, [1])
-            tmp_mass = self.rp.REFPROPdll(self.fluid_name, "PQ", "H", self.molar_base_si, 1, 0, 101325, 0, [])
-            # Check for errors
-            self._check_error(tmp_mol.ierr, tmp_mol.herr, self._get_comp_frac.__name__)
-            self._check_error(tmp_mass.ierr, tmp_mass.herr, self._get_comp_frac.__name__)
-            # Mass and molar fractions of components
-            self._mol_frac = [zi for zi in tmp_mol.z if zi > 0]
-            self._mass_frac = [zi for zi in tmp_mass.z if zi > 0]
-            # Get number of components
-            self._n_comp = len(self._mol_frac)
-            # Check, whether error occurred
-            if self._n_comp < 1:
-                # It might be possible that z value bugs when calling RefProp. In case of a pure substance this does not
-                # matter so an additional filter is included
-                if len(self._mass_frac) == 1:
-                    self._n_comp = 1
-                    self._mol_frac = [1]
-                else:
-                    raise ValueError("Number of components for current fluid '{}' is less than "
-                                     "one!".format(self.fluid_name))
-
-            # Get mol fraction
-            # self._mol_frac = self._transform_to_molfraction(self._mass_frac)
-        else:
-            # Mol fraction
-            self._mol_frac = z
-            self._mass_frac = []
-            # Get number of components
-            self._n_comp = len(self._mol_frac)
-
-    def _setup_rp(self):
+    def _set_reference_point(self):
         """ Setup for RefProp """
-        # Errors can occur in case REFPROP is initalizated multiple time with same fluid - thus a pre setup is used here
-        self.rp.SETUPdll(1, "N2", "HMX.BNC", "DEF")
-        # In case of pure substance
-        if self._n_comp == 1:
-            self.rp.SETUPdll(self._n_comp, self.fluid_name, "HMX.BNC", "DEF")
-        # In case of mixtures
-        else:
-            # Check if mixture is predefined
-            if self._predefined:
-                # Pre defined mixture - different baseline operating point is used
-                mode = 2
-                mixture = "|".join([f+".FLD" for f in self._comp_names])
-                n_comp = self._n_comp
-            else:
-                # Self defined mixture
-                mode = 1
-                n_comp = self._n_comp
-                # Define mixtures name
-                # TODO: Ending is not necessary to create mixtures....
-                mixture = "|".join([f+".FLD" for f in self._comp_names])
-
-            # Setup for mixture
-            setup = self.rp.SETUPdll(n_comp, mixture, 'HMX.BNC', 'DEF')
-            setref = self.rp.SETREFdll("DEF", mode, self._mol_frac, 0, 0, 0, 0)
-            # z = self._mol_frac
-            # Get mass fraction
-            self._mass_frac = self._transform_to_massfraction(self._mol_frac)
-
-            # Check whether mixing rules are available
-            if setup.ierr == 117:
-                if self._flag_check_errors:
-                    raise ValueError(
-                        "[MIXING ERROR] Mixing rules for mixture '{}' do not exist!".format(self._comp_names))
-                else:
-                    print(
-                        "[MIXING ERROR] Mixing rules for mixture '{}' do not exist!".format(self._comp_names))
-            elif setup.ierr == -117:
-                if self._flag_warnings:
-                    warnings.warn(
-                        "[MIXING ERROR] Mixing rules for mixture '{}' are estimated!".format(self._comp_names))
-                else:
-                    print(
-                        "[MIXING WARNING] Mixing rules for mixture '{}' are estimated!".format(self._comp_names))
+        # Almost always the absolute values of enthalpy and entropy are not relevant, but differences are.
+        # Thus, the reference state is not important
+        setref = self.rp.SETREFdll(hrf="DEF", ixflag=2, x0=self._mol_frac, h0=0, s0=0, T0=0, P0=0)
+        self._check_error(setref.ierr, setref.herr, self._set_reference_point.__name__)
 
     def _transform_to_massfraction(self,
                                    mol_frac):
@@ -651,8 +546,7 @@ class RefProp(MedProp):
         s = None
         q = None
 
-        # Check modi
-
+        mode = mode.upper()
         # Pressure and density
         if mode == "PD":
             p = var1
@@ -673,8 +567,8 @@ class RefProp(MedProp):
             var1 = var1 * p_multi
             q = var2
             # In case current fluid is mixture you need to transform Q to molar base for RefProp-function
-            if self._mix_flag:
-                var2 = self._call_refprop("PQMASS", "QMOLE", p, q, i_mass=1).Output[0]
+            if self.is_mixture:
+                var2 = self._call_refprop("PQMASS", "QMOLE", p, q, i_mass=1, fluid="").Output[0]
             tmp = self.rp.PQFLSHdll(var1, var2, self._mol_frac, 0)
         # Pressure and entropy
         elif mode == "PS":
@@ -714,8 +608,8 @@ class RefProp(MedProp):
             T = var1
             q = var2
             # In case current fluid is mixture you need to transform Q to molar base for RefProp-function
-            if self._mix_flag:
-                var2 = self._call_refprop("TQMASS", "QMOLE", T, q, i_mass=1).Output[0]
+            if self.is_mixture:
+                var2 = self._call_refprop("TQMASS", "QMOLE", T, q, i_mass=1, fluid="").Output[0]
             tmp = self.rp.TQFLSHdll(T, var2, self._mol_frac, 1)
         # Temperature and entropy
         elif mode == "TS":
@@ -778,7 +672,7 @@ class RefProp(MedProp):
         if d is None:
             d = tmp.D / d_multi
         if q is None:
-            if self._mix_flag:
+            if self.is_mixture:
                 # Transform current q (molar) to mass based quality
                 tmp2 = self._call_refprop("PH", "QMASS", p, h * e_multi, i_mass=1)
                 if tmp2.Output[0] < 0:
@@ -1028,7 +922,7 @@ class RefProp(MedProp):
 
         Return:
         -------
-        :return string fluid_name:
+        :return string name:
             Fluid name
         """
         return self.fluid_name
@@ -1046,7 +940,7 @@ class RefProp(MedProp):
                                  "GWP",
                                  i_mass=1)
         # Calculate gwp
-        gwp = round(sum(max(tmp.Output[i], 0) * self._mass_frac[i] for i in range(self._n_comp)), 2)
+        gwp = round(sum(max(tmp.Output[i], 0) * self._mass_frac[i] for i in range(self._num_components)), 2)
         # In case GWP cannot be calculated
         if gwp < 0:
             gwp = 0
@@ -1202,7 +1096,7 @@ class RefProp(MedProp):
         :return boolean _mix_flag:
             Boolean for mixture (True), pure substance (False)
         """
-        return self._mix_flag
+        return self.is_mixture
 
     def set_error_flag(self, flag):
         """ Set error flag

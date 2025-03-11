@@ -5,6 +5,7 @@ handle calculations related to media properties.
 
 Classes:
     MedProp: Base class for all media property interfaces.
+    Fluid: container for a fluid's name and composition
 
 Functions:
     get_two_phase_limits: Return the states of the boundaries of the two-phase section for a given fluid.
@@ -22,6 +23,60 @@ from vclibpy.media import ThermodynamicState, TransportProperties
 logger = logging.getLogger(__name__)
 
 
+class Fluid:
+    """
+    container for a fluid's name and composition
+    """
+
+    name: str = None
+    components: list[str] = None
+    mol_frac: list[float] = None
+
+    def __init__(self, name: str, composition: dict[str, float] = None, backend: str = "HEOS"):
+        """
+        Args:
+            name (str): name of the fluid
+            composition (dict[str, float]): the fluid's components and corresponding molar fractions (optional)
+            backend (str): backend CoolProp shall use (optional, default: HEOS)
+        """
+        # NAME
+        if name is None:
+            raise TypeError("fluid name not given")
+        for invalid_character in ['/', '\\', '<', '>', ':', '"', '|', '?', '*']:
+            if invalid_character in name:
+                raise ValueError(f"fluid name contains invalid character {invalid_character}")
+        self.name = name
+
+        # BACKEND
+        self.backend = backend
+
+        # COMPOSITION
+        if composition is None:
+            # fluid is pure, pseudo-pure or - if refprop is used - a predefined mixture
+            self.components = [name]
+            self.mol_frac = [1]
+            # composition = {name: [1]}
+            return
+
+        self.components = composition.keys()
+        self.mol_frac = composition.values()
+
+        if any(not isinstance(c, str) for c in self.components):
+            raise TypeError("component has to be str")
+        if any(not isinstance(f, (int, float)) for f in self.mol_frac):
+            raise TypeError("molar fraction has to be int or float")
+        if backend != "INCOMP" and sum(self.mol_frac) != 1:
+            raise ValueError("molar fractions do not sum up to 1")
+
+    def __str__(self):
+        return self.name
+
+    def print(self):
+        print("name:", self.name)
+        print("components:", self.components)
+        print("molar fractions:", self.mol_frac)
+
+
 class MedProp(abc.ABC):
     """Base class for all media property interfaces.
 
@@ -37,14 +92,15 @@ class MedProp(abc.ABC):
     """
     _fluid_mapper = {}
 
-    def __init__(self, fluid_name):
+    def __init__(self, fluid):
         """Initialize the MedProp class instance.
 
         Args:
-            fluid_name (str): The name of the fluid.
+            fluid (Fluid): The fluid.
         """
-        # Check if better internal names exist (e.g. air is modelled as air.ppf)
-        self.fluid_name = self._fluid_mapper.get(fluid_name, fluid_name)
+        self.fluid_name = fluid.name
+        self.components = fluid.components
+        self._mol_frac = fluid.mol_frac
         self._two_phase_limits: dict = None
 
     def calc_state(self, mode: str, var1: float, var2: float):

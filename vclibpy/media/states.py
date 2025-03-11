@@ -24,7 +24,7 @@ class ThermodynamicState:
         h (float): Enthalpy at the state in J/kg.
         s (float): Entropy at the state in J/(kg * K).
         v (float): Specific volume at the state in m^3/kg.
-        q (float): Quality at the state (between 0 and 1).
+        q (float): Quality at the state (between 0 and 1) in kg/kg.
         d (float): Density at the state in kg/m^3.
 
     Methods:
@@ -52,7 +52,7 @@ class ThermodynamicState:
             h (float): Enthalpy at the state in J/kg.
             s (float): Entropy at the state in J/(kg * K).
             v (float): Specific volume at the state in m^3/kg.
-            q (float): Quality at the state (between 0 and 1).
+            q (float): Quality at the state (between 0 and 1) in kg/kg.
             d (float): Density at the state in kg/m^3.
 
         Notes:
@@ -94,7 +94,7 @@ class ThermodynamicState:
         _container.set(name="h", value=self.h, unit="J/kg", description="Enthalpy")
         _container.set(name="s", value=self.s, unit="J/(kg*K)", description="Entropy")
         _container.set(name="v", value=self.v, unit="m^3/kg", description="Specific volume")
-        _container.set(name="q", value=self.q, unit="-", description="Quality")
+        _container.set(name="q", value=self.q, unit="kg/kg", description="Quality")
         _container.set(name="d", value=self.d, unit="kg/m^3", description="Density")
         return str(_container)
 

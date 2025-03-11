@@ -37,11 +37,11 @@ class HeatExchanger(BaseComponent, abc.ABC):
             gas_heat_transfer: HeatTransfer,
             liquid_heat_transfer: HeatTransfer,
             two_phase_heat_transfer: TwoPhaseHeatTransfer,
-            secondary_medium: str
+            secondary_medium: media.Fluid
     ):
         super().__init__()
         self.A = A
-        self.secondary_medium = secondary_medium.lower()
+        self.secondary_medium = secondary_medium
 
         self._wall_heat_transfer = wall_heat_transfer
         self._secondary_heat_transfer = secondary_heat_transfer
@@ -60,15 +60,11 @@ class HeatExchanger(BaseComponent, abc.ABC):
         """
         # Set up the secondary_medium wrapper:
         med_prop_class, med_prop_kwargs = media.get_global_med_prop_and_kwargs()
-        if self.secondary_medium == "air" and med_prop_class == media.RefProp:
-            fluid_name = "AIR.PPF"
-        else:
-            fluid_name = self.secondary_medium
         if self.med_prop_sec is not None:
-            if self.med_prop_sec.fluid_name == fluid_name:
+            if self.med_prop_sec.fluid_name == self.secondary_medium.name:
                 return
             self.med_prop_sec.terminate()
-        self.med_prop_sec = med_prop_class(fluid_name=self.secondary_medium, **med_prop_kwargs)
+        self.med_prop_sec = med_prop_class(fluid=self.secondary_medium, **med_prop_kwargs)
 
     def terminate_secondary_med_prop(self):
         if self.med_prop_sec is not None:
@@ -225,10 +221,12 @@ class HeatExchanger(BaseComponent, abc.ABC):
             media.TransportProperties: The calculated transport properties.
         """
         if p is None:
-            if self.secondary_medium == "water":
+            if self.secondary_medium.name.lower() == "water":
                 p = 2e5  # 2 bar (default hydraulic pressure)
-            elif self.secondary_medium == "air":
+            elif self.secondary_medium.name.lower() == "air":
                 p = 101325  # 1 atm
+            elif self.secondary_medium.name.lower() == "brine":
+                p = 2e5  # 2 bar
             else:
                 raise NotImplementedError(
                     "Default pressures for secondary_mediums aside from water and air are not supported yet."

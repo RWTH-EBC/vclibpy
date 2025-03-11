@@ -49,6 +49,8 @@ def calc_multiple_states(
         rel_infos.append(hp_state_dic)
     df = pd.DataFrame(rel_infos)
     df.index.name = "State Number"
+    if save_path is None:
+        return df
     df.to_excel(save_path.joinpath(f"{heat_pump}_{heat_pump.fluid}.xlsx"), sheet_name="HP_states", float_format="%.5f")
 
 

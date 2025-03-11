@@ -52,7 +52,7 @@ class BaseCycle:
 
         # Else create new instance of MedProp
         med_prop_class, med_prop_kwargs = media.get_global_med_prop_and_kwargs()
-        self.med_prop = med_prop_class(fluid_name=fluid, **med_prop_kwargs)
+        self.med_prop = med_prop_class(fluid=fluid, **med_prop_kwargs)
 
         # Write the instance to the components
         for component in self.get_all_components():
