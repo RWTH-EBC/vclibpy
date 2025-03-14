@@ -1,0 +1,248 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compressor Example &mdash; vclibpy 0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../_static/jquery.js"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+      <script src="../_static/doctools.js"></script>
+      <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Compressor Example</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/e2_compressor.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="compressor-example">
+<h1>Compressor Example<a class="headerlink" href="#compressor-example" title="Permalink to this heading"></a></h1>
+<p>This example demonstrates how to use the classes <code class="docutils literal notranslate"><span class="pre">Compressor</span></code>,
+and its children.</p>
+<p>First, let’s import an exemplary compressor from vclibpy’s
+<code class="docutils literal notranslate"><span class="pre">compressor</span></code> package:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.compressors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConstantEffectivenessCompressor</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">ConstantEffectivenessCompressor</span></code> uses constant efficiencies to model the compressor.
+Check out the documentation to see relevant parameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">help</span><span class="p">(</span><span class="n">ConstantEffectivenessCompressor</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let’s specify some dummy parameters:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">constant_efficiency_compressor</span> <span class="o">=</span> <span class="n">ConstantEffectivenessCompressor</span><span class="p">(</span>
+    <span class="n">N_max</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span>
+    <span class="n">V_h</span><span class="o">=</span><span class="mf">19e-6</span><span class="p">,</span>
+    <span class="n">eta_isentropic</span><span class="o">=</span><span class="mf">0.7</span><span class="p">,</span>
+    <span class="n">eta_mech</span><span class="o">=</span><span class="mf">0.95</span><span class="o">*</span><span class="mf">0.95</span><span class="o">*</span><span class="mf">0.95</span><span class="p">,</span>
+    <span class="n">lambda_h</span><span class="o">=</span><span class="mf">0.9</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Before we can do any calculations, the compressor needs
+access to refrigerant data. Each component in VcLibPy has
+the property med_prop (media property) which you can set like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoolProp</span>
+<span class="n">med_prop</span> <span class="o">=</span> <span class="n">CoolProp</span><span class="p">(</span><span class="n">fluid_name</span><span class="o">=</span><span class="s2">&quot;Propane&quot;</span><span class="p">)</span>
+<span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">med_prop</span> <span class="o">=</span> <span class="n">med_prop</span>
+</pre></div>
+</div>
+<p>Now, you have to define the input state of the compressor.
+Each component has inlet and outlet states, which are, same as <code class="docutils literal notranslate"><span class="pre">med_prop</span></code>
+properties of the component.
+We assume a super-heated vapor at 1bar as an input state:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">p_inlet</span> <span class="o">=</span> <span class="mf">1e5</span>
+<span class="n">T_superheat</span> <span class="o">=</span> <span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_inlet</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="mi">10</span>
+<span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="n">p_inlet</span><span class="p">,</span> <span class="n">T_superheat</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Last but not least, most functions in VcLibPy require
+the argument <code class="docutils literal notranslate"><span class="pre">inputs</span></code> and <code class="docutils literal notranslate"><span class="pre">fs_state</span></code>. The whole concept of the two
+classes are explained in the third example. For now, we just instantiate
+the classes and pass a relative compressor speed of 50 % (0.5) as an input.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
+<span class="n">fs_state</span> <span class="o">=</span> <span class="n">FlowsheetState</span><span class="p">()</span>
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">Inputs</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, we can calculate multiple things.</p>
+<section id="outlet-state">
+<h2>Outlet state<a class="headerlink" href="#outlet-state" title="Permalink to this heading"></a></h2>
+<p>While the constant efficiency compressor does not rely on any
+states to calculate the constant efficiencies, most other models do.
+Thus, we first want to calculate the outlet state for the given input state.
+We can do so by passing an outlet pressure to the function <code class="docutils literal notranslate"><span class="pre">calc_state_outlet</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">p_outlet</span> <span class="o">=</span> <span class="mf">6e5</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">state_outlet</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># still None</span>
+<span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">calc_state_outlet</span><span class="p">(</span><span class="n">p_outlet</span><span class="o">=</span><span class="n">p_outlet</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">state_outlet</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># now calculated</span>
+</pre></div>
+</div>
+<p>Also, relevant results are automatically added to the <code class="docutils literal notranslate"><span class="pre">fs_state</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">fs_state</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You can play around with the compressor speed (which has no effect due to constant efficiencies)
+or the compression ratio. Let’s do the latter for the outlet temperature:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="n">ratios</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+<span class="n">T_outlets</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">ratio</span> <span class="ow">in</span> <span class="n">ratios</span><span class="p">:</span>
+    <span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">calc_state_outlet</span><span class="p">(</span>
+        <span class="n">p_outlet</span><span class="o">=</span><span class="n">p_inlet</span> <span class="o">*</span> <span class="n">ratio</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span>
+    <span class="p">)</span>
+    <span class="n">T_outlets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">state_outlet</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Let’s plot the results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ratios</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">T_outlets</span><span class="p">)</span> <span class="o">-</span> <span class="mf">273.15</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;$T_\mathrm</span><span class="si">{Outlet}</span><span class="s2">$ in °C&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;$\Pi$ in -&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="mass-flow-rate">
+<h2>Mass flow rate<a class="headerlink" href="#mass-flow-rate" title="Permalink to this heading"></a></h2>
+<p>Now, let’s continue with the mass flow rate. Again, each component has the property
+<code class="docutils literal notranslate"><span class="pre">m_flow</span></code>, which always refers to the refrigerant mass flow rate.
+The function <code class="docutils literal notranslate"><span class="pre">calc_m_flow</span></code> calculates and set’s the mass flow rate to this property.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">m_flow</span> <span class="o">=</span> <span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">calc_m_flow</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">m_flow</span><span class="si">=}</span><span class="s2">, </span><span class="si">{</span><span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">m_flow</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Again, some interesting results are automatically added to the <code class="docutils literal notranslate"><span class="pre">fs_state</span></code>:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">fs_state</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, we can check how the compressor will work for different compressor speeds:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">m_flows</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">speeds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">speed</span> <span class="ow">in</span> <span class="n">speeds</span><span class="p">:</span>
+    <span class="n">m_flows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">calc_m_flow</span><span class="p">(</span><span class="n">Inputs</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">speed</span><span class="p">),</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Let’s plot the results:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">speeds</span><span class="p">,</span> <span class="n">m_flows</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;$\dot</span><span class="si">{m}</span><span class="s2">$ in kg/s&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;$n$ in -&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="electrical-power-consumption">
+<h2>Electrical power consumption<a class="headerlink" href="#electrical-power-consumption" title="Permalink to this heading"></a></h2>
+<p>If mass flow rates and outlet states are calculated, we can calculate the
+electrical power consumption of the compressor. Note, that
+if you change input values here, you first have to calculate the
+mass flow rate and outlet state again, as this may influence the result.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">calc_m_flow</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
+<span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">calc_state_outlet</span><span class="p">(</span><span class="n">p_outlet</span><span class="o">=</span><span class="n">p_outlet</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
+<span class="n">P_el</span> <span class="o">=</span> <span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">calc_electrical_power</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">P_el</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Again, important metrics are added to the fs_state:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">fs_state</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>After learning the basics of each component and using <code class="docutils literal notranslate"><span class="pre">Inputs</span></code> and <code class="docutils literal notranslate"><span class="pre">FlowsheetState</span></code>
+for the first time, we will go deeper into these classes in the third example.
+You can alter the compressor in use by importing other compressors, such as
+<code class="docutils literal notranslate"><span class="pre">RotaryCompressor</span></code> or <code class="docutils literal notranslate"><span class="pre">TenCoefficientCompressor</span></code>. Check if you can use these components as well.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.compressors</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotaryCompressor</span><span class="p">,</span> <span class="n">TenCoefficientCompressor</span>
+<span class="n">help</span><span class="p">(</span><span class="n">RotaryCompressor</span><span class="p">)</span>
+<span class="n">help</span><span class="p">(</span><span class="n">TenCoefficientCompressor</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

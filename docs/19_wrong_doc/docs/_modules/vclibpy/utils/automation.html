@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.utils.automation &mdash; vclibpy 0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../../../_static/jquery.js"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/doctools.js"></script>
+      <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">vclibpy.utils.automation</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for vclibpy.utils.automation</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions to generate HP Maps automatically</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Union</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">multiprocessing</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.datamodels</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCycle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="calc_multiple_states"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.automation.calc_multiple_states">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">calc_multiple_states</span><span class="p">(</span>
+        <span class="n">save_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span>
+        <span class="n">heat_pump</span><span class="p">:</span> <span class="n">BaseCycle</span><span class="p">,</span>
+        <span class="n">inputs</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Inputs</span><span class="p">],</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Function to calculate the flowsheet states for all given inputs.</span>
+<span class="sd">    All results are stored as a .xlsx file in the given save-path</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        save_path (pathlib.Path): Location where to save the results as xlsx.</span>
+<span class="sd">        heat_pump (BaseCycle): A valid flowsheet</span>
+<span class="sd">        inputs (List[Inputs]): A list with all inputs to simulate</span>
+<span class="sd">        **kwargs: Solver settings for the flowsheet</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rel_infos</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">single_inputs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">inputs</span><span class="p">):</span>
+        <span class="n">fs_state</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Running combination </span><span class="si">{</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">fs_state</span> <span class="o">=</span> <span class="n">heat_pump</span><span class="o">.</span><span class="n">calc_steady_state</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">single_inputs</span><span class="p">,</span>
+                                                   <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Avoid loss of data if un-excepted errors occur.</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">fs_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fs_state</span> <span class="o">=</span> <span class="n">FlowsheetState</span><span class="p">()</span>
+        <span class="n">hp_state_dic</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="o">**</span><span class="n">single_inputs</span><span class="o">.</span><span class="n">convert_to_str_value_format</span><span class="p">(</span><span class="n">with_unit_and_description</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="o">**</span><span class="n">fs_state</span><span class="o">.</span><span class="n">convert_to_str_value_format</span><span class="p">(</span><span class="n">with_unit_and_description</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="p">}</span>
+        <span class="n">rel_infos</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hp_state_dic</span><span class="p">)</span>
+    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rel_infos</span><span class="p">)</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;State Number&quot;</span>
+    <span class="n">df</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="n">save_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">heat_pump</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">heat_pump</span><span class="o">.</span><span class="n">fluid</span><span class="si">}</span><span class="s2">.xlsx&quot;</span><span class="p">),</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s2">&quot;HP_states&quot;</span><span class="p">,</span> <span class="n">float_format</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">%.5f</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="full_factorial_map_generation"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.automation.full_factorial_map_generation">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">full_factorial_map_generation</span><span class="p">(</span>
+        <span class="n">heat_pump</span><span class="p">:</span> <span class="n">BaseCycle</span><span class="p">,</span>
+        <span class="n">T_eva_in_ar</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="n">T_con_in_ar</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="n">n_ar</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">],</span>
+        <span class="n">m_flow_con</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">m_flow_eva</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">save_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="nb">str</span><span class="p">],</span>
+        <span class="n">dT_eva_superheating</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+        <span class="n">dT_con_subcooling</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">use_multiprocessing</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="n">save_plots</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Run a full-factorial simulation to create performance maps</span>
+<span class="sd">    used in other simulation tools like Modelica or to analyze</span>
+<span class="sd">    the off-design of the flowsheet.</span>
+<span class="sd">    The results are stored and returned as .sdf and .csv files.</span>
+<span class="sd">    Currently, only varying T_eva_in, T_con_in, and n is implemented.</span>
+<span class="sd">    However, changing this to more dimensions or other variables</span>
+<span class="sd">    is not much work. In this case, please raise an issue.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        heat_pump (BaseCycle): The flowsheet to use</span>
+<span class="sd">        T_eva_in_ar: Array with inputs for T_eva_in</span>
+<span class="sd">        T_con_in_ar: Array with inputs for T_con_in</span>
+<span class="sd">        n_ar: Array with inputs for n_ar</span>
+<span class="sd">        m_flow_con: Condenser mass flow rate</span>
+<span class="sd">        m_flow_eva: Evaporator mass flow rate</span>
+<span class="sd">        save_path: Where to save all results.</span>
+<span class="sd">        dT_eva_superheating: Evaporator superheating</span>
+<span class="sd">        dT_con_subcooling: Condenser subcooling</span>
+<span class="sd">        use_multiprocessing:</span>
+<span class="sd">            True to use multiprocessing. May speed up the calculation. Default is False</span>
+<span class="sd">        save_plots:</span>
+<span class="sd">            True to save plots of each steady state point. Default is False</span>
+<span class="sd">        **kwargs: Solver settings for the flowsheet</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple (pathlib.Path, pathlib.Path):</span>
+<span class="sd">            Path to the created .sdf file and to the .csv file</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">save_path</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">save_path</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">save_plots</span><span class="p">:</span>
+        <span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;save_path_plots&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">(</span><span class="n">save_path</span><span class="p">)</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;plots_</span><span class="si">{</span><span class="n">heat_pump</span><span class="o">.</span><span class="n">flowsheet_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">heat_pump</span><span class="o">.</span><span class="n">fluid</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;save_path_plots&quot;</span><span class="p">],</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">list_mp_inputs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">list_inputs</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">idx_for_access_later</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i_T_eva_in</span><span class="p">,</span> <span class="n">T_eva_in</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">T_eva_in_ar</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">i_n</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">n_ar</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">i_T_con_in</span><span class="p">,</span> <span class="n">T_con_in</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">T_con_in_ar</span><span class="p">):</span>
+                <span class="n">idx_for_access_later</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">i_n</span><span class="p">,</span> <span class="n">i_T_con_in</span><span class="p">,</span> <span class="n">i_T_eva_in</span><span class="p">])</span>
+                <span class="n">inputs</span> <span class="o">=</span> <span class="n">Inputs</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
+                                <span class="n">T_eva_in</span><span class="o">=</span><span class="n">T_eva_in</span><span class="p">,</span>
+                                <span class="n">T_con_in</span><span class="o">=</span><span class="n">T_con_in</span><span class="p">,</span>
+                                <span class="n">m_flow_eva</span><span class="o">=</span><span class="n">m_flow_eva</span><span class="p">,</span>
+                                <span class="n">m_flow_con</span><span class="o">=</span><span class="n">m_flow_con</span><span class="p">,</span>
+                                <span class="n">dT_eva_superheating</span><span class="o">=</span><span class="n">dT_eva_superheating</span><span class="p">,</span>
+                                <span class="n">dT_con_subcooling</span><span class="o">=</span><span class="n">dT_con_subcooling</span><span class="p">)</span>
+                <span class="n">list_mp_inputs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">heat_pump</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">])</span>
+                <span class="n">list_inputs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+    <span class="n">fs_states</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">use_multiprocessing</span><span class="p">:</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">Pool</span><span class="p">(</span><span class="n">processes</span><span class="o">=</span><span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">fs_state</span> <span class="ow">in</span> <span class="n">pool</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="n">_calc_single_hp_state</span><span class="p">,</span> <span class="n">list_mp_inputs</span><span class="p">):</span>
+            <span class="n">fs_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs_state</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ran </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">list_mp_inputs</span><span class="p">)</span><span class="si">}</span><span class="s2"> points&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">inputs</span> <span class="ow">in</span> <span class="n">list_inputs</span><span class="p">:</span>
+            <span class="n">fs_state</span> <span class="o">=</span> <span class="n">_calc_single_hp_state</span><span class="p">([</span><span class="n">heat_pump</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">])</span>
+            <span class="n">fs_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fs_state</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Ran </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">list_mp_inputs</span><span class="p">)</span><span class="si">}</span><span class="s2"> points&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Save to sdf</span>
+    <span class="n">result_shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">n_ar</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">T_con_in_ar</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">T_eva_in_ar</span><span class="p">))</span>
+    <span class="n">_dummy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">result_shape</span><span class="p">)</span>  <span class="c1"># Use a copy to avoid overwriting of values of any sort.</span>
+    <span class="n">_dummy</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="c1"># Get all possible values:</span>
+    <span class="n">all_variables</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">all_variables_info</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">variables_to_excel</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">fs_state</span><span class="p">,</span> <span class="n">inputs</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fs_states</span><span class="p">,</span> <span class="n">list_inputs</span><span class="p">):</span>
+        <span class="n">all_variables</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">var</span><span class="p">:</span> <span class="n">_dummy</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">fs_state</span><span class="o">.</span><span class="n">get_variable_names</span><span class="p">()})</span>
+        <span class="n">all_variables_info</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">var</span><span class="p">:</span> <span class="n">variable</span> <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">fs_state</span><span class="o">.</span><span class="n">get_variables</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="n">variables_to_excel</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="o">**</span><span class="n">inputs</span><span class="o">.</span><span class="n">convert_to_str_value_format</span><span class="p">(</span><span class="n">with_unit_and_description</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+            <span class="o">**</span><span class="n">fs_state</span><span class="o">.</span><span class="n">convert_to_str_value_format</span><span class="p">(</span><span class="n">with_unit_and_description</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span>
+        <span class="p">})</span>
+
+    <span class="c1"># Save to excel</span>
+    <span class="n">save_path_sdf</span> <span class="o">=</span> <span class="n">save_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">heat_pump</span><span class="o">.</span><span class="n">flowsheet_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">heat_pump</span><span class="o">.</span><span class="n">fluid</span><span class="si">}</span><span class="s2">.sdf&quot;</span><span class="p">)</span>
+    <span class="n">save_path_csv</span> <span class="o">=</span> <span class="n">save_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">heat_pump</span><span class="o">.</span><span class="n">flowsheet_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">heat_pump</span><span class="o">.</span><span class="n">fluid</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">)</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">variables_to_excel</span><span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span>
+        <span class="n">save_path_csv</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">fs_state</span><span class="p">,</span> <span class="n">idx_triple</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">fs_states</span><span class="p">,</span> <span class="n">idx_for_access_later</span><span class="p">):</span>
+        <span class="n">i_n</span><span class="p">,</span> <span class="n">i_T_con_in</span><span class="p">,</span> <span class="n">i_T_eva_in</span> <span class="o">=</span> <span class="n">idx_triple</span>
+        <span class="k">for</span> <span class="n">variable_name</span><span class="p">,</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">fs_state</span><span class="o">.</span><span class="n">get_variables</span><span class="p">()</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">all_variables</span><span class="p">[</span><span class="n">variable_name</span><span class="p">][</span><span class="n">i_n</span><span class="p">][</span><span class="n">i_T_con_in</span><span class="p">][</span><span class="n">i_T_eva_in</span><span class="p">]</span> <span class="o">=</span> <span class="n">variable</span><span class="o">.</span><span class="n">value</span>
+
+    <span class="n">_nd_data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">variable</span><span class="p">,</span> <span class="n">nd_data</span> <span class="ow">in</span> <span class="n">all_variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">_nd_data</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="n">variable</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">nd_data</span><span class="p">,</span>
+                <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="n">all_variables_info</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+                <span class="s2">&quot;comment&quot;</span><span class="p">:</span> <span class="n">all_variables_info</span><span class="p">[</span><span class="n">variable</span><span class="p">]</span><span class="o">.</span><span class="n">description</span><span class="p">}</span>
+        <span class="p">})</span>
+
+    <span class="n">_scale_values</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">n_ar</span><span class="p">,</span>
+        <span class="s2">&quot;T_con_in&quot;</span><span class="p">:</span> <span class="n">T_con_in_ar</span><span class="p">,</span>
+        <span class="s2">&quot;T_eva_in&quot;</span><span class="p">:</span> <span class="n">T_eva_in_ar</span>
+    <span class="p">}</span>
+    <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span> <span class="o">=</span> <span class="n">list_inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">_parameters</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">variable</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_scale_values</span><span class="p">:</span>
+            <span class="n">_parameters</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">variable</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
+                <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="n">variable</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+                <span class="s2">&quot;comment&quot;</span><span class="p">:</span> <span class="n">variable</span><span class="o">.</span><span class="n">description</span>
+            <span class="p">}</span>
+    <span class="n">_scales</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span> <span class="ow">in</span> <span class="n">_scale_values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">_scales</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;data&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">,</span>
+            <span class="s2">&quot;unit&quot;</span><span class="p">:</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+            <span class="s2">&quot;comment&quot;</span><span class="p">:</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">)</span><span class="o">.</span><span class="n">description</span>
+        <span class="p">}</span>
+
+    <span class="n">sdf_data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">heat_pump</span><span class="o">.</span><span class="n">flowsheet_name</span><span class="p">:</span>
+            <span class="p">{</span>
+                <span class="n">heat_pump</span><span class="o">.</span><span class="n">fluid</span><span class="p">:</span> <span class="p">(</span><span class="n">_scales</span><span class="p">,</span> <span class="n">_nd_data</span><span class="p">,</span> <span class="n">_parameters</span><span class="p">)</span>
+            <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="n">utils</span><span class="o">.</span><span class="n">save_to_sdf</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">sdf_data</span><span class="p">,</span> <span class="n">save_path</span><span class="o">=</span><span class="n">save_path_sdf</span><span class="p">)</span>
+
+    <span class="c1"># Terminate heat pump med-props:</span>
+    <span class="n">heat_pump</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+
+    <span class="k">return</span> <span class="n">save_path_sdf</span><span class="p">,</span> <span class="n">save_path_csv</span></div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_calc_single_hp_state</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Helper function for a single state to enable multiprocessing&quot;&quot;&quot;</span>
+    <span class="n">heat_pump</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">kwargs</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="n">fs_state</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">fs_state</span> <span class="o">=</span> <span class="n">heat_pump</span><span class="o">.</span><span class="n">calc_steady_state</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+                                               <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred for input: </span><span class="si">{</span><span class="n">inputs</span><span class="o">.</span><span class="vm">__dict__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fs_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">fs_state</span> <span class="o">=</span> <span class="n">FlowsheetState</span><span class="p">()</span>
+    <span class="c1"># Append the data to the dataframe</span>
+    <span class="k">return</span> <span class="n">fs_state</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

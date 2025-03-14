@@ -1,0 +1,397 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.utils package &mdash; vclibpy 0.1.2 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../_static/jquery.js"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+      <script src="../_static/doctools.js"></script>
+      <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Contribute as a user" href="../Contribution.html" />
+    <link rel="prev" title="vclibpy.media package" href="vclibpy.media.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">vclibpy</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="vclibpy.html">vclibpy package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vclibpy.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html">vclibpy.components package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html">vclibpy.flowsheets package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html">vclibpy.media package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">vclibpy.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.html#module-vclibpy.datamodels">vclibpy.datamodels module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">vclibpy</a></li>
+          <li class="breadcrumb-item"><a href="vclibpy.html">vclibpy package</a></li>
+      <li class="breadcrumb-item active">vclibpy.utils package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/code/vclibpy.utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-vclibpy.utils">
+<span id="vclibpy-utils-package"></span><h1>vclibpy.utils package<a class="headerlink" href="#module-vclibpy.utils" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-vclibpy.utils.automation">
+<span id="vclibpy-utils-automation-module"></span><h2>vclibpy.utils.automation module<a class="headerlink" href="#module-vclibpy.utils.automation" title="Permalink to this heading"></a></h2>
+<p>Functions to generate HP Maps automatically</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vclibpy.utils.automation.calc_multiple_states">
+<span class="sig-prename descclassname"><span class="pre">vclibpy.utils.automation.</span></span><span class="sig-name descname"><span class="pre">calc_multiple_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">heat_pump</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle" title="vclibpy.flowsheets.base.BaseCycle"><span class="pre">BaseCycle</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/utils/automation.html#calc_multiple_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.utils.automation.calc_multiple_states" title="Permalink to this definition"></a></dt>
+<dd><p>Function to calculate the flowsheet states for all given inputs.
+All results are stored as a .xlsx file in the given save-path</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>save_path (pathlib.Path): Location where to save the results as xlsx.
+heat_pump (BaseCycle): A valid flowsheet
+inputs (List[Inputs]): A list with all inputs to simulate
+<a href="#id1"><span class="problematic" id="id2">**</span></a>kwargs: Solver settings for the flowsheet</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vclibpy.utils.automation.full_factorial_map_generation">
+<span class="sig-prename descclassname"><span class="pre">vclibpy.utils.automation.</span></span><span class="sig-name descname"><span class="pre">full_factorial_map_generation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">heat_pump:</span> <span class="pre">~vclibpy.flowsheets.base.BaseCycle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_eva_in_ar:</span> <span class="pre">list</span> <span class="pre">|</span> <span class="pre">~numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">T_con_in_ar:</span> <span class="pre">list</span> <span class="pre">|</span> <span class="pre">~numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_ar:</span> <span class="pre">list</span> <span class="pre">|</span> <span class="pre">~numpy.ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_flow_con:</span> <span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_flow_eva:</span> <span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path:</span> <span class="pre">~pathlib.Path</span> <span class="pre">|</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dT_eva_superheating=5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dT_con_subcooling=0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">use_multiprocessing:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_plots:</span> <span class="pre">bool</span> <span class="pre">=</span> <span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">**kwargs)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'pathlib.Path'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'pathlib.Path'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/utils/automation.html#full_factorial_map_generation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.utils.automation.full_factorial_map_generation" title="Permalink to this definition"></a></dt>
+<dd><p>Run a full-factorial simulation to create performance maps
+used in other simulation tools like Modelica or to analyze
+the off-design of the flowsheet.
+The results are stored and returned as .sdf and .csv files.
+Currently, only varying T_eva_in, T_con_in, and n is implemented.
+However, changing this to more dimensions or other variables
+is not much work. In this case, please raise an issue.</p>
+<dl>
+<dt>Args:</dt><dd><p>heat_pump (BaseCycle): The flowsheet to use
+T_eva_in_ar: Array with inputs for T_eva_in
+T_con_in_ar: Array with inputs for T_con_in
+n_ar: Array with inputs for n_ar
+m_flow_con: Condenser mass flow rate
+m_flow_eva: Evaporator mass flow rate
+save_path: Where to save all results.
+dT_eva_superheating: Evaporator superheating
+dT_con_subcooling: Condenser subcooling
+use_multiprocessing:</p>
+<blockquote>
+<div><p>True to use multiprocessing. May speed up the calculation. Default is False</p>
+</div></blockquote>
+<dl class="simple">
+<dt>save_plots:</dt><dd><p>True to save plots of each steady state point. Default is False</p>
+</dd>
+</dl>
+<p><a href="#id3"><span class="problematic" id="id4">**</span></a>kwargs: Solver settings for the flowsheet</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>tuple (pathlib.Path, pathlib.Path):</dt><dd><p>Path to the created .sdf file and to the .csv file</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vclibpy.utils.nominal_design">
+<span id="vclibpy-utils-nominal-design-module"></span><h2>vclibpy.utils.nominal_design module<a class="headerlink" href="#module-vclibpy.utils.nominal_design" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="vclibpy.utils.nominal_design.nominal_hp_design">
+<span class="sig-prename descclassname"><span class="pre">vclibpy.utils.nominal_design.</span></span><span class="sig-name descname"><span class="pre">nominal_hp_design</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">heat_pump</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle" title="vclibpy.flowsheets.base.BaseCycle"><span class="pre">BaseCycle</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">dT_con</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dT_eva</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/utils/nominal_design.html#nominal_hp_design"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.utils.nominal_design.nominal_hp_design" title="Permalink to this definition"></a></dt>
+<dd><p>Function to calculate the heat pump design
+at a given nominal point. 
+Args:</p>
+<blockquote>
+<div><p>heat_pump (BaseCycle): A supported flowsheet
+inputs (Inputs):</p>
+<blockquote>
+<div><p>The input values at the nominal point.
+If the mass flow rates are not given, you
+can use dT_con and dT_eva to iteratively calculate
+the mass flow rates in order to achieve the required
+temperature differences at the nominal point.</p>
+</div></blockquote>
+<dl class="simple">
+<dt>dT_con (float):</dt><dd><p>Condenser temperature difference to calculate mass flow rate</p>
+</dd>
+<dt>dT_eva (float):</dt><dd><p>Evaporator temperature difference to calculate mass flow rate</p>
+</dd>
+</dl>
+<p>fluid (str): Fluid to be used.
+<a href="#id5"><span class="problematic" id="id6">**</span></a>kwargs:</p>
+<blockquote>
+<div><p>m_flow_eva_start: Guess start-value for iteration. Default 0.2
+m_flow_con_start: Guess start-value for iteration. Default 1
+accuracy: Minimal accuracy for mass flow rate iteration (in kg/s).</p>
+<blockquote>
+<div><p>Default 0.001 kg/s</p>
+</div></blockquote>
+</div></blockquote>
+</div></blockquote>
+<dl class="simple">
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>dict: A dictionary with all flowsheet states and inputs containing</dt><dd><p>information about the nominal design.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-vclibpy.utils.plotting">
+<span id="vclibpy-utils-plotting-module"></span><h2>vclibpy.utils.plotting module<a class="headerlink" href="#module-vclibpy.utils.plotting" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="vclibpy.utils.plotting.plot_cycle">
+<span class="sig-prename descclassname"><span class="pre">vclibpy.utils.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_cycle</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">med_prop</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.media.MedProp" title="vclibpy.media.media.MedProp"><span class="pre">MedProp</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">states</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference internal" href="vclibpy.media.html#vclibpy.media.states.ThermodynamicState" title="vclibpy.media.states.ThermodynamicState"><span class="pre">ThermodynamicState</span></a><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">show</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.13)"><span class="pre">bool</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/utils/plotting.html#plot_cycle"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.utils.plotting.plot_cycle" title="Permalink to this definition"></a></dt>
+<dd><p>Creates T-h and p-h diagrams for a thermodynamic cycle.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>med_prop (MedProp):</dt><dd><p>Object containing the medium properties and two-phase limits.</p>
+</dd>
+<dt>states (List[ThermodynamicState]):</dt><dd><p>List of thermodynamic states defining the cycle points. Each state
+should contain T, p, and h properties.</p>
+</dd>
+<dt>save_path (pathlib.Path, optional):</dt><dd><p>Path where the plot should be saved. If None, returns the figure
+and axes objects instead. Defaults to None.</p>
+</dd>
+<dt>show (bool):</dt><dd><p>If True, plots are displayed. Default is False.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>tuple(matplotlib.figure.Figure, numpy.ndarray) or None:</dt><dd><p>If save_path is provided, saves the plot and returns None.
+If show is True, shows the plot.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vclibpy.utils.plotting.plot_sdf_map">
+<span class="sig-prename descclassname"><span class="pre">vclibpy.utils.plotting.</span></span><span class="sig-name descname"><span class="pre">plot_sdf_map</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath_sdf</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">nd_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">first_dimension</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">second_dimension</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluids</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">flowsheets</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.List" title="(in Python v3.13)"><span class="pre">List</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">violin_plot_variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">third_dimension</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/utils/plotting.html#plot_sdf_map"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.utils.plotting.plot_sdf_map" title="Permalink to this definition"></a></dt>
+<dd><p>Generate and display visualizations based on data from an SDF (Structured Data File) dataset.
+This function generates various types of visualizations based on the provided parameters,
+including 3D scatter plots, 3D surface plots, and violin plots, and displays them using Matplotlib.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>filepath_sdf (pathlib.Path):</dt><dd><p>The path to the SDF dataset file.</p>
+</dd>
+<dt>nd_data (str):</dt><dd><p>The name of the primary data to be plotted.</p>
+</dd>
+<dt>first_dimension (str):</dt><dd><p>The name of the first dimension for the visualization.</p>
+</dd>
+<dt>second_dimension (str):</dt><dd><p>The name of the second dimension for the visualization.</p>
+</dd>
+<dt>fluids (List[str], optional):</dt><dd><p>List of specific fluids to include in the visualization.
+Default is None, which includes all fluids.</p>
+</dd>
+<dt>flowsheets (List[str], optional):</dt><dd><p>List of specific flowsheets to include in the visualization.
+Default is None, which includes all flowsheets.</p>
+</dd>
+<dt>violin_plot_variable (str, optional):</dt><dd><p>The variable to be used for creating violin plots.
+Default is None, which disables violin plots.</p>
+</dd>
+<dt>third_dimension (str, optional):</dt><dd><p>The name of the third dimension for 4D visualizations.
+Default is None, which disables 4D plotting.</p>
+</dd>
+</dl>
+</dd>
+<dt>Raises:</dt><dd><p>KeyError: If the specified data or dimensions are not found in the dataset.</p>
+</dd>
+</dl>
+<p>Examples:
+&gt;&gt;&gt; FILEPATH_SDF = r”HeatPumpMaps.sdf”
+&gt;&gt;&gt; plot_sdf_map(
+&gt;&gt;&gt;     filepath_sdf=FILEPATH_SDF,
+&gt;&gt;&gt;     nd_data=”COP”,
+&gt;&gt;&gt;     first_dimension=”T_eva_in”,
+&gt;&gt;&gt;     second_dimension=”n”,
+&gt;&gt;&gt;     fluids=[“R410A”],
+&gt;&gt;&gt;     flowsheets=[“OptiHorn”],
+&gt;&gt;&gt; )</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vclibpy.utils.plotting.set_axis_style">
+<span class="sig-prename descclassname"><span class="pre">vclibpy.utils.plotting.</span></span><span class="sig-name descname"><span class="pre">set_axis_style</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">labels</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/utils/plotting.html#set_axis_style"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.utils.plotting.set_axis_style" title="Permalink to this definition"></a></dt>
+<dd><p>From: <a class="reference external" href="https://matplotlib.org/3.1.1/gallery/statistics/customized_violin.html#sphx-glr-gallery-statistics-customized-violin-py">https://matplotlib.org/3.1.1/gallery/statistics/customized_violin.html#sphx-glr-gallery-statistics-customized-violin-py</a></p>
+</dd></dl>
+
+</section>
+<section id="module-vclibpy.utils.printing">
+<span id="vclibpy-utils-printing-module"></span><h2>vclibpy.utils.printing module<a class="headerlink" href="#module-vclibpy.utils.printing" title="Permalink to this heading"></a></h2>
+<p>Created on 24.04.2023</p>
+<p>&#64;author: Christoph Hoeges</p>
+<p>Last Update: 24.04.2023</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="vclibpy.utils.printing.print_states">
+<span class="sig-prename descclassname"><span class="pre">vclibpy.utils.printing.</span></span><span class="sig-name descname"><span class="pre">print_states</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/utils/printing.html#print_states"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.utils.printing.print_states" title="Permalink to this definition"></a></dt>
+<dd><p>Transforms given states to DataFrame and prints table layout.
+Declaration of state must start with ‘state’</p>
+<p>Returns:
+:return pandas.DataFrame df_states:</p>
+<blockquote>
+<div><p>DataFrame with states</p>
+</div></blockquote>
+</dd></dl>
+
+</section>
+<section id="module-vclibpy.utils.sdf_">
+<span id="vclibpy-utils-sdf-module"></span><h2>vclibpy.utils.sdf_ module<a class="headerlink" href="#module-vclibpy.utils.sdf_" title="Permalink to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="vclibpy.utils.sdf_.merge_sdfs">
+<span class="sig-prename descclassname"><span class="pre">vclibpy.utils.sdf_.</span></span><span class="sig-name descname"><span class="pre">merge_sdfs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepaths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/utils/sdf_.html#merge_sdfs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.utils.sdf_.merge_sdfs" title="Permalink to this definition"></a></dt>
+<dd><p>Merge given files and return a merged file.
+Be careful if both files contain the same combination.
+Then, the latter element of the list will overwrite the first one.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>filepaths (list): List with paths to the files
+save_path (str): Save path for the new file</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vclibpy.utils.sdf_.save_to_sdf">
+<span class="sig-prename descclassname"><span class="pre">vclibpy.utils.sdf_.</span></span><span class="sig-name descname"><span class="pre">save_to_sdf</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.13)"><span class="pre">dict</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/utils/sdf_.html#save_to_sdf"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.utils.sdf_.save_to_sdf" title="Permalink to this definition"></a></dt>
+<dd><p>Save given input dictionary to a sdf file in the given save_path</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>data (dict):</dt><dd><p>A dictionary with the following structure:
+Keys: Flowsheet_name
+Values: A dictionary with the following structure:</p>
+<ul class="simple">
+<li><p>Keys: Fluids</p></li>
+<li><dl class="simple">
+<dt>Values: Data dictionaries with the following structure:</dt><dd><p>A tuple with three values, in that order:</p>
+<ul>
+<li><p>scales: Of the given nd_data, e.g. T_Amb, n</p></li>
+<li><p>nd_data: More-dimensional data, e.g. COP</p></li>
+<li><p>parameters: Scalar values, like m_flow_con or similar</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+<p>save_path (pathlib.Path): Where to store the data
+flowsheet_name (str): Name of the flowsheet. This is the top level group</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="vclibpy.utils.sdf_.sdf_to_csv">
+<span class="sig-prename descclassname"><span class="pre">vclibpy.utils.sdf_.</span></span><span class="sig-name descname"><span class="pre">sdf_to_csv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filepath</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">save_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/pathlib.html#pathlib.Path" title="(in Python v3.13)"><span class="pre">Path</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/utils/sdf_.html#sdf_to_csv"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.utils.sdf_.sdf_to_csv" title="Permalink to this definition"></a></dt>
+<dd><p>Convert a given .sdf file to multiple excel files,
+for each combination of flowsheet and refrigerant one file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>filepath (pathlib.Path): sdf file
+save_path (pathlib.Path): Directory where to store the csv files.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="vclibpy-utils-ten-coefficient-compressor-reqression-module">
+<h2>vclibpy.utils.ten_coefficient_compressor_reqression module<a class="headerlink" href="#vclibpy-utils-ten-coefficient-compressor-reqression-module" title="Permalink to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="vclibpy.media.html" class="btn btn-neutral float-left" title="vclibpy.media package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../Contribution.html" class="btn btn-neutral float-right" title="Contribute as a user" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
