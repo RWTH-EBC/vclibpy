@@ -79,7 +79,7 @@
 Further, basic plotting is shown using this data.</p>
 <p>First, let’s import the important classes from vclibpy’s
 <code class="docutils literal notranslate"><span class="pre">media</span></code> module:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">CoolProp</span><span class="p">,</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">TransportProperties</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoolProp</span><span class="p">,</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">TransportProperties</span>
 </pre></div>
 </div>
 <p>We have two media property classes, <code class="docutils literal notranslate"><span class="pre">CoolProp</span></code> and <code class="docutils literal notranslate"><span class="pre">RefProp</span></code>.
@@ -154,7 +154,7 @@ Note: [::-1] reverts the list, letting it start from the critical point.
 <code class="docutils literal notranslate"><span class="pre">[state.T</span> <span class="pre">for</span> <span class="pre">state</span> <span class="pre">in</span> <span class="pre">q0]</span></code> is a list comprehension, quite useful in Python.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">T</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">T</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">q0</span> <span class="o">+</span> <span class="n">q1</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
 <span class="n">h</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">h</span> <span class="k">for</span> <span class="n">state</span> <span class="ow">in</span> <span class="n">q0</span> <span class="o">+</span> <span class="n">q1</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;$T$ in K&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;$h$ in J/kg&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">)</span>

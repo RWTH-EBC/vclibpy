@@ -72,25 +72,25 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.components.heat_exchangers.moving_boundary_ntu</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">abc</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">vclibpy.datamodels</span> <span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
-<span class="kn">from</span> <span class="nn">vclibpy.components.heat_exchangers.ntu</span> <span class="kn">import</span> <span class="n">BasicNTU</span>
-<span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">ThermodynamicState</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.datamodels</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers.ntu</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasicNTU</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermodynamicState</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="MovingBoundaryNTU"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU">[docs]</a><span class="k">class</span> <span class="nc">MovingBoundaryNTU</span><span class="p">(</span><span class="n">BasicNTU</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="MovingBoundaryNTU"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">MovingBoundaryNTU</span><span class="p">(</span><span class="n">BasicNTU</span><span class="p">,</span> <span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Moving boundary NTU based heat exchanger.</span>
 
 <span class="sd">    See parent classe for arguments.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="MovingBoundaryNTU.separate_phases"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU.separate_phases">[docs]</a>    <span class="k">def</span> <span class="nf">separate_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_max</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">state_min</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<div class="viewcode-block" id="MovingBoundaryNTU.separate_phases"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU.separate_phases">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">separate_phases</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_max</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">state_min</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Separates a flow with possible phase changes into three parts:</span>
 <span class="sd">        subcooling (sc), latent phase change (lat), and superheating (sh)</span>
@@ -123,7 +123,7 @@
                        <span class="p">(</span><span class="n">state_max</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_min</span><span class="o">.</span><span class="n">h</span><span class="p">)))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow</span>
         <span class="k">return</span> <span class="n">Q_sc</span><span class="p">,</span> <span class="n">Q_lat</span><span class="p">,</span> <span class="n">Q_sh</span><span class="p">,</span> <span class="n">state_q0</span><span class="p">,</span> <span class="n">state_q1</span></div>
 
-<div class="viewcode-block" id="MovingBoundaryNTU.iterate_area"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU.iterate_area">[docs]</a>    <span class="k">def</span> <span class="nf">iterate_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dT_max</span><span class="p">,</span> <span class="n">alpha_pri</span><span class="p">,</span> <span class="n">alpha_sec</span><span class="p">,</span> <span class="n">Q</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="MovingBoundaryNTU.iterate_area"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU.iterate_area">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">iterate_area</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dT_max</span><span class="p">,</span> <span class="n">alpha_pri</span><span class="p">,</span> <span class="n">alpha_sec</span><span class="p">,</span> <span class="n">Q</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Iteratively calculates the required area for the heat exchange.</span>
 
@@ -174,7 +174,7 @@
         <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">area</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="MovingBoundaryNTUCondenser"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUCondenser">[docs]</a><span class="k">class</span> <span class="nc">MovingBoundaryNTUCondenser</span><span class="p">(</span><span class="n">MovingBoundaryNTU</span><span class="p">):</span>
+<div class="viewcode-block" id="MovingBoundaryNTUCondenser"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUCondenser">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">MovingBoundaryNTUCondenser</span><span class="p">(</span><span class="n">MovingBoundaryNTU</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Condenser class which implements the actual `calc` method.</span>
 
@@ -185,7 +185,7 @@
 <span class="sd">    See parent classes for arguments.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="MovingBoundaryNTUCondenser.calc"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUCondenser.calc">[docs]</a>    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+<div class="viewcode-block" id="MovingBoundaryNTUCondenser.calc"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUCondenser.calc">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the heat exchanger with the NTU-Method based on the given inputs.</span>
 
@@ -305,7 +305,7 @@
                           <span class="n">dT_min_out</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="MovingBoundaryNTUEvaporator"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUEvaporator">[docs]</a><span class="k">class</span> <span class="nc">MovingBoundaryNTUEvaporator</span><span class="p">(</span><span class="n">MovingBoundaryNTU</span><span class="p">):</span>
+<div class="viewcode-block" id="MovingBoundaryNTUEvaporator"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUEvaporator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">MovingBoundaryNTUEvaporator</span><span class="p">(</span><span class="n">MovingBoundaryNTU</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Evaporator class which implements the actual `calc` method.</span>
 
@@ -316,7 +316,7 @@
 <span class="sd">    See parent classes for arguments.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="MovingBoundaryNTUEvaporator.calc"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUEvaporator.calc">[docs]</a>    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+<div class="viewcode-block" id="MovingBoundaryNTUEvaporator.calc"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUEvaporator.calc">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the heat exchanger with the NTU-Method based on the given inputs.</span>
 

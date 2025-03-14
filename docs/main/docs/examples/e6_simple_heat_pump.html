@@ -82,7 +82,7 @@ We can import this flowsheet and see how to use it. Note that
 modern coding IDEs like PyCharm will tell you which arguments belong
 to a class or function. If you don’t have that at hand, you need
 to look into the documentation.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.flowsheets</span> <span class="kn">import</span> <span class="n">BaseCycle</span><span class="p">,</span> <span class="n">StandardCycle</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCycle</span><span class="p">,</span> <span class="n">StandardCycle</span>
 <span class="n">help</span><span class="p">(</span><span class="n">BaseCycle</span><span class="p">)</span>
 <span class="n">help</span><span class="p">(</span><span class="n">StandardCycle</span><span class="p">)</span>
 </pre></div>
@@ -92,8 +92,8 @@ Here we are using the components developed in the previous examples.
 Also, note again that the expansion valve model does not influence the results
 for the current algorithm. But, you could size the expansion valve
 using vclibpy, including off-design, but this is one for another example.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.components.heat_exchangers</span> <span class="kn">import</span> <span class="n">moving_boundary_ntu</span>
-<span class="kn">from</span> <span class="nn">vclibpy.components.heat_exchangers</span> <span class="kn">import</span> <span class="n">heat_transfer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers</span><span class="w"> </span><span class="kn">import</span> <span class="n">moving_boundary_ntu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers</span><span class="w"> </span><span class="kn">import</span> <span class="n">heat_transfer</span>
 <span class="n">condenser</span> <span class="o">=</span> <span class="n">moving_boundary_ntu</span><span class="o">.</span><span class="n">MovingBoundaryNTUCondenser</span><span class="p">(</span>
     <span class="n">A</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
     <span class="n">secondary_medium</span><span class="o">=</span><span class="s2">&quot;water&quot;</span><span class="p">,</span>
@@ -116,10 +116,10 @@ using vclibpy, including off-design, but this is one for another example.</p>
     <span class="n">liquid_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">5000</span><span class="p">),</span>
     <span class="n">secondary_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">vclibpy.components.expansion_valves</span> <span class="kn">import</span> <span class="n">Bernoulli</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.expansion_valves</span><span class="w"> </span><span class="kn">import</span> <span class="n">Bernoulli</span>
 <span class="n">expansion_valve</span> <span class="o">=</span> <span class="n">Bernoulli</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy.components.compressors</span> <span class="kn">import</span> <span class="n">RotaryCompressor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.compressors</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotaryCompressor</span>
 <span class="n">compressor</span> <span class="o">=</span> <span class="n">RotaryCompressor</span><span class="p">(</span>
     <span class="n">N_max</span><span class="o">=</span><span class="mi">125</span><span class="p">,</span>
     <span class="n">V_h</span><span class="o">=</span><span class="mf">19e-6</span>
@@ -148,10 +148,10 @@ solver settings and inputs to vary:</p>
 using all inputs. The results will be stored under the
 save-path. To see some logs, we can import the logging module
 and get, for example, all messages equal or above the INFO-level</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy</span> <span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
 <span class="n">save_path_sdf</span><span class="p">,</span> <span class="n">save_path_csv</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">full_factorial_map_generation</span><span class="p">(</span>
     <span class="n">heat_pump</span><span class="o">=</span><span class="n">heat_pump</span><span class="p">,</span>
     <span class="n">save_path</span><span class="o">=</span><span class="n">save_path</span><span class="p">,</span>
@@ -169,19 +169,19 @@ and get, for example, all messages equal or above the INFO-level</p>
 </div>
 <p>What did just happen? We can analyze all results by listing the
 files in the save-path - or just open it in our default system explorer.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">save_path</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>One file should be: <code class="docutils literal notranslate"><span class="pre">Standard_Propane.csv</span></code>. We can load this file and plot</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">save_path_csv</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
 <span class="n">df</span>
 </pre></div>
 </div>
 <p>Now, we can plot variables, for example as a scatter plot using matplotlib.
 You have to know the names, which are the column headers.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">x_name</span> <span class="o">=</span> <span class="s2">&quot;n in - (Relative compressor speed)&quot;</span>
 <span class="n">y_name</span> <span class="o">=</span> <span class="s2">&quot;COP in - (Coefficient of performance)&quot;</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">x_name</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">y_name</span><span class="p">])</span>
@@ -195,7 +195,7 @@ However, other inputs (temperatures) have a greater impact on the COP.
 We can also use existing 3D-plotting scripts in vclibpy to analyze the
 dependencies. For this, we need the .sdf file. In the sdf, the field names are without
 the unit and description, as those are accessible in the file-format in other columns.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.utils.plotting</span> <span class="kn">import</span> <span class="n">plot_sdf_map</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.utils.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_sdf_map</span>
 <span class="n">plot_sdf_map</span><span class="p">(</span>
     <span class="n">filepath_sdf</span><span class="o">=</span><span class="n">save_path_sdf</span><span class="p">,</span>
     <span class="n">nd_data</span><span class="o">=</span><span class="s2">&quot;COP&quot;</span><span class="p">,</span>

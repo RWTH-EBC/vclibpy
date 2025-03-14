@@ -72,14 +72,14 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.utils.sdf_</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">itertools</span>
-<span class="kn">import</span> <span class="nn">pathlib</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
 
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">sdf</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sdf</span>
 
 
-<div class="viewcode-block" id="save_to_sdf"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.sdf_.save_to_sdf">[docs]</a><span class="k">def</span> <span class="nf">save_to_sdf</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">):</span>
+<div class="viewcode-block" id="save_to_sdf"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.sdf_.save_to_sdf">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">save_to_sdf</span><span class="p">(</span><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Save given input dictionary to a sdf file in the given save_path</span>
 
@@ -147,7 +147,7 @@
     <span class="k">return</span> <span class="n">save_path</span></div>
 
 
-<div class="viewcode-block" id="merge_sdfs"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.sdf_.merge_sdfs">[docs]</a><span class="k">def</span> <span class="nf">merge_sdfs</span><span class="p">(</span><span class="n">filepaths</span><span class="p">,</span> <span class="n">save_path</span><span class="p">):</span>
+<div class="viewcode-block" id="merge_sdfs"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.sdf_.merge_sdfs">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">merge_sdfs</span><span class="p">(</span><span class="n">filepaths</span><span class="p">,</span> <span class="n">save_path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Merge given files and return a merged file.</span>
 <span class="sd">    Be careful if both files contain the same combination.</span>
@@ -184,7 +184,7 @@
     <span class="k">return</span> <span class="n">save_path</span></div>
 
 
-<div class="viewcode-block" id="sdf_to_csv"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.sdf_.sdf_to_csv">[docs]</a><span class="k">def</span> <span class="nf">sdf_to_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">):</span>
+<div class="viewcode-block" id="sdf_to_csv"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.sdf_.sdf_to_csv">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">sdf_to_csv</span><span class="p">(</span><span class="n">filepath</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span> <span class="n">save_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Convert a given .sdf file to multiple excel files,</span>
 <span class="sd">    for each combination of flowsheet and refrigerant one file.</span>
@@ -205,17 +205,17 @@
             <span class="n">df</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">save_path</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">flowsheet</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">fluid</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">.csv&quot;</span><span class="p">))</span></div>
 
 
-<span class="k">def</span> <span class="nf">_get_name</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_name</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> in </span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">unit</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">data</span><span class="o">.</span><span class="n">comment</span><span class="si">}</span><span class="s2">)&quot;</span>
 
 
-<span class="k">def</span> <span class="nf">_is_nd</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_is_nd</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">scales</span> <span class="o">==</span> <span class="p">[</span><span class="kc">None</span><span class="p">]:</span>
         <span class="k">return</span> <span class="kc">False</span>
     <span class="k">return</span> <span class="kc">True</span>
 
 
-<span class="k">def</span> <span class="nf">_unpack_nd_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">_unpack_nd_data</span><span class="p">(</span><span class="n">data</span><span class="p">):</span>
     <span class="n">column_name</span> <span class="o">=</span> <span class="n">_get_name</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
     <span class="n">scale_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">_get_name</span><span class="p">(</span><span class="n">scale</span><span class="p">)</span> <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">scales</span><span class="p">]</span>
     <span class="n">scales_with_idx</span> <span class="o">=</span> <span class="p">[[(</span><span class="n">idx</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">scale</span><span class="o">.</span><span class="n">data</span><span class="p">)]</span> <span class="k">for</span> <span class="n">scale</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">scales</span><span class="p">]</span>

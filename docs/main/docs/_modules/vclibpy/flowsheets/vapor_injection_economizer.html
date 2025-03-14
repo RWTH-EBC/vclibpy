@@ -72,13 +72,13 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.flowsheets.vapor_injection_economizer</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy.flowsheets.vapor_injection</span> <span class="kn">import</span> <span class="n">BaseVaporInjection</span>
-<span class="kn">from</span> <span class="nn">vclibpy.components.heat_exchangers.economizer</span> <span class="kn">import</span> <span class="n">VaporInjectionEconomizerNTU</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets.vapor_injection</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseVaporInjection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers.economizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">VaporInjectionEconomizerNTU</span>
 
 
-<div class="viewcode-block" id="VaporInjectionEconomizer"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer">[docs]</a><span class="k">class</span> <span class="nc">VaporInjectionEconomizer</span><span class="p">(</span><span class="n">BaseVaporInjection</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionEconomizer"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">VaporInjectionEconomizer</span><span class="p">(</span><span class="n">BaseVaporInjection</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Cycle with vapor injection using an economizer.</span>
 
@@ -108,16 +108,16 @@
 
     <span class="n">flowsheet_name</span> <span class="o">=</span> <span class="s2">&quot;VaporInjectionEconomizer&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">economizer</span><span class="p">:</span> <span class="n">VaporInjectionEconomizerNTU</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">economizer</span><span class="p">:</span> <span class="n">VaporInjectionEconomizerNTU</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span> <span class="o">=</span> <span class="n">economizer</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="VaporInjectionEconomizer.get_all_components"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_all_components">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionEconomizer.get_all_components"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_all_components">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_all_components</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span>
         <span class="p">]</span></div>
 
-<div class="viewcode-block" id="VaporInjectionEconomizer.calc_injection"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.calc_injection">[docs]</a>    <span class="k">def</span> <span class="nf">calc_injection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionEconomizer.calc_injection"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.calc_injection">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_injection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This calculation assumes that the heat transfer</span>
 <span class="sd">        of the higher temperature liquid is always in the subcooling</span>
@@ -209,7 +209,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_outlet</span> <span class="o">=</span> <span class="n">state_7_ihx</span>
         <span class="k">return</span> <span class="n">x_vi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_outlet</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="n">state_7_ihx</span></div>
 
-<div class="viewcode-block" id="VaporInjectionEconomizer.get_states_in_order_for_plotting"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_states_in_order_for_plotting">[docs]</a>    <span class="k">def</span> <span class="nf">get_states_in_order_for_plotting</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionEconomizer.get_states_in_order_for_plotting"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_states_in_order_for_plotting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_states_in_order_for_plotting</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_states_in_order_for_plotting</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_inlet</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_outlet</span><span class="p">,</span>

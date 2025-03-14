@@ -75,15 +75,15 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Module with basic functions to calculate heat transfer coefficients.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">TransportProperties</span><span class="p">,</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">MedProp</span>
-<span class="kn">from</span> <span class="nn">vclibpy.datamodels</span> <span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransportProperties</span><span class="p">,</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">MedProp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.datamodels</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
 
 
-<div class="viewcode-block" id="HeatTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer">[docs]</a><span class="k">class</span> <span class="nc">HeatTransfer</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="HeatTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">HeatTransfer</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class to implement possible heat transfer models.</span>
 
@@ -94,7 +94,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="HeatTransfer.calc"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer.calc">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport_properties</span><span class="p">:</span> <span class="n">TransportProperties</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport_properties</span><span class="p">:</span> <span class="n">TransportProperties</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate heat transfer.</span>
 
@@ -111,13 +111,13 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
 
 
-<div class="viewcode-block" id="TwoPhaseHeatTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.TwoPhaseHeatTransfer">[docs]</a><span class="k">class</span> <span class="nc">TwoPhaseHeatTransfer</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="TwoPhaseHeatTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.TwoPhaseHeatTransfer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TwoPhaseHeatTransfer</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class to implement possible heat transfer models</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="TwoPhaseHeatTransfer.calc"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.TwoPhaseHeatTransfer.calc">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">state_q0</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">,</span>
             <span class="n">state_q1</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">,</span>
@@ -150,7 +150,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span></div></div>
 
 
-<div class="viewcode-block" id="calc_reynolds_pipe"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.calc_reynolds_pipe">[docs]</a><span class="k">def</span> <span class="nf">calc_reynolds_pipe</span><span class="p">(</span><span class="n">dynamic_viscosity</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">characteristic_length</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="calc_reynolds_pipe"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.calc_reynolds_pipe">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">calc_reynolds_pipe</span><span class="p">(</span><span class="n">dynamic_viscosity</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">characteristic_length</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate Reynolds number for flow inside a pipe.</span>
 

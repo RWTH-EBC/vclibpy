@@ -78,7 +78,7 @@
 and its children.</p>
 <p>First, let’s import an exemplary compressor from vclibpy’s
 <code class="docutils literal notranslate"><span class="pre">compressor</span></code> package:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.components.compressors</span> <span class="kn">import</span> <span class="n">ConstantEffectivenessCompressor</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.compressors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConstantEffectivenessCompressor</span>
 </pre></div>
 </div>
 <p>The <code class="docutils literal notranslate"><span class="pre">ConstantEffectivenessCompressor</span></code> uses constant efficiencies to model the compressor.
@@ -99,7 +99,7 @@ Check out the documentation to see relevant parameters:</p>
 <p>Before we can do any calculations, the compressor needs
 access to refrigerant data. Each component in VcLibPy has
 the property med_prop (media property) which you can set like this:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">CoolProp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoolProp</span>
 <span class="n">med_prop</span> <span class="o">=</span> <span class="n">CoolProp</span><span class="p">(</span><span class="n">fluid_name</span><span class="o">=</span><span class="s2">&quot;Propane&quot;</span><span class="p">)</span>
 <span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">med_prop</span> <span class="o">=</span> <span class="n">med_prop</span>
 </pre></div>
@@ -117,7 +117,7 @@ We assume a super-heated vapor at 1bar as an input state:</p>
 the argument <code class="docutils literal notranslate"><span class="pre">inputs</span></code> and <code class="docutils literal notranslate"><span class="pre">fs_state</span></code>. The whole concept of the two
 classes are explained in the third example. For now, we just instantiate
 the classes and pass a relative compressor speed of 50 % (0.5) as an input.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy</span> <span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
 <span class="n">fs_state</span> <span class="o">=</span> <span class="n">FlowsheetState</span><span class="p">()</span>
 <span class="n">inputs</span> <span class="o">=</span> <span class="n">Inputs</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
 </pre></div>
@@ -141,7 +141,7 @@ We can do so by passing an outlet pressure to the function <code class="docutils
 </div>
 <p>You can play around with the compressor speed (which has no effect due to constant efficiencies)
 or the compression ratio. Let’s do the latter for the outlet temperature:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="n">ratios</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
 <span class="n">T_outlets</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">ratio</span> <span class="ow">in</span> <span class="n">ratios</span><span class="p">:</span>
@@ -152,7 +152,7 @@ or the compression ratio. Let’s do the latter for the outlet temperature:</p>
 </pre></div>
 </div>
 <p>Let’s plot the results:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">ratios</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">T_outlets</span><span class="p">)</span> <span class="o">-</span> <span class="mf">273.15</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;$T_\mathrm</span><span class="si">{Outlet}</span><span class="s2">$ in °C&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;$\Pi$ in -&quot;</span><span class="p">)</span>
@@ -181,7 +181,7 @@ The function <code class="docutils literal notranslate"><span class="pre">calc_m
 </pre></div>
 </div>
 <p>Let’s plot the results:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">speeds</span><span class="p">,</span> <span class="n">m_flows</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;$\dot</span><span class="si">{m}</span><span class="s2">$ in kg/s&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;$n$ in -&quot;</span><span class="p">)</span>
@@ -209,7 +209,7 @@ mass flow rate and outlet state again, as this may influence the result.</p>
 for the first time, we will go deeper into these classes in the third example.
 You can alter the compressor in use by importing other compressors, such as
 <code class="docutils literal notranslate"><span class="pre">RotaryCompressor</span></code> or <code class="docutils literal notranslate"><span class="pre">TenCoefficientCompressor</span></code>. Check if you can use these components as well.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.components.compressors</span> <span class="kn">import</span> <span class="n">RotaryCompressor</span><span class="p">,</span> <span class="n">TenCoefficientCompressor</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.compressors</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotaryCompressor</span><span class="p">,</span> <span class="n">TenCoefficientCompressor</span>
 <span class="n">help</span><span class="p">(</span><span class="n">RotaryCompressor</span><span class="p">)</span>
 <span class="n">help</span><span class="p">(</span><span class="n">TenCoefficientCompressor</span><span class="p">)</span>
 </pre></div>

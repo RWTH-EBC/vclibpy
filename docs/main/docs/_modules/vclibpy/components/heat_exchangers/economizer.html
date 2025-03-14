@@ -72,15 +72,15 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.components.heat_exchangers.economizer</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy.components.heat_exchangers.ntu</span> <span class="kn">import</span> <span class="n">BasicNTU</span>
-<span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">ThermodynamicState</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers.ntu</span><span class="w"> </span><span class="kn">import</span> <span class="n">BasicNTU</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermodynamicState</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="VaporInjectionEconomizerNTU"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU">[docs]</a><span class="k">class</span> <span class="nc">VaporInjectionEconomizerNTU</span><span class="p">(</span><span class="n">BasicNTU</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionEconomizerNTU"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">VaporInjectionEconomizerNTU</span><span class="p">(</span><span class="n">BasicNTU</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Economizer heat exchanger which is NTU based.</span>
 <span class="sd">    Used only for vapor injection cycles, as</span>
@@ -98,7 +98,7 @@
 <span class="sd">    liquid and two-phase models are used for both sides.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;secondary_heat_transfer&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;secondary_medium&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_state_two_phase_outlet</span> <span class="o">=</span> <span class="kc">None</span>
@@ -111,38 +111,38 @@
             <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">state_two_phase_inlet</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ThermodynamicState</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_two_phase_inlet</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ThermodynamicState</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_two_phase_inlet</span>
 
     <span class="nd">@state_two_phase_inlet</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">state_two_phase_inlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_inlet</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_two_phase_inlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_inlet</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_state_two_phase_inlet</span> <span class="o">=</span> <span class="n">state_inlet</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">state_two_phase_outlet</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ThermodynamicState</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_two_phase_outlet</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ThermodynamicState</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_two_phase_outlet</span>
 
     <span class="nd">@state_two_phase_outlet</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">state_two_phase_outlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_outlet</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_two_phase_outlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_outlet</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_state_two_phase_outlet</span> <span class="o">=</span> <span class="n">state_outlet</span>
 
-<div class="viewcode-block" id="VaporInjectionEconomizerNTU.calc"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc">[docs]</a>    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionEconomizerNTU.calc"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Could be moved from VaporInjectionEconomizer&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="VaporInjectionEconomizerNTU.set_secondary_cp"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.set_secondary_cp">[docs]</a>    <span class="k">def</span> <span class="nf">set_secondary_cp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cp</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionEconomizerNTU.set_secondary_cp"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.set_secondary_cp">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_secondary_cp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cp</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Set primary m_flow_cp&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_secondary_cp</span> <span class="o">=</span> <span class="n">cp</span></div>
 
-<div class="viewcode-block" id="VaporInjectionEconomizerNTU.start_secondary_med_prop"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.start_secondary_med_prop">[docs]</a>    <span class="k">def</span> <span class="nf">start_secondary_med_prop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionEconomizerNTU.start_secondary_med_prop"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.start_secondary_med_prop">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">start_secondary_med_prop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">med_prop_sec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span></div>
 
-<div class="viewcode-block" id="VaporInjectionEconomizerNTU.terminate_secondary_med_prop"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.terminate_secondary_med_prop">[docs]</a>    <span class="k">def</span> <span class="nf">terminate_secondary_med_prop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionEconomizerNTU.terminate_secondary_med_prop"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.terminate_secondary_med_prop">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">terminate_secondary_med_prop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">pass</span>  <span class="c1"># Not required as it is the central med_prop class</span></div>
 
-<div class="viewcode-block" id="VaporInjectionEconomizerNTU.calc_alpha_secondary"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc_alpha_secondary">[docs]</a>    <span class="k">def</span> <span class="nf">calc_alpha_secondary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport_properties</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionEconomizerNTU.calc_alpha_secondary"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc_alpha_secondary">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_alpha_secondary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport_properties</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Economizer does not use secondary heat transfer model.&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="VaporInjectionEconomizerNTU.calc_transport_properties_secondary_medium"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc_transport_properties_secondary_medium">[docs]</a>    <span class="k">def</span> <span class="nf">calc_transport_properties_secondary_medium</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionEconomizerNTU.calc_transport_properties_secondary_medium"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc_transport_properties_secondary_medium">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_transport_properties_secondary_medium</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Economizer does not use this method&quot;</span><span class="p">)</span></div></div>
 </pre></div>
 

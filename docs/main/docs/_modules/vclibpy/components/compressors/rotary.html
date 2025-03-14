@@ -72,11 +72,11 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.components.compressors.rotary</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">vclibpy.components.compressors.compressor</span> <span class="kn">import</span> <span class="n">Compressor</span>
-<span class="kn">from</span> <span class="nn">vclibpy.datamodels</span> <span class="kn">import</span> <span class="n">Inputs</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.compressors.compressor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Compressor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.datamodels</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inputs</span>
 
 
-<div class="viewcode-block" id="RotaryCompressor"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.rotary.RotaryCompressor">[docs]</a><span class="k">class</span> <span class="nc">RotaryCompressor</span><span class="p">(</span><span class="n">Compressor</span><span class="p">):</span>
+<div class="viewcode-block" id="RotaryCompressor"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.rotary.RotaryCompressor">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">RotaryCompressor</span><span class="p">(</span><span class="n">Compressor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compressor model based on the thesis of Mirko Engelpracht.</span>
 
@@ -99,7 +99,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="RotaryCompressor.get_lambda_h"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.rotary.RotaryCompressor.get_lambda_h">[docs]</a>    <span class="k">def</span> <span class="nf">get_lambda_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="RotaryCompressor.get_lambda_h"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.rotary.RotaryCompressor.get_lambda_h">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_lambda_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the volumetric efficiency based on the regressions of Mirko Engelpracht.</span>
 
@@ -137,7 +137,7 @@
                 <span class="n">a_6</span> <span class="o">*</span> <span class="p">((</span><span class="n">n</span> <span class="o">-</span> <span class="n">n_ave</span><span class="p">)</span> <span class="o">/</span> <span class="n">sigma_n</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span>
         <span class="p">)</span></div>
 
-<div class="viewcode-block" id="RotaryCompressor.get_eta_isentropic"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.rotary.RotaryCompressor.get_eta_isentropic">[docs]</a>    <span class="k">def</span> <span class="nf">get_eta_isentropic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="RotaryCompressor.get_eta_isentropic"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.rotary.RotaryCompressor.get_eta_isentropic">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_eta_isentropic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the isentropic efficiency based on the regressions of Mirko Engelpracht.</span>
 
@@ -166,7 +166,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Efficiency is lower or equal to 0&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">eta</span></div>
 
-<div class="viewcode-block" id="RotaryCompressor.get_eta_mech"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.rotary.RotaryCompressor.get_eta_mech">[docs]</a>    <span class="k">def</span> <span class="nf">get_eta_mech</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="RotaryCompressor.get_eta_mech"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.rotary.RotaryCompressor.get_eta_mech">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_eta_mech</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the mechanical efficiency based on the regressions of Mirko Engelpracht.</span>
 

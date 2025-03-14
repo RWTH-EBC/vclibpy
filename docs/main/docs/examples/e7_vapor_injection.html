@@ -77,7 +77,7 @@
 <p>Let’s use a flowsheet which is more complex, e.g. the vapor injection
 with a phase seperator.
 We can import this flowsheet and how to use it like this:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.flowsheets</span> <span class="kn">import</span> <span class="n">VaporInjectionPhaseSeparator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VaporInjectionPhaseSeparator</span>
 <span class="n">help</span><span class="p">(</span><span class="n">VaporInjectionPhaseSeparator</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -88,8 +88,8 @@ the current algorithm, we will just use the same expansion-valve
 twice. Note, that you could size the two expansion valves
 using vclibpy, including off-design, but this is one for another
 example.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.components.heat_exchangers</span> <span class="kn">import</span> <span class="n">moving_boundary_ntu</span>
-<span class="kn">from</span> <span class="nn">vclibpy.components.heat_exchangers</span> <span class="kn">import</span> <span class="n">heat_transfer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers</span><span class="w"> </span><span class="kn">import</span> <span class="n">moving_boundary_ntu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers</span><span class="w"> </span><span class="kn">import</span> <span class="n">heat_transfer</span>
 <span class="n">condenser</span> <span class="o">=</span> <span class="n">moving_boundary_ntu</span><span class="o">.</span><span class="n">MovingBoundaryNTUCondenser</span><span class="p">(</span>
     <span class="n">A</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
     <span class="n">secondary_medium</span><span class="o">=</span><span class="s2">&quot;water&quot;</span><span class="p">,</span>
@@ -112,7 +112,7 @@ example.</p>
     <span class="n">liquid_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">5000</span><span class="p">),</span>
     <span class="n">secondary_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">vclibpy.components.expansion_valves</span> <span class="kn">import</span> <span class="n">Bernoulli</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.expansion_valves</span><span class="w"> </span><span class="kn">import</span> <span class="n">Bernoulli</span>
 <span class="n">high_pressure_valve</span> <span class="o">=</span> <span class="n">Bernoulli</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 <span class="n">low_pressure_valve</span> <span class="o">=</span> <span class="n">Bernoulli</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
 </pre></div>
@@ -121,7 +121,7 @@ example.</p>
 compressors. To achieve a somewhat similar heat pump as the
 one in the standard-cycle example, we will  assume that we
 use two smaller compressors instead of one larger one:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.components.compressors</span> <span class="kn">import</span> <span class="n">RotaryCompressor</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.compressors</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotaryCompressor</span>
 <span class="n">high_pressure_compressor</span> <span class="o">=</span> <span class="n">RotaryCompressor</span><span class="p">(</span>
     <span class="n">N_max</span><span class="o">=</span><span class="mi">125</span><span class="p">,</span>
     <span class="n">V_h</span><span class="o">=</span><span class="mf">19e-6</span> <span class="o">/</span> <span class="mi">2</span>
@@ -156,10 +156,10 @@ solver settings and inputs to vary:</p>
 using all inputs. The results will be stored under the
 save-path. To see some logs, we can import the logging module
 and get, for example, all messages equal or above the INFO-level</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">logging</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 <span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy</span> <span class="kn">import</span> <span class="n">utils</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
 <span class="n">utils</span><span class="o">.</span><span class="n">full_factorial_map_generation</span><span class="p">(</span>
     <span class="n">heat_pump</span><span class="o">=</span><span class="n">heat_pump</span><span class="p">,</span>
     <span class="n">save_path</span><span class="o">=</span><span class="n">save_path</span><span class="p">,</span>
@@ -183,12 +183,12 @@ and get, for example, all messages equal or above the INFO-level</p>
 <p>Aside from the phase-separator flowsheet, we have one with
 an economizer (additional heat exchanger).
 The assumptions are similar, and the usage as well:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.flowsheets</span> <span class="kn">import</span> <span class="n">VaporInjectionEconomizer</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets</span><span class="w"> </span><span class="kn">import</span> <span class="n">VaporInjectionEconomizer</span>
 <span class="n">help</span><span class="p">(</span><span class="n">VaporInjectionEconomizer</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>We need an additional economizer, which can be found in the heat exchangers:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.components.heat_exchangers.economizer</span> <span class="kn">import</span> <span class="n">VaporInjectionEconomizerNTU</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers.economizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">VaporInjectionEconomizerNTU</span>
 <span class="n">help</span><span class="p">(</span><span class="n">VaporInjectionEconomizerNTU</span><span class="p">)</span>
 </pre></div>
 </div>

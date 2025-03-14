@@ -76,22 +76,22 @@
 <span class="sd">Module with a simple phase separator model.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">ThermodynamicState</span>
-<span class="kn">from</span> <span class="nn">vclibpy.components.component</span> <span class="kn">import</span> <span class="n">BaseComponent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermodynamicState</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.component</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseComponent</span>
 
 
-<div class="viewcode-block" id="PhaseSeparator"><a class="viewcode-back" href="../../../code/vclibpy.components.html#vclibpy.components.phase_separator.PhaseSeparator">[docs]</a><span class="k">class</span> <span class="nc">PhaseSeparator</span><span class="p">(</span><span class="n">BaseComponent</span><span class="p">):</span>
+<div class="viewcode-block" id="PhaseSeparator"><a class="viewcode-back" href="../../../code/vclibpy.components.html#vclibpy.components.phase_separator.PhaseSeparator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">PhaseSeparator</span><span class="p">(</span><span class="n">BaseComponent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    A simple phase separator model.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_state_outlet_liquid</span><span class="p">:</span> <span class="n">ThermodynamicState</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_state_outlet_vapor</span><span class="p">:</span> <span class="n">ThermodynamicState</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@BaseComponent</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">state_inlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_inlet</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_inlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state_inlet</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Set the state of the inlet and calculate the outlet states for liquid and vapor phases.</span>
 
@@ -103,7 +103,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">state_outlet_liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
     <span class="nd">@BaseComponent</span><span class="o">.</span><span class="n">state_outlet</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">state_outlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_outlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        This outlet is disabled for this component.</span>
 
@@ -113,7 +113,7 @@
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;This outlet is disabled for this component&quot;</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">state_outlet_vapor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ThermodynamicState</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_outlet_vapor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ThermodynamicState</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Getter for the outlet state of the vapor phase.</span>
 
@@ -123,7 +123,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_outlet_vapor</span>
 
     <span class="nd">@state_outlet_vapor</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">state_outlet_vapor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_outlet_vapor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Setter for the outlet state of the vapor phase.</span>
 
@@ -133,7 +133,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_state_outlet_vapor</span> <span class="o">=</span> <span class="n">state</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">state_outlet_liquid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ThermodynamicState</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_outlet_liquid</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ThermodynamicState</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Getter for the outlet state of the liquid phase.</span>
 
@@ -143,7 +143,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_outlet_liquid</span>
 
     <span class="nd">@state_outlet_liquid</span><span class="o">.</span><span class="n">setter</span>
-    <span class="k">def</span> <span class="nf">state_outlet_liquid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">state_outlet_liquid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Setter for the outlet state of the liquid phase.</span>
 

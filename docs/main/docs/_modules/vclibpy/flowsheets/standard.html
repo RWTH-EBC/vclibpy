@@ -72,13 +72,13 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.flowsheets.standard</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">vclibpy.flowsheets</span> <span class="kn">import</span> <span class="n">BaseCycle</span>
-<span class="kn">from</span> <span class="nn">vclibpy.datamodels</span> <span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
-<span class="kn">from</span> <span class="nn">vclibpy.components.compressors</span> <span class="kn">import</span> <span class="n">Compressor</span>
-<span class="kn">from</span> <span class="nn">vclibpy.components.expansion_valves</span> <span class="kn">import</span> <span class="n">ExpansionValve</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCycle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.datamodels</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.compressors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Compressor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.expansion_valves</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExpansionValve</span>
 
 
-<div class="viewcode-block" id="StandardCycle"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle">[docs]</a><span class="k">class</span> <span class="nc">StandardCycle</span><span class="p">(</span><span class="n">BaseCycle</span><span class="p">):</span>
+<div class="viewcode-block" id="StandardCycle"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">StandardCycle</span><span class="p">(</span><span class="n">BaseCycle</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class for a standard cycle with four components.</span>
 
@@ -92,7 +92,7 @@
 
     <span class="n">flowsheet_name</span> <span class="o">=</span> <span class="s2">&quot;Standard&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">compressor</span><span class="p">:</span> <span class="n">Compressor</span><span class="p">,</span>
             <span class="n">expansion_valve</span><span class="p">:</span> <span class="n">ExpansionValve</span><span class="p">,</span>
@@ -102,13 +102,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span> <span class="o">=</span> <span class="n">compressor</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span> <span class="o">=</span> <span class="n">expansion_valve</span>
 
-<div class="viewcode-block" id="StandardCycle.get_all_components"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.get_all_components">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="StandardCycle.get_all_components"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.get_all_components">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_all_components</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span>
         <span class="p">]</span></div>
 
-<div class="viewcode-block" id="StandardCycle.get_states_in_order_for_plotting"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.get_states_in_order_for_plotting">[docs]</a>    <span class="k">def</span> <span class="nf">get_states_in_order_for_plotting</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="StandardCycle.get_states_in_order_for_plotting"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.get_states_in_order_for_plotting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_states_in_order_for_plotting</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
@@ -123,7 +123,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
         <span class="p">]</span></div>
 
-<div class="viewcode-block" id="StandardCycle.calc_states"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.calc_states">[docs]</a>    <span class="k">def</span> <span class="nf">calc_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_1</span><span class="p">,</span> <span class="n">p_2</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">):</span>
+<div class="viewcode-block" id="StandardCycle.calc_states"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.calc_states">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_1</span><span class="p">,</span> <span class="n">p_2</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_condenser_outlet_based_on_subcooling</span><span class="p">(</span><span class="n">p_con</span><span class="o">=</span><span class="n">p_2</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_outlet</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve</span><span class="o">.</span><span class="n">calc_outlet</span><span class="p">(</span><span class="n">p_outlet</span><span class="o">=</span><span class="n">p_1</span><span class="p">)</span>
@@ -161,7 +161,7 @@
         <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;p_con&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">p_2</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Pa&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Condensation pressure&quot;</span><span class="p">)</span>
         <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;p_eva&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">p_1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;Pa&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Evaporation pressure&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="StandardCycle.calc_electrical_power"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.calc_electrical_power">[docs]</a>    <span class="k">def</span> <span class="nf">calc_electrical_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">):</span>
+<div class="viewcode-block" id="StandardCycle.calc_electrical_power"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.standard.StandardCycle.calc_electrical_power">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_electrical_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Based on simple energy balance - Adiabatic&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">calc_electrical_power</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span></div></div>
 </pre></div>

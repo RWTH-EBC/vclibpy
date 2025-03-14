@@ -72,18 +72,18 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 
-<span class="kn">from</span> <span class="nn">.air_to_wall</span> <span class="kn">import</span> <span class="n">AirToWallTransfer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.air_to_wall</span><span class="w"> </span><span class="kn">import</span> <span class="n">AirToWallTransfer</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
 <div class="viewcode-block" id="AirSourceHeatExchangerGeometry"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry">[docs]</a><span class="nd">@dataclass</span>
-<span class="k">class</span> <span class="nc">AirSourceHeatExchangerGeometry</span><span class="p">:</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AirSourceHeatExchangerGeometry</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Geometry of a fin and tube heat exchanger with two rows of pipes in a shifted arrangement.</span>
 
@@ -105,37 +105,37 @@
     <span class="n">hoehe</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.64</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">char_length</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">char_length</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the characteristic length d_a.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_a</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">A_Rippen</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">A_Rippen</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return the total surface area of the fins.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="mi">2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_Rippen</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tiefe</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">hoehe</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_Rohre</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_a</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">A</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">A</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Total air side heat transfer area.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">A_Rippen</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">A_FreieOberflaecheRohr</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">A_FreieOberflaecheRohr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">A_FreieOberflaecheRohr</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Free air side area of the tubes.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_Rippen</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_a</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_Rohre</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">A_RohrInnen</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">A_RohrInnen</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Total refrigerant heat transfer area.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">laenge</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_i</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_Rohre</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">A_RohrUnberippt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">A_RohrUnberippt</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Total outside area of the tubes without fins&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">laenge</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_Rohre</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">verjuengungsfaktor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">verjuengungsfaktor</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Reduction factor A_cross_free/A_cross_smallest&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">hoehe</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">laenge</span><span class="p">)</span> <span class="o">/</span>
                 <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">hoehe</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">laenge</span> <span class="o">-</span>
@@ -143,7 +143,7 @@
                  <span class="bp">self</span><span class="o">.</span><span class="n">d_a</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_Rohre</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">laenge</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_Rippen</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dicke_rippe</span><span class="p">)))</span>
 
     <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">phi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">phi</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Auxiliary variable for fin efficiency&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_l</span> <span class="o">&gt;=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_q</span><span class="p">:</span>
             <span class="n">b_r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">t_q</span>
@@ -153,7 +153,7 @@
         <span class="n">phi_strich</span> <span class="o">=</span> <span class="mf">1.27</span> <span class="o">*</span> <span class="n">b_r</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_a</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">l_r</span> <span class="o">/</span> <span class="n">b_r</span> <span class="o">-</span> <span class="mf">0.3</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">phi_strich</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="mf">0.35</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">phi_strich</span><span class="p">))</span>
 
-<div class="viewcode-block" id="AirSourceHeatExchangerGeometry.eta_R"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.eta_R">[docs]</a>    <span class="k">def</span> <span class="nf">eta_R</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_R</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="AirSourceHeatExchangerGeometry.eta_R"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.eta_R">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">eta_R</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_R</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate fin efficiency.</span>
 
@@ -166,7 +166,7 @@
         <span class="n">X</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phi</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">d_a</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">alpha_R</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lambda_R</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">dicke_rippe</span><span class="p">))</span>
         <span class="k">return</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">X</span> <span class="o">*</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">X</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">X</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="AirSourceHeatExchangerGeometry.alpha_S"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.alpha_S">[docs]</a>    <span class="k">def</span> <span class="nf">alpha_S</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_R</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="AirSourceHeatExchangerGeometry.alpha_S"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.alpha_S">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">alpha_S</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha_R</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate apparent heat transfer coefficient.</span>
 
@@ -180,7 +180,7 @@
         <span class="k">return</span> <span class="n">alpha_R</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">eta_R</span><span class="p">(</span><span class="n">alpha_R</span><span class="p">))</span> <span class="o">*</span> <span class="n">A_R_to_A</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="VDIAtlasAirToWallTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.VDIAtlasAirToWallTransfer">[docs]</a><span class="k">class</span> <span class="nc">VDIAtlasAirToWallTransfer</span><span class="p">(</span><span class="n">AirToWallTransfer</span><span class="p">):</span>
+<div class="viewcode-block" id="VDIAtlasAirToWallTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.VDIAtlasAirToWallTransfer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">VDIAtlasAirToWallTransfer</span><span class="p">(</span><span class="n">AirToWallTransfer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    VDI-Atlas based heat transfer estimation.</span>
 <span class="sd">    Check `AirToWallTransfer` for further argument options.</span>
@@ -194,13 +194,13 @@
 <span class="sd">            Geometry parameters for heat exchanger according to VDI-Atlas</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">A_cross</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">characteristic_length</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                  <span class="n">geometry_parameters</span><span class="p">:</span> <span class="n">AirSourceHeatExchangerGeometry</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">A_cross</span><span class="o">=</span><span class="n">A_cross</span><span class="p">,</span> <span class="n">characteristic_length</span><span class="o">=</span><span class="n">characteristic_length</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">geometry_parameters</span> <span class="o">=</span> <span class="n">geometry_parameters</span>
 
-<div class="viewcode-block" id="VDIAtlasAirToWallTransfer.calc_reynolds"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.VDIAtlasAirToWallTransfer.calc_reynolds">[docs]</a>    <span class="k">def</span> <span class="nf">calc_reynolds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dynamic_viscosity</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="VDIAtlasAirToWallTransfer.calc_reynolds"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.VDIAtlasAirToWallTransfer.calc_reynolds">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_reynolds</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dynamic_viscosity</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate Reynolds number.</span>
 
@@ -214,7 +214,7 @@
         <span class="n">velocity_times_dens</span> <span class="o">=</span> <span class="n">m_flow</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">A_cross</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">geometry_parameters</span><span class="o">.</span><span class="n">verjuengungsfaktor</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">velocity_times_dens</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">characteristic_length</span><span class="p">)</span> <span class="o">/</span> <span class="n">dynamic_viscosity</span></div>
 
-<div class="viewcode-block" id="VDIAtlasAirToWallTransfer.calc_laminar_area_nusselt"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.VDIAtlasAirToWallTransfer.calc_laminar_area_nusselt">[docs]</a>    <span class="k">def</span> <span class="nf">calc_laminar_area_nusselt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Re</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Pr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="VDIAtlasAirToWallTransfer.calc_laminar_area_nusselt"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.VDIAtlasAirToWallTransfer.calc_laminar_area_nusselt">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_laminar_area_nusselt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Re</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Pr</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate apparent heat transfer coefficient based on Nusselt correlation.</span>
 

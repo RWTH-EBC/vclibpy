@@ -75,7 +75,7 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Module containing classes for thermodynamic state and transport properties.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">vclibpy.datamodels</span> <span class="kn">import</span> <span class="n">VariableContainer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.datamodels</span><span class="w"> </span><span class="kn">import</span> <span class="n">VariableContainer</span>
 
 
 <span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
@@ -84,7 +84,7 @@
 <span class="p">]</span>
 
 
-<div class="viewcode-block" id="ThermodynamicState"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.ThermodynamicState">[docs]</a><span class="k">class</span> <span class="nc">ThermodynamicState</span><span class="p">:</span>
+<div class="viewcode-block" id="ThermodynamicState"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.ThermodynamicState">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ThermodynamicState</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents a thermodynamic state within a cycle.</span>
 
@@ -107,7 +107,7 @@
 <span class="sd">        get_pretty_print: Formats the state with names, units, and descriptions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">p</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">T</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">u</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -150,13 +150,13 @@
         <span class="k">elif</span> <span class="n">d</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">v</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">d</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a string representation of the state.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
 
-<div class="viewcode-block" id="ThermodynamicState.get_pretty_print"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.ThermodynamicState.get_pretty_print">[docs]</a>    <span class="k">def</span> <span class="nf">get_pretty_print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="ThermodynamicState.get_pretty_print"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.ThermodynamicState.get_pretty_print">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_pretty_print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Provides a formatted representation of the state with names, units, and descriptions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -173,7 +173,7 @@
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">_container</span><span class="p">)</span></div></div>
 
 
-<div class="viewcode-block" id="TransportProperties"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.TransportProperties">[docs]</a><span class="k">class</span> <span class="nc">TransportProperties</span><span class="p">:</span>
+<div class="viewcode-block" id="TransportProperties"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.TransportProperties">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">TransportProperties</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Represents transport properties at a specific thermodynamic state.</span>
 
@@ -195,7 +195,7 @@
 <span class="sd">        get_pretty_print: Formats the properties with names, units, and descriptions.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">lam</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">dyn_vis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">kin_vis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -232,13 +232,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ace_fac</span> <span class="o">=</span> <span class="n">ace_fac</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">state</span>
 
-    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns a string representation of the transport properties.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
 
-<div class="viewcode-block" id="TransportProperties.get_pretty_print"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.TransportProperties.get_pretty_print">[docs]</a>    <span class="k">def</span> <span class="nf">get_pretty_print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="TransportProperties.get_pretty_print"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.TransportProperties.get_pretty_print">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_pretty_print</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Provides a formatted representation of the properties with names, units, and descriptions.</span>
 <span class="sd">        &quot;&quot;&quot;</span>

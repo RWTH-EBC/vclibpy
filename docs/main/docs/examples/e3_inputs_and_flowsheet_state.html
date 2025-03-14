@@ -87,7 +87,7 @@ cycle may be inputs. This could be the compressor speed, ambient temperature,
 or the inlet temperatures and mass flow rates of the secondary side
 in the heat exchangers.
 You can see all default options by just printing the empty instance:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy</span> <span class="kn">import</span> <span class="n">Inputs</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inputs</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">Inputs</span><span class="p">())</span>
 </pre></div>
 </div>
@@ -135,7 +135,7 @@ simulating a steady state vapor compression cycle.
 As the outputs are flowsheet specific, we define no default
 Variables in the <code class="docutils literal notranslate"><span class="pre">FlowsheetState</span></code> as with <code class="docutils literal notranslate"><span class="pre">Inputs</span></code>.
 However, you can set variables the same way as with <code class="docutils literal notranslate"><span class="pre">Inputs</span></code>:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy</span> <span class="kn">import</span> <span class="n">FlowsheetState</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span>
 <span class="n">fs_state</span> <span class="o">=</span> <span class="n">FlowsheetState</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">fs_state</span><span class="p">)</span>
 <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;some_interesting_output&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">3.14</span><span class="p">,</span>

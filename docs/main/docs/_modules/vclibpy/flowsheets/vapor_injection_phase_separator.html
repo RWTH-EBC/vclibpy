@@ -72,16 +72,16 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.flowsheets.vapor_injection_phase_separator</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy.flowsheets.vapor_injection</span> <span class="kn">import</span> <span class="n">BaseVaporInjection</span>
-<span class="kn">from</span> <span class="nn">vclibpy.components.phase_separator</span> <span class="kn">import</span> <span class="n">PhaseSeparator</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets.vapor_injection</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseVaporInjection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.phase_separator</span><span class="w"> </span><span class="kn">import</span> <span class="n">PhaseSeparator</span>
 
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="VaporInjectionPhaseSeparator"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator">[docs]</a><span class="k">class</span> <span class="nc">VaporInjectionPhaseSeparator</span><span class="p">(</span><span class="n">BaseVaporInjection</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionPhaseSeparator"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">VaporInjectionPhaseSeparator</span><span class="p">(</span><span class="n">BaseVaporInjection</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Cycle with vapor injection using an adiabatic ideal phase seperator.</span>
 
@@ -108,23 +108,23 @@
 
     <span class="n">flowsheet_name</span> <span class="o">=</span> <span class="s2">&quot;VaporInjectionPhaseSeparator&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phase_separator</span> <span class="o">=</span> <span class="n">PhaseSeparator</span><span class="p">()</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
-<div class="viewcode-block" id="VaporInjectionPhaseSeparator.get_all_components"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_all_components">[docs]</a>    <span class="k">def</span> <span class="nf">get_all_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionPhaseSeparator.get_all_components"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_all_components">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_all_components</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">phase_separator</span>
         <span class="p">]</span></div>
 
-<div class="viewcode-block" id="VaporInjectionPhaseSeparator.calc_injection"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.calc_injection">[docs]</a>    <span class="k">def</span> <span class="nf">calc_injection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionPhaseSeparator.calc_injection"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.calc_injection">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_injection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Phase separator</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phase_separator</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_pressure_valve</span><span class="o">.</span><span class="n">state_outlet</span>
         <span class="n">x_vapor_injection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_separator</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">q</span>
         <span class="n">h_vapor_injection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_separator</span><span class="o">.</span><span class="n">state_outlet_vapor</span><span class="o">.</span><span class="n">h</span>
         <span class="k">return</span> <span class="n">x_vapor_injection</span><span class="p">,</span> <span class="n">h_vapor_injection</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_separator</span><span class="o">.</span><span class="n">state_outlet_liquid</span></div>
 
-<div class="viewcode-block" id="VaporInjectionPhaseSeparator.get_states_in_order_for_plotting"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_states_in_order_for_plotting">[docs]</a>    <span class="k">def</span> <span class="nf">get_states_in_order_for_plotting</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="VaporInjectionPhaseSeparator.get_states_in_order_for_plotting"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_phase_separator.VaporInjectionPhaseSeparator.get_states_in_order_for_plotting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_states_in_order_for_plotting</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_states_in_order_for_plotting</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">phase_separator</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">phase_separator</span><span class="o">.</span><span class="n">state_outlet_vapor</span><span class="p">,</span>

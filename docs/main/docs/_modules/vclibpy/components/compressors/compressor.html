@@ -76,11 +76,11 @@
 <span class="sd">Module for different compressor models</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy.components.component</span> <span class="kn">import</span> <span class="n">BaseComponent</span>
-<span class="kn">from</span> <span class="nn">vclibpy.datamodels</span> <span class="kn">import</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">FlowsheetState</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.component</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseComponent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.datamodels</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">FlowsheetState</span>
 
 
-<div class="viewcode-block" id="Compressor"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor">[docs]</a><span class="k">class</span> <span class="nc">Compressor</span><span class="p">(</span><span class="n">BaseComponent</span><span class="p">):</span>
+<div class="viewcode-block" id="Compressor"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Compressor</span><span class="p">(</span><span class="n">BaseComponent</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base compressor class to be extended for specific compressor models.</span>
 
@@ -114,7 +114,7 @@
 <span class="sd">            Calculate the electrical power consumed by the compressor based on an adiabatic energy balance.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">V_h</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">N_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">V_h</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Initialize the compressor.</span>
 
@@ -126,7 +126,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">N_max</span> <span class="o">=</span> <span class="n">N_max</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V_h</span> <span class="o">=</span> <span class="n">V_h</span>
 
-<div class="viewcode-block" id="Compressor.get_lambda_h"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.get_lambda_h">[docs]</a>    <span class="k">def</span> <span class="nf">get_lambda_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="Compressor.get_lambda_h"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.get_lambda_h">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_lambda_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the volumetric efficiency.</span>
 
@@ -138,7 +138,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Re-implement this function to use it&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Compressor.get_eta_isentropic"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.get_eta_isentropic">[docs]</a>    <span class="k">def</span> <span class="nf">get_eta_isentropic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="Compressor.get_eta_isentropic"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.get_eta_isentropic">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_eta_isentropic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the isentropic efficiency.</span>
 
@@ -151,7 +151,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Re-implement this function to use it&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Compressor.get_eta_mech"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.get_eta_mech">[docs]</a>    <span class="k">def</span> <span class="nf">get_eta_mech</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="Compressor.get_eta_mech"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.get_eta_mech">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_eta_mech</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the mechanical efficiency including motor and inverter efficiencies.</span>
 
@@ -163,7 +163,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;Re-implement this function to use it&quot;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Compressor.get_p_outlet"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.get_p_outlet">[docs]</a>    <span class="k">def</span> <span class="nf">get_p_outlet</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="Compressor.get_p_outlet"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.get_p_outlet">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_p_outlet</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Get the outlet pressure.</span>
 
@@ -173,7 +173,7 @@
         <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_outlet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;You have to calculate the outlet state first.&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_outlet</span><span class="o">.</span><span class="n">p</span></div>
 
-<div class="viewcode-block" id="Compressor.get_n_absolute"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.get_n_absolute">[docs]</a>    <span class="k">def</span> <span class="nf">get_n_absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="Compressor.get_n_absolute"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.get_n_absolute">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_n_absolute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return given relative n as absolute rounds/sec based on self.N_max.</span>
 
@@ -185,7 +185,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_max</span> <span class="o">*</span> <span class="n">n</span></div>
 
-<div class="viewcode-block" id="Compressor.calc_state_outlet"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.calc_state_outlet">[docs]</a>    <span class="k">def</span> <span class="nf">calc_state_outlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">):</span>
+<div class="viewcode-block" id="Compressor.calc_state_outlet"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.calc_state_outlet">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_state_outlet</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the output state based on the high pressure level and the provided inputs.</span>
 <span class="sd">        The state is automatically set as the outlet state of this component.</span>
@@ -204,7 +204,7 @@
         <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;eta_is&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">eta_is</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Isentropic efficiency&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">state_outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PH&quot;</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">,</span> <span class="n">h_outlet</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Compressor.calc_m_flow"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.calc_m_flow">[docs]</a>    <span class="k">def</span> <span class="nf">calc_m_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="Compressor.calc_m_flow"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.calc_m_flow">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_m_flow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the refrigerant mass flow rate.</span>
 
@@ -227,7 +227,7 @@
         <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;m_flow_ref&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">m_flow</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;kg/s&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Refrigerant mass flow rate&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow</span></div>
 
-<div class="viewcode-block" id="Compressor.calc_electrical_power"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.calc_electrical_power">[docs]</a>    <span class="k">def</span> <span class="nf">calc_electrical_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="Compressor.calc_electrical_power"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.compressor.Compressor.calc_electrical_power">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_electrical_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate the electrical power consumed by the compressor based on an adiabatic energy balance.</span>
 

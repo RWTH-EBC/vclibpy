@@ -75,12 +75,12 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">Module with constant heat transfer assumptions</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">TransportProperties</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransportProperties</span>
 
 
-<div class="viewcode-block" id="ConstantHeatTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantHeatTransfer">[docs]</a><span class="k">class</span> <span class="nc">ConstantHeatTransfer</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="ConstantHeatTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantHeatTransfer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ConstantHeatTransfer</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constant heat transfer assumption</span>
 
@@ -89,10 +89,10 @@
 <span class="sd">            Constant heat transfer coefficient in W/(m2*K)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
 
-<div class="viewcode-block" id="ConstantHeatTransfer.calc"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantHeatTransfer.calc">[docs]</a>    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport_properties</span><span class="p">:</span> <span class="n">TransportProperties</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="ConstantHeatTransfer.calc"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantHeatTransfer.calc">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport_properties</span><span class="p">:</span> <span class="n">TransportProperties</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate constant heat transfer coefficient.</span>
 
@@ -107,7 +107,7 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span></div></div>
 
 
-<div class="viewcode-block" id="ConstantTwoPhaseHeatTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantTwoPhaseHeatTransfer">[docs]</a><span class="k">class</span> <span class="nc">ConstantTwoPhaseHeatTransfer</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+<div class="viewcode-block" id="ConstantTwoPhaseHeatTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantTwoPhaseHeatTransfer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ConstantTwoPhaseHeatTransfer</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Constant heat transfer assumption.</span>
 
@@ -116,10 +116,10 @@
 <span class="sd">            Constant heat transfer coefficient in W/(m2*K).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">alpha</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
 
-<div class="viewcode-block" id="ConstantTwoPhaseHeatTransfer.calc"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantTwoPhaseHeatTransfer.calc">[docs]</a>    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="ConstantTwoPhaseHeatTransfer.calc"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantTwoPhaseHeatTransfer.calc">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Calculate constant two-phase heat transfer coefficient.</span>
 

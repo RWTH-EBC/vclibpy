@@ -79,7 +79,7 @@ and its children.</p>
 <p>First, let’s import an exemplary valve from vclibpy’s
 <code class="docutils literal notranslate"><span class="pre">expansion_valve</span></code> package. The only one currently implemented
 is Bernoulli:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.components.expansion_valves</span> <span class="kn">import</span> <span class="n">Bernoulli</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.expansion_valves</span><span class="w"> </span><span class="kn">import</span> <span class="n">Bernoulli</span>
 </pre></div>
 </div>
 <p>The valves are not that important for the vapor compression simulation,
@@ -96,7 +96,7 @@ superheat.</p>
 </pre></div>
 </div>
 <p>Again, we have to start a med-prop, and give some input state:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">CoolProp</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoolProp</span>
 <span class="n">med_prop</span> <span class="o">=</span> <span class="n">CoolProp</span><span class="p">(</span><span class="n">fluid_name</span><span class="o">=</span><span class="s2">&quot;Propane&quot;</span><span class="p">)</span>
 <span class="n">expansion_valve</span><span class="o">.</span><span class="n">med_prop</span> <span class="o">=</span> <span class="n">med_prop</span>
 </pre></div>
@@ -127,7 +127,7 @@ For this, we can use expansion_valve.ca</p>
 </pre></div>
 </div>
 <p>Not that much. Now, we can repeat the process with different diameters in mm.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="n">openings</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">d_mm_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">d_mm</span> <span class="ow">in</span> <span class="n">d_mm_array</span><span class="p">:</span>
@@ -138,7 +138,7 @@ For this, we can use expansion_valve.ca</p>
 </pre></div>
 </div>
 <p>Let’s plot the result:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">d_mm_array</span><span class="p">,</span> <span class="n">openings</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;Opening in %&quot;</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;$d$ in mm&quot;</span><span class="p">)</span>

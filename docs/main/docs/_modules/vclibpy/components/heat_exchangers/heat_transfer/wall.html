@@ -72,16 +72,16 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.components.heat_exchangers.heat_transfer.wall</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span> <span class="nn">.heat_transfer</span> <span class="kn">import</span> <span class="n">HeatTransfer</span>
-<span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">TransportProperties</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.heat_transfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeatTransfer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">TransportProperties</span>
 
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="WallTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.wall.WallTransfer">[docs]</a><span class="k">class</span> <span class="nc">WallTransfer</span><span class="p">(</span><span class="n">HeatTransfer</span><span class="p">):</span>
+<div class="viewcode-block" id="WallTransfer"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.wall.WallTransfer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">WallTransfer</span><span class="p">(</span><span class="n">HeatTransfer</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Simple wall heat transfer</span>
 
@@ -91,11 +91,11 @@
 <span class="sd">        thickness (float):</span>
 <span class="sd">            Thickness of wall in m^2</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">thickness</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lambda_</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">thickness</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">thickness</span> <span class="o">=</span> <span class="n">thickness</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lambda_</span> <span class="o">=</span> <span class="n">lambda_</span>
 
-<div class="viewcode-block" id="WallTransfer.calc"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.wall.WallTransfer.calc">[docs]</a>    <span class="k">def</span> <span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport_properties</span><span class="p">:</span> <span class="n">TransportProperties</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="WallTransfer.calc"><a class="viewcode-back" href="../../../../../code/vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.wall.WallTransfer.calc">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transport_properties</span><span class="p">:</span> <span class="n">TransportProperties</span><span class="p">,</span> <span class="n">m_flow</span><span class="p">:</span> <span class="nb">float</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Heat transfer coefficient inside wall</span>
 

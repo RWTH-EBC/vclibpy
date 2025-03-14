@@ -82,7 +82,7 @@ models follows a moving boundary epsNTU approach.
 Thus, you need to assume heat transfer correlations
 for different regimes.
 We will use the evaporator for this example. Let’s check the doc:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.components.heat_exchangers</span> <span class="kn">import</span> <span class="n">MovingBoundaryNTUEvaporator</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers</span><span class="w"> </span><span class="kn">import</span> <span class="n">MovingBoundaryNTUEvaporator</span>
 <span class="n">help</span><span class="p">(</span><span class="n">MovingBoundaryNTUEvaporator</span><span class="p">)</span>
 </pre></div>
 </div>
@@ -93,10 +93,10 @@ for this example.
 For heat transfer, you can import models from the <code class="docutils literal notranslate"><span class="pre">heat_transfer</span></code> package
 inside the <code class="docutils literal notranslate"><span class="pre">heat_exchangers</span></code> package.
 You will find all options in the documentation of VcLibPy</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy.components.heat_exchangers.heat_transfer.constant</span> <span class="kn">import</span> <span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers.heat_transfer.constant</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ConstantHeatTransfer</span><span class="p">,</span> <span class="n">ConstantTwoPhaseHeatTransfer</span>
 <span class="p">)</span>
-<span class="kn">from</span> <span class="nn">vclibpy.components.heat_exchangers.heat_transfer.wall</span> <span class="kn">import</span> <span class="n">WallTransfer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers.heat_transfer.wall</span><span class="w"> </span><span class="kn">import</span> <span class="n">WallTransfer</span>
 </pre></div>
 </div>
 <p>Now, we can instantiate the class:</p>
@@ -138,9 +138,9 @@ as we assume the levels of superheat and subcooling, we
 will always have these states in our iterations.
 Further, the inputs need to contain the evaporator inlet temperature T_eva_in and
 the evaporator mass flow rate (secondary side):</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">vclibpy</span> <span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
 <span class="n">fs_state</span> <span class="o">=</span> <span class="n">FlowsheetState</span><span class="p">()</span>
-<span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">CoolProp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">CoolProp</span>
 <span class="n">med_prop</span> <span class="o">=</span> <span class="n">CoolProp</span><span class="p">(</span><span class="n">fluid_name</span><span class="o">=</span><span class="s2">&quot;Propane&quot;</span><span class="p">)</span>
 <span class="n">evaporator</span><span class="o">.</span><span class="n">med_prop</span> <span class="o">=</span> <span class="n">med_prop</span>  <span class="c1"># We have to set it, same as in the second example.</span>
 <span class="n">evaporator</span><span class="o">.</span><span class="n">m_flow</span> <span class="o">=</span> <span class="mf">0.01</span>
@@ -194,7 +194,7 @@ less heat than we want to.
 Thus, we have to iterate the pressure assumptions and lower it,
 as we need a higher temperature difference to the air.
 For this, we will use a loop:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="n">p_evaporations</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">p_evaporation</span> <span class="o">-</span> <span class="mf">1e4</span><span class="p">,</span> <span class="n">p_evaporation</span><span class="p">,</span> <span class="mi">1000</span><span class="p">)</span>
 <span class="n">errors</span><span class="p">,</span> <span class="n">dT_mins</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
 <span class="k">for</span> <span class="n">p_evaporation</span> <span class="ow">in</span> <span class="n">p_evaporations</span><span class="p">:</span>
@@ -211,7 +211,7 @@ If the error is positive, we step back to the old value and decrease the
 step-size by a factor of 10. At the end, we iterate with a <code class="docutils literal notranslate"><span class="pre">min_iteration_step</span></code>,
 which is, by default 1 Pa.</p>
 <p>Let’s plot the result:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">p_evaporations</span> <span class="o">/</span> <span class="mf">1e5</span><span class="p">,</span> <span class="n">errors</span><span class="p">)</span>
 <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Error in %&quot;</span><span class="p">)</span>
@@ -262,7 +262,7 @@ counter to avoid an infinite iteration.</p>
 </pre></div>
 </div>
 <p>Again, let’s plot the iteration:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_iteration</span><span class="p">),</span> <span class="n">errors</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s2">&quot;s&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Error in %&quot;</span><span class="p">)</span>

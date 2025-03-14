@@ -84,21 +84,21 @@
 <span class="sd">    - Additional change might be that not all errors and warning are excluded when &#39;use_error_check&#39; is set to false but</span>
 <span class="sd">        only warnings or errors?</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">os</span>
-<span class="kn">import</span> <span class="nn">warnings</span>
-<span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">atexit</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">shutil</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">atexit</span>
 
-<span class="kn">from</span> <span class="nn">ctREFPROP.ctREFPROP</span> <span class="kn">import</span> <span class="n">REFPROPFunctionLibrary</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">ctREFPROP.ctREFPROP</span><span class="w"> </span><span class="kn">import</span> <span class="n">REFPROPFunctionLibrary</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">TransportProperties</span><span class="p">,</span> <span class="n">MedProp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">TransportProperties</span><span class="p">,</span> <span class="n">MedProp</span>
 
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="RefProp"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp">[docs]</a><span class="k">class</span> <span class="nc">RefProp</span><span class="p">(</span><span class="n">MedProp</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">RefProp</span><span class="p">(</span><span class="n">MedProp</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Class to connect to refProp package.</span>
 
@@ -210,7 +210,7 @@
 
     <span class="n">_fluid_mapper</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;air&#39;</span><span class="p">:</span> <span class="s1">&#39;air.ppf&#39;</span><span class="p">}</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">fluid_name</span><span class="p">,</span>
                  <span class="n">z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">dll_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -274,15 +274,15 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_nbp</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="RefProp.terminate"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.terminate">[docs]</a>    <span class="k">def</span> <span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.terminate"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.terminate">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">terminate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delete_dll_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_delete_dll</span><span class="p">()</span></div>
 
-    <span class="k">def</span> <span class="nf">_delete_dll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_delete_dll</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># Taken from here: https://stackoverflow.com/questions/21770419/free-the-opened-ctypes-library-in-python</span>
-            <span class="kn">import</span> <span class="nn">_ctypes</span>
-            <span class="kn">import</span> <span class="nn">sys</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">_ctypes</span>
+            <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
             <span class="n">_handle</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rp</span><span class="o">.</span><span class="n">dll</span><span class="o">.</span><span class="n">_handle</span>
             <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">platform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;win&#39;</span><span class="p">):</span>
                 <span class="n">_ctypes</span><span class="o">.</span><span class="n">FreeLibrary</span><span class="p">(</span><span class="n">_handle</span><span class="p">)</span>
@@ -296,7 +296,7 @@
                 <span class="s2">&quot;Delete it yourself! Error message: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delete_dll_path</span><span class="p">,</span> <span class="n">err</span>
             <span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_call_refprop_abflsh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_call_refprop_abflsh</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                              <span class="n">inp_name</span><span class="p">,</span>
                              <span class="n">value_a</span><span class="p">,</span>
                              <span class="n">value_b</span><span class="p">,</span>
@@ -326,7 +326,7 @@
 
         <span class="k">return</span> <span class="n">tmp</span>
 
-    <span class="k">def</span> <span class="nf">_call_refprop_allprop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_call_refprop_allprop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                               <span class="n">out_name</span><span class="p">,</span>
                               <span class="n">T_val</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                               <span class="n">d_val</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -381,7 +381,7 @@
 
         <span class="k">return</span> <span class="n">res</span>
 
-    <span class="k">def</span> <span class="nf">_call_refprop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_call_refprop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                       <span class="n">inp_name</span><span class="p">,</span>
                       <span class="n">out_name</span><span class="p">,</span>
                       <span class="n">value_a</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -456,7 +456,7 @@
 
         <span class="k">return</span> <span class="n">tmp</span>
 
-    <span class="k">def</span> <span class="nf">_check_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_check_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                      <span class="n">err_num</span><span class="p">,</span>
                      <span class="n">err_msg</span><span class="p">,</span>
                      <span class="n">func_name</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">):</span>
@@ -485,7 +485,7 @@
                     <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;[ERROR] When calling RefProp in function &#39;</span><span class="si">{}</span><span class="s2">&#39; error number </span><span class="si">{}</span><span class="s2"> was &quot;</span>
                                     <span class="s2">&quot;returned. </span><span class="se">\n</span><span class="s2"> Error message is: &#39;</span><span class="si">{}</span><span class="s2">&#39;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">func_name</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">err_num</span><span class="p">),</span> <span class="n">err_msg</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_get_comp_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_comp_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get component names. In case current fluid is mixture, only component names will be returned.</span>
 <span class="sd">        In case fluid is a pure substance, substance name is returned.</span>
 
@@ -527,7 +527,7 @@
 
         <span class="k">return</span> <span class="n">comp_names</span>
 
-    <span class="k">def</span> <span class="nf">_get_comp_frac</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_comp_frac</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get mass/mol fraction and number of components of current fluid</span>
 
 <span class="sd">        Parameters:</span>
@@ -579,7 +579,7 @@
             <span class="c1"># Get number of components</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_n_comp</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mol_frac</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">_setup_rp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_rp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Setup for RefProp &quot;&quot;&quot;</span>
         <span class="c1"># Errors can occur in case REFPROP is initalizated multiple time with same fluid - thus a pre setup is used here</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">rp</span><span class="o">.</span><span class="n">SETUPdll</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;N2&quot;</span><span class="p">,</span> <span class="s2">&quot;HMX.BNC&quot;</span><span class="p">,</span> <span class="s2">&quot;DEF&quot;</span><span class="p">)</span>
@@ -625,7 +625,7 @@
                     <span class="nb">print</span><span class="p">(</span>
                         <span class="s2">&quot;[MIXING WARNING] Mixing rules for mixture &#39;</span><span class="si">{}</span><span class="s2">&#39; are estimated!&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_comp_names</span><span class="p">))</span>
 
-    <span class="k">def</span> <span class="nf">_transform_to_massfraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_transform_to_massfraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                    <span class="n">mol_frac</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Transforms mol fraction to mass fraction</span>
 
@@ -643,7 +643,7 @@
         <span class="n">mass_frac</span> <span class="o">=</span> <span class="p">[</span><span class="n">yi</span> <span class="k">for</span> <span class="n">yi</span> <span class="ow">in</span> <span class="n">tmp</span><span class="o">.</span><span class="n">xkg</span> <span class="k">if</span> <span class="n">yi</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">mass_frac</span>
 
-    <span class="k">def</span> <span class="nf">_transform_to_molfraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_transform_to_molfraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                   <span class="n">mass_frac</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Transforms mass fraction to mol fraction</span>
 
@@ -661,7 +661,7 @@
         <span class="n">mol_frac</span> <span class="o">=</span> <span class="p">[</span><span class="n">xi</span> <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="n">tmp</span><span class="o">.</span><span class="n">xmol</span> <span class="k">if</span> <span class="n">xi</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">mol_frac</span>
 
-<div class="viewcode-block" id="RefProp.calc_state"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.calc_state">[docs]</a>    <span class="k">def</span> <span class="nf">calc_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">var1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">var2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">kr</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.calc_state"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.calc_state">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mode</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">var1</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">var2</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">kr</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate state. Depending on mode, different function will be chosen. Input state variables need to be in</span>
 <span class="sd">        SI units!</span>
 
@@ -871,7 +871,7 @@
         <span class="n">state</span> <span class="o">=</span> <span class="n">ThermodynamicState</span><span class="p">(</span><span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="n">T</span><span class="p">,</span> <span class="n">u</span><span class="o">=</span><span class="n">u</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">d</span><span class="o">=</span><span class="n">d</span><span class="p">,</span> <span class="n">q</span><span class="o">=</span><span class="n">q</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">state</span></div>
 
-<div class="viewcode-block" id="RefProp.calc_satliq_state"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.calc_satliq_state">[docs]</a>    <span class="k">def</span> <span class="nf">calc_satliq_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.calc_satliq_state"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.calc_satliq_state">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_satliq_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;s in kJ/kgK&quot;&quot;&quot;</span>
         <span class="n">s</span> <span class="o">=</span> <span class="n">s</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">M</span> <span class="o">*</span> <span class="mi">1000</span>  <span class="c1"># kJ/kgK -&gt; J/molK</span>
         <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rp</span><span class="o">.</span><span class="n">SATSdll</span><span class="p">(</span><span class="n">s</span><span class="o">=</span><span class="n">s</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">kph</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -882,7 +882,7 @@
         <span class="n">d</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">D1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">M</span> <span class="o">*</span> <span class="mi">1000</span>  <span class="c1"># mol/l -&gt; kg/mol</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PD&quot;</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="n">d</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="RefProp.calc_transport_properties"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.calc_transport_properties">[docs]</a>    <span class="k">def</span> <span class="nf">calc_transport_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.calc_transport_properties"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.calc_transport_properties">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_transport_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate transport properties of RefProp fluid at given state</span>
 
 <span class="sd">        Parameters:</span>
@@ -910,7 +910,7 @@
         <span class="c1"># Return props</span>
         <span class="k">return</span> <span class="n">props</span></div>
 
-<div class="viewcode-block" id="RefProp.get_available_substances"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_available_substances">[docs]</a>    <span class="k">def</span> <span class="nf">get_available_substances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+<div class="viewcode-block" id="RefProp.get_available_substances"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_available_substances">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_available_substances</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                                  <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span>
                                  <span class="n">include_ending</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                  <span class="n">save_txt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -971,7 +971,7 @@
         <span class="c1"># Return names</span>
         <span class="k">return</span> <span class="n">names</span></div>
 
-<div class="viewcode-block" id="RefProp.get_comp_names"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_comp_names">[docs]</a>    <span class="k">def</span> <span class="nf">get_comp_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_comp_names"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_comp_names">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_comp_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get name of components within current fluid&quot;</span>
 
 <span class="sd">        Return:</span>
@@ -981,7 +981,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comp_names</span></div>
 
-<div class="viewcode-block" id="RefProp.get_nbp"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_nbp">[docs]</a>    <span class="k">def</span> <span class="nf">get_nbp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_nbp"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_nbp">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_nbp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get normal boiling point (T @ q=0 and 1 bar)</span>
 
 <span class="sd">        Return:</span>
@@ -994,7 +994,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nbp</span></div>
 
-<div class="viewcode-block" id="RefProp.get_molar_composition"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_molar_composition">[docs]</a>    <span class="k">def</span> <span class="nf">get_molar_composition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">z_molar</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_molar_composition"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_molar_composition">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_molar_composition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">z_molar</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get composition on molar base. Liquid phase, vapor phase and total.</span>
 
 <span class="sd">        :param ThermodynamicState state: the state whose compositions will be returned</span>
@@ -1038,7 +1038,7 @@
 
         <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span></div>
 
-<div class="viewcode-block" id="RefProp.get_critical_point"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_critical_point">[docs]</a>    <span class="k">def</span> <span class="nf">get_critical_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_critical_point"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_critical_point">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_critical_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get T and p of critical point</span>
 
 <span class="sd">        Return:</span>
@@ -1065,7 +1065,7 @@
 
     <span class="c1">#</span>
     <span class="c1">#</span>
-<div class="viewcode-block" id="RefProp.get_def_limits"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_def_limits">[docs]</a>    <span class="k">def</span> <span class="nf">get_def_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_def_limits"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_def_limits">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_def_limits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get limits of current ref prop fluid</span>
 <span class="sd">        Limits contain Tmin, Tmax, Dmax and Pmax (Temperatures, density, pressure)</span>
 
@@ -1080,7 +1080,7 @@
         <span class="k">return</span> <span class="n">limits</span></div>
 
 <div class="viewcode-block" id="RefProp.get_dll_path"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_dll_path">[docs]</a>    <span class="nd">@staticmethod</span>
-    <span class="k">def</span> <span class="nf">get_dll_path</span><span class="p">(</span><span class="n">ref_prop_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_dll_path</span><span class="p">(</span><span class="n">ref_prop_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the location of the dll</span>
 
@@ -1097,7 +1097,7 @@
 
         <span class="k">return</span> <span class="n">path_to_dll</span></div>
 
-<div class="viewcode-block" id="RefProp.get_fluid_name"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_fluid_name">[docs]</a>    <span class="k">def</span> <span class="nf">get_fluid_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_fluid_name"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_fluid_name">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_fluid_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get fluid name.</span>
 
 <span class="sd">        Return:</span>
@@ -1107,7 +1107,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fluid_name</span></div>
 
-<div class="viewcode-block" id="RefProp.get_gwp"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_gwp">[docs]</a>    <span class="k">def</span> <span class="nf">get_gwp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_gwp"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_gwp">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_gwp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get gwp of current fluid from refProp</span>
 
 <span class="sd">        Return:</span>
@@ -1126,7 +1126,7 @@
             <span class="n">gwp</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">gwp</span></div>
 
-<div class="viewcode-block" id="RefProp.get_longname"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_longname">[docs]</a>    <span class="k">def</span> <span class="nf">get_longname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_longname"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_longname">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_longname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get longname of fluid</span>
 
 <span class="sd">        Return:</span>
@@ -1137,7 +1137,7 @@
         <span class="n">longname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_refprop</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="s2">&quot;LONGNAME(0)&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">hUnits</span>
         <span class="k">return</span> <span class="n">longname</span></div>
 
-<div class="viewcode-block" id="RefProp.get_mass_fraction"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_mass_fraction">[docs]</a>    <span class="k">def</span> <span class="nf">get_mass_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_round</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_mass_fraction"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_mass_fraction">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mass_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_round</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get mass fractions of pure substances in current fluid</span>
 
 <span class="sd">        Parameters:</span>
@@ -1154,7 +1154,7 @@
             <span class="n">mass_frac</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mass_frac</span>
         <span class="k">return</span> <span class="n">mass_frac</span></div>
 
-<div class="viewcode-block" id="RefProp.get_molar_mass"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_molar_mass">[docs]</a>    <span class="k">def</span> <span class="nf">get_molar_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_molar_mass"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_molar_mass">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_molar_mass</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get molar mass of current fluid</span>
 
 <span class="sd">        Return:</span>
@@ -1164,7 +1164,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">M</span></div>
 
-<div class="viewcode-block" id="RefProp.get_mol_fraction"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_mol_fraction">[docs]</a>    <span class="k">def</span> <span class="nf">get_mol_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_round</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_mol_fraction"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_mol_fraction">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_mol_fraction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">use_round</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get mol fractions of pure substances in current fluid</span>
 
 <span class="sd">        Parameters:</span>
@@ -1181,7 +1181,7 @@
             <span class="n">mol_frac</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mol_frac</span>
         <span class="k">return</span> <span class="n">mol_frac</span></div>
 
-<div class="viewcode-block" id="RefProp.get_odp"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_odp">[docs]</a>    <span class="k">def</span> <span class="nf">get_odp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_odp"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_odp">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_odp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate ozone depletion potential</span>
 <span class="sd">        In case of mixtures: Maximum value of pure substances will be used</span>
 
@@ -1201,7 +1201,7 @@
             <span class="n">odp</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">return</span> <span class="n">odp</span></div>
 
-<div class="viewcode-block" id="RefProp.get_safety"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_safety">[docs]</a>    <span class="k">def</span> <span class="nf">get_safety</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_safety"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_safety">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_safety</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Calculate safety class of refrigerant</span>
 
 <span class="sd">        Return:</span>
@@ -1218,7 +1218,7 @@
         <span class="c1"># Return safety</span>
         <span class="k">return</span> <span class="n">safety</span></div>
 
-<div class="viewcode-block" id="RefProp.get_sat_vap_pressure"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_sat_vap_pressure">[docs]</a>    <span class="k">def</span> <span class="nf">get_sat_vap_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T_sat</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_sat_vap_pressure"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_sat_vap_pressure">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_sat_vap_pressure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T_sat</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get pressure of saturated vapor for defined temperature</span>
 
 <span class="sd">        Note:</span>
@@ -1240,7 +1240,7 @@
             <span class="n">p_sat</span> <span class="o">=</span> <span class="n">tmp</span><span class="o">.</span><span class="n">Output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">p_sat</span></div>
 
-<div class="viewcode-block" id="RefProp.get_triple_point"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_triple_point">[docs]</a>    <span class="k">def</span> <span class="nf">get_triple_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_triple_point"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_triple_point">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_triple_point</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get temperature and pressure at triple point of current fluid</span>
 
 <span class="sd">        Note: Works fine for pure substances, mixtures might not work properly</span>
@@ -1255,7 +1255,7 @@
         <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call_refprop</span><span class="p">(</span><span class="s2">&quot;TRIP&quot;</span><span class="p">,</span> <span class="s2">&quot;T;P&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tmp</span><span class="o">.</span><span class="n">Output</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tmp</span><span class="o">.</span><span class="n">Output</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="RefProp.get_version"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_version">[docs]</a>    <span class="k">def</span> <span class="nf">get_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.get_version"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.get_version">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_version</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Get version of wrapper and used RefProp dll</span>
 
 <span class="sd">        Return:</span>
@@ -1266,7 +1266,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">rp</span><span class="o">.</span><span class="n">RPVersion</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="RefProp.is_mixture"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.is_mixture">[docs]</a>    <span class="k">def</span> <span class="nf">is_mixture</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.is_mixture"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.is_mixture">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_mixture</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Find out if fluid is mixture or not.</span>
 <span class="sd">        In case current fluid is mixture, true is returned.</span>
 <span class="sd">        In case current fluid is pure substance, false is returned.</span>
@@ -1278,7 +1278,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mix_flag</span></div>
 
-<div class="viewcode-block" id="RefProp.set_error_flag"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.set_error_flag">[docs]</a>    <span class="k">def</span> <span class="nf">set_error_flag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flag</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.set_error_flag"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.set_error_flag">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_error_flag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flag</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Set error flag</span>
 
 <span class="sd">        Parameters:</span>
@@ -1291,7 +1291,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_flag_check_errors</span> <span class="o">=</span> <span class="n">flag</span>
         <span class="k">return</span> <span class="mi">0</span></div>
 
-<div class="viewcode-block" id="RefProp.set_warning_flag"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.set_warning_flag">[docs]</a>    <span class="k">def</span> <span class="nf">set_warning_flag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flag</span><span class="p">):</span>
+<div class="viewcode-block" id="RefProp.set_warning_flag"><a class="viewcode-back" href="../../../code/vclibpy.media.html#vclibpy.media.RefProp.set_warning_flag">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_warning_flag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flag</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot; Set warning flag</span>
 
 <span class="sd">        Parameters:</span>

@@ -72,11 +72,11 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.components.compressors.constant_effectivness</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">vclibpy.components.compressors.compressor</span> <span class="kn">import</span> <span class="n">Compressor</span>
-<span class="kn">from</span> <span class="nn">vclibpy.datamodels</span> <span class="kn">import</span> <span class="n">Inputs</span>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.compressors.compressor</span><span class="w"> </span><span class="kn">import</span> <span class="n">Compressor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.datamodels</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inputs</span>
 
 
-<div class="viewcode-block" id="ConstantEffectivenessCompressor"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.constant_effectivness.ConstantEffectivenessCompressor">[docs]</a><span class="k">class</span> <span class="nc">ConstantEffectivenessCompressor</span><span class="p">(</span><span class="n">Compressor</span><span class="p">):</span>
+<div class="viewcode-block" id="ConstantEffectivenessCompressor"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.constant_effectivness.ConstantEffectivenessCompressor">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">ConstantEffectivenessCompressor</span><span class="p">(</span><span class="n">Compressor</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Compressor model with constant efficiencies.</span>
 
@@ -111,7 +111,7 @@
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
                  <span class="n">N_max</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">V_h</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                  <span class="n">eta_isentropic</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
                  <span class="n">eta_mech</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -133,7 +133,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">eta_mech</span> <span class="o">=</span> <span class="n">eta_mech</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">lambda_h</span> <span class="o">=</span> <span class="n">lambda_h</span>
 
-<div class="viewcode-block" id="ConstantEffectivenessCompressor.get_lambda_h"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.constant_effectivness.ConstantEffectivenessCompressor.get_lambda_h">[docs]</a>    <span class="k">def</span> <span class="nf">get_lambda_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="ConstantEffectivenessCompressor.get_lambda_h"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.constant_effectivness.ConstantEffectivenessCompressor.get_lambda_h">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_lambda_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the constant volumetric efficiency of the compressor.</span>
 
@@ -145,7 +145,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_h</span></div>
 
-<div class="viewcode-block" id="ConstantEffectivenessCompressor.get_eta_isentropic"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.constant_effectivness.ConstantEffectivenessCompressor.get_eta_isentropic">[docs]</a>    <span class="k">def</span> <span class="nf">get_eta_isentropic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="ConstantEffectivenessCompressor.get_eta_isentropic"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.constant_effectivness.ConstantEffectivenessCompressor.get_eta_isentropic">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_eta_isentropic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_outlet</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the constant isentropic efficiency of the compressor.</span>
 
@@ -158,7 +158,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">eta_isentropic</span></div>
 
-<div class="viewcode-block" id="ConstantEffectivenessCompressor.get_eta_mech"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.constant_effectivness.ConstantEffectivenessCompressor.get_eta_mech">[docs]</a>    <span class="k">def</span> <span class="nf">get_eta_mech</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<div class="viewcode-block" id="ConstantEffectivenessCompressor.get_eta_mech"><a class="viewcode-back" href="../../../../code/vclibpy.components.compressors.html#vclibpy.components.compressors.constant_effectivness.ConstantEffectivenessCompressor.get_eta_mech">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_eta_mech</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the product of the constant mechanical, motor, and inverter efficiencies</span>
 <span class="sd">        as the effective mechanical efficiency of the compressor.</span>

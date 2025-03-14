@@ -72,17 +72,17 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.utils.plotting</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">pathlib</span>
-<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pathlib</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span>
 
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">sdf</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sdf</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy.media</span> <span class="kn">import</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">MedProp</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">MedProp</span>
 
 
-<div class="viewcode-block" id="plot_cycle"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.plotting.plot_cycle">[docs]</a><span class="k">def</span> <span class="nf">plot_cycle</span><span class="p">(</span>
+<div class="viewcode-block" id="plot_cycle"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.plotting.plot_cycle">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">plot_cycle</span><span class="p">(</span>
         <span class="n">med_prop</span><span class="p">:</span> <span class="n">MedProp</span><span class="p">,</span>
         <span class="n">states</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ThermodynamicState</span><span class="p">],</span>
         <span class="n">save_path</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
@@ -148,7 +148,7 @@
     <span class="k">return</span> <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span></div>
 
 
-<div class="viewcode-block" id="plot_sdf_map"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.plotting.plot_sdf_map">[docs]</a><span class="k">def</span> <span class="nf">plot_sdf_map</span><span class="p">(</span>
+<div class="viewcode-block" id="plot_sdf_map"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.plotting.plot_sdf_map">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">plot_sdf_map</span><span class="p">(</span>
         <span class="n">filepath_sdf</span><span class="p">:</span> <span class="n">pathlib</span><span class="o">.</span><span class="n">Path</span><span class="p">,</span>
         <span class="n">nd_data</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="n">first_dimension</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -305,7 +305,7 @@
                 <span class="n">_max_circle_size</span> <span class="o">=</span> <span class="mi">30</span>
                 <span class="n">fourth_dim_scaled</span> <span class="o">=</span> <span class="p">(</span><span class="n">fourth_dim</span> <span class="o">-</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <span class="n">_max_circle_size</span>
                 <span class="n">inp</span> <span class="o">=</span> <span class="p">[</span><span class="n">fd</span> <span class="o">+</span> <span class="n">offset_pri</span><span class="p">,</span> <span class="n">sd</span> <span class="o">+</span> <span class="n">offset_sec</span><span class="p">,</span> <span class="n">td</span> <span class="o">+</span> <span class="n">offset_thi</span><span class="p">]</span>
-                <span class="kn">import</span> <span class="nn">itertools</span>
+                <span class="kn">import</span><span class="w"> </span><span class="nn">itertools</span>
                 <span class="n">scattergrid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">inp</span><span class="p">)])</span>
                 <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">scattergrid</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span>
                            <span class="n">scattergrid</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span>
@@ -362,7 +362,7 @@
     <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="set_axis_style"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.plotting.set_axis_style">[docs]</a><span class="k">def</span> <span class="nf">set_axis_style</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
+<div class="viewcode-block" id="set_axis_style"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.plotting.set_axis_style">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">set_axis_style</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">labels</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    From: https://matplotlib.org/3.1.1/gallery/statistics/customized_violin.html#sphx-glr-gallery-statistics-customized-violin-py</span>
 <span class="sd">    &quot;&quot;&quot;</span>

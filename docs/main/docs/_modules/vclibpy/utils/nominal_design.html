@@ -72,16 +72,16 @@
            <div itemprop="articleBody">
              
   <h1>Source code for vclibpy.utils.nominal_design</h1><div class="highlight"><pre>
-<span></span><span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">logging</span>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">time</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
 
-<span class="kn">from</span> <span class="nn">vclibpy</span> <span class="kn">import</span> <span class="n">Inputs</span>
-<span class="kn">from</span> <span class="nn">vclibpy.flowsheets</span> <span class="kn">import</span> <span class="n">BaseCycle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inputs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCycle</span>
 
 <span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
 
 
-<div class="viewcode-block" id="nominal_hp_design"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.nominal_design.nominal_hp_design">[docs]</a><span class="k">def</span> <span class="nf">nominal_hp_design</span><span class="p">(</span>
+<div class="viewcode-block" id="nominal_hp_design"><a class="viewcode-back" href="../../../code/vclibpy.utils.html#vclibpy.utils.nominal_design.nominal_hp_design">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">nominal_hp_design</span><span class="p">(</span>
         <span class="n">heat_pump</span><span class="p">:</span> <span class="n">BaseCycle</span><span class="p">,</span> 
         <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> 
         <span class="n">fluid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
