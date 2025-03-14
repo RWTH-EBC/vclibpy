@@ -619,11 +619,11 @@ vclibpy/components/expansion_valves/bernoulli.py:21:0: C0301: Line too long (103
 ************* Module vclibpy.components.expansion_valves
 vclibpy/components/expansion_valves/__init__.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 ************* Module vclibpy.components.expansion_valves.__init__
+vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.standard) (cyclic-import)
 vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.ref_prop) (cyclic-import)
 vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.components.expansion_valves -> vclibpy.components.expansion_valves.bernoulli) (cyclic-import)
 vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
 vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
-vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.standard) (cyclic-import)
 vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.utils -> vclibpy.utils.automation) (cyclic-import)
 vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.cool_prop -> vclibpy.media.media) (cyclic-import)
 vclibpy/components/expansion_valves/__init__.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.media) (cyclic-import)
