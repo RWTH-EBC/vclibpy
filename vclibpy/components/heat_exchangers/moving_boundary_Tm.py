@@ -199,6 +199,8 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
         # alpha_med_wall = 26
 
+        T_eva_surface = T_mean - Q / (self.A * alpha_med_wall)
+
         # Calculate secondary_medium side temperatures:
         T_sh = inputs.evaporator.T_in - Q_sh / self.m_flow_secondary_cp
         T_sc = T_sh - Q_lat / self.m_flow_secondary_cp
@@ -289,5 +291,9 @@ class MovingBoundaryTmEvaporator(ExternalHeatExchanger):
                      description="Area for latent heat exchange in evaporator")
         fs_state.set(name="error_A_eva", value=error_A,
                      unit="m2", description="Mismatch of required and available area in evaporator")
+        fs_state.set(
+            name="T_eva_surface", value=T_eva_surface, unit="K",
+            description="Evaporator surface temperature"
+        )
 
         return error, min(dT_min_out, dT_min_in)
