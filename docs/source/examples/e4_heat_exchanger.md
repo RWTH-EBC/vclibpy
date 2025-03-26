@@ -134,7 +134,7 @@ dT_min is, as assumed, close to zero. However, the error is very large.
 The error is calculated as follows: `(Q_ntu / Q - 1) * 100`.
 `Q` is the amount of heat required to be transported, `Q_ntu` is
 the amount possible to transfer according to NTU method.
-This means, a negative value of 100 means we could transport 2 times
+This means, a negative value of 50 means we could transport 2 times
 less heat than we want to.
 Thus, we have to iterate the pressure assumptions and lower it,
 as we need a higher temperature difference to the air.
