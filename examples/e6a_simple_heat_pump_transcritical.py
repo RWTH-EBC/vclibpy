@@ -19,7 +19,6 @@ def main(use_condenser_inlet: bool = True):
     # for the current algorithm. But, you could size the expansion valve
     # using vclibpy, including off-design, but this is one for another example.
     from vclibpy.components.heat_exchangers import moving_boundary_ntu
-    from vclibpy.components.heat_exchangers import moving_boundary_lmtd
     from vclibpy.components.heat_exchangers import heat_transfer
     condenser = moving_boundary_ntu.MovingBoundaryNTUGasCooler(
         A=80,
@@ -80,9 +79,9 @@ def main(use_condenser_inlet: bool = True):
     save_path_sdf, save_path_csv = utils.full_factorial_map_generation(
         flowsheet=flowsheet,
         save_path=save_path,
-        T_con_ar=T_con_ar,
-        T_eva_in_ar=T_eva_in_ar,
-        n_ar=n_ar,
+        T_con=T_con_ar,
+        T_eva_in=T_eva_in_ar,
+        n=n_ar,
         use_condenser_inlet=use_condenser_inlet,
         use_multiprocessing=False,
         save_plots=True,
