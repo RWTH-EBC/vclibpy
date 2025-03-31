@@ -46,7 +46,7 @@ class Algorithm(abc.ABC):
             self.save_path_plots = Path(kwargs["save_path_plots"])
         else:
             self.save_path_plots = None
-        self.max_err = kwargs.pop("max_err", 0.5)
+        self.max_err = kwargs.pop("max_err", 1) #0.5
         self.dT_eva_start_guess = kwargs.pop("dT_eva_start_guess", 3)
         self.dT_pinch_eva_guess = kwargs.pop("dT_pinch_eva_guess", 0)
         self.dT_con_start_guess = kwargs.pop("dT_con_start_guess", 10)
@@ -120,12 +120,12 @@ class Algorithm(abc.ABC):
             inputs=inputs,
             dT_start_guess=self.dT_con_start_guess
         )
-        if self.improve_first_condensing_guess:
-            p_2_start = self.get_improved_start_condensing_pressure(
-                inputs=inputs,
-                m_flow_guess=flowsheet.condenser.m_flow,
-                p_2_guess=p_2_start
-            )
+        #if self.improve_first_condensing_guess:
+        #    p_2_start = self.get_improved_start_condensing_pressure(
+        #        inputs=inputs,
+        #        m_flow_guess=flowsheet.condenser.m_flow,
+        #        p_2_guess=p_2_start
+        #    )
         fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
         inputs.add_inputs_to_fs_state(fs_state=fs_state)
         fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")

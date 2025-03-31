@@ -37,8 +37,6 @@ class BaseCycle:
         self.condenser = condenser
         # Instantiate dummy values
         self.med_prop = None
-        # Add helper to improve log levels
-        self.iteration_converged = False
 
     def __str__(self):
         return self.flowsheet_name
@@ -84,11 +82,15 @@ class BaseCycle:
         Returns:
             float: Initial guess for condensing pressure in Pa
         """
-        if inputs.condenser.uses_inlet:
-            T_3_start = inputs.condenser.T_in + inputs.control.dT_con_subcooling
+        if self.flowsheet_name != "StandardTranscritical":
+            if inputs.condenser.uses_inlet:
+                T_3_start = inputs.condenser.T_in + inputs.control.dT_con_subcooling
+            else:
+                T_3_start = inputs.condenser.T_out - dT_start_guess
+            p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
         else:
-            T_3_start = inputs.condenser.T_out - dT_start_guess
-        p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
+            _, p_2_start, _ = self.med_prop.get_critical_point()
+            p_2_start = p_2_start * 1.5
         return p_2_start
 
     def get_start_evaporating_pressure(self, inputs: Inputs, dT_start_guess: float, dT_pinch_guess: float = 0):
@@ -102,12 +104,22 @@ class BaseCycle:
         Returns:
             float: Initial guess for evaporating pressure in Pa
         """
-        if inputs.evaporator.uses_inlet:
-            T_eva_in = inputs.evaporator.T_in
+        if self.flowsheet_name != "StandardTranscritical":
+            if inputs.evaporator.uses_inlet:
+                T_eva_in = inputs.evaporator.T_in
+            else:
+                T_eva_in = inputs.evaporator.T_out + dT_start_guess
+            T_1_start = T_eva_in - inputs.control.dT_eva_superheating - dT_pinch_guess
+            p_1_start = self.med_prop.calc_state("TQ", T_1_start, 1).p
         else:
-            T_eva_in = inputs.evaporator.T_out + dT_start_guess
-        T_1_start = T_eva_in - inputs.control.dT_eva_superheating - dT_pinch_guess
-        return self.med_prop.calc_state("TQ", T_1_start, 1).p
+            if inputs.evaporator.uses_inlet:
+                T_eva_in = inputs.evaporator.T_in
+            else:
+                T_eva_in = inputs.evaporator.T_out + dT_start_guess
+            T_1_start = T_eva_in - inputs.control.dT_eva_superheating - dT_pinch_guess
+            p_1_start = self.med_prop.calc_state("TQ", T_1_start, 1).p * 0.9
+
+        return p_1_start
 
     def calculate_cycle_for_pressures(self, p_1: float, p_2: float, inputs: Inputs, fs_state: FlowsheetState):
         self.evaporator.calc_secondary_cp(T=inputs.evaporator.T)
@@ -134,9 +146,6 @@ class BaseCycle:
         T_eva_in, T_eva_out, dT_eva, m_flow_eva = inputs.evaporator.get_all_inputs(
             Q=Q_eva_outer, cp=self.evaporator.cp_secondary
         )
-        # In case dT_con is used
-        inputs.condenser.set("m_flow", m_flow_con)
-        inputs.evaporator.set("m_flow", m_flow_eva)
 
         # COP based on P_el and Q_con:
         COP_inner = Q_con / P_el
@@ -228,7 +237,7 @@ class BaseCycle:
         )
         fs_state.set(
             name="eta_glob", value=fs_state.get("eta_is").value * fs_state.get("eta_mech").value,
-            unit="-", description="Global compressor efficiency"
+            unit="%", description="Global compressor efficiency"
         )
 
     def calculate_outputs_for_valid_pressures(
@@ -303,11 +312,19 @@ class BaseCycle:
             p_con (float): Condensing pressure
             inputs (Inputs): Inputs with superheating level
         """
-        T_3 = self.med_prop.calc_state("PQ", p_con, 0).T - inputs.control.dT_con_subcooling
-        if inputs.control.dT_con_subcooling > 0:
-            self.condenser.state_outlet = self.med_prop.calc_state("PT", p_con, T_3)
-        else:
-            self.condenser.state_outlet = self.med_prop.calc_state("PQ", p_con, 0)
+
+        #T_3 = self.med_prop.calc_state("PQ", p_con, 0).T - inputs.control.dT_con_subcooling
+        #if inputs.control.dT_con_subcooling > 0:
+        #self.condenser.state_outlet = self.med_prop.calc_state("PT", p_con, T_3)
+        #else:
+        #self.condenser.state_outlet = self.med_prop.calc_state("PQ", p_con, 0)
+        # ZP3 = f(h3=h4, p2) mit h4 = f(p1,x4)
+        q_4 = 0.1
+        #print(q_4)
+        h_3 = self.med_prop.calc_state("PQ", p_con, q_4).h
+        #print(h_3)
+        self.condenser.state_outlet = self.med_prop.calc_state("PH", p_con, h_3)
+        #print(self.condenser.state_outlet)
 
     def plot_cycle(self, save_path: str, inputs: Inputs):
         """Function to plot the resulting flowsheet of the steady state config."""

@@ -146,6 +146,66 @@ class MovingBoundaryNTUCondenser(ExternalHeatExchanger):
                           dT_min_LatSH,
                           dT_min_out)
 
+class MovingBoundaryNTUGasCooler(ExternalHeatExchanger):
+    """
+    Condenser class which implements the actual `calc` method.
+
+    Assumptions:
+    - No phase changes in secondary medium
+    - cp of secondary medium is constant over heat-exchanger
+
+    See parent classes for arguments.
+    """
+
+    def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
+        """
+        Calculate the heat exchanger with the NTU-Method based on the given inputs.
+
+        The flowsheet state can be used to save important variables
+        during calculation for later analysis.
+
+        Both return values are used to check if the heat transfer is valid or not.
+
+        Args:
+            inputs (Inputs): The inputs for the calculation.
+            fs_state (FlowsheetState): The flowsheet state to save important variables.
+
+        Returns:
+            Tuple[float, float]:
+                error: Error in percentage between the required and calculated heat flow rates.
+                dT_min: Minimal temperature difference (can be negative).
+        """
+        self.m_flow_secondary = inputs.condenser.m_flow  # [kg/s]
+
+        Q = (self.state_inlet.h - self.state_outlet.h) * self.m_flow
+        T_in = self.state_inlet.T
+        T_out = self.state_outlet.T
+
+        tra_prop_med = self.calc_transport_properties_secondary_medium((T_in + T_out) / 2)
+        alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
+
+        primary_cp = ((self.state_inlet.h - self.state_outlet.h) / (self.state_inlet.T - self.state_outlet.T))
+        # Get transport properties:
+        tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(self.state_inlet, self.state_outlet)
+        alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_con)
+
+        # Only use still available area:
+        k = self.calc_k(alpha_pri=alpha_ref_wall, alpha_sec=alpha_med_wall)
+        Q_ntu, A = ntu.calc_Q_with_available_area(
+            heat_exchanger=self,
+            k=k,
+            Q_required=Q,
+            A_available=self.A,
+            dT_max=(T_in-T_out),
+            m_flow_secondary_cp=self.m_flow_secondary_cp,
+            m_flow_primary_cp=self.m_flow * primary_cp,
+        )
+        error = (Q_ntu / Q - 1) * 100
+        # Get dT_min
+        dT_min_in = self.state_outlet.T - T_in
+        dT_min_out = self.state_inlet.T - T_out
+
+        return error, min(dT_min_out, dT_min_in)
 
 class MovingBoundaryNTUEvaporator(ExternalHeatExchanger):
     """
