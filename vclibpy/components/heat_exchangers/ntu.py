@@ -1,173 +1,204 @@
-import logging
-import abc
-
 import numpy as np
-from vclibpy.components.heat_exchangers.heat_exchanger import HeatExchanger
+
+from vclibpy.components.heat_exchangers import HeatExchanger
 
 
-logger = logging.getLogger(__name__)
-
-
-class BasicNTU(HeatExchanger, abc.ABC):
+def calc_Q_ntu(
+        m_flow_primary_cp: float,
+        m_flow_secondary_cp: float,
+        k: float,
+        dT_max: float,
+        A: float,
+        flow_type: str
+) -> float:
     """
-    Moving boundary NTU based heat exchanger.
-
-    See parent class for more arguments.
+    Calculate the heat transfer and overall heat transfer coefficient for the
+    heat exchanger based on NTU.
 
     Args:
-        flow_type (str):
-            Counter, Cross or parallel flow
-        ratio_outer_to_inner_area (float):
-            The NTU method uses the overall heat transfer coefficient `k`
-            and multiplies it with the outer area `A` (area of the secondary side).
-            However, depending on the heat exchanger type, the areas may
-            differ drastically. For instance in an air-to-water heat exchanger.
-            The VDI-Atlas proposes the ratio of outer area to inner pipe area
-            to account for this mismatch in sizes.
-            The calculation follows the code in the function `calc_k`.
-            Typical values are around 20-30.
+        m_flow_primary_cp (float): Primary heat capacity rate
+        m_flow_secondary_cp (float): Secondary heat capacity rate
+        k (float): Heat transfer coefficient
+        dT_max (float): Maximum temperature differential.
+        A (float): Area of the heat exchanger.
+        flow_type (str): Flow direction. Supported are counter, cross, or parallel
+
+    Returns:
+        Tuple[float, float]: Heat transfer and overall heat transfer coefficient.
     """
+    R = calc_R(m_flow_primary_cp, m_flow_secondary_cp)
+    m_flow_cp_min = calc_m_flow_cp_min(m_flow_primary_cp, m_flow_secondary_cp)
+    if np.isinf(m_flow_cp_min):
+        # Special case with both capacity rates are inf, then dTMax is
+        # dTLog and Q is analytically determined
+        return A * k * dT_max
+    NTU = calc_NTU(A, k, m_flow_cp_min)
+    eps = calc_eps(R, NTU, flow_type=flow_type)
 
-    def __init__(self, flow_type: str, ratio_outer_to_inner_area: float, **kwargs):
-        """
-        Initializes BasicNTU.
+    # Get the maximal allowed heat flow
+    Q_max = m_flow_cp_min * dT_max
+    return Q_max * eps
 
-        Args:
-            flow_type (str): Type of flow: Counter, Cross, or Parallel.
-            ratio_outer_to_inner_area (float):
-                The NTU method uses the overall heat transfer coefficient `k`
-                and multiplies it with the overall area `A`.
-                However, depending on the heat exchanger type, the areas may
-                differ drastically. For instance in an air-to-water heat exchanger.
-                The VDI-Atlas proposes the ratio of outer area to inner pipe area
-                to account for this mismatch in sizes.
-                The calculation follows the code in the function `calc_k`.
-            **kwargs: Additional keyword arguments passed to the parent class.
-        """
-        super().__init__(**kwargs)
-        self.ratio_outer_to_inner_area = ratio_outer_to_inner_area
 
-        # Set primary cp:
-        self._primary_cp = None
+def calc_R(m_flow_primary_cp, m_flow_secondary_cp) -> float:
+    """
+    Calculate the R value, which is the ratio of heat capacity rates
+    (m_flow*cp) of the primary to secondary medium.
 
-        # Type of HE:
-        self.flow_type = flow_type.lower()
-        if self.flow_type not in ["counter", "cross", "parallel"]:
-            raise TypeError("Given flow_type is not supported")
+    Returns:
+        float: R value.
+    """
+    if np.isinf(m_flow_primary_cp) and np.isinf(m_flow_secondary_cp):
+        return 1
+    if m_flow_primary_cp > m_flow_secondary_cp:
+        return m_flow_secondary_cp / m_flow_primary_cp
+    return m_flow_primary_cp / m_flow_secondary_cp
 
-    def set_primary_cp(self, cp: float):
-        """
-        Set the specific heat (cp) for the primary medium.
 
-        Args:
-            cp (float): Specific heat for the primary medium.
-        """
-        self._primary_cp = cp
+def calc_m_flow_cp_min(m_flow_primary_cp, m_flow_secondary_cp) -> float:
+    """
+    Calculate the minimum value between the heat capacity rates
+    (m_flow*cp) for the primary and secondary mediums.
 
-    def calc_eps(self, R: float, NTU: float) -> float:
-        """
-        Calculate the effectiveness (eps) of the heat exchanger based on NTU.
+    Returns:
+        float: Minimum value.
+    """
+    return min(m_flow_secondary_cp, m_flow_primary_cp)
 
-        Source of implementation: EBC Lecture SimModelle.
 
-        Args:
-            R (float): Ratio of heat capacity rates (m_flow*cp) of the primary to secondary medium.
-            NTU (float): Number of Transfer Units.
+def calc_NTU(A: float, k: float, m_flow_cp: float) -> float:
+    """
+    Calculate the Number of Transfer Units (NTU) for the heat exchanger.
 
-        Returns:
-            float: Effectiveness (eps) of the heat exchanger.
-        """
-        if R in (0, 1):
-            return NTU / (NTU + 1)
-        if self.flow_type == "counter":
-            return (1 - np.exp(-NTU * (1 - R))) / (1 - R * np.exp(-NTU * (1 - R)))
-        if self.flow_type == "cross":
-            if NTU == 0:
-                return 0
-            eta = NTU ** -0.22
-            return 1 - np.exp((np.exp(- NTU * R * eta) - 1) / (R * eta))
-        if self.flow_type == "parallel":
-            return (1 - np.exp(-NTU * (1 + R))) / (1 + R)
-        raise TypeError(f"Flow type {self.flow_type} not supported")
+    Args:
+        A (float): Area of the heat exchanger.
+        k (float): Overall heat transfer coefficient.
+        m_flow_cp (float): Minimal heat capacity rates (m_flow*cp) between primary and secondary side.
 
-    def calc_R(self) -> float:
-        """
-        Calculate the R value, which is the ratio of heat capacity rates (m_flow*cp) of the primary to secondary medium.
+    Returns:
+        float: Number of Transfer Units (NTU).
+    """
+    return k * A / m_flow_cp
 
-        Returns:
-            float: R value.
-        """
-        m_flow_pri_cp = self.m_flow * self._primary_cp
-        if m_flow_pri_cp > self.m_flow_secondary_cp:
-            return self.m_flow_secondary_cp / m_flow_pri_cp
-        return m_flow_pri_cp / self.m_flow_secondary_cp
 
-    def calc_k(self, alpha_pri: float, alpha_sec: float) -> float:
-        """
-        Calculate the overall heat transfer coefficient (k) of the heat exchanger.
+def calc_eps(R: float, NTU: float, flow_type: str) -> float:
+    """
+    Calculate the effectiveness (eps) of the heat exchanger based on NTU.
 
-        Args:
-            alpha_pri (float): Heat transfer coefficient for the primary medium.
-            alpha_sec (float): Heat transfer coefficient for the secondary medium.
+    Source of implementation: EBC Lecture SimModelle.
 
-        Returns:
-            float: Overall heat transfer coefficient (k).
-        """
-        k_wall = self.calc_wall_heat_transfer()
-        k = (1 / (
-                        (1 / alpha_pri) * self.ratio_outer_to_inner_area +
-                        (1 / k_wall) * self.ratio_outer_to_inner_area +
-                        (1 / alpha_sec)
-                )
-             )
-        return k
+    Args:
+        R (float): Ratio of heat capacity rates (m_flow*cp) of the primary to secondary medium.
+        NTU (float): Number of Transfer Units.
+        flow_type (str): Flow direction. Supported are counter, cross, or parallel
 
-    @staticmethod
-    def calc_NTU(A: float, k: float, m_flow_cp: float) -> float:
-        """
-        Calculate the Number of Transfer Units (NTU) for the heat exchanger.
+    Returns:
+        float: Effectiveness (eps) of the heat exchanger.
+    """
+    if R in (0, 1):
+        return NTU / (NTU + 1)
+    if flow_type == "counter":
+        return (1 - np.exp(-NTU * (1 - R))) / (1 - R * np.exp(-NTU * (1 - R)))
+    if flow_type == "cross":
+        if NTU == 0:
+            return 0
+        eta = NTU ** -0.22
+        return 1 - np.exp((np.exp(- NTU * R * eta) - 1) / (R * eta))
+    if flow_type == "parallel":
+        return (1 - np.exp(-NTU * (1 + R))) / (1 + R)
+    raise TypeError(f"Flow type {flow_type} not supported")
 
-        Args:
-            A (float): Area of the heat exchanger.
-            k (float): Overall heat transfer coefficient.
-            m_flow_cp (float): Minimal heat capacity rates (m_flow*cp) between primary and secondary side.
 
-        Returns:
-            float: Number of Transfer Units (NTU).
-        """
-        return k * A / m_flow_cp
+def iterate_area(
+        m_flow_primary_cp: float,
+        m_flow_secondary_cp: float,
+        heat_exchanger: HeatExchanger,
+        dT_max: float,
+        k: float,
+        Q: float
+) -> float:
+    """
+    Iteratively calculates the required area for the heat exchange.
 
-    def calc_m_flow_cp_min(self) -> float:
-        """
-        Calculate the minimum value between the heat capacity rates (m_flow*cp) for the primary and secondary mediums.
+    Args:
+        m_flow_primary_cp (float): Primary heat capacity rate
+        m_flow_secondary_cp (float): Secondary heat capacity rate
+        heat_exchanger (HeatExchanger): An instance of the BasicNTU or children classes
+        dT_max (float): Maximum temperature differential.
+        k (float): Heat transfer coefficient.
+        Q (float): Heat flow rate.
 
-        Returns:
-            float: Minimum value.
-        """
-        return min(
-            self.m_flow * self._primary_cp,
-            self.m_flow_secondary_cp
-        )
+    Returns:
+        float: Required area for heat exchange.
+    """
+    _accuracy = 1e-6  # square mm
+    _step = 1.0
+    R = calc_R(m_flow_primary_cp, m_flow_secondary_cp)
+    m_flow_cp_min = calc_m_flow_cp_min(m_flow_primary_cp, m_flow_secondary_cp)
+    # First check if point is feasible at all
+    if dT_max <= 0:
+        return heat_exchanger.A
+    eps_necessary = Q / (m_flow_cp_min * dT_max)
 
-    def calc_Q_ntu(self, dT_max: float, alpha_pri: float, alpha_sec: float, A: float) -> (float, float):
-        """
-        Calculate the heat transfer and overall heat transfer coefficient for the heat exchanger based on NTU.
+    # Special cases:
+    # ---------------
+    # eps is equal or higher than 1, an infinite amount of area would be necessary.
+    if eps_necessary >= 1:
+        return heat_exchanger.A
+    # eps is lower or equal to zero: No Area required (Q<=0)
+    if eps_necessary <= 0:
+        return 0
+    # Both capacity rates are inf, then dTMax is dTLog and A is analytically determined
+    if np.isinf(m_flow_cp_min):
+        return min(heat_exchanger.A, Q / (dT_max * k))
 
-        Args:
-            dT_max (float): Maximum temperature differential.
-            alpha_pri (float): Heat transfer coefficient for the primary medium.
-            alpha_sec (float): Heat transfer coefficient for the secondary medium.
-            A (float): Area of the heat exchanger.
+    area = 0.0
+    while True:
+        if heat_exchanger.flow_type == "cross" and area == 0.0:
+            eps = 0.0
+        else:
+            NTU = calc_NTU(area, k, m_flow_cp_min)
+            eps = calc_eps(R, NTU, heat_exchanger.flow_type)
+        if eps >= eps_necessary:
+            if _step <= _accuracy:
+                break
+            else:
+                # Go back
+                area -= _step
+                _step /= 10
+                continue
+        if _step < _accuracy and area > heat_exchanger.A:
+            break
+        area += _step
 
-        Returns:
-            Tuple[float, float]: Heat transfer and overall heat transfer coefficient.
-        """
-        R = self.calc_R()
-        k = self.calc_k(alpha_pri, alpha_sec)
-        m_flow_cp_min = self.calc_m_flow_cp_min()
-        NTU = self.calc_NTU(A, k, m_flow_cp_min)
-        eps = self.calc_eps(R, NTU)
+    return min(area, heat_exchanger.A)
 
-        # Get the maximal allowed heat flow
-        Q_max = m_flow_cp_min * dT_max
-        return Q_max * eps, k
+
+def calc_Q_with_available_area(
+        heat_exchanger: HeatExchanger,
+        m_flow_primary_cp: float,
+        m_flow_secondary_cp: float,
+        Q_required: float,
+        k: float,
+        dT_max: float,
+        A_available: float,
+) -> (float, float):
+    A_required = iterate_area(
+        heat_exchanger=heat_exchanger,
+        k=k,
+        Q=Q_required,
+        dT_max=dT_max,
+        m_flow_primary_cp=m_flow_primary_cp,
+        m_flow_secondary_cp=m_flow_secondary_cp
+    )
+    # Only use available area
+    A_required = min(A_available, A_required)
+    Q_achievable = calc_Q_ntu(
+        dT_max=dT_max,
+        k=k,
+        A=A_required,
+        m_flow_primary_cp=m_flow_primary_cp,
+        m_flow_secondary_cp=m_flow_secondary_cp,
+        flow_type=heat_exchanger.flow_type
+    )
+    return Q_achievable, A_required

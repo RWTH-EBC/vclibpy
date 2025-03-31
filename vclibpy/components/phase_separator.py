@@ -3,10 +3,10 @@ Module with a simple phase separator model.
 """
 
 from vclibpy.media import ThermodynamicState
-from vclibpy.components.component import BaseComponent
+from vclibpy.components.component import TwoPortComponent
 
 
-class PhaseSeparator(BaseComponent):
+class PhaseSeparator(TwoPortComponent):
     """
     A simple phase separator model.
     """
@@ -16,7 +16,7 @@ class PhaseSeparator(BaseComponent):
         self._state_outlet_liquid: ThermodynamicState = None
         self._state_outlet_vapor: ThermodynamicState = None
 
-    @BaseComponent.state_inlet.setter
+    @TwoPortComponent.state_inlet.setter
     def state_inlet(self, state_inlet: ThermodynamicState):
         """
         Set the state of the inlet and calculate the outlet states for liquid and vapor phases.
@@ -28,7 +28,7 @@ class PhaseSeparator(BaseComponent):
         self.state_outlet_vapor = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
         self.state_outlet_liquid = self.med_prop.calc_state("PQ", self.state_inlet.p, 0)
 
-    @BaseComponent.state_outlet.setter
+    @TwoPortComponent.state_outlet.setter
     def state_outlet(self, state: ThermodynamicState):
         """
         This outlet is disabled for this component.
