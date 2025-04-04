@@ -15,6 +15,8 @@ class PhaseSeparator(BaseComponent):
         super().__init__()
         self._state_outlet_liquid: ThermodynamicState = None
         self._state_outlet_vapor: ThermodynamicState = None
+        self._state_inlet_low: ThermodynamicState = None
+        self.massflowratio: float = None
 
     @BaseComponent.state_inlet.setter
     def state_inlet(self, state_inlet: ThermodynamicState):
@@ -27,6 +29,7 @@ class PhaseSeparator(BaseComponent):
         self._state_inlet = state_inlet
         self.state_outlet_vapor = self.med_prop.calc_state("PQ", self.state_inlet.p, 1)
         self.state_outlet_liquid = self.med_prop.calc_state("PQ", self.state_inlet.p, 0)
+
 
     @BaseComponent.state_outlet.setter
     def state_outlet(self, state: ThermodynamicState):
@@ -77,3 +80,30 @@ class PhaseSeparator(BaseComponent):
             state (ThermodynamicState): Outlet state for the liquid phase.
         """
         self._state_outlet_liquid = state
+
+
+    @property
+    def state_inlet_low(self) -> ThermodynamicState:
+        """
+        Get or set the inlet state of the component.
+
+        Returns:
+            ThermodynamicState: Inlet state of the component.
+        """
+        return self._state_inlet_low
+
+    @state_inlet_low.setter
+    def state_inlet_low(self, state_inlet: ThermodynamicState):
+        """
+        Set the inlet state of the component.
+
+        Args:
+            state_inlet (ThermodynamicState): Inlet state to set.
+        """
+        self._state_inlet_low = state_inlet
+
+    def get_mflow_ratio(self):
+
+        self.massflowratio = ((self.state_outlet_vapor.h - self.state_inlet.h)
+                              / max(0.0001, self.state_inlet_low.h-self.state_outlet_liquid.h))
+        return self.massflowratio

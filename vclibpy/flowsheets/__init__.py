@@ -7,3 +7,4 @@ from .vi_2stage import VaporInjection_TwoStageFlashTank
 from .vi_q2stage_flt import VI_q2StageFLT
 from .vi_q2stage_eco import VI_q2StageECO
 from .standardTC import StandardCycleTC
+from .openFlt import openFlt
