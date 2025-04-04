@@ -38,7 +38,7 @@ class BaseCycle:
         self.condenser = condenser
         # Instantiate dummy values
         self.med_prop = None
-        self._p_min = 0.001 * 10**5  # So that p>0 at all times
+        self._p_min = 0.1 * 1e5  # So that p>0 at all times
         self._p_max = None  # Is set by med-prop
 
     def __str__(self):
