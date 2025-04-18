@@ -122,14 +122,11 @@ class VI_q2StageFLT(BaseCycle):
             # iterate compressor speed
             self.condenser.state_inlet = self.compressor_high.state_outlet
             if inputs.fix_speed == float(False):
-                n_next = 0.5
+                n_next = 0.01
                 n_step = 0.1
-                max_rel_error = 0.0001
-                bigger = False
-                smaller = False
+                max_error = 0.001
                 n_iter = 0
-                n_iter_max = 100000
-                while n_iter <= n_iter_max:
+                while True:
                     n_iter += 1
                     inputs.set(
                         name="n",
@@ -142,46 +139,15 @@ class VI_q2StageFLT(BaseCycle):
                     self.condenser.m_flow = self.compressor_high.calc_m_flow(inputs, fs_state, lambda_h=lambda_h)
                     rel_error = 100 * (self.condenser.calc_Q_flow() - inputs.Q_con) / inputs.Q_con
 
-                    if abs(rel_error) < max_rel_error:
+                    if abs(rel_error) < max_error:
                         break
                     elif rel_error < 0:
-                        if n_next > 1.5:
-                            n_next = 1.5
-                            inputs.set(
-                                name="n",
-                                value=n_next,
-                                unit="-",
-                                description="Relative compressor speed"
-                            )
-                            break
                         n_next += n_step
-                        bigger = True
-                        if bigger and smaller:
-                            n_next -= n_step
-                            n_step /= 10
-                            n_next += n_step
-                            bigger = False
-                            smaller = False
                         continue
-                    elif rel_error > 0:
-                        if n_next < 0.2:
-                            n_next = 0.2
-                            inputs.set(
-                                name="n",
-                                value=n_next,
-                                unit="-",
-                                description="Relative compressor speed"
-                            )
-                            break
-                        n_next -= n_step
-                        smaller = True
-                        if bigger and smaller:
-                            n_next += n_step
-                            n_step /= 10
-                            n_next -= n_step
-                            bigger = False
-                            smaller = False
-                        continue
+                    n_next -= n_step
+                    n_step /= 10
+                    n_next += n_step
+                    continue
 
             # m_flow condenser
             self.condenser.m_flow = self.compressor_high.calc_m_flow(inputs, fs_state, lambda_h=lambda_h)

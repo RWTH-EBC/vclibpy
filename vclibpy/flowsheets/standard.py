@@ -72,14 +72,11 @@ class StandardCycle(BaseCycle):
         self.set_evaporator_outlet_based_on_superheating(p_eva=p_1, inputs=inputs)
         self.compressor.state_inlet = self.evaporator.state_outlet
         if inputs.fix_speed == float(False):
-            n_next = 0.5
+            n_next = 0.01
             n_step = 0.1
-            max_rel_error = 0.0001
-            bigger = False
-            smaller = False
+            max_error = 1
             n_iter = 0
-            n_iter_max = 100000
-            while n_iter <= n_iter_max:
+            while True:
                 n_iter += 1
                 inputs.set(
                     name="n",
@@ -91,48 +88,17 @@ class StandardCycle(BaseCycle):
                 self.condenser.state_inlet = self.compressor.state_outlet
                 self.compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
                 self.condenser.m_flow = self.compressor.m_flow
-                Q_con = self.condenser.calc_Q_flow()
-                rel_error = 100 * (Q_con - inputs.Q_con) / inputs.Q_con
-                if abs(rel_error) < max_rel_error:
+                error = self.condenser.calc_Q_flow() - inputs.Q_con
+
+                if abs(error) < max_error:
                     break
-                elif rel_error < 0:
-                    if n_next > 1.5:
-                        n_next = 1.5
-                        inputs.set(
-                            name="n",
-                            value=n_next,
-                            unit="-",
-                            description="Relative compressor speed"
-                        )
-                        break
+                elif error < 0:
                     n_next += n_step
-                    bigger = True
-                    if bigger and smaller:
-                        n_next -= n_step
-                        n_step /= 10
-                        n_next += n_step
-                        bigger = False
-                        smaller = False
                     continue
-                elif rel_error > 0:
-                    if n_next < 0.2:
-                        n_next = 0.2
-                        inputs.set(
-                            name="n",
-                            value=n_next,
-                            unit="-",
-                            description="Relative compressor speed"
-                        )
-                        break
-                    n_next -= n_step
-                    smaller = True
-                    if bigger and smaller:
-                        n_next += n_step
-                        n_step /= 10
-                        n_next -= n_step
-                        bigger = False
-                        smaller = False
-                    continue
+                n_next -= n_step
+                n_step /= 10
+                n_next += n_step
+
         self.compressor.calc_state_outlet(p_outlet=p_2, inputs=inputs, fs_state=fs_state)
         self.condenser.state_inlet = self.compressor.state_outlet
 

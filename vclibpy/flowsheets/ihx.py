@@ -129,7 +129,7 @@ class IHX(BaseCycle, abc.ABC):
         success = True
 
         p_ihx_next = self.condenser.state_outlet.p
-        step_p_ihx = 100000
+        step_p_ihx = 1000
 
         while True:
             if isinstance(max_num_iterations, (int, float)):
@@ -243,16 +243,16 @@ class IHX(BaseCycle, abc.ABC):
         dh_ihx = self.ihx.state_outlet_low.h-self.ihx.state_inlet_low.h
         self.set_evaporator_inlet_based_on_dh_ihx(p_1, dh_ihx)
         self.expansion_valve2.state_outlet = self.evaporator.state_inlet
+    # State 2
+        self.compressor.calc_state_outlet(p_outlet=p_2, inputs=inputs, fs_state=fs_state)
+        self.condenser.state_inlet = self.compressor.state_outlet
     # Iterate compressor speed
         if inputs.fix_speed == float(False):
-            n_next = 0.5
+            n_next = 0.01
             n_step = 0.1
-            max_rel_error = 0.0001
-            bigger = False
-            smaller = False
+            max_error = 0.0001
             n_iter = 0
-            n_iter_max = 100000
-            while n_iter <= n_iter_max:
+            while True:
                 n_iter += 1
                 inputs.set(
                     name="n",
@@ -260,52 +260,18 @@ class IHX(BaseCycle, abc.ABC):
                     unit="-",
                     description="Relative compressor speed"
                 )
-                self.compressor.calc_state_outlet(p_outlet=p_2, inputs=inputs, fs_state=fs_state)
-                self.condenser.state_inlet = self.compressor.state_outlet
                 self.compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
                 self.condenser.m_flow = self.compressor.m_flow
-                Q_con = self.condenser.calc_Q_flow()
-                rel_error = 100 * (Q_con - inputs.Q_con) / inputs.Q_con
-                if abs(rel_error) < max_rel_error:
+                rel_error = 100 * (self.condenser.calc_Q_flow() - inputs.Q_con) / inputs.Q_con
+                if abs(rel_error) < max_error:
                     break
                 elif rel_error < 0:
-                    if n_next > 1.5:
-                        n_next = 1.5
-                        inputs.set(
-                            name="n",
-                            value=n_next,
-                            unit="-",
-                            description="Relative compressor speed"
-                        )
-                        break
                     n_next += n_step
-                    bigger = True
-                    if bigger and smaller:
-                        n_next -= n_step
-                        n_step /= 10
-                        n_next += n_step
-                        bigger = False
-                        smaller = False
                     continue
-                elif rel_error > 0:
-                    if n_next < 0.2:
-                        n_next = 0.2
-                        inputs.set(
-                            name="n",
-                            value=n_next,
-                            unit="-",
-                            description="Relative compressor speed"
-                        )
-                        break
-                    n_next -= n_step
-                    smaller = True
-                    if bigger and smaller:
-                        n_next += n_step
-                        n_step /= 10
-                        n_next -= n_step
-                        bigger = False
-                        smaller = False
-                    continue
+                n_next -= n_step
+                n_step /= 10
+                n_next += n_step
+                continue
     # State 2
         self.compressor.calc_state_outlet(p_outlet=p_2, inputs=inputs, fs_state=fs_state)
         self.condenser.state_inlet = self.compressor.state_outlet

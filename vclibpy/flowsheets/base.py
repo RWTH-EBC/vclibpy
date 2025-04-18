@@ -74,6 +74,218 @@ class BaseCycle:
         return [self.condenser, self.evaporator]
 
     def calc_steady_state(self, inputs: Inputs, fluid: str = None, **kwargs):
+
+        min_iteration_step = kwargs.pop("min_iteration_step", 0.0000001)
+        save_path_plots = kwargs.get("save_path_plots", None)
+        input_name = ";".join([k + "=" + str(np.round(v.value, 3)).replace(".", "_")
+                               for k, v in inputs.get_variables().items()])
+        show_iteration = kwargs.get("show_iteration", False)
+        use_quick_solver = kwargs.pop("use_quick_solver", True)
+        err_ntu = kwargs.pop("max_err_ntu", 0.1)
+        err_dT_min = kwargs.pop("max_err_dT_min", 1)
+
+
+        # Setup fluid:
+        if fluid is None:
+            fluid = self.fluid
+        self.setup_new_fluid(fluid)
+
+        T_eva_start = inputs.T_eva_in - inputs.dT_eva_superheating - 1
+        T_con_next = inputs.T_con_in + inputs.dT_con_subcooling + 1
+
+        if self.flowsheet_name == "IHX":
+            T_eva_start = inputs.T_eva_in - 1
+
+
+        fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
+        fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
+        fs_state.set(name="COP_Carnot", value=0, unit="-", description="maximal Coefficient of performance")
+        fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
+        fs_state.set(name="Q_eva", value=1, unit="W", description="Condenser heat flow rate")
+
+        num_iterations = 0
+
+
+        step_T_con = 1
+        while True:
+            p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
+            T_eva_next = T_eva_start
+            step_T_eva = 1
+            while True:
+                num_iterations += 1
+                if num_iterations > 100000:
+                    return self.set_default_state(fs_state)
+
+                p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
+                try:
+                    self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
+                except ValueError as err:
+                    logger.error("An error occurred while calculating states. "
+                                 "Can't guess next pressures, thus, exiting: %s", err)
+                    return
+                error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+                if dT_min_eva < 0:
+                    T_eva_next -= step_T_eva
+                    continue
+                if abs(error_eva) < err_ntu:
+                    break
+                if error_eva < 0:
+                    T_eva_next -= step_T_eva
+                    continue
+                if error_eva > 0:
+                    T_eva_next += step_T_eva
+                    step_T_eva /= 10
+                    T_eva_next -= step_T_eva
+                    if step_T_eva < min_iteration_step:
+                        break
+                    continue
+
+            error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
+            if dT_min_con < 0:
+                T_con_next += step_T_con
+                continue
+            if abs(error_con) < err_ntu:
+                break
+            if error_con < 0:
+                T_con_next += step_T_con
+                continue
+            if error_con > 0:
+                T_con_next -= step_T_con
+                step_T_con /= 10
+                T_con_next += step_T_con
+                if T_con_next < min_iteration_step:
+                    break
+                continue
+
+        if self.flowsheet_name == "IHX":
+            self.calc_missing_IHX_states(inputs, fs_state, **kwargs)
+
+        # Calculate the heat flow rates for the selected states.
+        Q_con = self.condenser.calc_Q_flow()
+        Q_con_outer = self.condenser.calc_secondary_Q_flow(Q_con)
+        Q_eva = self.evaporator.calc_Q_flow()
+        Q_eva_outer = self.evaporator.calc_secondary_Q_flow(Q_eva)
+        self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+        self.condenser.calc(inputs=inputs, fs_state=fs_state)
+        P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
+        T_con_out = inputs.T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
+        T_eva_out = inputs.T_eva_in - Q_eva_outer / self.evaporator.m_flow_secondary_cp
+
+        # COP based on P_el and Q_con:
+        COP_inner = Q_con / P_el
+        COP_outer = Q_con_outer / P_el
+        # Calculate carnot quality as a measure of reliability of model:
+        COP_carnot = (T_con_out / (T_con_out - inputs.T_eva_in))
+        carnot_quality = COP_inner / COP_carnot
+
+        fs_state.set(
+            name="P_el", value=P_el / 1000, unit="W",
+            description="Power consumption"
+        )
+        fs_state.set(
+            name="carnot_quality", value=carnot_quality,
+            unit="-", description="Carnot Quality"
+        )
+        fs_state.set(
+            name="COP", value=COP_inner,
+            unit="-", description="Coefficient of Performance"
+        )
+        fs_state.set(name="COP_Carnot", value=COP_carnot,
+                     unit="-", description="maximal Coefficient of performance")
+        fs_state.set(
+            name="Q_con", value=Q_con / 1000, unit="W",
+            description="Condenser refrigerant heat flow rate"
+        )
+        fs_state.set(
+            name="Q_eva", value=Q_eva / 1000, unit="W",
+            description="Evaporator refrigerant heat flow rate"
+        )
+
+        fs_state.set(name="SEC_T_con_in", value=inputs.T_con_in - 273.15,
+                     description="Condenser inlet temperature secondary")
+        fs_state.set(name="SEC_T_con_out", value=T_con_out - 273.15,
+                     description="Condenser outlet temperature secondary")
+        fs_state.set(name="SEC_dT_con", value=T_con_out - inputs.T_con_in,
+                     description="Condenser temperature difference secondary")
+        fs_state.set(name="SEC_m_flow_con", value=self.condenser.m_flow_secondary,
+                     description="Condenser mass flow secondary")
+        fs_state.set(name="SEC_T_eva_in", value=inputs.T_eva_in - 273.15,
+                     description="Evaporator inlet temperature secondary")
+        fs_state.set(name="SEC_T_eva_out", value=T_eva_out - 273.15,
+                     description="Evaporator outlet temperature secondary")
+        fs_state.set(name="SEC_dT_eva", value=inputs.T_eva_in - T_eva_out,
+                     description="Evaporator temperature difference secondary")
+        fs_state.set(name="SEC_m_flow_eva", value=self.evaporator.m_flow_secondary,
+                     description="Evaporator mass flow secondary")
+        fs_state.set(name="REF_m_flow_con", value=self.condenser.m_flow)
+        fs_state.set(name="REF_m_flow_eva", value=self.evaporator.m_flow)
+        fs_state.set(name="REF_p_con", value=self.condenser.state_inlet.p / 100000)
+        fs_state.set(name="REF_p_eva", value=self.evaporator.state_inlet.p / 100000)
+        if save_path_plots is not None:
+            self.plot_cycle(save_path=save_path_plots.joinpath(f"{COP_inner}_final_result.png"), inputs=inputs)
+        all_states = self.get_states()
+        for _state in all_states:
+            fs_state.set(name="REF_T_" + _state, value=all_states[_state].T - 273.15)
+        for _state in all_states:
+            fs_state.set(name="REF_p_" + _state, value=all_states[_state].p / 100000)
+        for _state in all_states:
+            fs_state.set(name="REF_h_" + _state, value=all_states[_state].h / 1000)
+        for _state in all_states:
+            fs_state.set(name="REF_q_" + _state, value=all_states[_state].q)
+        for _state in all_states:
+            fs_state.set(name="REF_d_" + _state, value=all_states[_state].d)
+        return fs_state
+
+
+    def set_default_state(self, fs_state):
+        fs_state.set(
+            name="P_el", value=0, unit="W",
+            description="Power consumption"
+        )
+        fs_state.set(
+            name="carnot_quality", value=0,
+            unit="-", description="Carnot Quality"
+        )
+        fs_state.set(
+            name="COP", value=0,
+            unit="-", description="Coefficient of Performance"
+        )
+        fs_state.set(name="COP_Carnot", value=0,
+                     unit="-", description="maximal Coefficient of performance")
+        fs_state.set(
+            name="Q_con", value=0, unit="W",
+            description="Condenser refrigerant heat flow rate"
+        )
+        fs_state.set(
+            name="Q_eva", value=0, unit="W",
+            description="Evaporator refrigerant heat flow rate"
+        )
+
+        fs_state.set(name="SEC_T_con_in", value=0,
+                     description="Condenser inlet temperature secondary")
+        fs_state.set(name="SEC_T_con_out", value=0,
+                     description="Condenser outlet temperature secondary")
+        fs_state.set(name="SEC_dT_con", value=0,
+                     description="Condenser temperature difference secondary")
+        fs_state.set(name="SEC_m_flow_con", value=0,
+                     description="Condenser mass flow secondary")
+        fs_state.set(name="SEC_T_eva_in", value=0,
+                     description="Evaporator inlet temperature secondary")
+        fs_state.set(name="SEC_T_eva_out", value=0,
+                     description="Evaporator outlet temperature secondary")
+        fs_state.set(name="SEC_dT_eva", value=0,
+                     description="Evaporator temperature difference secondary")
+        fs_state.set(name="SEC_m_flow_eva", value=0,
+                     description="Evaporator mass flow secondary")
+        fs_state.set(name="REF_m_flow_con", value=0)
+        fs_state.set(name="REF_m_flow_eva", value=0)
+        fs_state.set(name="REF_p_con", value=0)
+        fs_state.set(name="REF_p_eva", value=0)
+        return fs_state
+
+
+
+    def calc_steady_state_old(self, inputs: Inputs, fluid: str = None, **kwargs):
         """
         Calculate the steady-state performance of a vapor compression cycle
         based on given inputs and assumptions.

@@ -127,7 +127,7 @@ class Compressor(BaseComponent):
         """
         state_outlet_isentropic = self.med_prop.calc_state("PS", p_outlet, self.state_inlet.s)
         if eta_is is None:
-            eta_is = self.get_eta_isentropic(p_outlet=p_outlet, inputs=inputs)
+            eta_is = max(0.01,self.get_eta_isentropic(p_outlet=p_outlet, inputs=inputs))
         h_outlet = (
                 self.state_inlet.h + (state_outlet_isentropic.h - self.state_inlet.h) /
                 eta_is
@@ -150,8 +150,9 @@ class Compressor(BaseComponent):
             float: Refrigerant mass flow rate.
         """
         if lambda_h is None:
-            lambda_h = self.get_lambda_h(inputs=inputs,
-                                         p_outlet=None)
+            lambda_h = max(0.01,self.get_lambda_h(inputs=inputs,
+                                         p_outlet=None))
+
         V_flow_ref = (
                 lambda_h *
                 self.V_h *
@@ -166,8 +167,8 @@ class Compressor(BaseComponent):
     def calc_n(self, inputs: Inputs, fs_state: FlowsheetState,
                lambda_h=None):
         if lambda_h is None:
-            lambda_h = self.get_lambda_h(inputs=inputs,
-                                         p_outlet=None)
+            lambda_h =  max(0.01,self.get_lambda_h(inputs=inputs,
+                                         p_outlet=None))
         V_flow_ref = self.m_flow/self.state_inlet.d
         n_abs = V_flow_ref/(lambda_h * self.V_h)
         return n_abs/self.N_max

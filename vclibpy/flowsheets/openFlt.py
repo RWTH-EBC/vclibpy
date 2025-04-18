@@ -111,12 +111,10 @@ class openFlt(BaseCycle):
             if inputs.fix_speed == float(False):
                 n_next = 0.01
                 n_step = 0.1
-                max_rel_error = 0.0001
-                bigger = False
-                smaller = False
+                max_error = 0.001
                 n_iter = 0
-                n_iter_max = 100000
-                while n_iter <= n_iter_max:
+
+                while True:
                     n_iter += 1
                     inputs.set(
                         name="n",
@@ -124,12 +122,10 @@ class openFlt(BaseCycle):
                         unit="-",
                         description="Relative compressor speed"
                     )
-
                     # m_flow condenser
                     self.condenser.m_flow = self.compressor_high.calc_m_flow(inputs, fs_state)
                     rel_error = 100 * (self.condenser.calc_Q_flow() - inputs.Q_con) / inputs.Q_con
-
-                    if abs(rel_error) < max_rel_error:
+                    if abs(rel_error) < max_error:
                         break
                     elif rel_error < 0:
                         n_next += n_step
@@ -138,6 +134,7 @@ class openFlt(BaseCycle):
                     n_step /= 10
                     n_next += n_step
                     continue
+
 
             # m_flow condenser
 
