@@ -54,3 +54,7 @@ class ExpansionValve(BaseComponent, abc.ABC):
             p_outlet (float): Outlet pressure level
         """
         self.state_outlet = self.med_prop.calc_state("PH", p_outlet, self.state_inlet.h)
+
+    def  terminate_secondary_med_prop(self):
+        if self.med_prop is not None:
+            self.med_prop.terminate()

@@ -191,3 +191,8 @@ class Compressor(BaseComponent):
         P_el = P_t / eta_mech
         fs_state.set(name="eta_mech", value=eta_mech, unit="-", description="Mechanical efficiency")
         return P_el
+
+    def terminate_secondary_med_prop(self):
+        if self.med_prop is not None:
+            self.med_prop.terminate()
+

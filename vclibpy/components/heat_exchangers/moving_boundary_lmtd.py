@@ -300,6 +300,7 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
                                Q=Q_sc)
 
             A_sc = min(self.A, A_sc)
+            fs_state.set(name="Con_alpha_liquid", value=alpha_ref_wall)
 
         # 2. Regime: Latent heat exchange
         A_lat = 0
@@ -323,6 +324,7 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
 
             # Only use still available area:
             A_lat = min(self.A - A_sc, A_lat)
+            fs_state.set(name="Con_alpha_lat", value=alpha_ref_wall)
 
             logger.debug(f"con_lat: pri: {round(alpha_ref_wall, 2)} sec: {round(alpha_med_wall, 2)}")
 
@@ -344,7 +346,7 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
                                alpha_pri=alpha_ref_wall,
                                alpha_sec=alpha_med_wall,
                                Q=Q_sh)
-
+            fs_state.set(name="Con_alpha_gas", value=alpha_ref_wall)
             logger.debug(f"con_sh: pri: {round(alpha_ref_wall, 2)} sec: {round(alpha_med_wall, 2)}")
 
         A_lmtd = A_sh + A_lat + A_sc
@@ -472,7 +474,7 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
                                alpha_pri=alpha_ref_wall,
                                alpha_sec=alpha_med_wall,
                                Q=Q_sh)
-
+            fs_state.set(name="Eva_alpha_gas", value=alpha_ref_wall)
             logger.debug(f"eva_sh: pri: {round(alpha_ref_wall, 2)} sec: {round(alpha_med_wall, 2)}")
 
         # 2. Regime: Latent heat exchange
@@ -495,6 +497,8 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
                                 alpha_sec=alpha_med_wall,
                                 Q=Q_lat)
 
+            fs_state.set(name="Eva_alpha_lat", value=alpha_ref_wall)
+
             logger.debug(f"eva_lat: pri: {round(alpha_ref_wall, 2)} sec: {round(alpha_med_wall, 2)}")
 
         # 3. Regime: Subcooling
@@ -514,6 +518,7 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
                                alpha_pri=alpha_ref_wall,
                                alpha_sec=alpha_med_wall,
                                Q=Q_sc)
+            fs_state.set(name="Eva_alpha_liquid", value=alpha_ref_wall)
 
         A_lmtd = A_sh + A_lat + A_sc
         error = (self.A / A_lmtd - 1) * 100

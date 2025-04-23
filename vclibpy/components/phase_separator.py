@@ -107,3 +107,6 @@ class PhaseSeparator(BaseComponent):
         self.massflowratio = ((self.state_outlet_vapor.h - self.state_inlet.h)
                               / max(0.0001, self.state_inlet_low.h-self.state_outlet_liquid.h))
         return self.massflowratio
+
+    def terminate_secondary_med_prop(self):
+        self.med_prop.terminate()
