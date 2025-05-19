@@ -152,7 +152,7 @@ class StandardCycle(BaseCycle):
             )
         else:
             self.condenser.calc_secondary_cp(T=inputs.T_con_in)
-            T_con_out = inputs.T_con_in + (inputs.Q_con / self.condenser.secondary_cp * inputs.m_flow_con)
+            T_con_out = inputs.T_con_in + (inputs.Q_con / (self.condenser.secondary_cp * inputs.m_flow_con))
             inputs.set(
                 name="T_con_out",
                 value=T_con_out,

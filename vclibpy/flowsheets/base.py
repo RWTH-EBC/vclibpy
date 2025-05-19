@@ -169,14 +169,12 @@ class BaseCycle:
         self.evaporator.calc(inputs=inputs, fs_state=fs_state)
         self.condenser.calc(inputs=inputs, fs_state=fs_state)
         P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
-        T_con_out = inputs.T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
-        T_eva_out = inputs.T_eva_in - Q_eva_outer / self.evaporator.m_flow_secondary_cp
 
         # COP based on P_el and Q_con:
         COP_inner = Q_con / P_el
         COP_outer = Q_con_outer / P_el
         # Calculate carnot quality as a measure of reliability of model:
-        COP_carnot = (T_con_out / (T_con_out - inputs.T_eva_in))
+        COP_carnot = (inputs.T_con_out / (inputs.T_con_out - inputs.T_eva_in))
         carnot_quality = COP_inner / COP_carnot
 
         fs_state.set(
@@ -204,17 +202,17 @@ class BaseCycle:
 
         fs_state.set(name="SEC_T_con_in", value=inputs.T_con_in - 273.15,
                      description="Condenser inlet temperature secondary")
-        fs_state.set(name="SEC_T_con_out", value=T_con_out - 273.15,
+        fs_state.set(name="SEC_T_con_out", value=inputs.T_con_out - 273.15,
                      description="Condenser outlet temperature secondary")
-        fs_state.set(name="SEC_dT_con", value=T_con_out - inputs.T_con_in,
+        fs_state.set(name="SEC_dT_con", value=inputs.T_con_out - inputs.T_con_in,
                      description="Condenser temperature difference secondary")
         fs_state.set(name="SEC_m_flow_con", value=self.condenser.m_flow_secondary,
                      description="Condenser mass flow secondary")
         fs_state.set(name="SEC_T_eva_in", value=inputs.T_eva_in - 273.15,
                      description="Evaporator inlet temperature secondary")
-        fs_state.set(name="SEC_T_eva_out", value=T_eva_out - 273.15,
+        fs_state.set(name="SEC_T_eva_out", value=inputs.T_eva_out - 273.15,
                      description="Evaporator outlet temperature secondary")
-        fs_state.set(name="SEC_dT_eva", value=inputs.T_eva_in - T_eva_out,
+        fs_state.set(name="SEC_dT_eva", value=inputs.T_eva_out - inputs.T_eva_out,
                      description="Evaporator temperature difference secondary")
         fs_state.set(name="SEC_m_flow_eva", value=self.evaporator.m_flow_secondary,
                      description="Evaporator mass flow secondary")

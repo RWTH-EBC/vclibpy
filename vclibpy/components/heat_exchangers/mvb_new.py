@@ -9,8 +9,6 @@ from vclibpy.components.heat_exchangers.heat_exchanger import HeatExchanger
 from vclibpy.components.heat_exchangers.heat_transfer.heat_transfer import HeatTransfer, TwoPhaseHeatTransfer
 from vclibpy.media import ThermodynamicState, MedProp
 
-
-
 class BasicHX(HeatExchanger, abc.ABC):
 
     def __init__(self,
@@ -194,7 +192,7 @@ class BasicHX(HeatExchanger, abc.ABC):
 class MVB_Condenser(BasicHX, abc.ABC):
 
     def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
-
+        self.m_flow_secondary = inputs.m_flow_con
         # First we separate the flow:
         Q_sc, Q_lat, Q_sh, state_q0, state_q1 = self.separate_phases(
             self.state_inlet,
@@ -203,7 +201,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
         )
         Q = Q_sc + Q_lat + Q_sh
 
-        T_mean = inputs.T_con_in + self.calc_secondary_Q_flow(Q) / (self.m_flow_secondary_cp * 2)
+        T_mean = 0.5*(inputs.T_con_in + inputs.T_con_out)
         tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
 
@@ -238,7 +236,8 @@ class MVB_Condenser(BasicHX, abc.ABC):
             alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_con)
             U = self.calc_U(alpha_pri=alpha_ref_wall,
                             alpha_sec=alpha_med_wall)
-
+            fs_state.set(name="Con_alpha_sc", value=alpha_ref_wall)
+            fs_state.set(name="Con_U_sc", value=U)
             if self.model_approach.lower() == "ntu":
                 W_ref = Q_sc / dT_ref_sc
                 W_sec = Q_sc / dT_sec_sc
@@ -269,7 +268,8 @@ class MVB_Condenser(BasicHX, abc.ABC):
             )
             U = self.calc_U(alpha_pri=alpha_ref_wall,
                             alpha_sec=alpha_med_wall)
-
+            fs_state.set(name="Con_alpha_lat", value=alpha_ref_wall)
+            fs_state.set(name="Con_U_lat", value=U)
             if self.model_approach.lower() == "ntu":
                 if dT_ref_lat >0.000001:
                     W_ref = Q_lat / dT_ref_lat
@@ -299,7 +299,8 @@ class MVB_Condenser(BasicHX, abc.ABC):
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_con)
             U = self.calc_U(alpha_pri=alpha_ref_wall,
                             alpha_sec=alpha_med_wall)
-
+            fs_state.set(name="Con_alpha_sh", value=alpha_ref_wall)
+            fs_state.set(name="Con_U_sh", value=U)
             if self.model_approach.lower() == "ntu":
 
                 W_ref = Q_sh / dT_ref_sh
@@ -313,7 +314,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
                     T_sec_out=T_sec_sh_out,
                     Q=Q_lat,
                     flow_type=self.flow_type)
-                A_lat = min(W_ref,W_sec)*NTU/U
+                A_sh = min(W_ref,W_sec)*NTU/U
 
             if self.model_approach.lower() == "lmtd":
                 lmtd=self.calc_lmtd(
@@ -323,25 +324,188 @@ class MVB_Condenser(BasicHX, abc.ABC):
                     T_sec_out=T_sec_sh_out)
                 A_sh = Q_sh / (lmtd * U)
 
-        A_lmtd = A_sh + A_lat + A_sc
-        error = (self.A / A_lmtd - 1) * 100
+        A_calc = A_sh + A_lat + A_sc
+        error = (self.A / A_calc - 1) * 100
         # Get possible dT_min:
         dT_min_lat = T_ref_lat_in - T_sec_lat_out
         dT_min_sc = T_ref_sc_out - T_sec_sc_in
         dT_min_sh = T_ref_sh_in - T_sec_sh_out
         dT_min_Lat_out = T_ref_lat_out - T_sec_lat_in
 
+        fs_state.set(name="Con_dh", value=-0.001 * (self.state_outlet.h - self.state_inlet.h), unit="kJ/kg",
+                     description="Enthalpy difference Evaporator")
+        fs_state.set(name="Con_A_sh", value=A_sh, unit="m2",
+                     description="Area for superheat heat exchange in condenser")
+        fs_state.set(name="Con_A_lat", value=A_lat, unit="m2",
+                     description="Area for latent heat exchange in condenser")
+        fs_state.set(name="Con_A_sc", value=A_sc, unit="m2",
+                     description="Area for subcool heat exchange in condenser")
+        fs_state.set(name="Con_A_sh_rel", value=A_sh / self.A, unit="",
+                     description="relative Area for superheat heat exchange in condenser")
+        fs_state.set(name="Con_A_lat_rel", value=A_lat / self.A, unit="",
+                     description="relative Area for latent heat exchange in condenser")
+        fs_state.set(name="Con_A_sc_rel", value=A_sc / self.A, unit="",
+                     description="relative Area for subcool heat exchange in condenser")
+        fs_state.set(name="Con_Q_sh", value=Q_sh, unit="",
+                     description="superheat heat exchange in condenser")
+        fs_state.set(name="Con_Q_lat", value=Q_lat, unit="",
+                     description="latent heat exchange in condenser")
+        fs_state.set(name="Con_Q_sc", value=Q_sc, unit="",
+                     description="subcooled heat exchange in condenser")
+        fs_state.set(name="Con_Q_sh_rel", value=Q_sh / Q, unit="",
+                     description="superheat heat exchange in condenser")
+        fs_state.set(name="Con_Q_lat_rel", value=Q_lat / Q, unit="",
+                     description="latent heat exchange in condenser")
+        fs_state.set(name="Con_Q_sc_rel", value=Q_sc / Q, unit="",
+                     description="subcooled heat exchange in condenser")
+        fs_state.set(name="Con_Pinch", value=min(dT_min_lat,
+                          dT_min_sc,
+                          dT_min_sh,
+                          dT_min_Lat_out), unit="K")
         return error, min(dT_min_lat,
                           dT_min_sc,
                           dT_min_sh,
                           dT_min_Lat_out)
 
+class MVB_Evaporator(BasicHX, abc.ABC):
+
+    def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
+        self.m_flow_secondary = inputs.m_flow_eva
+        # First we separate the flow:
+        Q_sc, Q_lat, Q_sh, state_q0, state_q1 = self.separate_phases(
+            self.state_outlet,
+            self.state_inlet,
+            self.state_inlet.p
+        )
+        if Q_sc >0:
+            return -100, -10
+
+        Q = Q_sc + Q_lat + Q_sh
 
 
+        T_mean = 0.5 * (inputs.T_eva_in +inputs.T_eva_out)
+        tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
+        alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
 
 
+        T_in_sec = inputs.T_eva_in
+        T_out_sec = inputs.T_eva_out
+        dT_sec = T_in_sec - T_out_sec
+        dT_sec_lat = dT_sec * (Q_lat/Q)
+        dT_sec_sh = dT_sec *(Q_sh/Q)
 
+        T_sec_sh_in = T_in_sec
+        T_sec_sh_out = T_sec_sh_in - dT_sec_sh
+        T_sec_lat_in = T_sec_sh_out
+        T_sec_lat_out = T_sec_lat_in - dT_sec_lat
 
+        T_ref_lat_in = self.state_inlet.T
+        T_ref_lat_out = state_q1.T
+        T_ref_sh_in = T_ref_lat_out
+        T_ref_sh_out = self.state_outlet.T
+
+        dT_ref_sh = T_ref_sh_out - T_ref_sh_in
+        dT_ref_lat = T_ref_lat_out - T_ref_lat_in
+
+        A_lat = 0
+        if Q_lat > 0:
+            alpha_ref_wall = self.calc_alpha_two_phase(
+                state_q0=state_q0,
+                state_q1=state_q1,
+                fs_state=fs_state,
+                inputs=inputs
+            )
+            U = self.calc_U(alpha_pri=alpha_ref_wall,
+                            alpha_sec=alpha_med_wall)
+            fs_state.set(name="Eva_alpha_lat", value=alpha_ref_wall)
+            fs_state.set(name="Eva_U_lat", value=U)
+            if self.model_approach.lower() == "ntu":
+                if dT_ref_lat >0.000001:
+                    W_ref = Q_lat / dT_ref_lat
+                else:
+                    W_ref = np.inf
+                W_sec = Q_lat / dT_sec_lat
+                NTU = self.calc_NTU(
+                    C_sec=W_sec,
+                    C_prim=W_ref,
+                    T_prim_in=T_ref_lat_in,
+                    T_prim_out=T_ref_lat_out,
+                    T_sec_in=T_sec_lat_in,
+                    T_sec_out=T_sec_lat_out,
+                    Q=Q_lat,
+                    flow_type=self.flow_type)
+                A_lat = min(W_ref,W_sec)*NTU/U
+            if self.model_approach.lower() == "lmtd":
+                lmtd=self.calc_lmtd(
+                    T_prim_in=T_ref_lat_in,
+                    T_prim_out=T_ref_lat_out,
+                    T_sec_in=T_sec_lat_in,
+                    T_sec_out=T_sec_lat_out)
+                A_lat = Q_lat/(lmtd*U)
+        A_sh = 0
+        if Q_sh > 0:
+            tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(self.state_inlet, state_q1)
+            alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_con)
+            U = self.calc_U(alpha_pri=alpha_ref_wall,
+                            alpha_sec=alpha_med_wall)
+            fs_state.set(name="Eva_alpha_gas", value=alpha_ref_wall)
+            fs_state.set(name="Eva_U_gas", value=U)
+            if self.model_approach.lower() == "ntu":
+
+                W_ref = Q_sh / dT_ref_sh
+                W_sec = Q_sh / dT_sec_sh
+                NTU = self.calc_NTU(
+                    C_sec=W_sec,
+                    C_prim=W_ref,
+                    T_prim_in=T_ref_sh_in,
+                    T_prim_out=T_ref_sh_out,
+                    T_sec_in=T_sec_sh_in,
+                    T_sec_out=T_sec_sh_out,
+                    Q=Q_lat,
+                    flow_type=self.flow_type)
+                A_sh = min(W_ref,W_sec)*NTU/U
+
+            if self.model_approach.lower() == "lmtd":
+                lmtd=self.calc_lmtd(
+                    T_prim_in=T_ref_sh_in,
+                    T_prim_out=T_ref_sh_out,
+                    T_sec_in=T_sec_sh_in,
+                    T_sec_out=T_sec_sh_out)
+                A_sh = Q_sh / (lmtd * U)
+
+        A_calc = A_sh + A_lat
+        error = (self.A / A_calc - 1) * 100
+        # Get possible dT_min:
+        dT_in = T_in_sec - self.state_outlet.T
+        dT_out = T_sec_sh_out - state_q1.T
+        dT_sh = T_out_sec - self.state_inlet.T
+
+        fs_state.set(name="Eva_dh", value=0.001 * (self.state_outlet.h - self.state_inlet.h), unit="kJ/kg",
+                     description="Enthalpy difference Evaporator")
+        fs_state.set(name="Eva_A_sh", value=A_sh, unit="m2",
+                     description="Area for superheat heat exchange in evaporator")
+        fs_state.set(name="Eva_A_lat", value=A_lat, unit="m2",
+                     description="Area for latent heat exchange in evaporator")
+        fs_state.set(name="Eva_A_sh_rel", value=A_sh / self.A, unit="",
+                     description="relative Area for superheat heat exchange in evaporator")
+        fs_state.set(name="Eva_A_lat_rel", value=A_lat / self.A, unit="",
+                     description="relative Area for latent heat exchange in evaporator")
+        fs_state.set(name="Eva_Q_sh", value=Q_sh, unit="",
+                     description="superheat heat exchange in evaporator")
+        fs_state.set(name="Eva_Q_lat", value=Q_lat, unit="",
+                     description="latent heat exchange in evaporator")
+        fs_state.set(name="Eva_Q_sh_rel", value=Q_sh / Q, unit="",
+                     description="superheat heat exchange in evaporator")
+        fs_state.set(name="Eva_Q_lat_rel", value=Q_lat / Q, unit="",
+                     description="latent heat exchange in evaporator")
+        fs_state.set(name="Eva_Pinch",
+                     value=min(dT_in,
+                               dT_out,
+                               dT_sh),
+                     unit="")
+        return error, min(dT_in,
+                          dT_out,
+                          dT_sh)
 
 
 
