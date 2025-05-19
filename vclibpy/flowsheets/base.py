@@ -98,10 +98,11 @@ class BaseCycle:
 
 
         fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
-        fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
-        fs_state.set(name="COP_Carnot", value=0, unit="-", description="maximal Coefficient of performance")
-        fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
-        fs_state.set(name="Q_eva", value=1, unit="W", description="Condenser heat flow rate")
+        fs_state.set(name="COP", value=np.nan, unit="-", description="Coefficient of performance")
+        fs_state.set(name="COP_Carnot", value=np.nan, unit="-", description="maximal Coefficient of performance")
+        fs_state.set(name="Q_con", value=np.nan, unit="W", description="Condenser heat flow rate")
+        fs_state.set(name="Q_eva", value=np.nan, unit="W", description="Condenser heat flow rate")
+        fs_state.set(name="P_el", value=np.nan, unit="W",description="Power consumption")
 
         num_iterations = 0
 

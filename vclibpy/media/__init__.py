@@ -10,7 +10,7 @@ __all__ = ['ThermodynamicState',
            'CoolProp',
            'RefProp']
 
-USED_MED_PROP = (CoolProp, {})
+USED_MED_PROP = (RefProp, {})
 
 
 def set_global_media_properties(med_prop_class: object, **kwargs):
