@@ -1,5 +1,5 @@
 """
-Module with constant heat transfer assumptions
+Module with simplified heat transfer assumptions.
 """
 import abc
 
@@ -7,7 +7,7 @@ from vclibpy.media import TransportProperties
 from .heat_transfer import HeatTransfer, TwoPhaseHeatTransfer
 
 
-class MassFlowDependingHeatTransfer(HeatTransfer):
+class SimpleHeatTransfer(HeatTransfer):
     """
     Constant heat transfer assumption
 
@@ -16,9 +16,10 @@ class MassFlowDependingHeatTransfer(HeatTransfer):
             Constant heat transfer coefficient in W/(m2*K)
     """
 
-    def __init__(self, alpha: float, m_ref=None):
+    def __init__(self, alpha: float, m_ref=None, exponent=0):
         self.alpha = alpha
         self.m_ref = m_ref
+        self.exponent = exponent
     def calc(self, transport_properties: TransportProperties, m_flow: float) -> float:
         """
         Calculate constant heat transfer coefficient.
@@ -33,10 +34,10 @@ class MassFlowDependingHeatTransfer(HeatTransfer):
         """
         if self.m_ref is None:
             return self.alpha
-        return self.alpha * (m_flow/self.m_ref)**0.8
+        return self.alpha * (m_flow/self.m_ref)**self.exponent
 
 
-class MassFlowDependingTwoPhaseHeatTransfer(TwoPhaseHeatTransfer):
+class SimpleTwoPhaseHeatTransfer(TwoPhaseHeatTransfer):
     """
     Constant heat transfer assumption.
 
@@ -44,11 +45,10 @@ class MassFlowDependingTwoPhaseHeatTransfer(TwoPhaseHeatTransfer):
         alpha (float):
             Constant heat transfer coefficient in W/(m2*K).
     """
-
-    def __init__(self, alpha: float, m_ref=None):
+    def __init__(self, alpha: float, m_ref=None,exponent=0):
         self.alpha = alpha
         self.m_ref = m_ref
-
+        self.exponent = exponent
     def calc(self, **kwargs) -> float:
         """
         Calculate constant two-phase heat transfer coefficient.
@@ -63,5 +63,4 @@ class MassFlowDependingTwoPhaseHeatTransfer(TwoPhaseHeatTransfer):
         if self.m_ref is None:
             return self.alpha
         m_flow = kwargs.get("m_flow", self.m_ref)
-
-        return self.alpha * (m_flow/self.m_ref)**0.8
+        return self.alpha * (m_flow/self.m_ref)**self.exponent
