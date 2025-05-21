@@ -1,10 +1,11 @@
 """
 Module which contains datamodels which are used in this library.
 """
-
+import numpy as np
 from dataclasses import dataclass
 from typing import Dict, Any
 from copy import deepcopy
+
 
 
 @dataclass
@@ -39,7 +40,7 @@ class VariableContainer:
              for var in self._variables.values()]
         )
 
-    def set(self, name: str, value: float, unit: str = None, description: str = None):
+    def set(self, name: str, value: float = np.nan, unit: str = None, description: str = None):
         """
         Add or update a Variable in the container.
 

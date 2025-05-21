@@ -116,6 +116,22 @@ class IHX(BaseCycle, abc.ABC):
             "7": self.evaporator.state_outlet,
             }
 
+    def get_state_keys(self):
+
+        return [
+            "1",
+            "1_q1",
+            "2",
+            "2_s",
+            "2_q1",
+            "3_q0",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7"
+               ]
+
     def calc_missing_IHX_states(self, inputs: Inputs, fs_state: FlowsheetState, **kwargs):
 
         min_iteration_step = kwargs.pop("min_iteration_step", 1)

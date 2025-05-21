@@ -96,13 +96,7 @@ class BaseCycle:
         if self.flowsheet_name == "IHX":
             T_eva_start = inputs.T_eva_in - 1
 
-
-        fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
-        fs_state.set(name="COP", value=np.nan, unit="-", description="Coefficient of performance")
-        fs_state.set(name="COP_Carnot", value=np.nan, unit="-", description="maximal Coefficient of performance")
-        fs_state.set(name="Q_con", value=np.nan, unit="W", description="Condenser heat flow rate")
-        fs_state.set(name="Q_eva", value=np.nan, unit="W", description="Condenser heat flow rate")
-        fs_state.set(name="P_el", value=np.nan, unit="W",description="Power consumption")
+        fs_state = self.set_default_state()  # Always log what is happening in the whole flowsheet
 
         num_iterations = 0
 
@@ -115,7 +109,7 @@ class BaseCycle:
             while True:
                 num_iterations += 1
                 if num_iterations > 100000:
-                    return self.set_default_state(fs_state)
+                    return self.set_default_state()
 
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
                 try:
@@ -123,8 +117,12 @@ class BaseCycle:
                 except ValueError as err:
                     logger.error("An error occurred while calculating states. "
                                  "Can't guess next pressures, thus, exiting: %s", err)
-                    return
-                error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+                    return self.set_default_state()
+                try:
+                    error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+                except:
+                    logger.error("An error occurred while calculating evaporator.")
+                    return self.set_default_state()
                 if dT_min_eva < 0:
                     T_eva_next -= step_T_eva
                     continue
@@ -140,8 +138,11 @@ class BaseCycle:
                     if step_T_eva < min_iteration_step:
                         break
                     continue
-
-            error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
+            try:
+                error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
+            except:
+                logger.error("An error occurred while calculating condenser.")
+                return self.set_default_state()
             if dT_min_con < 0:
                 T_con_next += step_T_con
                 continue
@@ -236,50 +237,89 @@ class BaseCycle:
         return fs_state
 
 
-    def set_default_state(self, fs_state):
-        fs_state.set(
-            name="P_el", value=0, unit="W",
-            description="Power consumption"
-        )
-        fs_state.set(
-            name="carnot_quality", value=0,
-            unit="-", description="Carnot Quality"
-        )
-        fs_state.set(
-            name="COP", value=0,
-            unit="-", description="Coefficient of Performance"
-        )
-        fs_state.set(name="COP_Carnot", value=0,
-                     unit="-", description="maximal Coefficient of performance")
-        fs_state.set(
-            name="Q_con", value=0, unit="W",
-            description="Condenser refrigerant heat flow rate"
-        )
-        fs_state.set(
-            name="Q_eva", value=0, unit="W",
-            description="Evaporator refrigerant heat flow rate"
-        )
+    def set_default_state(self):
+        fs_state = FlowsheetState()
 
-        fs_state.set(name="SEC_T_con_in", value=0,
-                     description="Condenser inlet temperature secondary")
-        fs_state.set(name="SEC_T_con_out", value=0,
-                     description="Condenser outlet temperature secondary")
-        fs_state.set(name="SEC_dT_con", value=0,
-                     description="Condenser temperature difference secondary")
-        fs_state.set(name="SEC_m_flow_con", value=0,
-                     description="Condenser mass flow secondary")
-        fs_state.set(name="SEC_T_eva_in", value=0,
-                     description="Evaporator inlet temperature secondary")
-        fs_state.set(name="SEC_T_eva_out", value=0,
-                     description="Evaporator outlet temperature secondary")
-        fs_state.set(name="SEC_dT_eva", value=0,
-                     description="Evaporator temperature difference secondary")
-        fs_state.set(name="SEC_m_flow_eva", value=0,
-                     description="Evaporator mass flow secondary")
-        fs_state.set(name="REF_m_flow_con", value=0)
-        fs_state.set(name="REF_m_flow_eva", value=0)
-        fs_state.set(name="REF_p_con", value=0)
-        fs_state.set(name="REF_p_eva", value=0)
+        # Definieren Sie alle Namen in Listen
+        basic_states = [
+            "COP", "COP_Carnot", "Q_con", "Q_eva", "P_el",
+            "carnot_quality", "SEC_T_con_in", "SEC_T_con_out",
+            "SEC_dT_con", "SEC_m_flow_con", "SEC_T_eva_in",
+            "SEC_T_eva_out", "SEC_dT_eva", "SEC_m_flow_eva",
+            "REF_m_flow_con", "REF_m_flow_eva",
+            "REF_p_con", "REF_p_eva"
+        ]
+
+        eva_states = [
+            "Eva_dh", "Eva_A_sh", "Eva_A_lat",
+            "Eva_A_sh_rel", "Eva_A_lat_rel",
+            "Eva_Q_sh", "Eva_Q_lat",
+            "Eva_Q_sh_rel", "Eva_Q_lat_rel", "Eva_Pinch",
+            "Eva_alpha_lat", "Eva_U_lat", "Eva_alpha_gas",
+            "Eva_U_gas"
+        ]
+
+        con_states = [
+            'Con_dh', 'Con_A_sh', 'Con_A_lat', 'Con_A_sc',
+            'Con_A_sh_rel', 'Con_A_lat_rel', 'Con_A_sc_rel',
+            'Con_Q_sh', 'Con_Q_lat', 'Con_Q_sc',
+            'Con_Q_sh_rel', 'Con_Q_lat_rel', 'Con_Q_sc_rel',
+            'Con_Pinch', "Con_alpha_sc", "Con_U_sc", "Con_alpha_lat",
+            "Con_U_lat", "Con_alpha_sh", "Con_U_sh"
+        ]
+
+        compressor_states = [
+            'compressor_speed', 'relative_compressor_speed',
+            'Comp_dh', 'Comp_dh_is',
+            'Exp_dh_is', 'Comp_dh_is_Exp_dh_is', 'Comp_dH_is', 'Exp_dH_is',
+            'eta_is', 'lambda_h', 'REF_V_flow_comp', 'REF_m_flow_comp', "eta_mech"
+        ]
+
+        efficiency_states = [
+            'm_low_m_high_ratio', 'eta_is_low', 'eta_is_high',
+            'eta_vol_low', 'eta_vol_high', 'compressor_speed_low'
+        ]
+
+        pressure_states = [
+            'p_con', 'p_eva', 'p_vi', 'p_ihx',
+            'Comp_low_dh_is', 'Comp_high_dh_is',
+            'Comp_low_dH_is', 'Comp_high_dH_is',
+        ]
+
+        expansion_states = ['Exp_high_dh_is', 'Exp_low_dh_is']
+
+
+        for state in basic_states:
+            fs_state.set(name=state)
+
+
+        for state in eva_states:
+            fs_state.set(name=state)
+
+
+        for state in con_states:
+            fs_state.set(name=state)
+
+
+        for state in compressor_states:
+            fs_state.set(name=state)
+
+
+        for state in efficiency_states:
+            fs_state.set(name=state)
+
+
+        for state in pressure_states:
+            fs_state.set(name=state)
+
+
+        for state in expansion_states:
+            fs_state.set(name=state)
+
+        all_states = self.get_state_keys()
+        for _state in all_states:
+            for suffix in ["_T_", "_p_", "_h_", "_q_", "_d_"]:
+                fs_state.set(name=("REF" + suffix + _state))
         return fs_state
 
 
@@ -370,10 +410,7 @@ class BaseCycle:
         p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
         p_2_next = p_2_start
         fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
-        fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
-        fs_state.set(name="COP_Carnot", value=0, unit="-", description="maximal Coefficient of performance")
-        fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
-        fs_state.set(name="Q_eva", value=1, unit="W", description="Condenser heat flow rate")
+
 
 
         if show_iteration:
@@ -592,6 +629,10 @@ class BaseCycle:
             - Dic
         """
         return {}
+
+    @abstractmethod
+    def get_state_keys(self):
+        return []
 
     def set_evaporator_outlet_based_on_superheating(self, p_eva: float, inputs: Inputs):
         """

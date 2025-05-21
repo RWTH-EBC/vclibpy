@@ -69,6 +69,25 @@ class VI_q2StageFLT(BaseCycle):
             "7": self.evaporator.state_inlet
         }
 
+    def get_state_keys(self):
+
+        return [
+            "1",
+            "1_q1",
+            "1*",
+            "1*s",
+            "1**",
+            "2",
+            "2_s",
+            "2_q1",
+            "3_q0",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7"
+               ]
+
 
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
 
