@@ -149,15 +149,15 @@ class BasicHX(HeatExchanger, abc.ABC):
         dT_sec_element = dT_sec / n_elements
         Qdot_element = Qdot / n_elements
         state_in_element = state_in
-        T_sec_out_element = T_sec_out
+        T_sec_in_element = T_sec_out - dT_sec-273.15
 
         A = 0
         for i in range(n_elements):
             state_out_element = self.med_prop.calc_state("PH", state_in.p, state_in_element.h - dh_element)
-            T_ref_in_element = state_in_element.T
-            T_ref_out_element = state_out_element.T
-            dT_ref_element = T_ref_in_element - T_ref_out_element
-            T_sec_in_element = T_sec_out_element - dT_sec_element
+            T_ref_in_element = state_in_element.T-273.15
+            T_ref_out_element = state_out_element.T-273.15
+            dT_ref_element = abs(T_ref_in_element - T_ref_out_element)
+
             if dT_ref_element < 0.00001:
                 W_prim = np.inf
             else:
@@ -170,7 +170,7 @@ class BasicHX(HeatExchanger, abc.ABC):
                 T_sec_in=T_sec_in_element)
             A += min(W_sec, W_prim) * NTU / U
             state_in_element = state_out_element
-            T_sec_out_element = T_sec_in_element
+            T_sec_in_element -= dT_sec_element
         return A
 
     def calc_NTU(
@@ -277,40 +277,6 @@ class MVB_Condenser(BasicHX, abc.ABC):
         )
         if pinch < 0:
             return -100, -10
-        dT_ref_sh = T_ref_sh_in - T_ref_sh_out
-        dT_ref_lat = T_ref_lat_in - T_ref_lat_out
-        dT_ref_sc = T_ref_sc_in - T_ref_sc_out
-
-        A_sc = 0
-        if Q_sc > 0 and (state_q0.T != self.state_outlet.T):
-            tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(state_q0, self.state_outlet)
-            alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_con)
-            U = self.calc_U(alpha_pri=alpha_ref_wall,
-                            alpha_sec=alpha_med_wall)
-            fs_state.set(name="Con_alpha_sc", value=alpha_ref_wall)
-            fs_state.set(name="Con_U_sc", value=U)
-            if self.model_approach.lower() == "ntu":
-
-                W_sec = Q_sc / dT_sec_sc
-
-                A_sc = self.detailed_epsNTU(
-                    dh= state_q0.h - self.state_outlet.h,
-                    Qdot=Q_sc,
-                    dT_sec=dT_sec_sc,
-                    state_in=state_q0,
-                    T_sec_out=T_sec_sc_out,
-                    W_sec=W_sec,
-                    U=U,
-                    n_elements=self.n_elemente
-                )
-
-            if self.model_approach.lower() == "lmtd":
-                lmtd=self.calc_lmtd(
-                    T_prim_in=T_ref_sc_in,
-                    T_prim_out=T_ref_sc_out,
-                    T_sec_in=T_sec_sc_in,
-                    T_sec_out=T_sec_sc_out)
-                A_sc = Q_sc/(lmtd*U)
         A_lat = 0
         if Q_lat > 0:
             alpha_ref_wall = self.calc_alpha_two_phase(
@@ -333,7 +299,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
                     T_sec_out=T_sec_lat_out,
                     W_sec=W_sec,
                     U=U,
-                    n_elements=self.n_elemente
+                    n_elements=1#self.n_elemente
                 )
             if self.model_approach.lower() == "lmtd":
                 lmtd=self.calc_lmtd(
@@ -342,6 +308,40 @@ class MVB_Condenser(BasicHX, abc.ABC):
                     T_sec_in=T_sec_lat_in,
                     T_sec_out=T_sec_lat_out)
                 A_lat = Q_lat/(lmtd*U)
+            if A_lat > self.A:
+                return -100, -10
+
+        A_sc = 0
+        if Q_sc > 0 and (state_q0.T != self.state_outlet.T):
+            tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(state_q0, self.state_outlet)
+            alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_con)
+            U = self.calc_U(alpha_pri=alpha_ref_wall,
+                            alpha_sec=alpha_med_wall)
+            fs_state.set(name="Con_alpha_sc", value=alpha_ref_wall)
+            fs_state.set(name="Con_U_sc", value=U)
+            if self.model_approach.lower() == "ntu":
+
+                W_sec = Q_sc / dT_sec_sc
+
+                A_sc = self.detailed_epsNTU(
+                    dh= state_q0.h - self.state_outlet.h,
+                    Qdot=Q_sc,
+                    dT_sec=dT_sec_sc,
+                    state_in=state_q0,
+                    T_sec_out=T_sec_sc_out,
+                    W_sec=W_sec,
+                    U=U,
+                    n_elements=1#self.n_elemente
+                )
+
+            if self.model_approach.lower() == "lmtd":
+                lmtd=self.calc_lmtd(
+                    T_prim_in=T_ref_sc_in,
+                    T_prim_out=T_ref_sc_out,
+                    T_sec_in=T_sec_sc_in,
+                    T_sec_out=T_sec_sc_out)
+                A_sc = Q_sc/(lmtd*U)
+
         A_sh = 0
         if Q_sh > 0 and (self.state_inlet.T != state_q1.T):
             tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(self.state_inlet, state_q1)
@@ -360,7 +360,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
                     T_sec_out=T_sec_sh_out,
                     W_sec=W_sec,
                     U=U,
-                    n_elements=self.n_elemente
+                    n_elements=1
                 )
 
             if self.model_approach.lower() == "lmtd":
@@ -444,7 +444,7 @@ class MVB_Evaporator(BasicHX, abc.ABC):
         # Get possible dT_min:
         dT_1 = T_sec_lat_out - T_ref_lat_in
         dT_2 = T_sec_lat_in - T_ref_lat_out
-        dT_3 = T_sec_sh_out - T_ref_sh_in
+        dT_3 = T_sec_sh_in - T_ref_sh_out
 
         pinch = (
             min(dT_1,
@@ -469,14 +469,14 @@ class MVB_Evaporator(BasicHX, abc.ABC):
             if self.model_approach.lower() == "ntu":
                 W_sec = Q_lat / dT_sec_lat
                 A_lat = self.detailed_epsNTU(
-                    dh= state_q1.h - self.state_inlet.h,
+                    dh=self.state_inlet.h - state_q1.h,
                     Qdot=Q_lat,
-                    dT_sec=dT_sec_lat,
-                    state_in=state_q1,
-                    T_sec_out=T_sec_lat_in,
+                    dT_sec=-dT_sec_lat,
+                    state_in=self.state_inlet,
+                    T_sec_out=T_sec_lat_out,
                     W_sec=W_sec,
                     U=U,
-                    n_elements=self.n_elemente
+                    n_elements=1#self.n_elemente
                 )
             if self.model_approach.lower() == "lmtd":
                 lmtd=self.calc_lmtd(
@@ -496,11 +496,11 @@ class MVB_Evaporator(BasicHX, abc.ABC):
             if self.model_approach.lower() == "ntu":
                 W_sec = Q_sh / dT_sec_sh
                 A_sh = self.detailed_epsNTU(
-                    dh=self.state_outlet.h - state_q1.h,
+                    dh=state_q1.h - self.state_outlet.h,
                     Qdot=Q_sh,
-                    dT_sec=dT_sec_sh,
-                    state_in=self.state_outlet,
-                    T_sec_out=T_sec_sh_in,
+                    dT_sec=-dT_sec_sh,
+                    state_in=state_q1,
+                    T_sec_out=T_sec_sh_out,
                     W_sec=W_sec,
                     U=U,
                     n_elements=self.n_elemente
