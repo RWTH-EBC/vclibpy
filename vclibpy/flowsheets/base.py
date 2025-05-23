@@ -108,7 +108,7 @@ class BaseCycle:
             step_T_eva = 1
             while True:
                 num_iterations += 1
-                if num_iterations > 100000:
+                if num_iterations > 10000:
                     return self.set_default_state()
 
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
@@ -234,6 +234,7 @@ class BaseCycle:
             fs_state.set(name="REF_q_" + _state, value=all_states[_state].q)
         for _state in all_states:
             fs_state.set(name="REF_d_" + _state, value=all_states[_state].d)
+        fs_state.set(name="NumberIterations", value=num_iterations )
         return fs_state
 
 
@@ -320,6 +321,7 @@ class BaseCycle:
         for _state in all_states:
             for suffix in ["_T_", "_p_", "_h_", "_q_", "_d_"]:
                 fs_state.set(name=("REF" + suffix + _state))
+        fs_state.set(name="NumberIterations")
         return fs_state
 
 
