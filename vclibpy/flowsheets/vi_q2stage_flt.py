@@ -58,7 +58,7 @@ class VI_q2StageFLT(BaseCycle):
                                             self.compressor_low.state_inlet.s),
             "1**": self.compressor_high.state_inlet,
             "2": self.compressor_high.state_outlet,
-            "2s": self.med_prop.calc_state("PS", self.compressor_high.state_outlet.p,
+            "2_s": self.med_prop.calc_state("PS", self.compressor_high.state_outlet.p,
                                            self.compressor_high.state_inlet.s),
             "2_q1": self.med_prop.calc_state("PQ", self.compressor_high.state_outlet.p, 1),
             "3_q0": self.med_prop.calc_state("PQ", self.compressor_high.state_outlet.p, 0),

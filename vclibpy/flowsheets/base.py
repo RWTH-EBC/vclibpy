@@ -109,6 +109,7 @@ class BaseCycle:
             while True:
                 num_iterations += 1
                 if num_iterations > 10000:
+                    logger.error("Max Iteration steps reached!")
                     return self.set_default_state()
 
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
@@ -270,7 +271,7 @@ class BaseCycle:
         ]
 
         compressor_states = [
-            'compressor_speed', 'relative_compressor_speed',
+            'compressor_speed', 'relative_compressor_speed', 'relative_compressor_speed_low',
             'Comp_dh', 'Comp_dh_is',
             'Exp_dh_is', 'Comp_dh_is_Exp_dh_is', 'Comp_dH_is', 'Exp_dH_is',
             'eta_is', 'lambda_h', 'REF_V_flow_comp', 'REF_m_flow_comp', "eta_mech"

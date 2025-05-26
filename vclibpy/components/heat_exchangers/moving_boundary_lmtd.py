@@ -279,7 +279,9 @@ class MVBLMTDSensibleSecCon(MVBLMTDSensibleSec):
         T_out = T_sh + self.calc_secondary_Q_flow(Q_sh) / self.m_flow_secondary_cp
 
         lmtd_sh, lmtd_lat, lmtd_sc = 0, 0, 0
-
+        fs_state.set(name="Con_alpha_liquid", value=0)
+        fs_state.set(name="Con_alpha_lat", value=0)
+        fs_state.set(name="Con_alpha_gas", value=0)
         # 1. Regime: Subcooling
         A_sc = 0
         if Q_sc > 0 and (state_q0.T != self.state_outlet.T):
@@ -457,7 +459,9 @@ class MVBLMTDSensibleSecEvap(MVBLMTDSensibleSec):
         T_out = T_sc - Q_sc / self.m_flow_secondary_cp
 
         lmtd_sh, lmtd_lat, lmtd_sc = 0, 0, 0
-
+        fs_state.set(name="Eva_alpha_gas", value=0)
+        fs_state.set(name="Eva_alpha_lat", value=0)
+        fs_state.set(name="Eva_alpha_liquid", value=0)
         # 1. Regime: Superheating
         A_sh = 0
         if Q_sh and (self.state_outlet.T != state_q1.T):
