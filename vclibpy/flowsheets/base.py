@@ -5,7 +5,6 @@ import numpy as np
 
 from abc import abstractmethod
 import matplotlib.pyplot as plt
-from tomlkit import value
 
 from vclibpy import media, Inputs
 from vclibpy.datamodels import FlowsheetState
