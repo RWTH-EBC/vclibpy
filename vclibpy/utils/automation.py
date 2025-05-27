@@ -215,6 +215,6 @@ def _calc_single_hp_state(data):
     except Exception as e:
         logger.error(f"An error occurred for input: {inputs.__dict__}: {e}")
     if fs_state is None:
-        fs_state = heat_pump.set_default_state()
+        fs_state = heat_pump.set_default_state(inputs=inputs, comment="Automation Error")
     # Append the data to the dataframe
     return fs_state
