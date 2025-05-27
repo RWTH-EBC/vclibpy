@@ -100,10 +100,12 @@ class BaseCycle:
         fs_state = self.set_default_state(inputs)  # Always log what is happening in the whole flowsheet
 
         num_iterations = 0
-
+        Tc, pc, dc = self.med_prop.get_critical_point()
 
         step_T_con = 1
         while True:
+            if T_con_next > Tc - 5:
+                return self.set_default_state(inputs, "Maximal Pressure reached")
             p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
             T_eva_next = T_eva_start
             step_T_eva = 1
@@ -112,8 +114,9 @@ class BaseCycle:
                 if num_iterations > 10000:
                     logger.error("Max Iteration steps reached!")
                     return self.set_default_state(inputs, "Maximal Iteration Error")
-
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
+                if p_1 < 0.1 *10**5:
+                    return self.set_default_state(inputs, comment="Min Pressure reached")
                 try:
                     self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
                 except ValueError as err:
