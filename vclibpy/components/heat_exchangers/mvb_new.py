@@ -18,7 +18,7 @@ class BasicHX(HeatExchanger, abc.ABC):
                  gas_heat_transfer: HeatTransfer,
                  liquid_heat_transfer: HeatTransfer,
                  two_phase_heat_transfer: TwoPhaseHeatTransfer,
-                 n_elemente = 100,
+                 n_elemente = 1,
                  **kwargs):
         """
         Initializes BasicLMTD.
@@ -143,7 +143,7 @@ class BasicHX(HeatExchanger, abc.ABC):
         T_sec_out,
         W_sec,
         U,
-        n_elements):
+        n_elements=1):
 
         dh_element = dh / n_elements
         dT_sec_element = dT_sec / n_elements
@@ -298,8 +298,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
                     state_in=state_q1,
                     T_sec_out=T_sec_lat_out,
                     W_sec=W_sec,
-                    U=U,
-                    n_elements=1#self.n_elemente
+                    U=U
                 )
             if self.model_approach.lower() == "lmtd":
                 lmtd=self.calc_lmtd(
@@ -330,8 +329,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
                     state_in=state_q0,
                     T_sec_out=T_sec_sc_out,
                     W_sec=W_sec,
-                    U=U,
-                    n_elements=1#self.n_elemente
+                    U=U
                 )
 
             if self.model_approach.lower() == "lmtd":
@@ -360,7 +358,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
                     T_sec_out=T_sec_sh_out,
                     W_sec=W_sec,
                     U=U,
-                    n_elements=1
+                    n_elements=self.n_elemente
                 )
 
             if self.model_approach.lower() == "lmtd":
@@ -475,8 +473,7 @@ class MVB_Evaporator(BasicHX, abc.ABC):
                     state_in=self.state_inlet,
                     T_sec_out=T_sec_lat_out,
                     W_sec=W_sec,
-                    U=U,
-                    n_elements=1#self.n_elemente
+                    U=U
                 )
             if self.model_approach.lower() == "lmtd":
                 lmtd=self.calc_lmtd(
@@ -502,9 +499,7 @@ class MVB_Evaporator(BasicHX, abc.ABC):
                     state_in=state_q1,
                     T_sec_out=T_sec_sh_out,
                     W_sec=W_sec,
-                    U=U,
-                    n_elements=self.n_elemente
-                )
+                    U=U)
 
             if self.model_approach.lower() == "lmtd":
                 lmtd=self.calc_lmtd(
@@ -540,7 +535,6 @@ class MVB_Evaporator(BasicHX, abc.ABC):
                      value=pinch,
                      unit="")
         return error, pinch
-
 
 
 

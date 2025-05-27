@@ -20,7 +20,7 @@ class Variable:
         description (str): A description of the variable (optional).
     """
     name: str
-    value: float
+    value: str | float = None
     unit: str = None
     description: str = None
 
@@ -40,7 +40,7 @@ class VariableContainer:
              for var in self._variables.values()]
         )
 
-    def set(self, name: str, value: float = np.nan, unit: str = None, description: str = None):
+    def set(self, name: str, value: str | float = np.nan,  unit: str = None, description: str = None):
         """
         Add or update a Variable in the container.
 

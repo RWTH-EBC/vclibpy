@@ -5,6 +5,8 @@ import numpy as np
 
 from abc import abstractmethod
 import matplotlib.pyplot as plt
+from tomlkit import value
+
 from vclibpy import media, Inputs
 from vclibpy.datamodels import FlowsheetState
 from vclibpy.components.heat_exchangers import HeatExchanger
@@ -96,7 +98,7 @@ class BaseCycle:
         if self.flowsheet_name == "IHX":
             T_eva_start = inputs.T_eva_in - 1
 
-        fs_state = self.set_default_state()  # Always log what is happening in the whole flowsheet
+        fs_state = self.set_default_state(inputs)  # Always log what is happening in the whole flowsheet
 
         num_iterations = 0
 
@@ -110,7 +112,7 @@ class BaseCycle:
                 num_iterations += 1
                 if num_iterations > 10000:
                     logger.error("Max Iteration steps reached!")
-                    return self.set_default_state()
+                    return self.set_default_state(inputs, "Maximal Iteration Error")
 
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
                 try:
@@ -118,12 +120,12 @@ class BaseCycle:
                 except ValueError as err:
                     logger.error("An error occurred while calculating states. "
                                  "Can't guess next pressures, thus, exiting: %s", err)
-                    return self.set_default_state()
+                    return self.set_default_state(inputs, "State Calculation Error")
                 try:
                     error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
                 except:
                     logger.error("An error occurred while calculating evaporator.")
-                    return self.set_default_state()
+                    return self.set_default_state(inputs, "Evaporator Error")
                 if dT_min_eva < 0:
                     T_eva_next -= step_T_eva
                     continue
@@ -143,7 +145,7 @@ class BaseCycle:
                 error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
             except:
                 logger.error("An error occurred while calculating condenser.")
-                return self.set_default_state()
+                return self.set_default_state(inputs, "Condenser Error")
             if dT_min_con < 0:
                 T_con_next += step_T_con
                 continue
@@ -239,8 +241,12 @@ class BaseCycle:
         return fs_state
 
 
-    def set_default_state(self):
+    def set_default_state(self, inputs: Inputs, comment=""):
         fs_state = FlowsheetState()
+
+        for _var in inputs.get_variable_names():
+            fs_state.set(name=_var,
+                         value=inputs.get(_var).value)
 
         # Definieren Sie alle Namen in Listen
         basic_states = [
@@ -323,9 +329,11 @@ class BaseCycle:
             for suffix in ["_T_", "_p_", "_h_", "_q_", "_d_"]:
                 fs_state.set(name=("REF" + suffix + _state))
         fs_state.set(name="NumberIterations")
+        fs_state.set(name="Comment",
+                     value=comment)
+
+
         return fs_state
-
-
 
     def calc_steady_state_old(self, inputs: Inputs, fluid: str = None, **kwargs):
         """
@@ -764,8 +772,6 @@ class BaseCycle:
             fs_state (FlowsheetState): Flowsheet state to save important variables.
         """
         raise NotImplementedError
-
-
 
 
 class BaseCycleTC(BaseCycle):
