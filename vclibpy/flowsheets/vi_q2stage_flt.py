@@ -112,6 +112,8 @@ class VI_q2StageFLT(BaseCycle):
 
         while True:
             p_vi += step_p_vi
+            if p_vi > p_2:
+                return False
             # state 4
             self.expansion_valve_high.calc_outlet(p_outlet=p_vi)
             # state 1*

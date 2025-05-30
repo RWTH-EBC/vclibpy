@@ -101,7 +101,7 @@ class BaseCycle:
 
         num_iterations = 0
         Tc, pc, dc = self.med_prop.get_critical_point()
-
+        first_try_con = True
         step_T_con = 1
         while True:
             if T_con_next > Tc - 5:
@@ -109,22 +109,29 @@ class BaseCycle:
             p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
             T_eva_next = T_eva_start
             step_T_eva = 1
+            first_try_eva = True
             while True:
                 num_iterations += 1
-                if num_iterations > 10000:
+                if num_iterations > 100000:
                     logger.error("Max Iteration steps reached!")
                     return self.set_default_state(inputs, "Maximal Iteration Error")
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
-                if p_1 < 0.1 *10**5:
+                if p_1 < 0.01 *10**5:
                     return self.set_default_state(inputs, comment="Min Pressure reached")
                 try:
-                    self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
+                    valid = self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
+                    if valid is not None:
+                        T_eva_next -= step_T_eva
+                        continue
                 except ValueError as err:
                     logger.error("An error occurred while calculating states. "
                                  "Can't guess next pressures, thus, exiting: %s", err)
                     return self.set_default_state(inputs, "State Calculation Error")
                 try:
                     error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+                    if error_eva > 0 and first_try_eva:
+                        return self.set_default_state(inputs, "Algorithm Error Eva")
+                    first_try_eva = False
                 except:
                     logger.error("An error occurred while calculating evaporator.")
                     return self.set_default_state(inputs, "Evaporator Error")
@@ -145,6 +152,9 @@ class BaseCycle:
                     continue
             try:
                 error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
+                if error_con > 0 and first_try_con:
+                    return self.set_default_state(inputs, "Algorithm Error Eva")
+                first_try_con = False
             except:
                 logger.error("An error occurred while calculating condenser.")
                 return self.set_default_state(inputs, "Condenser Error")
