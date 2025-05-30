@@ -104,13 +104,13 @@ class BaseCycle:
         first_try_con = True
         step_T_con = 1
         while True:
-            if T_con_next > Tc - 5:
-                return self.set_default_state(inputs, "Maximal Pressure reached")
-            p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
             T_eva_next = T_eva_start
             step_T_eva = 1
             first_try_eva = True
             while True:
+                if T_con_next > Tc - 5:
+                    return self.set_default_state(inputs, "Maximal Pressure reached")
+                p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
                 num_iterations += 1
                 if num_iterations > 100000:
                     logger.error("Max Iteration steps reached!")
@@ -122,6 +122,8 @@ class BaseCycle:
                     valid = self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
                     if valid is not None:
                         T_eva_next -= step_T_eva
+                        T_con_next += step_T_con
+                        num_iterations -=1
                         continue
                 except ValueError as err:
                     logger.error("An error occurred while calculating states. "
