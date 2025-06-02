@@ -3,14 +3,17 @@ Functions to generate HP Maps automatically
 """
 import logging
 import pathlib
+import time
 import os
 from typing import List, Union
 import multiprocessing
 import numpy as np
 import pandas as pd
+from openpyxl.utils.datetime import time_to_days
 from vclibpy.datamodels import FlowsheetState, Inputs
 from vclibpy.flowsheets import BaseCycle
 from vclibpy import utils
+
 
 logger = logging.getLogger(__name__)
 
@@ -214,7 +217,5 @@ def _calc_single_hp_state(data):
                                                **kwargs)
     except Exception as e:
         logger.error(f"An error occurred for input: {inputs.__dict__}: {e}")
-    if fs_state is None:
-        fs_state = heat_pump.set_default_state(inputs=inputs, comment="Automation Error")
     # Append the data to the dataframe
     return fs_state

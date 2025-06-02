@@ -2,6 +2,7 @@ import logging
 import os.path
 from typing import List
 import numpy as np
+import time
 
 from abc import abstractmethod
 import matplotlib.pyplot as plt
@@ -76,6 +77,8 @@ class BaseCycle:
 
     def calc_steady_state(self, inputs: Inputs, fluid: str = None, **kwargs):
 
+        start_time = time.time()
+
         min_iteration_step = kwargs.pop("min_iteration_step", 0.0000001)
         save_path_plots = kwargs.get("save_path_plots", None)
         input_name = ";".join([k + "=" + str(np.round(v.value, 3)).replace(".", "_")
@@ -97,7 +100,7 @@ class BaseCycle:
         if self.flowsheet_name == "IHX":
             T_eva_start = inputs.T_eva_in - 1
 
-        fs_state = self.set_default_state(inputs)  # Always log what is happening in the whole flowsheet
+        fs_state = self.set_default_state(inputs,start_time)  # Always log what is happening in the whole flowsheet
 
         num_iterations = 0
         Tc, pc, dc = self.med_prop.get_critical_point()
@@ -109,12 +112,12 @@ class BaseCycle:
             first_try_eva = True
             while True:
                 if T_con_next > Tc - 5:
-                    return self.set_default_state(inputs, "Maximal Pressure reached")
+                    return self.set_default_state(inputs, start_time, "Maximal Pressure reached")
                 p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
                 num_iterations += 1
-                if num_iterations > 100000:
-                    logger.error("Max Iteration steps reached!")
-                    return self.set_default_state(inputs, "Maximal Iteration Error")
+                if num_iterations > 100000 or (time.time() - start_time) > 30:
+                    logger.error("RunTimeError")
+                    return self.set_default_state(inputs, start_time, "Maximal Iteration Error")
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
                 if p_1 < 0.01 *10**5:
                     return self.set_default_state(inputs, comment="Min Pressure reached")
@@ -128,11 +131,11 @@ class BaseCycle:
                 except ValueError as err:
                     logger.error("An error occurred while calculating states. "
                                  "Can't guess next pressures, thus, exiting: %s", err)
-                    return self.set_default_state(inputs, "State Calculation Error")
+                    return self.set_default_state(inputs,start_time, "State Calculation Error")
                 try:
                     error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
                     if error_eva > 0 and first_try_eva:
-                        return self.set_default_state(inputs, "Algorithm Error Eva")
+                        return self.set_default_state(inputs,start_time, "Algorithm Error Eva")
                     first_try_eva = False
                 except:
                     logger.error("An error occurred while calculating evaporator.")
@@ -155,11 +158,11 @@ class BaseCycle:
             try:
                 error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
                 if error_con > 0 and first_try_con:
-                    return self.set_default_state(inputs, "Algorithm Error Eva")
+                    return self.set_default_state(inputs, start_time,"Algorithm Error Eva")
                 first_try_con = False
             except:
                 logger.error("An error occurred while calculating condenser.")
-                return self.set_default_state(inputs, "Condenser Error")
+                return self.set_default_state(inputs, start_time,"Condenser Error")
             if dT_min_con < 0:
                 T_con_next += step_T_con
                 continue
@@ -252,10 +255,12 @@ class BaseCycle:
         for _state in all_states:
             fs_state.set(name="REF_d_" + _state, value=all_states[_state].d)
         fs_state.set(name="NumberIterations", value=num_iterations )
+        fs_state.set(name="CalcTime",
+                     value=round(time.time() - start_time, 2))
         return fs_state
 
 
-    def set_default_state(self, inputs: Inputs, comment=""):
+    def set_default_state(self, inputs: Inputs, start_time, comment=""):
         fs_state = FlowsheetState()
 
         for _var in inputs.get_variable_names():
@@ -345,7 +350,8 @@ class BaseCycle:
         fs_state.set(name="NumberIterations")
         fs_state.set(name="Comment",
                      value=comment)
-
+        fs_state.set(name="CalcTime",
+                     value=round(time.time()-start_time,2))
 
         return fs_state
 
