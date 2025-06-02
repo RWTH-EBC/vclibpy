@@ -86,7 +86,7 @@ class StandardCycle(BaseCycle):
         if inputs.fix_speed == float(False):
             n_next = 0.01
             n_step = 0.1
-            max_error = 0.0001
+            max_error = 0.00001
             n_iter = 0
             while True:
                 n_iter += 1

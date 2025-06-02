@@ -149,7 +149,7 @@ class BasicHX(HeatExchanger, abc.ABC):
         dT_sec_element = dT_sec / n_elements
         Qdot_element = Qdot / n_elements
         state_in_element = state_in
-        T_sec_in_element = T_sec_out - dT_sec-273.15
+        T_sec_in_element = T_sec_out - dT_sec_element-273.15
 
         A = 0
         for i in range(n_elements):
@@ -400,6 +400,15 @@ class MVB_Condenser(BasicHX, abc.ABC):
         fs_state.set(name="Con_Q_sc_rel", value=Q_sc / Q, unit="",
                      description="subcooled heat exchange in condenser")
         fs_state.set(name="Con_Pinch", value=pinch, unit="K")
+
+        fs_state.set(name="Con_dT_secin",
+                     value=dT_min_sc)
+        fs_state.set(name="Con_dT_seclatin",
+                     value=dT_min_Lat_out)
+        fs_state.set(name="Con_dT_seclatout",
+                     value=dT_min_lat)
+        fs_state.set(name="Con_dT_secout",
+                     value=dT_min_sh)
         return error, pinch
 
 class MVB_Evaporator(BasicHX, abc.ABC):
@@ -534,6 +543,12 @@ class MVB_Evaporator(BasicHX, abc.ABC):
         fs_state.set(name="Eva_Pinch",
                      value=pinch,
                      unit="")
+        fs_state.set(name="Eva_dT_secin",
+                     value=dT_3)
+        fs_state.set(name="Eva_dT_seclatin",
+                     value=dT_2)
+        fs_state.set(name="Eva_dT_secout",
+                     value=dT_1)
         return error, pinch
 
 

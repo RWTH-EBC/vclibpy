@@ -117,7 +117,7 @@ class BaseCycle:
                 num_iterations += 1
                 if num_iterations > 100000 or (time.time() - start_time) > 30:
                     logger.error("RunTimeError")
-                    return self.set_default_state(inputs, start_time, "Maximal Iteration Error")
+                    return None
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
                 if p_1 < 0.01 *10**5:
                     return self.set_default_state(inputs, comment="Min Pressure reached")
@@ -143,11 +143,11 @@ class BaseCycle:
                 if dT_min_eva < 0:
                     T_eva_next -= step_T_eva
                     continue
-                if abs(error_eva) < err_ntu:
-                    break
                 if error_eva < 0:
                     T_eva_next -= step_T_eva
                     continue
+                if abs(error_eva) < err_ntu:
+                    break
                 if error_eva > 0:
                     T_eva_next += step_T_eva
                     step_T_eva /= 10
@@ -166,11 +166,11 @@ class BaseCycle:
             if dT_min_con < 0:
                 T_con_next += step_T_con
                 continue
-            if abs(error_con) < err_ntu:
-                break
             if error_con < 0:
                 T_con_next += step_T_con
                 continue
+            if abs(error_con) < err_ntu:
+                break
             if error_con > 0:
                 T_con_next -= step_T_con
                 step_T_con /= 10
@@ -283,7 +283,7 @@ class BaseCycle:
             "Eva_Q_sh", "Eva_Q_lat",
             "Eva_Q_sh_rel", "Eva_Q_lat_rel", "Eva_Pinch",
             "Eva_alpha_lat", "Eva_U_lat", "Eva_alpha_gas",
-            "Eva_U_gas"
+            "Eva_U_gas","Eva_dT_secin","Eva_dT_seclatin","Eva_dT_secout"
         ]
 
         con_states = [
@@ -292,7 +292,7 @@ class BaseCycle:
             'Con_Q_sh', 'Con_Q_lat', 'Con_Q_sc',
             'Con_Q_sh_rel', 'Con_Q_lat_rel', 'Con_Q_sc_rel',
             'Con_Pinch', "Con_alpha_sc", "Con_U_sc", "Con_alpha_lat",
-            "Con_U_lat", "Con_alpha_sh", "Con_U_sh"
+            "Con_U_lat", "Con_alpha_sh", "Con_U_sh", "Con_dT_secout","Con_dT_seclatout","Con_dT_seclatin","Con_dT_secin"
         ]
 
         compressor_states = [
