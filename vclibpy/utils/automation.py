@@ -60,6 +60,7 @@ def full_factorial_map_generation(
         m_flow_con: float,
         m_flow_eva: float,
         save_path: Union[pathlib.Path, str],
+        k_vapor_injection_ar: Union[list, np.ndarray],
         dT_eva_superheating=5,
         dT_con_subcooling=0,
         use_multiprocessing: bool = False,
@@ -107,16 +108,19 @@ def full_factorial_map_generation(
     for i_T_eva_in, T_eva_in in enumerate(T_eva_in_ar):
         for i_n, n in enumerate(n_ar):
             for i_T_con_in, T_con_in in enumerate(T_con_in_ar):
-                idx_for_access_later.append([i_n, i_T_con_in, i_T_eva_in])
-                inputs = Inputs(n=n,
-                                T_eva_in=T_eva_in,
-                                T_con_in=T_con_in,
-                                m_flow_eva=m_flow_eva,
-                                m_flow_con=m_flow_con,
-                                dT_eva_superheating=dT_eva_superheating,
-                                dT_con_subcooling=dT_con_subcooling)
-                list_mp_inputs.append([heat_pump, inputs, kwargs])
-                list_inputs.append(inputs)
+                for i_k_vapor_injection, k_vapor_injection in enumerate(k_vapor_injection_ar):
+                    idx_for_access_later.append([i_n, i_T_con_in, i_T_eva_in, i_k_vapor_injection])
+                    inputs = Inputs(n=n,
+                                    T_eva_in=T_eva_in,
+                                    T_con_in=T_con_in,
+                                    m_flow_eva=m_flow_eva,
+                                    m_flow_con=m_flow_con,
+                                    dT_eva_superheating=dT_eva_superheating,
+                                    dT_con_subcooling=dT_con_subcooling,
+                                    k_vapor_injection=k_vapor_injection,
+                                    )
+                    list_mp_inputs.append([heat_pump, inputs, kwargs])
+                    list_inputs.append(inputs)
     fs_states = []
     i = 0
     if use_multiprocessing:
@@ -133,7 +137,7 @@ def full_factorial_map_generation(
             logger.info(f"Ran {i} of {len(list_mp_inputs)} points")
 
     # Save to sdf
-    result_shape = (len(n_ar), len(T_con_in_ar), len(T_eva_in_ar))
+    result_shape = (len(n_ar), len(T_con_in_ar), len(T_eva_in_ar), len(k_vapor_injection_ar))
     _dummy = np.zeros(result_shape)  # Use a copy to avoid overwriting of values of any sort.
     _dummy[:] = np.nan
     # Get all possible values:
@@ -152,13 +156,13 @@ def full_factorial_map_generation(
     save_path_sdf = save_path.joinpath(f"{heat_pump.flowsheet_name}_{heat_pump.fluid}.sdf")
     save_path_csv = save_path.joinpath(f"{heat_pump.flowsheet_name}_{heat_pump.fluid}.csv")
     pd.DataFrame(variables_to_excel).to_csv(
-        save_path_csv
+        save_path_csv, sep=";", encoding="utf-8"
     )
 
     for fs_state, idx_triple in zip(fs_states, idx_for_access_later):
-        i_n, i_T_con_in, i_T_eva_in = idx_triple
+        i_n, i_T_con_in, i_T_eva_in, i_k_vapor_injection = idx_triple
         for variable_name, variable in fs_state.get_variables().items():
-            all_variables[variable_name][i_n][i_T_con_in][i_T_eva_in] = variable.value
+            all_variables[variable_name][i_n][i_T_con_in][i_T_eva_in][i_k_vapor_injection] = variable.value
 
     _nd_data = {}
     for variable, nd_data in all_variables.items():
@@ -172,7 +176,8 @@ def full_factorial_map_generation(
     _scale_values = {
         "n": n_ar,
         "T_con_in": T_con_in_ar,
-        "T_eva_in": T_eva_in_ar
+        "T_eva_in": T_eva_in_ar,
+        "k_vapor_injection": k_vapor_injection_ar,
     }
     inputs: Inputs = list_inputs[0]
     _parameters = {}
@@ -203,7 +208,6 @@ def full_factorial_map_generation(
     heat_pump.terminate()
 
     return save_path_sdf, save_path_csv
-
 
 def _calc_single_hp_state(data):
     """Helper function for a single state to enable multiprocessing"""

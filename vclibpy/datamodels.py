@@ -161,19 +161,12 @@ class Inputs(VariableContainer):
         dT_eva_superheating (float): Super-heating after evaporator.
         dT_con_subcooling (float): Subcooling after condenser.
         T_ambient (float): Ambient temperature of the machine.
+        k_vapor_injection (float): Vapor injection coefficient.
     """
 
-    def __init__(
-            self,
-            n: float = None,
-            T_eva_in: float = None,
-            T_con_in: float = None,
-            m_flow_eva: float = None,
-            m_flow_con: float = None,
-            dT_eva_superheating: float = None,
-            dT_con_subcooling: float = None,
-            T_ambient: float = None
-    ):
+    def __init__(self, n: float = None, T_eva_in: float = None, T_con_in: float = None, m_flow_eva: float = None,
+                 m_flow_con: float = None, dT_eva_superheating: float = None, dT_con_subcooling: float = None,
+                 T_ambient: float = None, k_vapor_injection=None):
         """
         Initializes an Inputs object with parameters representing external conditions
         for the vapor compression cycle.
@@ -187,6 +180,7 @@ class Inputs(VariableContainer):
             dT_eva_superheating (float): Super-heating after evaporator (unit: K).
             dT_con_subcooling (float): Subcooling after condenser (unit: K).
             T_ambient (float): Ambient temperature of the machine (unit: K).
+            k_vapor_injection (float): Vapor injection coefficient (unit: -).
         """
         super().__init__()
         self.set(
@@ -238,4 +232,10 @@ class Inputs(VariableContainer):
             value=T_ambient,
             unit="K",
             description="Ambient temperature of machine"
+        )
+        self.set(
+            name="k_vapor_injection",
+            value=k_vapor_injection,
+            unit="-",
+            description="Vapor injection coefficient"
         )

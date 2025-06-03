@@ -128,7 +128,8 @@ def sdf_to_csv(filepath: pathlib.Path, save_path: pathlib.Path):
                     dfs.append(_unpack_nd_data(data))
             df = pd.concat(dfs, axis=1)
             df = df.loc[:, ~df.columns.duplicated()]
-            df.to_csv(save_path.joinpath(f"{flowsheet.name}_{fluid.name}.csv"))
+            # Use semicolon as separator for better Excel compatibility in European locales
+            df.to_csv(save_path.joinpath(f"{flowsheet.name}_{fluid.name}.csv"), sep=';', encoding='utf-8')
 
 
 def _get_name(data):

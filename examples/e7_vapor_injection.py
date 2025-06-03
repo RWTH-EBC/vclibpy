@@ -47,12 +47,12 @@ def main():
     # use two smaller compressors instead of one larger one:
     from vclibpy.components.compressors import RotaryCompressor
     high_pressure_compressor = RotaryCompressor(
-        N_max=125,
-        V_h=19e-6 / 2
+        N_max=120,
+        V_h=30e-6 / 2
     )
     low_pressure_compressor = RotaryCompressor(
-        N_max=125,
-        V_h=19e-6 / 2
+        N_max=120,
+        V_h=30e-6 / 2
     )
 
     # Now, we can plug everything into the flowsheet:
@@ -63,14 +63,15 @@ def main():
         high_pressure_compressor=high_pressure_compressor,
         low_pressure_compressor=low_pressure_compressor,
         high_pressure_valve=high_pressure_valve,
-        low_pressure_valve=low_pressure_valve
+        low_pressure_valve=low_pressure_valve                               #TODO: warum nicht der phase_separator?
     )
     # As in the other example, we can specify save-paths,
     # solver settings and inputs to vary:
     save_path = r"D:\00_temp\vapor_injection"
-    T_eva_in_ar = [-10 + 273.15, 273.15, 10 + 273.15]
-    T_con_in_ar = [30 + 273.15, 50 + 273.15, 60 + 273.15]
-    n_ar = [0.3, 0.7, 1]
+    T_eva_in_ar = [-20 + 273.15, 12 + 273.15]
+    T_con_in_ar = [35 + 273.15, 75 + 273.15]
+    n_ar = [1]
+    k_vapor_injection_ar = [0.5, 1]
 
     # Now, we can generate the full-factorial performance map
     # using all inputs. The results will be stored under the
@@ -88,10 +89,11 @@ def main():
         n_ar=n_ar,
         use_multiprocessing=False,
         save_plots=True,
-        m_flow_con=0.2,
-        m_flow_eva=0.9,
+        m_flow_con=0.75,
+        m_flow_eva=2.7,
         dT_eva_superheating=5,
-        dT_con_subcooling=0,
+        dT_con_subcooling=3,
+        k_vapor_injection_ar=k_vapor_injection_ar,
     )
     # As in the prior examples, feel free to load the plots,
     # .csv or .sdf result files and further analyze them
@@ -107,11 +109,11 @@ def main():
     help(VaporInjectionEconomizerNTU)
     # Let's assume some dummy parameters:
     economizer = VaporInjectionEconomizerNTU(
-        A=2,
-        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=50000),
-        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=50000),
-        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
-        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=50000),
+        A=0.2,
+        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000),
+        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1200),
+        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=400, thickness=0.6e-3),
+        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
     )
     # And create the heat pump, and run the map generation:
     heat_pump = VaporInjectionEconomizer(
@@ -132,10 +134,11 @@ def main():
         n_ar=n_ar,
         use_multiprocessing=False,
         save_plots=True,
-        m_flow_con=0.2,
-        m_flow_eva=0.9,
+        m_flow_con=0.75,
+        m_flow_eva=2.7,
         dT_eva_superheating=5,
-        dT_con_subcooling=0,
+        dT_con_subcooling=3,
+        k_vapor_injection_ar=k_vapor_injection_ar,
     )
 
 

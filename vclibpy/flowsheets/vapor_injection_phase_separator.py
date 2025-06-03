@@ -52,10 +52,10 @@ class VaporInjectionPhaseSeparator(BaseVaporInjection):
 
     def get_states_in_order_for_plotting(self):
         return super().get_states_in_order_for_plotting() + [
-            self.phase_separator.state_inlet,
-            self.phase_separator.state_outlet_vapor,
-            self.high_pressure_compressor.state_inlet,
+            self.phase_separator.state_inlet,                           # state 5
+            self.phase_separator.state_outlet_vapor,                    # state 6
+            self.high_pressure_compressor.state_inlet,                  # state 1_vi_mixed
             # Go back to separator for clear lines
-            self.phase_separator.state_outlet_vapor,
-            self.phase_separator.state_outlet_liquid
+            self.phase_separator.state_outlet_vapor,                    # state 6
+            self.phase_separator.state_outlet_liquid                    # state 7
         ]

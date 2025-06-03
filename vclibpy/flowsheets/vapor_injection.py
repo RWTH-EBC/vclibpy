@@ -51,10 +51,11 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
         ]
 
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
-        k_vapor_injection = inputs.get("k_vapor_injection", default=1)
+        k_vapor_injection_var = inputs.get("k_vapor_injection", default=1)
         # Default according to Xu, 2019
+        k_vapor_injection = k_vapor_injection_var.value
 
-        p_vapor_injection = k_vapor_injection * np.sqrt(p_1 * p_2)
+        p_vapor_injection = k_vapor_injection * np.sqrt(p_1 * p_2) # TODO: are there other ways to set the mid pressure level?
 
         # Condenser outlet
         self.set_condenser_outlet_based_on_subcooling(p_con=p_2, inputs=inputs)
@@ -172,19 +173,19 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
         or heat exchanger.
         """
         return [
-            self.low_pressure_valve.state_inlet,
-            self.low_pressure_valve.state_outlet,
-            self.evaporator.state_inlet,
-            self.med_prop.calc_state("PQ", self.evaporator.state_inlet.p, 1),
-            self.evaporator.state_outlet,
-            self.low_pressure_compressor.state_inlet,
-            self.low_pressure_compressor.state_outlet,
-            self.high_pressure_compressor.state_inlet,
-            self.high_pressure_compressor.state_outlet,
-            self.condenser.state_inlet,
-            self.med_prop.calc_state("PQ", self.condenser.state_inlet.p, 1),
-            self.med_prop.calc_state("PQ", self.condenser.state_inlet.p, 0),
-            self.condenser.state_outlet,
-            self.high_pressure_valve.state_inlet,
-            self.high_pressure_valve.state_outlet,
+            self.low_pressure_valve.state_inlet,                                # state 7
+            self.low_pressure_valve.state_outlet,                               # state 4
+            self.evaporator.state_inlet,                                        # state 4
+            self.med_prop.calc_state("PQ", self.evaporator.state_inlet.p, 1),   # state in evaporator at phase change
+            self.evaporator.state_outlet,                                       # state 1
+            self.low_pressure_compressor.state_inlet,                           # state 1
+            self.low_pressure_compressor.state_outlet,                          # state 1_VI
+            self.high_pressure_compressor.state_inlet,                          # state 1_VI_mixed
+            self.high_pressure_compressor.state_outlet,                         # state 2
+            self.condenser.state_inlet,                                         # state 2
+            self.med_prop.calc_state("PQ", self.condenser.state_inlet.p, 1),    # state in condenser at phase change 1
+            self.med_prop.calc_state("PQ", self.condenser.state_inlet.p, 0),    # state in condenser at phase change 0
+            self.condenser.state_outlet,                                        # state 3
+            self.high_pressure_valve.state_inlet,                               # state 3
+            self.high_pressure_valve.state_outlet,                              # state 5
         ]

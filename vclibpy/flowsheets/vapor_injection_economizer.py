@@ -102,7 +102,7 @@ class VaporInjectionEconomizer(BaseVaporInjection):
         while True:
             x_vi = x_vi_next
             x_eva = 1 - x_vi
-            m_flow_vapor_injection = x_vi * m_flow_evaporator
+            m_flow_vapor_injection = x_vi * self.condenser.m_flow
             Q_flow_goal = dh_ihe_goal * m_flow_vapor_injection
 
             self.economizer.m_flow = x_eva * m_flow_evaporator
@@ -121,11 +121,13 @@ class VaporInjectionEconomizer(BaseVaporInjection):
                 A=self.economizer.A
             )
             if Q_flow > Q_flow_goal:
+                # Heat flow that can be transferred > heat flow that ist transferred at current step
                 if _x_vi_step <= _min_step_x_vi:
                     break
                 # We can increase x_vi_next further, as more heat can be extracted
                 x_vi_next = x_vi + _x_vi_step
             else:
+                # When heat flow at current step is too high, step size is reduced to not bounce back too far
                 x_vi_next = x_vi - _x_vi_step * 0.9
                 _x_vi_step /= 10
 
@@ -137,15 +139,15 @@ class VaporInjectionEconomizer(BaseVaporInjection):
 
     def get_states_in_order_for_plotting(self):
         return super().get_states_in_order_for_plotting() + [
-            self.economizer.state_two_phase_inlet,
-            self.economizer.state_two_phase_outlet,
-            self.high_pressure_compressor.state_inlet,
+            self.economizer.state_two_phase_inlet,                  # state 5
+            self.economizer.state_two_phase_outlet,                 # state 6
+            self.high_pressure_compressor.state_inlet,              # state 1_VI_mixed (path to the injection)
             # Go back to the condenser outlet
-            self.economizer.state_two_phase_outlet,
-            self.economizer.state_two_phase_inlet,
-            self.high_pressure_valve.state_outlet,
-            self.high_pressure_valve.state_inlet,
-            self.condenser.state_outlet,
-            self.economizer.state_inlet,
-            self.economizer.state_outlet
+            self.economizer.state_two_phase_outlet,                 # state 6
+            self.economizer.state_two_phase_inlet,                  # state 5
+            self.high_pressure_valve.state_outlet,                  # state 5
+            self.high_pressure_valve.state_inlet,                   # state 3
+            self.condenser.state_outlet,                            # state 3 (path back to the splitting point)
+            self.economizer.state_inlet,                            # state 3
+            self.economizer.state_outlet                            # state 7 (path to the evaporator)
         ]
