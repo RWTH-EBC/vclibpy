@@ -84,6 +84,7 @@ def full_factorial_map_generation(
         m_flow_con: Condenser mass flow rate
         m_flow_eva: Evaporator mass flow rate
         save_path: Where to save all results.
+        k_vapor_injection_ar: determines the injection pressure
         dT_eva_superheating: Evaporator superheating
         dT_con_subcooling: Condenser subcooling
         use_multiprocessing:

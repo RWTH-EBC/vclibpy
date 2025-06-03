@@ -16,28 +16,58 @@ def main():
     # example.
     from vclibpy.components.heat_exchangers import moving_boundary_ntu
     from vclibpy.components.heat_exchangers import heat_transfer
-    condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
-        A=5,
+
+    from vclibpy.components.heat_exchangers import mvb_new
+    from vclibpy.components.heat_exchangers import heat_transfer
+
+    condenser = mvb_new.MVB_Condenser(
+        A=3,
         secondary_medium="water",
         flow_type="counter",
         ratio_outer_to_inner_area=1,
-        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=5000),
-        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
-        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
-        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
-        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000)
+        model_approach="ntu", # or use "lmtd"
+        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=250),
+        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=2400),
+        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
+        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=20, thickness=0.6e-3),
+        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=4500)
     )
-    evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
-        A=15,
+    # condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
+    #     A=2.4,
+    #     secondary_medium="water",
+    #     flow_type="counter",
+    #     ratio_outer_to_inner_area=1,
+    #     two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=2400),
+    #     gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1200),
+    #     wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=400, thickness=0.6e-3),
+    #     liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
+    #     secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500)
+    # )
+
+    evaporator = mvb_new.MVB_Evaporator(
+        A=5,
         secondary_medium="air",
         flow_type="counter",
-        ratio_outer_to_inner_area=10,
-        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=1000),
-        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1000),
-        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
-        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
-        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=25)
+        ratio_outer_to_inner_area=1,
+        model_approach="ntu", # or use "lmtd"
+        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=150),
+        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000),
+        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
+        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=20, thickness=0.6e-3),
+        secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=100)
     )
+    #
+    # evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
+    #     A=15,
+    #     secondary_medium="air",
+    #     flow_type="counter",
+    #     ratio_outer_to_inner_area=1,
+    #     two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000),
+    #     gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1200),
+    #     wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=400, thickness=0.6e-3),
+    #     liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
+    #     secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500)
+    # )
     from vclibpy.components.expansion_valves import Bernoulli
     high_pressure_valve = Bernoulli(A=0.1)
     low_pressure_valve = Bernoulli(A=0.1)
@@ -110,10 +140,10 @@ def main():
     # Let's assume some dummy parameters:
     economizer = VaporInjectionEconomizerNTU(
         A=0.2,
+        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=200),
         two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000),
-        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1200),
-        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=400, thickness=0.6e-3),
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
+        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=20, thickness=0.6e-3),
     )
     # And create the heat pump, and run the map generation:
     heat_pump = VaporInjectionEconomizer(

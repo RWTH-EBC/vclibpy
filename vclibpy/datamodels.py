@@ -164,9 +164,18 @@ class Inputs(VariableContainer):
         k_vapor_injection (float): Vapor injection coefficient.
     """
 
-    def __init__(self, n: float = None, T_eva_in: float = None, T_con_in: float = None, m_flow_eva: float = None,
-                 m_flow_con: float = None, dT_eva_superheating: float = None, dT_con_subcooling: float = None,
-                 T_ambient: float = None, k_vapor_injection=None):
+    def __init__(
+            self,
+            n: float = None,
+            T_eva_in: float = None,
+            T_con_in: float = None,
+            m_flow_eva: float = None,
+            m_flow_con: float = None,
+            dT_eva_superheating: float = None,
+            dT_con_subcooling: float = None,
+            T_ambient: float = None,
+            k_vapor_injection=None
+    ):
         """
         Initializes an Inputs object with parameters representing external conditions
         for the vapor compression cycle.

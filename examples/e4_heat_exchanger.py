@@ -76,8 +76,12 @@ def main():
     T_eva_in = 273.15 + 2
     dT_eva_superheating = 10
     dT_con_subcooling = 0
-    inputs = Inputs(T_eva_in=T_eva_in, m_flow_eva=0.47, dT_eva_superheating=dT_eva_superheating,
-                    dT_con_subcooling=dT_con_subcooling)
+    inputs = Inputs(
+        T_eva_in=T_eva_in,
+        m_flow_eva=0.47,
+        dT_eva_superheating=dT_eva_superheating,
+        dT_con_subcooling=dT_con_subcooling
+    )
     # Let's start with a simple assumption, no temperature difference
     # at the evaporator outlet (or inlet of air):
     p_evaporation = med_prop.calc_state("TQ", T_eva_in - dT_eva_superheating, 1).p
