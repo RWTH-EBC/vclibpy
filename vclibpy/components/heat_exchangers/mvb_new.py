@@ -19,6 +19,7 @@ class BasicHX(HeatExchanger, abc.ABC):
                  liquid_heat_transfer: HeatTransfer,
                  two_phase_heat_transfer: TwoPhaseHeatTransfer,
                  n_elemente = 1,
+                 fixed_pinch = None,
                  **kwargs):
         """
         Initializes BasicLMTD.
@@ -51,6 +52,7 @@ class BasicHX(HeatExchanger, abc.ABC):
             raise TypeError("Given model approach is not supported")
 
         self.n_elemente = n_elemente
+        self.fixed_pinch = fixed_pinch
 
     def calc_alpha_two_phase(self, state_q0, state_q1, inputs: Inputs, fs_state: FlowsheetState) -> float:
         """
@@ -236,6 +238,8 @@ class MVB_Condenser(BasicHX, abc.ABC):
             self.state_outlet,
             self.state_inlet.p
         )
+        if min(Q_sc, Q_lat, Q_sh)  < 0:
+            return -100, -10
         Q = Q_sc + Q_lat + Q_sh
 
         T_mean = 0.5*(inputs.T_con_in + inputs.T_con_out)
@@ -277,6 +281,25 @@ class MVB_Condenser(BasicHX, abc.ABC):
         )
         if pinch < 0:
             return -100, -10
+
+        fs_state.set(name="Con_Pinch", value=pinch, unit="K")
+
+        fs_state.set(name="Con_dT_secin",
+                     value=dT_min_sc)
+        fs_state.set(name="Con_dT_seclatin",
+                     value=dT_min_Lat_out)
+        fs_state.set(name="Con_dT_seclatout",
+                     value=dT_min_lat)
+        fs_state.set(name="Con_dT_secout",
+                     value=dT_min_sh)
+
+        if self.fixed_pinch is not None:
+            if abs(pinch-self.fixed_pinch) < 0.0001:
+                return 0.0001, pinch
+            if pinch < self.fixed_pinch:
+                return -100, pinch
+            if pinch >self.fixed_pinch:
+                return 100, pinch
         A_lat = 0
         if Q_lat > 0:
             alpha_ref_wall = self.calc_alpha_two_phase(
@@ -399,16 +422,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
                      description="latent heat exchange in condenser")
         fs_state.set(name="Con_Q_sc_rel", value=Q_sc / Q, unit="",
                      description="subcooled heat exchange in condenser")
-        fs_state.set(name="Con_Pinch", value=pinch, unit="K")
 
-        fs_state.set(name="Con_dT_secin",
-                     value=dT_min_sc)
-        fs_state.set(name="Con_dT_seclatin",
-                     value=dT_min_Lat_out)
-        fs_state.set(name="Con_dT_seclatout",
-                     value=dT_min_lat)
-        fs_state.set(name="Con_dT_secout",
-                     value=dT_min_sh)
         return error, pinch
 
 class MVB_Evaporator(BasicHX, abc.ABC):
@@ -421,8 +435,11 @@ class MVB_Evaporator(BasicHX, abc.ABC):
             self.state_inlet,
             self.state_inlet.p
         )
+        if min(Q_sc, Q_lat, Q_sh)  < 0:
+            return -100, -10
         if Q_sc >0:
             return -100, -10
+
 
         Q = Q_sc + Q_lat + Q_sh
 
@@ -460,6 +477,24 @@ class MVB_Evaporator(BasicHX, abc.ABC):
         )
         if pinch < 0:
             return -100, -10
+
+        fs_state.set(name="Eva_Pinch",
+                     value=pinch,
+                     unit="")
+        fs_state.set(name="Eva_dT_secin",
+                     value=dT_3)
+        fs_state.set(name="Eva_dT_seclatin",
+                     value=dT_2)
+        fs_state.set(name="Eva_dT_secout",
+                     value=dT_1)
+
+        if self.fixed_pinch is not None:
+            if abs(pinch-self.fixed_pinch) < 0.0001:
+                return 0.0001, pinch
+            if pinch < self.fixed_pinch:
+                return -100, pinch
+            if pinch >self.fixed_pinch:
+                return 100, pinch
 
         A_lat = 0
         if Q_lat > 0:
@@ -540,15 +575,7 @@ class MVB_Evaporator(BasicHX, abc.ABC):
                      description="superheat heat exchange in evaporator")
         fs_state.set(name="Eva_Q_lat_rel", value=Q_lat / Q, unit="",
                      description="latent heat exchange in evaporator")
-        fs_state.set(name="Eva_Pinch",
-                     value=pinch,
-                     unit="")
-        fs_state.set(name="Eva_dT_secin",
-                     value=dT_3)
-        fs_state.set(name="Eva_dT_seclatin",
-                     value=dT_2)
-        fs_state.set(name="Eva_dT_secout",
-                     value=dT_1)
+
         return error, pinch
 
 

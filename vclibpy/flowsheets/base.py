@@ -115,7 +115,7 @@ class BaseCycle:
                     return self.set_default_state(inputs, start_time, "Maximal Pressure reached")
                 p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
                 num_iterations += 1
-                if num_iterations > 100000 or (time.time() - start_time) > 60:
+                if num_iterations > 100000:# or (time.time() - start_time) > 60:
                     logger.error("RunTimeError")
                     return None
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
@@ -133,7 +133,7 @@ class BaseCycle:
                     return self.set_default_state(inputs,start_time, "State Calculation Error")
                 try:
                     error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
-                    if error_eva > 0 and first_try_eva:
+                    if error_eva > 0 and first_try_eva and first_try_con:
                         return self.set_default_state(inputs,start_time, "Algorithm Error Eva")
                     first_try_eva = False
                 except:
@@ -298,7 +298,8 @@ class BaseCycle:
             'compressor_speed', 'relative_compressor_speed', 'relative_compressor_speed_low',
             'Comp_dh', 'Comp_dh_is',
             'Exp_dh_is', 'Comp_dh_is_Exp_dh_is', 'Comp_dH_is', 'Exp_dH_is',
-            'eta_is', 'lambda_h', 'REF_V_flow_comp', 'REF_m_flow_comp', "eta_mech"
+            'eta_is', 'lambda_h', 'REF_V_flow_comp', 'REF_m_flow_comp', "eta_mech",
+            "spec_expansion_losses"
         ]
 
         efficiency_states = [

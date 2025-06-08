@@ -266,30 +266,39 @@ class VI_q2StageFLT(BaseCycle):
                                   (1-x_vapor_injection) *
                                   (self.compressor_low.state_outlet.h-self.compressor_low.state_inlet.h)))
 
+        h1star_is = self.med_prop.calc_state("PS", self.compressor_low.state_outlet.p,
+                                             self.compressor_low.state_inlet.s).h
 
-        h1star_is = self.med_prop.calc_state("PS", self.compressor_low.state_outlet.p, self.compressor_low.state_inlet.s).h
         Comp_low_dh_is = 0.001 * (h1star_is - self.compressor_low.state_inlet.h)
-        h2_is = self.med_prop.calc_state("PS", self.compressor_high.state_outlet.p, self.compressor_high.state_inlet.s).h
-        Comp_high_dh_is = 0.001 * (h2_is - self.compressor_low.state_inlet.h)
+        Comp_low_dh = 0.001 * (self.compressor_low.state_outlet.h - self.compressor_low.state_inlet.h)
+
+        h2_is = self.med_prop.calc_state("PS", self.compressor_high.state_outlet.p,
+                                         self.compressor_high.state_inlet.s).h
+        Comp_high_dh_is = 0.001 * (h2_is - self.compressor_high.state_inlet.h)
+        Comp_high_dh = 0.001 * (self.compressor_high.state_outlet.h - self.compressor_high.state_inlet.h)
+
         Comp_dh_is = Comp_high_dh_is + (1 - x_vapor_injection) * Comp_low_dh_is
-        fs_state.set(name="Comp_low_dh_is", value=Comp_low_dh_is)
-        fs_state.set(name="Comp_high_dh_is", value=Comp_high_dh_is)
-        fs_state.set(name="Comp_dh_is", value=Comp_dh_is)
-        fs_state.set(name="Comp_low_dH_is", value=self.compressor_low.m_flow*Comp_low_dh_is)
-        fs_state.set(name="Comp_high_dH_is", value=self.compressor_high.m_flow*Comp_high_dh_is)
-        fs_state.set(name="Comp_dH_is", value=self.compressor_high.m_flow*Comp_high_dh_is+self.compressor_low.m_flow*Comp_low_dh_is)
+        Comp_dh = Comp_high_dh + (1 - x_vapor_injection) * Comp_low_dh
+        eta_is = Comp_dh_is / Comp_dh
 
         h4_is = self.med_prop.calc_state("PS", p_vi, self.expansion_valve_high.state_inlet.s).h
         h7_is = self.med_prop.calc_state("PS", self.evaporator.state_inlet.p, self.expansion_valve_low.state_inlet.s).h
         Ex_high_dh_is = 0.001 * (self.expansion_valve_high.state_inlet.h - h4_is)
         Ex_low_dh_is = 0.001 * (self.expansion_valve_low.state_inlet.h - h7_is)
-        Ex_dh_is = Ex_high_dh_is * x_vapor_injection + Ex_low_dh_is * (1-x_vapor_injection)
+        Ex_dh_is = Ex_high_dh_is + Ex_low_dh_is * (1-x_vapor_injection)
 
-        fs_state.set(name="Exp_high_dh_is", value=Ex_high_dh_is)
-        fs_state.set(name="Exp_low_dh_is", value=Ex_low_dh_is)
-        fs_state.set(name="Ex_dh_is", value=Ex_dh_is)
-        fs_state.set(name="Ex_dH_is", value=Ex_dh_is * self.compressor_high.m_flow)
-        fs_state.set(name="Comp_dh_is_Exp_dh_is", value=Comp_dh_is/Ex_dh_is)
+        spec_expansion_losses = Ex_dh_is/Comp_dh_is
+
+        fs_state.set(name="eta_is", value=eta_is)
+        fs_state.set(name="Comp_dh_is", value=Comp_dh_is)
+        fs_state.set(name="Exp_dh_is", value=Ex_dh_is)
+
+        fs_state.set(name="Comp_dH_is", value=self.condenser.m_flow * Comp_dh_is)
+        fs_state.set(name="Exp_dH_is", value=self.condenser.m_flow * Ex_dh_is)
+
+        fs_state.set(name="spec_expansion_losses", value=spec_expansion_losses)
+
+
 
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):

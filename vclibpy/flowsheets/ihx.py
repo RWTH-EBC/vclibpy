@@ -237,12 +237,19 @@ class IHX(BaseCycle, abc.ABC):
 
         Comp_dh_is = 0.001*(h2_is-self.compressor.state_inlet.h)
         Ex_dh_is = 0.001 * (self.expansion_valve1.state_inlet.h + self.expansion_valve2.state_inlet.h - h4_is - h5_is)
-        comp_dh_is_Ex_dh_is = Comp_dh_is/Ex_dh_is
+
+
+        spec_expansion_losses = Ex_dh_is / Comp_dh_is
+
         fs_state.set(name="Comp_dh_is", value=Comp_dh_is)
         fs_state.set(name="Exp_dh_is", value=Ex_dh_is)
-        fs_state.set(name="Comp_dh_is_Exp_dh_is", value=comp_dh_is_Ex_dh_is)
-        fs_state.set(name="Comp_dH_is", value=self.compressor.m_flow*Comp_dh_is)
-        fs_state.set(name="Exp_dH_is", value=self.compressor.m_flow*Ex_dh_is)
+
+        fs_state.set(name="Comp_dH_is", value=self.compressor.m_flow * Comp_dh_is)
+        fs_state.set(name="Exp_dH_is", value=self.compressor.m_flow * Ex_dh_is)
+
+        fs_state.set(name="spec_expansion_losses", value=spec_expansion_losses)
+
+
 
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
 
