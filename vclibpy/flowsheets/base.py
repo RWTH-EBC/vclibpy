@@ -115,9 +115,9 @@ class BaseCycle:
                     return self.set_default_state(inputs, start_time, "Maximal Pressure reached")
                 p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
                 num_iterations += 1
-                if num_iterations > 100000:# or (time.time() - start_time) > 60:
+                if num_iterations > 100000 or (time.time() - start_time) > 60:
                     logger.error("RunTimeError")
-                    return None
+                    return self.set_default_state(inputs, start_time, "RunTimeError")
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
                 if p_1 < 0.01 *10**5:
                     return self.set_default_state(inputs, comment="Min Pressure reached")
