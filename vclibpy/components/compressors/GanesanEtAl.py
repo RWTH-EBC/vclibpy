@@ -81,7 +81,7 @@ class GanesanEtAl(Compressor):
 
 
         rp = p_outlet / self.state_inlet.p
-        eta_vol = 0.0011 * (rp ** 2) - 0.0487 * rp - 0.9979
+        eta_vol = 0.0011 * (rp ** 2) - 0.0487 * rp + 0.9979
 
 
         return eta_vol
