@@ -89,8 +89,7 @@ class BaseCycle:
         if fluid is None:
             fluid = self.fluid
         self.setup_new_fluid(fluid)
-        if self.flowsheet_name == "IHX":
-            T_eva_start = inputs.T_eva_in - 1
+
 
         fs_state = self.set_default_state(inputs,start_time)  # Always log what is happening in the whole flowsheet
 
@@ -113,8 +112,11 @@ class BaseCycle:
                 )
             first_try_con = True
             step_T_con = 1
-            T_eva_start = inputs.T_eva_in - inputs.dT_eva_superheating - 1
-            T_con_next = inputs.T_con_in + inputs.dT_con_subcooling + 1
+            if self.flowsheet_name == "IHX":
+                T_eva_start = inputs.T_eva_in
+            else:
+                T_eva_start = inputs.T_eva_in - inputs.dT_eva_superheating
+            T_con_next = inputs.T_con_in + inputs.dT_con_subcooling
             while True:
                 T_eva_next = T_eva_start
                 step_T_eva = 1
@@ -124,7 +126,7 @@ class BaseCycle:
                         return self.set_fs_state_to_off(inputs, start_time, "Maximal Pressure reached")
                     p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
                     num_iterations += 1
-                    if num_iterations > 10000000: #or (time.time() - start_time) > 60:
+                    if num_iterations > 10000000 or (time.time() - start_time) > 180:
                         logger.error("RunTimeError")
                         return self.set_default_state(inputs, start_time, "RunTimeError")
                     p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
@@ -147,7 +149,7 @@ class BaseCycle:
                         first_try_eva = False
                     except:
                         logger.error("An error occurred while calculating evaporator.")
-                        return self.set_fs_state_to_off(inputs, "Evaporator Error")
+                        return self.set_fs_state_to_off(inputs, start_time, "Evaporator Error")
                     if dT_min_eva < 0:
                         T_eva_next -= step_T_eva
                         continue
