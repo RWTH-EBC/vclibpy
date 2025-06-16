@@ -113,7 +113,7 @@ class BaseCycle:
                     return self.set_fs_state_to_off(inputs, start_time, "Maximal Pressure reached")
                 p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
                 num_iterations += 1
-                if num_iterations > 10000000:# or (time.time() - start_time) > 180:
+                if num_iterations > 10000 or (time.time() - start_time) > 180:
                     logger.error("RunTimeError")
                     return self.set_default_state(inputs, start_time, "RunTimeError")
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
@@ -170,7 +170,6 @@ class BaseCycle:
                 if valid is not None:
                     T_con_next += 0.001
                     continue
-                    return self.set_default_state(inputs, start_time, "Maximal Temperature Reached")
                 try:
                     error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
                     if error_eva > 0 and first_try_eva and first_try_con:
