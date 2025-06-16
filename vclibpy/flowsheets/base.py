@@ -119,7 +119,7 @@ class BaseCycle:
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
                 if p_1 < 0.01 *10**5:
                     return self.set_fs_state_to_off(inputs, comment="Min Pressure reached", start_time=start_time)
-                if inputs.fix_speed == float(True) and self.T_max is not None:
+                if inputs.fix_speed == float(True):
                     n_input = deepcopy(inputs.n)
                     n_next = inputs.n
                     while True:
@@ -129,36 +129,34 @@ class BaseCycle:
                             unit="-",
                             description="Relative compressor speed"
                         )
+                        fs_state.set(name="relative_compressor_speed_internal", value=n_next, unit="1/s",
+                                     description="Relative Compressor Speed Internal")
                         try:
                             valid = self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
                         except ValueError as err:
                             logger.error("An error occurred while calculating states. "
                                          "Can't guess next pressures, thus, exiting: %s", err)
-                            return self.set_default_state(inputs,start_time, "State Calculation Error")
+                            return self.set_default_state(inputs, start_time, "State Calculation Error")
                         if valid is not None:
                             break
-                        if self.condenser.state_inlet.T > self.T_max:
+                        if inputs.T_con_out > 273.15 + 100:
                             n_next -= 0.1
-                            if n_next < 0.2:
+                            if n_next < 0.1:
                                 inputs.set(
                                     name="n",
                                     value=n_input,
                                     unit="-",
                                     description="Relative compressor speed"
                                 )
-                                return self.set_fs_state_to_off(inputs, comment="Min compressor speed reached",
-                                                                start_time=start_time)
+                                self.set_fs_state_to_off(inputs, comment="Min Compressor reached", start_time=start_time)
                             continue
-                        fs_state.set(name="relative_compressor_speed_internal", value=inputs.n, unit="1/s",
-                                     description="Relative Compressor Speed Internal")
                         inputs.set(
                             name="n",
                             value=n_input,
                             unit="-",
                             description="Relative compressor speed"
                         )
-                        fs_state.set(name="relative_compressor_speed", value=inputs.n, unit="1/s",
-                                     description="relative Compressor Speed")
+                        break
                 else:
                     try:
                         valid = self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
@@ -169,7 +167,6 @@ class BaseCycle:
                 if valid is not None:
                     T_con_next += 0.001
                     continue
-                if inputs.T_con_out > 273.15 + 100:
                     return self.set_default_state(inputs, start_time, "Maximal Temperature Reached")
                 try:
                     error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
@@ -217,7 +214,6 @@ class BaseCycle:
                 if T_con_next < min_iteration_step:
                     break
                 continue
-
         if self.flowsheet_name == "IHX":
             self.calc_missing_IHX_states(inputs, fs_state, **kwargs)
 
@@ -895,3 +891,48 @@ class BaseCycleTC(BaseCycle):
                     continue
                 logger.info("Breaking: Converged")
                 break
+
+"""
+if inputs.fix_speed == float(True) and self.T_max is not None:
+n_input = deepcopy(inputs.n)
+n_next = inputs.n
+while True:
+inputs.set(
+    name="n",
+    value=n_next,
+    unit="-",
+    description="Relative compressor speed"
+)
+try:
+    valid = self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
+except ValueError as err:
+    logger.error("An error occurred while calculating states. "
+                 "Can't guess next pressures, thus, exiting: %s", err)
+    return self.set_default_state(inputs, start_time, "State Calculation Error")
+if valid is not None:
+    break
+if self.condenser.state_inlet.T > self.T_max:
+    n_next -= 0.1
+    if n_next < 0.2:
+        inputs.set(
+            name="n",
+            value=n_input,
+            unit="-",
+            description="Relative compressor speed"
+        )
+        return self.set_fs_state_to_off(inputs, comment="Min compressor speed reached",
+                                        start_time=start_time)
+    continue
+fs_state.set(name="relative_compressor_speed_internal", value=inputs.n, unit="1/s",
+             description="Relative Compressor Speed Internal")
+inputs.set(
+    name="n",
+    value=n_input,
+    unit="-",
+    description="Relative compressor speed"
+)
+fs_state.set(name="relative_compressor_speed", value=inputs.n, unit="1/s",
+             description="relative Compressor Speed")
+
+
+"""
