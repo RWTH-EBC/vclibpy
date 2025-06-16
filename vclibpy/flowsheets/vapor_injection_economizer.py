@@ -102,7 +102,7 @@ class VaporInjectionEconomizer(BaseVaporInjection):
         while True:
             x_vi = x_vi_next
             x_eva = 1 - x_vi
-            m_flow_vapor_injection = x_vi * self.condenser.m_flow
+            m_flow_vapor_injection = (x_vi/(1-x_vi)) * self.evaporator.m_flow
             Q_flow_goal = dh_ihe_goal * m_flow_vapor_injection
 
             self.economizer.m_flow = x_eva * m_flow_evaporator

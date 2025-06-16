@@ -17,15 +17,11 @@ def main():
     from vclibpy.components.heat_exchangers import moving_boundary_ntu
     from vclibpy.components.heat_exchangers import heat_transfer
 
-    from vclibpy.components.heat_exchangers import mvb_new
-    from vclibpy.components.heat_exchangers import heat_transfer
-
-    condenser = mvb_new.MVB_Condenser(
+    condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
         A=3,
         secondary_medium="water",
         flow_type="counter",
         ratio_outer_to_inner_area=1,
-        model_approach="ntu", # or use "lmtd"
         gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=250),
         two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=2400),
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
@@ -44,12 +40,11 @@ def main():
     #     secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500)
     # )
 
-    evaporator = mvb_new.MVB_Evaporator(
+    evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
         A=5,
         secondary_medium="air",
         flow_type="counter",
         ratio_outer_to_inner_area=1,
-        model_approach="ntu", # or use "lmtd"
         gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=150),
         two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000),
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
@@ -119,7 +114,7 @@ def main():
         n_ar=n_ar,
         use_multiprocessing=False,
         save_plots=True,
-        m_flow_con=0.75,
+        m_flow_con=0.8,
         m_flow_eva=2.7,
         dT_eva_superheating=5,
         dT_con_subcooling=3,
@@ -127,6 +122,7 @@ def main():
     )
     # As in the prior examples, feel free to load the plots,
     # .csv or .sdf result files and further analyze them
+
     # # Vapor injection with an economizer.
     # Aside from the phase-separator flowsheet, we have one with
     # an economizer (additional heat exchanger).
