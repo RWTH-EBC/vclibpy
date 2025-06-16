@@ -113,7 +113,7 @@ class BaseCycle:
                     return self.set_fs_state_to_off(inputs, start_time, "Maximal Pressure reached")
                 p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
                 num_iterations += 1
-                if num_iterations > 10000000 or (time.time() - start_time) > 180:
+                if num_iterations > 10000000:# or (time.time() - start_time) > 180:
                     logger.error("RunTimeError")
                     return self.set_default_state(inputs, start_time, "RunTimeError")
                 p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
@@ -156,7 +156,10 @@ class BaseCycle:
                             unit="-",
                             description="Relative compressor speed"
                         )
+                        fs_state.set(name="relative_compressor_speed", value=n_input, unit="1/s",
+                                     description="Relative Compressor Speed")
                         break
+
                 else:
                     try:
                         valid = self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
@@ -171,11 +174,11 @@ class BaseCycle:
                 try:
                     error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
                     if error_eva > 0 and first_try_eva and first_try_con:
-                        return self.set_fs_state_to_off(inputs,start_time, "Algorithm Error Eva")
+                        return self.set_fs_state_to_off(inputs,start_time, "Evaporator pinch to small")
                     first_try_eva = False
                 except:
                     logger.error("An error occurred while calculating evaporator.")
-                    return self.set_fs_state_to_off(inputs, start_time, "Evaporator Error")
+                    return self.set_default_state(inputs, start_time, "Evaporator Error")
                 if dT_min_eva < 0:
                     T_eva_next -= step_T_eva
                     continue
@@ -194,7 +197,7 @@ class BaseCycle:
             try:
                 error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
                 if error_con > 0 and first_try_con:
-                    return self.set_default_state(inputs, start_time,"Algorithm Error Eva")
+                    return  self.set_fs_state_to_off(inputs,start_time, "Condenser pinch to small")
                 first_try_con = False
             except:
                 logger.error("An error occurred while calculating condenser.")
