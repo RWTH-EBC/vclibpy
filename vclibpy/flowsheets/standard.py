@@ -146,7 +146,7 @@ class StandardCycle(BaseCycle):
             )
         else:
             self.evaporator.calc_secondary_cp(T=inputs.T_eva_in)
-            T_eva_out = inputs.T_eva_in - (inputs.Q_eva / (inputs.Q_eva * inputs.m_flow_eva))
+            T_eva_out = inputs.T_eva_in - (inputs.Q_eva / (self.evaporator.secondary_cp * inputs.m_flow_eva))
             inputs.set(
                 name="T_eva_out",
                 value=T_eva_out,
@@ -171,7 +171,6 @@ class StandardCycle(BaseCycle):
                 unit="K",
                 description="Secondary side condenser outlet temperature"
             )
-
 
         #fs_state.set(
             #name="y_EV", value=self.expansion_valve.calc_opening_at_m_flow(m_flow=self.expansion_valve.m_flow),

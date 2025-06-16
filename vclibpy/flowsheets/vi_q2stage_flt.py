@@ -214,7 +214,7 @@ class VI_q2StageFLT(BaseCycle):
             )
         else:
             self.evaporator.calc_secondary_cp(T=inputs.T_eva_in)
-            T_eva_out = inputs.T_eva_in - (inputs.Q_eva / (inputs.Q_eva * inputs.m_flow_eva))
+            T_eva_out = inputs.T_eva_in - (inputs.Q_eva / (self.evaporator.secondary_cp * inputs.m_flow_eva))
             inputs.set(
                 name="T_eva_out",
                 value=T_eva_out,
