@@ -126,8 +126,43 @@ class BaseCycle:
         # Settings
         min_iteration_step = kwargs.pop("min_iteration_step", 1)
         save_path_plots = kwargs.get("save_path_plots", None)
-        input_name = ";".join([k + "=" + str(np.round(v.value, 3)).replace(".", "_")
-                               for k, v in inputs.get_variables().items()])
+        # input_name = ";".join([k + "=" + str(np.round(v.value, 3)).replace(".", "_")
+        #                        for k, v in inputs.get_variables().items()])
+        # only crucial variables are used for the input_name
+        # variables are taken directly from the inputs object
+        n_val = inputs.n.value if hasattr(inputs.n, 'value') else inputs.n
+        n_val_str = str(np.round(n_val, 3)).replace('.', '_')
+
+        # value for T_eva_in
+        teva_in_val = inputs.T_eva_in.value if hasattr(inputs.T_eva_in, 'value') else inputs.T_eva_in
+        teva_in_val_str = str(np.round(teva_in_val, 3)).replace('.', '_')
+
+        # value for T_con_in
+        tcon_in_val = inputs.T_con_in.value if hasattr(inputs.T_con_in, 'value') else inputs.T_con_in
+        tcon_in_val_str = str(np.round(tcon_in_val, 3)).replace('.', '_')
+
+        # value for k_vapor_injection (with fallback on 'N_A' if non existent)
+        if hasattr(inputs, 'k_vapor_injection') and hasattr(inputs.k_vapor_injection, 'value'):
+            k_vi_val = inputs.k_vapor_injection.value
+        elif hasattr(inputs, 'k_vapor_injection'):  # attribute exists but no value
+            k_vi_val = inputs.k_vapor_injection
+        else:  # attribute does not exist
+            k_vi_val = 'N_A'
+
+        # make sure also k_vi_val is rounded and handeled as string if no number
+        if isinstance(k_vi_val, (int, float)):
+            k_vi_val_str = str(np.round(k_vi_val, 3)).replace('.', '_')
+        else:  # if 'N_A' or different no number value
+            k_vi_val_str = str(k_vi_val)
+
+        # Create a name for the input based on the parameters
+        input_name = (
+            f"n={n_val_str};"
+            f"T_eva_in={teva_in_val_str};"
+            f"T_con_in={tcon_in_val_str};"
+            f"k_vapor_injection={k_vi_val_str}"
+        )
+
         show_iteration = kwargs.get("show_iteration", False)
         use_quick_solver = kwargs.pop("use_quick_solver", True)
         err_ntu = kwargs.pop("max_err_ntu", 0.5)
