@@ -83,13 +83,7 @@ class BaseCycle:
 
         min_iteration_step = kwargs.pop("min_iteration_step", 0.0000001)
         save_path_plots = kwargs.get("save_path_plots", None)
-        input_name = ";".join([k + "=" + str(np.round(v.value, 3)).replace(".", "_")
-                               for k, v in inputs.get_variables().items()])
-        show_iteration = kwargs.get("show_iteration", False)
-        use_quick_solver = kwargs.pop("use_quick_solver", True)
         err_ntu = kwargs.pop("max_err_ntu", 0.1)
-        err_dT_min = kwargs.pop("max_err_dT_min", 1)
-
 
         # Setup fluid:
         if fluid is None:
@@ -106,6 +100,9 @@ class BaseCycle:
         if inputs.fix_speed == float(True):
             n_input = deepcopy(inputs.n)
             n_next = inputs.n
+        else:
+            n_next = None
+            n_input = None
         while True:
             if inputs.fix_speed == float(True):
                 inputs.set(
@@ -194,8 +191,8 @@ class BaseCycle:
             elif self.condenser.state_inlet.T <= self.T_max:
                 break
             else:
-                n_next -= 0.1
-                if n_next <0.1:
+                n_next -= 0.25
+                if n_next < 0.20:
                     inputs.set(
                         name="n",
                         value=n_input,
@@ -222,14 +219,12 @@ class BaseCycle:
         Q_con = self.condenser.calc_Q_flow()
         Q_con_outer = self.condenser.calc_secondary_Q_flow(Q_con)
         Q_eva = self.evaporator.calc_Q_flow()
-        Q_eva_outer = self.evaporator.calc_secondary_Q_flow(Q_eva)
         self.evaporator.calc(inputs=inputs, fs_state=fs_state)
         self.condenser.calc(inputs=inputs, fs_state=fs_state)
         P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
 
         # COP based on P_el and Q_con:
         COP_inner = Q_con / P_el
-        COP_outer = Q_con_outer / P_el
         # Calculate carnot quality as a measure of reliability of model:
         COP_carnot = (inputs.T_con_out / (inputs.T_con_out - inputs.T_eva_in))
         carnot_quality = COP_inner / COP_carnot
