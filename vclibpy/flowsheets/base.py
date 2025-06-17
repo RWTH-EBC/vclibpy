@@ -168,6 +168,8 @@ class BaseCycle:
                             break
                         continue
                 try:
+                    if inputs.fix_speed == float(True) and self.condenser.state_inlet.T > self.T2_max:
+                        break
                     error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
                     if error_con > 0 and first_try_con:
                         return  self.set_fs_state_to_off(inputs,start_time, "Condenser pinch to small")
