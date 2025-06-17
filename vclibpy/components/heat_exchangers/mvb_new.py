@@ -159,7 +159,6 @@ class BasicHX(HeatExchanger, abc.ABC):
             T_ref_in_element = state_in_element.T-273.15
             T_ref_out_element = state_out_element.T-273.15
             dT_ref_element = abs(T_ref_in_element - T_ref_out_element)
-
             if dT_ref_element < 0.00001:
                 W_prim = np.inf
             else:
@@ -182,18 +181,21 @@ class BasicHX(HeatExchanger, abc.ABC):
             Q,
             T_prim_in,
             T_sec_in):
+        try:
+            dT_max = abs(T_prim_in - T_sec_in)
+            W_1 = min(W_prim, W_sec)
+            W_2 = max(W_prim, W_sec)
+            P = Q / (W_1 * dT_max)
+            if np.isinf(W_2):
+                return -math.log(1 - P)
+            R = W_1 / W_2
+            if self.flow_type.lower() == "counter":
+                return math.log((1 - R * P) / (1 - P)) / (1 - R)
+            if self.flow_type.lower() == "cross":
+                return - 1 / R * math.log(1 + R * math.log(1 - P))
+        except:
+            return np.inf
 
-        dT_max = abs(T_prim_in - T_sec_in)
-        W_1 = min(W_prim, W_sec)
-        W_2 = max(W_prim, W_sec)
-        P = Q / (W_1 * dT_max)
-        if np.isinf(W_2):
-            return -math.log(1 - P)
-        R = W_1 / W_2
-        if self.flow_type.lower() == "counter":
-            return math.log((1 - R * P) / (1 - P)) / (1 - R)
-        if self.flow_type.lower() == "cross":
-            return - 1 / R * math.log(1 + R * math.log(1 - P))
 
     def separate_phases(self, state_max: ThermodynamicState, state_min: ThermodynamicState, p: float):
         """

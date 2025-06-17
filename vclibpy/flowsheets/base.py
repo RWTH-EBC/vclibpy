@@ -167,15 +167,15 @@ class BaseCycle:
                         if step_T_eva < min_iteration_step:
                             break
                         continue
+                if inputs.fix_speed == float(True) and self.condenser.state_inlet.T > self.T2_max:
+                    break
                 try:
-                    if inputs.fix_speed == float(True) and self.condenser.state_inlet.T > self.T2_max:
-                        break
                     error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
                     if error_con > 0 and first_try_con:
                         return  self.set_fs_state_to_off(inputs,start_time, "Condenser pinch to small")
                     first_try_con = False
                 except:
-                    logger.error("An error occurred while calculating condenser.")
+                    logger.error(f"An error occurred while calculating condenser.")
                     return self.set_default_state(inputs, start_time,"Condenser Error")
                 if dT_min_con < 0:
                     T_con_next += step_T_con
