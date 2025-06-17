@@ -279,7 +279,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
                 dT_min_sh,
                 dT_min_Lat_out)
         )
-        if pinch < 0.1:
+        if pinch < 0.01:
             return -100, -10
 
         fs_state.set(name="Con_Pinch", value=pinch, unit="K")
@@ -475,7 +475,7 @@ class MVB_Evaporator(BasicHX, abc.ABC):
                 dT_2,
                 dT_3)
         )
-        if pinch < 0.1:
+        if pinch < 0.01:
             return -100, -10
 
         fs_state.set(name="Eva_Pinch",
@@ -554,6 +554,9 @@ class MVB_Evaporator(BasicHX, abc.ABC):
                 A_sh = Q_sh / (lmtd * U)
 
         A_calc = A_sh + A_lat
+
+        if A_calc < 0.001:
+            return 100, 10
         error = (self.A / A_calc - 1) * 100
 
         fs_state.set(name="Eva_dh", value=0.001 * (self.state_outlet.h - self.state_inlet.h), unit="kJ/kg",
