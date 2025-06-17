@@ -1,7 +1,8 @@
 # # Example for a heat pump where you can select the flowsheet
-from vclibpy.flowsheets import StandardCycle, VaporInjectionPhaseSeparator, VaporInjectionEconomizer # TODO: Add InternalHeatExchanger, DirectInjection when implemented
+from vclibpy.flowsheets import StandardCycle, VaporInjectionPhaseSeparator, VaporInjectionEconomizer, InternalHeatExchangerCycle
 from vclibpy.components.heat_exchangers import moving_boundary_ntu, heat_transfer
 from vclibpy.components.heat_exchangers.economizer import VaporInjectionEconomizerNTU
+from vclibpy.components.heat_exchangers.ihx import InternalHeatExchangerNTU
 from vclibpy.components.expansion_valves import Bernoulli
 from vclibpy.components.compressors import ConstantEffectivenessCompressor,RotaryCompressor, TenCoefficientCompressor
 from vclibpy import utils
@@ -101,6 +102,20 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
             compressor=compressor,
             expansion_valve=pressure_valve
         )
+
+    if flowsheet_type == "InternalHeatExchanger":
+        compressor_params = common_params["compressor_params"]
+        compressor = create_compressor(common_params["compressor_type"], compressor_params)
+        pressure_valve = Bernoulli(A=A_valve)
+        return InternalHeatExchangerCycle(
+            evaporator=common_params['evaporator'],
+            condenser=common_params['condenser'],
+            internal_heat_exchanger=common_params['ihx'],
+            fluid=common_params['fluid'],
+            compressor=compressor,
+            expansion_valve=pressure_valve,
+        )
+
     elif flowsheet_type == "VaporInjectionPhaseSeparator":
         return VaporInjectionPhaseSeparator(
             evaporator=common_params['evaporator'],
@@ -159,7 +174,12 @@ def main():
         wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=20, thickness=0.6e-3),
     )
 
-    #TODO: Internal heat exchanger needs to be implemented
+    ihx = InternalHeatExchangerNTU(
+        A=0.2,
+        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=150),
+        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
+        wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=20, thickness=0.6e-3),
+    )
 
     # 2. define common parameters for the flowsheet
     common_params = {
@@ -167,7 +187,7 @@ def main():
         'condenser': condenser,
         'fluid': "Propane",  # Refrigerant selection
         'economizer': economizer,
-        # 'internal_heat_exchanger': internal_heat_exchanger,  # TODO: Implementation pending
+        'ihx': ihx,
         'A_valve': 0.1,  # TODO: Maybe distinction between high- and low-pressure valve?
         'V_h_ratio': 1,  # Ratio between high-and low-pressure compressor volume (V_h_ratio = V_h_high / V_h_low)
         # Compressor Type selection between:
@@ -201,17 +221,15 @@ def main():
         # StandardCycle
         # VaporInjectionEconomizer      TODO: Distinction between up- and down-stream economizer implementation
         # VaporInjectionPhaseSeparator
-        # InternalHeatExchanger TODO: Implementation pending
+        # InternalHeatExchanger
         # DirectInjection       TODO: Implementation pending
-    flowsheet_type = "VaporInjectionPhaseSeparator"
+    flowsheet_type = "InternalHeatExchanger"
 
     # 4. create flowsheet object
     heat_pump = create_flowsheet(flowsheet_type, common_params)
 
     # 5. generate performance map (Study settings)
-    base_output_dir = r"D:\00_temp\flowsheet_selection" # TODO: Adjust save path in accordance with the flowsheet name or at leat a time stamp
-    #save_path = os.path.join(base_save_path, flowsheet_type)
-    #os.makedirs(save_path,exist_ok=True)  # Create the directory if it does not exist
+    base_output_dir = r"D:\00_temp\flowsheet_selection"
 
     flowsheet_output_dir = os.path.join(base_output_dir, flowsheet_type)
 
