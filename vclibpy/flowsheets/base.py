@@ -6,6 +6,7 @@ import time
 from copy import deepcopy
 from abc import abstractmethod
 import matplotlib.pyplot as plt
+from sympy.codegen.ast import break_
 
 from vclibpy import media, Inputs
 from vclibpy.datamodels import FlowsheetState
@@ -120,14 +121,13 @@ class BaseCycle:
             T_con_next = inputs.T_con_in + inputs.dT_con_subcooling
             step_T_con = 1
             first_try_con = True
+            adjust_n = False
             while True:
                 T_eva_next = T_eva_start
                 step_T_eva = 1
                 first_try_eva = True
                 while True:
-                    if T_con_next > Tc - 5:
-                        return self.set_fs_state_to_off(inputs, start_time, "Maximal Pressure reached")
-                    p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
+
                     num_iterations += 1
                     if (time.time() - start_time_warning) > 40:
                         logger.error("RunTimeWarning")
@@ -135,9 +135,21 @@ class BaseCycle:
                     if time.time() - start_time > 60:
                         logger.error("RunTimeError")
                         return self.set_default_state(inputs, start_time, "RunTimeError")
+                    if T_con_next > Tc - 5:
+                        if inputs.fix_speed == float(True):
+                            adjust_n = True
+                            break
+                        else:
+                            return self.set_fs_state_to_off(inputs, start_time, "Maximal Pressure reached")
+                    p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
+
                     p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
                     if p_1 < 0.01 *10**5:
-                        return self.set_fs_state_to_off(inputs, comment="Min Pressure reached", start_time=start_time)
+                        if inputs.fix_speed == float(True):
+                            adjust_n = True
+                            break
+                        else:
+                            return self.set_fs_state_to_off(inputs, comment="Min Pressure reached", start_time=start_time)
                     try:
                         valid = self.calc_states(p_1, p_2, inputs=inputs, fs_state=fs_state)
                     except ValueError as err:
@@ -197,8 +209,9 @@ class BaseCycle:
                     continue
             if inputs.fix_speed == float(False):
                 break
-            if self.condenser.state_inlet.T <= self.T2_max and inputs.T_con_out <= self.T_con_out_max:
-                break
+            if not adjust_n:
+                if self.condenser.state_inlet.T <= self.T2_max and inputs.T_con_out <= self.T_con_out_max:
+                    break
             n_next -= 0.1 * n_input
             if n_next < 0.2:
                 inputs.set(
