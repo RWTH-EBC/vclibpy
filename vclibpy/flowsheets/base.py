@@ -134,7 +134,7 @@ class BaseCycle:
                         start_time_warning = time.time()
                     if time.time() - start_time > 60:
                         logger.error("RunTimeError")
-                        return "RunTimeError"
+                        return self.set_default_state(inputs, start_time, "RunTimeError")
                     p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
                     if p_1 < 0.01 *10**5:
                         return self.set_fs_state_to_off(inputs, comment="Min Pressure reached", start_time=start_time)
