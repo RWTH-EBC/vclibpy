@@ -6,7 +6,6 @@ import time
 from copy import deepcopy
 from abc import abstractmethod
 import matplotlib.pyplot as plt
-from sympy.codegen.ast import break_
 
 from vclibpy import media, Inputs
 from vclibpy.datamodels import FlowsheetState
@@ -105,10 +104,13 @@ class BaseCycle:
         else:
             T_eva_start = inputs.T_eva_in - inputs.dT_eva_superheating
 
+        n_min_tried = False
+        n_min_try = False
         n_input, n_next = None, None
         if inputs.fix_speed == float(True):
             n_input = deepcopy(inputs.n)
             n_next = inputs.n
+
         while True:
             if inputs.fix_speed == float(True):
                 inputs.set(
@@ -129,10 +131,10 @@ class BaseCycle:
                 while True:
 
                     num_iterations += 1
-                    if (time.time() - start_time_warning) > 40:
+                    if (time.time() - start_time_warning) > 90:
                         logger.error("RunTimeWarning")
                         start_time_warning = time.time()
-                    if time.time() - start_time > 60:
+                    if time.time() - start_time > 120:
                         logger.error("RunTimeError")
                         return self.set_default_state(inputs, start_time, "RunTimeError")
                     if T_con_next > Tc - 5:
@@ -207,11 +209,31 @@ class BaseCycle:
                     if T_con_next < min_iteration_step:
                         break
                     continue
+
             if inputs.fix_speed == float(False):
                 break
             if not adjust_n:
                 if self.condenser.state_inlet.T <= self.T2_max and inputs.T_con_out <= self.T_con_out_max:
+                    if n_min_try:
+                        n_next = deepcopy(n_input)
+                        n_next -= 0.1 * n_input
+                        n_min_try = False
+                        n_min_tried = True
+                        continue
                     break
+                else:
+                    if n_min_try:
+                        inputs.set(
+                            name="n",
+                            value=n_input,
+                            unit="-",
+                            description="Relative compressor speed"
+                        )
+                        return self.set_fs_state_to_off(inputs, comment="Min Compressor Speed reached", start_time=start_time)
+            if not n_min_tried:
+                n_next = 0.2
+                n_min_try = True
+                continue
             n_next -= 0.1 * n_input
             if n_next < 0.2:
                 inputs.set(
@@ -220,7 +242,7 @@ class BaseCycle:
                     unit="-",
                     description="Relative compressor speed"
                 )
-                return self.set_fs_state_to_off(inputs, comment="Min Compressor reached", start_time=start_time)
+                return self.set_fs_state_to_off(inputs, comment="Min Compressor Speed reached", start_time=start_time)
             continue
 
         if inputs.fix_speed == float(True):
