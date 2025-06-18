@@ -166,20 +166,24 @@ class Inputs(VariableContainer):
 
     def __init__(
             self,
-            T_eva_in: float,
-            T_con_in: float,
-            dT_eva_superheating: float,
-            dT_con_subcooling: float,
             fix_speed: bool = True,
             fix_m_flow_eva: bool = True,
             fix_m_flow_con: bool = True,
-            Q_con: float = None,
-            T_eva_out: float = None,
-            T_con_out: float = None,
-            n: float = None,
-            m_flow_eva: float = None,
-            m_flow_con: float = None,
-            T_ambient: float = None
+            T_eva_in: float = np.nan,
+            T_con_in: float = np.nan,
+            dT_eva_superheating: float = np.nan,
+            dT_con_subcooling: float = np.nan,
+            Q_con: float = np.nan,
+            T_eva_out: float = np.nan,
+            T_con_out: float = np.nan,
+            n: float = np.nan,
+            m_flow_eva: float = np.nan,
+            m_flow_con: float = np.nan,
+            T_ambient: float = np.nan,
+            n_rel: float = np.nan,
+            m_flow_eva_rel: float = np.nan,
+            m_flow_con_rel: float = np.nan,
+
     ):
         """
         Initializes an Inputs object with parameters representing external conditions
@@ -210,58 +214,49 @@ class Inputs(VariableContainer):
             name="fix_m_flow_con",
             value=float(fix_m_flow_con)
         )
-        if not fix_m_flow_con:
-            if T_con_out is None:
-                print("No set value for condenser outlet given")
-            self.set(
-                name="T_con_out",
-                value=T_con_out,
-                unit="K",
-                description="Secondary side condenser outlet temperature"
-            )
-        else:
-            self.set(
-                name="m_flow_con",
-                value=m_flow_con,
-                unit="kg/s",
-                description="Secondary side condenser mass flow rate"
-            )
 
-        if not fix_m_flow_eva:
-            if T_eva_out is None:
-                print("No set value for evaporator outlet given")
-                exit()
-            self.set(
-                name="T_eva_out",
-                value=T_eva_out,
-                unit="K",
-                description="Secondary side evaporator outlet temperature"
-            )
-        else:
-            self.set(
-                name="m_flow_eva",
-                value=m_flow_eva,
-                unit="kg/s",
-                description="Secondary side evaporator mass flow rate"
-            )
+        self.set(
+            name="T_con_out",
+            value=T_con_out,
+            unit="K",
+            description="Secondary side condenser outlet temperature"
+        )
 
-        if not fix_speed:
-            if Q_con is None:
-                print("No set value for heating capacity given")
-                exit()
-            self.set(
-                name="Q_con",
-                value=Q_con,
-                unit="W",
-                description="heating power_set"
-            )
-        else:
-            self.set(
-                name="n",
-                value=n,
-                unit="-",
-                description="Relative compressor speed"
-            )
+        self.set(
+            name="m_flow_con",
+            value=m_flow_con,
+            unit="kg/s",
+            description="Secondary side condenser mass flow rate"
+        )
+
+        self.set(
+            name="T_eva_out",
+            value=T_eva_out,
+            unit="K",
+            description="Secondary side evaporator outlet temperature"
+        )
+
+        self.set(
+            name="m_flow_eva",
+            value=m_flow_eva,
+            unit="kg/s",
+            description="Secondary side evaporator mass flow rate"
+        )
+
+
+        self.set(
+            name="Q_con",
+            value=Q_con,
+            unit="W",
+            description="heating power_set"
+        )
+
+        self.set(
+            name="n",
+            value=n,
+            unit="-",
+            description="Relative compressor speed"
+        )
 
         self.set(
             name="T_eva_in",
@@ -289,11 +284,22 @@ class Inputs(VariableContainer):
             unit="K",
             description="Subcooling after condenser"
         )
-        if T_ambient is None:
-            T_ambient = T_eva_in
         self.set(
             name="T_ambient",
             value=T_ambient,
             unit="K",
             description="Ambient temperature of machine"
+        )
+
+        self.set(
+            name="n_rel",
+            value=n_rel,
+        )
+        self.set(
+            name="m_flow_eva_rel",
+            value=m_flow_eva_rel,
+        )
+        self.set(
+            name="m_flow_con_rel",
+            value=m_flow_con_rel,
         )
