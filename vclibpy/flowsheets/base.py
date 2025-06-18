@@ -131,10 +131,10 @@ class BaseCycle:
                 while True:
 
                     num_iterations += 1
-                    if (time.time() - start_time_warning) > 90:
+                    if (time.time() - start_time_warning) > 20:
                         logger.error("RunTimeWarning")
                         start_time_warning = time.time()
-                    if time.time() - start_time > 120:
+                    if time.time() - start_time > 30:
                         logger.error("RunTimeError")
                         return self.set_default_state(inputs, start_time, "RunTimeError")
                     if T_con_next > Tc - 5:
@@ -184,7 +184,7 @@ class BaseCycle:
                         if step_T_eva < min_iteration_step:
                             break
                         continue
-                if inputs.fix_speed == float(True) and self.condenser.state_inlet.T > self.T2_max:
+                if inputs.fix_speed == float(True) and adjust_n:
                     break
                 try:
                     error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
