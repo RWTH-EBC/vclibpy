@@ -80,7 +80,7 @@ class BaseCycle:
         return [self.condenser, self.evaporator]
 
     def calc_steady_state(self, inputs: Inputs, fluid: str = None, **kwargs):
-
+        start_time_warning = time.time()
         start_time = time.time()
 
         min_iteration_step = kwargs.pop("min_iteration_step", 0.0000001)
@@ -129,9 +129,12 @@ class BaseCycle:
                         return self.set_fs_state_to_off(inputs, start_time, "Maximal Pressure reached")
                     p_2 = self.med_prop.calc_state("TQ", T_con_next, 0).p
                     num_iterations += 1
-                    if num_iterations > 1000000 or (time.time() - start_time) > 60:
+                    if (time.time() - start_time_warning) > 40:
+                        logger.error("RunTimeWarning")
+                        start_time_warning = time.time()
+                    if time.time() - start_time > 60:
                         logger.error("RunTimeError")
-                        return self.set_default_state(inputs, start_time, "RunTimeError")
+                        return "RunTimeError"
                     p_1 = self.med_prop.calc_state("TQ", T_eva_next, 0).p
                     if p_1 < 0.01 *10**5:
                         return self.set_fs_state_to_off(inputs, comment="Min Pressure reached", start_time=start_time)
