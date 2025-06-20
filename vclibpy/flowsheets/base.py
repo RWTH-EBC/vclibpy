@@ -39,6 +39,7 @@ class BaseCycle:
         self.med_prop = None
         self._p_min = 10000  # So that p>0 at all times
         self._p_max = None  # Is set by med-prop
+        self.p_start = dict()  # Input -> [float, float]
 
     def __str__(self):
         return self.flowsheet_name
@@ -134,6 +135,8 @@ class BaseCycle:
         exploration_factor = kwargs.pop("exploration_factor", 1.2)
         return_errors = kwargs.pop("return_errors", False)
 
+        p_start = self.p_start.get(inputs, None)
+
         p_1_history = []
         p_2_history = []
         error_eva_history = []
@@ -147,11 +150,15 @@ class BaseCycle:
             fluid = self.fluid
         self.setup_new_fluid(fluid)
 
-        # First: Iterate with given conditions to get the 4 states and the mass flow rate:
-        T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating
-        T_3_start = inputs.T_con_in + inputs.dT_con_subcooling
-        p_1_start = self.med_prop.calc_state("TQ", T_1_start, 1).p
-        p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
+        # If no initial guess is given, assume a temperature difference of 0K at the pinch point
+        if p_start is None:
+            T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating
+            T_3_start = inputs.T_con_in + inputs.dT_con_subcooling
+            p_1_start = self.med_prop.calc_state("TQ", T_1_start, 1).p
+            p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
+        else:
+            p_1_start = p_start[0]
+            p_2_start = p_start[1]
 
         p_1_next = p_1_start
         p_2_next = p_2_start
@@ -307,6 +314,7 @@ class BaseCycle:
             plt.pause(60)
             plt.close(fig_iterations)
 
+        self.p_start[inputs] = (p_1, p_2)
         # Calculate the heat flow rates for the selected states.
         Q_con = self.condenser.calc_Q_flow()
         Q_con_outer = self.condenser.calc_secondary_Q_flow(Q_con)
