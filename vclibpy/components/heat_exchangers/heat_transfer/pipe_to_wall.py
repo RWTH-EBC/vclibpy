@@ -34,7 +34,7 @@ class TurbulentFluidInPipeToWallTransfer(HeatTransfer):
         self.method = method
         self.characteristic_length = characteristic_length
 
-    def calc(self, transport_properties: TransportProperties, m_flow: float) -> float:
+    def calc(self, transport_properties_callback: callable, m_flow: float) -> float:
         """
         Calculate heat transfer coefficient from refrigerant to the wall of the heat exchanger.
 
@@ -42,12 +42,13 @@ class TurbulentFluidInPipeToWallTransfer(HeatTransfer):
         Nusselt correlation.
 
         Args:
-            transport_properties (TransportProperties): Transport properties of the fluid.
+            transport_properties_callback (callable): function returning transport properties of the fluid.
             m_flow (float): Mass flow rate of the fluid.
 
         Returns:
             float: Heat transfer coefficient from refrigerant to HE in W/(m^2*K).
         """
+        transport_properties = transport_properties_callback()
         Re = calc_reynolds_pipe(
             characteristic_length=self.characteristic_length,
             dynamic_viscosity=transport_properties.dyn_vis,

@@ -142,9 +142,10 @@ class MovingBoundaryNTUCondenser(MovingBoundaryNTU):
 
         # Note: As Q_con_ntu has to converge to Q_con (m_ref*delta_h), we can safely
         # calculate the output temperature.
+        def tra_prop_med():
+            T_mean = inputs.T_con_in + self.calc_secondary_Q_flow(Q) / (self.m_flow_secondary_cp * 2)
+            return self.calc_transport_properties_secondary_medium(T_mean)
 
-        T_mean = inputs.T_con_in + self.calc_secondary_Q_flow(Q) / (self.m_flow_secondary_cp * 2)
-        tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
 
         # Calculate secondary_medium side temperatures:
@@ -157,8 +158,10 @@ class MovingBoundaryNTUCondenser(MovingBoundaryNTU):
         Q_sc_ntu, A_sc = 0, 0
         if Q_sc > 0 and (state_q0.T != self.state_outlet.T):
             self.set_primary_cp((state_q0.h - self.state_outlet.h) / (state_q0.T - self.state_outlet.T))
-            # Get transport properties:
-            tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(state_q0, self.state_outlet)
+
+            def tra_prop_ref_con():
+                return self.med_prop.calc_mean_transport_properties(state_q0, self.state_outlet)
+
             alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_con)
 
             # Only use still available area:
@@ -202,8 +205,9 @@ class MovingBoundaryNTUCondenser(MovingBoundaryNTU):
         Q_sh_ntu, A_sh = 0, 0
         if Q_sh and (self.state_inlet.T != state_q1.T):
             self.set_primary_cp((self.state_inlet.h - state_q1.h) / (self.state_inlet.T - state_q1.T))
-            # Get transport properties:
-            tra_prop_ref_con = self.med_prop.calc_mean_transport_properties(self.state_inlet, state_q1)
+
+            def tra_prop_ref_con():
+                return self.med_prop.calc_mean_transport_properties(self.state_inlet, state_q1)
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_con)
 
             # Only use still available area:
@@ -222,9 +226,11 @@ class MovingBoundaryNTUCondenser(MovingBoundaryNTU):
         dT_min_out = self.state_inlet.T - T_out
         dT_min_LatSH = state_q1.T - T_sh
 
-        fs_state.set(name="A_con_sh", value=A_sh, unit="m2", description="Area for superheat heat exchange in condenser")
+        fs_state.set(name="A_con_sh", value=A_sh, unit="m2",
+                     description="Area for superheat heat exchange in condenser")
         fs_state.set(name="A_con_lat", value=A_lat, unit="m2", description="Area for latent heat exchange in condenser")
-        fs_state.set(name="A_con_sc", value=A_sc, unit="m2", description="Area for subcooling heat exchange in condenser")
+        fs_state.set(name="A_con_sc", value=A_sc, unit="m2",
+                     description="Area for subcooling heat exchange in condenser")
 
         return error, min(dT_min_in,
                           dT_min_LatSH,
@@ -274,8 +280,9 @@ class MovingBoundaryNTUEvaporator(MovingBoundaryNTU):
 
         # Note: As Q_eva_ntu has to converge to Q_eva (m_ref*delta_h), we can safely
         # calculate the output temperature.
-        T_mean = inputs.T_eva_in - Q / (self.m_flow_secondary_cp * 2)
-        tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
+        def tra_prop_med():
+            T_mean = inputs.T_eva_in - Q / (self.m_flow_secondary_cp * 2)
+            return self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
 
         # Calculate secondary_medium side temperatures:
@@ -287,8 +294,9 @@ class MovingBoundaryNTUEvaporator(MovingBoundaryNTU):
         Q_sh_ntu, A_sh = 0, 0
         if Q_sh and (self.state_outlet.T != state_q1.T):
             self.set_primary_cp((self.state_outlet.h - state_q1.h) / (self.state_outlet.T - state_q1.T))
-            # Get transport properties:
-            tra_prop_ref_eva = self.med_prop.calc_mean_transport_properties(self.state_outlet, state_q1)
+
+            def tra_prop_ref_eva():
+                return self.med_prop.calc_mean_transport_properties(self.state_outlet, state_q1)
             alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref_eva)
 
             if Q_lat > 0:
@@ -342,8 +350,9 @@ class MovingBoundaryNTUEvaporator(MovingBoundaryNTU):
         Q_sc_ntu, A_sc = 0, 0
         if Q_sc > 0 and (state_q0.T != self.state_inlet.T):
             self.set_primary_cp((state_q0.h - self.state_inlet.h) / (state_q0.T - self.state_inlet.T))
-            # Get transport properties:
-            tra_prop_ref_eva = self.med_prop.calc_mean_transport_properties(state_q0, self.state_inlet)
+
+            def tra_prop_ref_eva():
+                return self.med_prop.calc_mean_transport_properties(state_q0, self.state_inlet)
             alpha_ref_wall = self.calc_alpha_liquid(tra_prop_ref_eva)
 
             # Only use still available area:
@@ -360,7 +369,9 @@ class MovingBoundaryNTUEvaporator(MovingBoundaryNTU):
         dT_min_in = inputs.T_eva_in - self.state_outlet.T
         dT_min_out = T_out - self.state_inlet.T
 
-        fs_state.set(name="A_eva_sh", value=A_sh, unit="m2", description="Area for superheat heat exchange in evaporator")
-        fs_state.set(name="A_eva_lat", value=A_lat, unit="m2", description="Area for latent heat exchange in evaporator")
+        fs_state.set(name="A_eva_sh", value=A_sh, unit="m2",
+                     description="Area for superheat heat exchange in evaporator")
+        fs_state.set(name="A_eva_lat", value=A_lat, unit="m2",
+                     description="Area for latent heat exchange in evaporator")
 
         return error, min(dT_min_out, dT_min_in)

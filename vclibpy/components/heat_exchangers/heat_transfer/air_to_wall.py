@@ -24,7 +24,7 @@ class AirToWallTransfer(HeatTransfer, abc.ABC):
         self.A_cross = A_cross
         self.characteristic_length = characteristic_length
 
-    def calc(self, transport_properties: TransportProperties, m_flow: float) -> float:
+    def calc(self, transport_properties_callback: callable, m_flow: float) -> float:
         """
         Heat transfer coefficient from air to the wall of the heat exchanger.
         The flow is assumed to be always laminar.
@@ -32,6 +32,7 @@ class AirToWallTransfer(HeatTransfer, abc.ABC):
         Returns:
             float: Heat transfer coefficient in W/(m^2*K).
         """
+        transport_properties = transport_properties_callback()
         Re = self.calc_reynolds(dynamic_viscosity=transport_properties.dyn_vis, m_flow=m_flow)
         alpha_sec = self.calc_laminar_area_nusselt(Re, transport_properties.Pr, lambda_=transport_properties.lam)
         return alpha_sec

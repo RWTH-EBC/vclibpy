@@ -14,18 +14,18 @@ class HeatTransfer(abc.ABC):
     Base class to implement possible heat transfer models.
 
     Methods:
-        calc(transport_properties: TransportProperties, m_flow: float) -> float:
+        calc(transport_properties_callback: callable, m_flow: float) -> float:
             Abstract method to calculate heat transfer.
 
     """
 
     @abc.abstractmethod
-    def calc(self, transport_properties: TransportProperties, m_flow: float) -> float:
+    def calc(self, transport_properties_callback: callable, m_flow: float) -> float:
         """
         Calculate heat transfer.
 
         Args:
-            transport_properties (TransportProperties): Transport properties of the medium.
+            transport_properties_callback (callable): function returning transport properties of the medium.
             m_flow (float): Mass flow rate.
 
         Returns:

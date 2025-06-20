@@ -18,12 +18,12 @@ class ConstantHeatTransfer(abc.ABC):
     def __init__(self, alpha: float):
         self.alpha = alpha
 
-    def calc(self, transport_properties: TransportProperties, m_flow: float) -> float:
+    def calc(self, transport_properties_callback: callable, m_flow: float) -> float:
         """
         Calculate constant heat transfer coefficient.
 
         Args:
-            transport_properties (TransportProperties): Transport properties of the medium (not used).
+            transport_properties_callback (callable): function returning transport properties of the medium (not used).
             m_flow (float): Mass flow rate (not used).
 
         Returns:

@@ -21,7 +21,7 @@ class WallTransfer(HeatTransfer):
         self.thickness = thickness
         self.lambda_ = lambda_
 
-    def calc(self, transport_properties: TransportProperties, m_flow: float) -> float:
+    def calc(self, transport_properties_callback: callable, m_flow: float) -> float:
         """
         Heat transfer coefficient inside wall
 

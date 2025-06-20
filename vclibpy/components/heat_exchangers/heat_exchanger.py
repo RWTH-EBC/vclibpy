@@ -119,48 +119,48 @@ class HeatExchanger(BaseComponent, abc.ABC):
             state_outlet=self.state_outlet
         )
 
-    def calc_alpha_liquid(self, transport_properties) -> float:
+    def calc_alpha_liquid(self, transport_properties_callback: callable) -> float:
         """
         Calculate the liquid-phase heat transfer coefficient.
 
         Args:
-            transport_properties: Transport properties for the liquid phase.
+            transport_properties_callback (callable): function returning transport properties for the liquid phase.
 
         Returns:
             float: The liquid-phase heat transfer coefficient.
         """
         return self._liquid_heat_transfer.calc(
-            transport_properties=transport_properties,
+            transport_properties_callback=transport_properties_callback,
             m_flow=self.m_flow
         )
 
-    def calc_alpha_gas(self, transport_properties) -> float:
+    def calc_alpha_gas(self, transport_properties_callback: callable) -> float:
         """
         Calculate the gas-phase heat transfer coefficient.
 
         Args:
-            transport_properties: Transport properties for the gas phase.
+            transport_properties_callback (callable): function returning transport properties for the gas phase.
 
         Returns:
             float: The gas-phase heat transfer coefficient.
         """
         return self._gas_heat_transfer.calc(
-            transport_properties=transport_properties,
+            transport_properties_callback=transport_properties_callback,
             m_flow=self.m_flow
         )
 
-    def calc_alpha_secondary(self, transport_properties) -> float:
+    def calc_alpha_secondary(self, transport_properties_callback: callable) -> float:
         """
         Calculate the secondary-medium heat transfer coefficient.
 
         Args:
-            transport_properties: Transport properties for the secondary medium.
+            transport_properties_callback (callable): function returning transport properties for the secondary medium.
 
         Returns:
             float: The secondary-medium heat transfer coefficient.
         """
         return self._secondary_heat_transfer.calc(
-            transport_properties=transport_properties,
+            transport_properties_callback=transport_properties_callback,
             m_flow=self.m_flow_secondary
         )
 
@@ -173,7 +173,7 @@ class HeatExchanger(BaseComponent, abc.ABC):
         """
         # Arguments are not required
         return self._wall_heat_transfer.calc(
-            transport_properties=media.TransportProperties(),
+            transport_properties_callback=media.TransportProperties,
             m_flow=0
         )
 
