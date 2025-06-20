@@ -107,16 +107,16 @@ class BaseCycle:
                 If None, no plots are created.
             show_iteration (bool):
                 Whether to display iteration progress (default: False).
-            T_max (float):
-                Maximum temperature allowed (default: 273.15 + 150).
-            use_quick_solver (bool):
-                Whether to use a quick solver (default: True).
             max_err_ntu (float):
                 Maximum allowable error for the heat exchanger in percent (default: 0.5).
-            max_err_dT_min (float):
-                Maximum allowable error for minimum temperature difference in K (default: 0.1).
             max_num_iterations (int or None):
-                Maximum number of iterations allowed (default: None).
+                Maximum number of iterations allowed (default: 150).
+            exploration_factor (float):
+                Factor used to adjust step size when optimizer is in "exploration mode",
+                i.e. hasn't yet identified the region near the optimum.
+                The better the initial guess is the smaller the factor should be (default: 1.2)
+            return_errors (bool):
+                If True, this function returns a tuple (fs_state, error_eva, error_con) (default: False)
 
         Returns:
             fs_state (FlowsheetState):
@@ -129,19 +129,18 @@ class BaseCycle:
         input_name = ";".join([k + "=" + str(np.round(v.value, 3)).replace(".", "_")
                                for k, v in inputs.get_variables().items()])
         show_iteration = kwargs.get("show_iteration", False)
-        use_quick_solver = kwargs.pop("use_quick_solver", True)
         err_ntu = kwargs.pop("max_err_ntu", 0.5)
-        err_dT_min = kwargs.pop("max_err_dT_min", 0.1)
-        max_num_iterations = kwargs.pop("max_num_iterations", 1e5)
+        max_num_iterations = kwargs.pop("max_num_iterations", 150)
+        exploration_factor = kwargs.pop("exploration_factor", 1.2)
+        return_errors = kwargs.pop("return_errors", False)
+
         p_1_history = []
         p_2_history = []
+        error_eva_history = []
+        error_con_history = []
 
-        if use_quick_solver:
-            step_p1 = kwargs.get("step_max", 10000)
-            step_p2 = kwargs.get("step_max", 10000)
-        else:
-            step_p1 = min_iteration_step
-            step_p2 = min_iteration_step
+        step_p1 = kwargs.get("step_max", 10000)
+        step_p2 = kwargs.get("step_max", 10000)
 
         # Setup fluid:
         if fluid is None:
@@ -153,58 +152,44 @@ class BaseCycle:
         T_3_start = inputs.T_con_in + inputs.dT_con_subcooling
         p_1_start = self.med_prop.calc_state("TQ", T_1_start, 1).p
         p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
+
         p_1_next = p_1_start
         p_2_next = p_2_start
+
+        error_eva_has_been_pos = None
+        error_eva_has_been_neg = None
+        error_con_has_been_pos = None
+        error_con_has_been_neg = None
+
+        p_1_exploit = False
+        p_2_exploit = False
 
         fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
         fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
         fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
 
         if show_iteration:
-            fig_iterations, ax_iterations = plt.subplots(2)
+            fig_iterations, ax_iterations = plt.subplots(2, 2)
 
         num_iterations = 0
-
+        failed = False
         while True:
             if isinstance(max_num_iterations, (int, float)):
                 if num_iterations > max_num_iterations:
                     logger.warning("Maximum number of iterations %s exceeded. Stopping.",
                                    max_num_iterations)
-                    return
-
-                if (num_iterations + 1) % (0.1 * max_num_iterations) == 0:
-                    logger.info("Info: %s percent of max_num_iterations %s used",
-                                100 * (num_iterations + 1) / max_num_iterations, max_num_iterations)
+                    idx_opt = np.argmin(np.maximum(np.absolute(error_eva_history), np.absolute(error_con_history)))
+                    p_1_next = p_1_history[idx_opt]
+                    p_2_next = p_2_history[idx_opt]
+                    failed = True
 
             p_1 = p_1_next
             p_2 = p_2_next
             p_1_history.append(p_1)
             p_2_history.append(p_2)
-            if show_iteration:
-                ax_iterations[0].cla()
-                ax_iterations[1].cla()
-                ax_iterations[0].scatter(list(range(len(p_1_history))), p_1_history)
-                ax_iterations[1].scatter(list(range(len(p_2_history))), p_2_history)
-                plt.draw()
-                plt.pause(1e-5)
 
             # Increase counter
             num_iterations += 1
-            # Check critical pressures:
-            if p_2 >= self._p_max:
-                if step_p2 == min_iteration_step:
-                    logger.error("Pressure too high. Configuration is infeasible.")
-                    return
-                p_2_next = p_2 - step_p2
-                step_p2 /= 10
-                continue
-            if p_1 <= self._p_min:
-                if p_1_next == min_iteration_step:
-                    logger.error("Pressure too low. Configuration is infeasible.")
-                    return
-                p_1_next = p_1 + step_p1
-                step_p1 /= 10
-                continue
 
             # Calculate the states based on the given flowsheet
             try:
@@ -216,61 +201,110 @@ class BaseCycle:
             if save_path_plots is not None and num_iterations == 1 and show_iteration:
                 self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_initialization.png"), inputs=inputs)
 
+            error_eva, pinch_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+            error_con, pinch_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
+
+            error_eva_history.append(error_eva)
+            error_con_history.append(error_con)
+
+            if show_iteration:
+                ax_iterations[0][0].cla()
+                ax_iterations[0][0].scatter(list(range(len(p_1_history))), p_1_history)
+                ax_iterations[0][0].scatter(len(p_1_history), p_1_history[-1], c="red")
+                ax_iterations[0][0].set_xlabel("iteration")
+                ax_iterations[0][0].set_ylabel("p1")
+
+                ax_iterations[0][1].cla()
+                ax_iterations[0][1].scatter(error_eva_history, p_1_history)
+                ax_iterations[0][1].scatter(error_eva_history[-1], p_1_history[-1], c="red")
+                ax_iterations[0][1].set_xlabel("error_eva")
+                ax_iterations[0][1].set_ylabel("p1")
+
+                ax_iterations[1][0].cla()
+                ax_iterations[1][0].scatter(list(range(len(p_2_history))), p_2_history)
+                ax_iterations[1][0].scatter(len(p_2_history), p_2_history[-1], c="red")
+                ax_iterations[1][0].set_xlabel("iteration")
+                ax_iterations[1][0].set_ylabel("p2")
+
+                ax_iterations[1][1].cla()
+                ax_iterations[1][1].scatter(error_con_history, p_2_history)
+                ax_iterations[1][1].scatter(error_con_history[-1], p_2_history[-1], c="red")
+                ax_iterations[1][1].set_xlabel("error_con")
+                ax_iterations[1][1].set_ylabel("p2")
+
+                plt.tight_layout()
+                plt.draw()
+                plt.pause(1e-5)
+
+            # Check if values have converged:
+            if abs(error_eva) < err_ntu and abs(error_con) < err_ntu:
+                logger.info("Converged! error small enough")
+                break
+            if failed:
+                break
+
             # Check heat exchangers:
-            error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
             if not isinstance(error_eva, float):
                 print(error_eva)
             if error_eva < 0:
-                p_1_next = p_1 - step_p1
-                continue
+                if error_eva_has_been_neg and not p_1_exploit:
+                    step_p1 *= exploration_factor
+                if error_eva_has_been_pos:
+                    p_1_exploit = True
+                error_eva_has_been_neg = True
+                if p_1_exploit:
+                    step_p1 /= 2
+                p_1_next = max(p_1 - step_p1, self._p_min + min_iteration_step)
             else:
-                if step_p1 > min_iteration_step:
-                    p_1_next = p_1 + step_p1
-                    step_p1 /= 10
-                    continue
-                elif error_eva > err_ntu and dT_min_eva > err_dT_min:
-                    step_p1 = 1000
-                    p_1_next = p_1 + step_p1
-                    continue
+                if error_eva_has_been_pos and not p_1_exploit:
+                    step_p1 *= exploration_factor
+                if error_eva_has_been_neg:
+                    p_1_exploit = True
+                error_eva_has_been_pos = True
+                if p_1_exploit:
+                    step_p1 /= 2
+                p_1_next = min(p_1 + step_p1, p_2 - min_iteration_step)
+            if step_p1 < min_iteration_step and abs(error_eva) > err_ntu:
+                step_p1 = 1000
+                error_eva_has_been_pos = None
+                error_eva_has_been_neg = None
+                p_1_exploit = False
+                continue
 
-            error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
             if error_con < 0:
-                p_2_next = p_2 + step_p2
-                continue
+                if error_con_has_been_neg and not p_2_exploit:
+                    step_p2 *= exploration_factor
+                if error_con_has_been_pos:
+                    p_2_exploit = True
+                error_con_has_been_neg = True
+                if p_2_exploit:
+                    step_p2 /= 2
+                p_2_next = min(p_2 + step_p2, self._p_max - min_iteration_step)
             else:
-                if step_p2 > min_iteration_step:
-                    p_2_next = p_2 - step_p2
-                    step_p2 /= 10
-                    continue
-                elif error_con > err_ntu and dT_min_con > err_dT_min:
-                    p_2_next = p_2 - step_p2
-                    step_p2 = 1000
-                    continue
+                if error_con_has_been_pos and not p_2_exploit:
+                    step_p2 *= exploration_factor
+                if error_con_has_been_neg:
+                    p_2_exploit = True
+                error_con_has_been_pos = True
+                if p_2_exploit:
+                    step_p2 /= 2
+                p_2_next = max(p_2 - step_p2, p_1 + min_iteration_step)
+            if step_p2 < min_iteration_step and abs(error_con) > err_ntu:
+                step_p2 = 1000
+                error_con_has_been_pos = None
+                error_con_has_been_neg = None
+                p_2_exploit = False
+                continue
 
-            # If still here, and the values are equal, we may break.
-            if p_1 == p_1_next and p_2 == p_2_next:
-                # Check if solution was too far away. If so, jump back
-                # And decrease the iteration step by factor 10.
-                if step_p2 > min_iteration_step:
-                    p_2_next = p_2 - step_p2
-                    step_p2 /= 10
-                    continue
-                if step_p1 > min_iteration_step:
-                    p_1_next = p_1 + step_p1
-                    step_p1 /= 10
-                    continue
-                logger.info("Breaking: Converged")
+            if p_1 == p_1_next and abs(error_eva) > err_ntu:
+                logger.warning(f"Does not converge! p_eva={p_1}, p_min={self._p_min}")
                 break
-
-            # Check if values are not converging at all:
-            p_1_unique = set(p_1_history[-10:])
-            p_2_unique = set(p_2_history[-10:])
-            if len(p_1_unique) == 2 and len(p_2_unique) == 2 \
-                    and step_p1 == min_iteration_step and step_p2 == min_iteration_step:
-                logger.critical("Breaking: not converging at all")
+            if p_2 == p_2_next and abs(error_con) > err_ntu:
+                logger.warning(f"Does not converge! p_con={p_2}, p_max={self._p_max}")
                 break
 
         if show_iteration:
+            plt.pause(60)
             plt.close(fig_iterations)
 
         # Calculate the heat flow rates for the selected states.
@@ -278,8 +312,8 @@ class BaseCycle:
         Q_con_outer = self.condenser.calc_secondary_Q_flow(Q_con)
         Q_eva = self.evaporator.calc_Q_flow()
         Q_eva_outer = self.evaporator.calc_secondary_Q_flow(Q_eva)
-        self.evaporator.calc(inputs=inputs, fs_state=fs_state)
-        self.condenser.calc(inputs=inputs, fs_state=fs_state)
+        error_eva, _ = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+        error_con, _ = self.condenser.calc(inputs=inputs, fs_state=fs_state)
         P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
         T_con_out = inputs.T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
 
@@ -323,7 +357,10 @@ class BaseCycle:
         if save_path_plots is not None:
             self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_final_result.png"), inputs=inputs)
 
-        return fs_state
+        if return_errors:
+            return fs_state, error_eva, error_con
+        else:
+            return fs_state
 
     @abstractmethod
     def get_states_in_order_for_plotting(self):
