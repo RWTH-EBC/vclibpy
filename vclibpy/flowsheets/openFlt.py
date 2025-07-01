@@ -101,8 +101,6 @@ class openFlt(BaseCycle):
         self.set_evaporator_outlet_based_on_superheating(p_eva=p_1, inputs=inputs)
         self.compressor_low.state_inlet = self.evaporator.state_outlet
 
-        lambda_h = self.compressor_low.get_lambda_h(p_outlet=p_2, inputs=inputs)
-
         if self.vi_pressure_fac is None:
             step_p_vi = 100000
             p_vi = p_1
@@ -148,7 +146,7 @@ class openFlt(BaseCycle):
                         description="Relative compressor speed"
                     )
                     # m_flow condenser
-                    self.condenser.m_flow = self.compressor_high.calc_m_flow(inputs, fs_state,lambda_h=lambda_h)
+                    self.condenser.m_flow = self.compressor_high.calc_m_flow(inputs, fs_state)
                     rel_error = 100 * (self.condenser.calc_Q_flow() - inputs.Q_con) / inputs.Q_con
                     if abs(rel_error) < max_error:
                         break
@@ -163,15 +161,15 @@ class openFlt(BaseCycle):
 
             # m_flow condenser
 
-            self.condenser.m_flow = self.compressor_high.calc_m_flow(inputs, fs_state, lambda_h=lambda_h)
+            self.condenser.m_flow = self.compressor_high.calc_m_flow(inputs, fs_state)
             self.compressor_low.m_flow = self.flashtank.get_mflow_ratio() * self.condenser.m_flow
 
             # m_flow evaporator
             self.evaporator.m_flow = self.compressor_low.m_flow
 
             # compressor speeds
-            n_low = self.compressor_low.calc_n(inputs, fs_state, lambda_h=lambda_h)
-            n_high = self.compressor_high.calc_n(inputs, fs_state, lambda_h=lambda_h)
+            n_low = self.compressor_low.calc_n(inputs, fs_state)
+            n_high = self.compressor_high.calc_n(inputs, fs_state)
             if self.vi_pressure_fac is not None:
                 break
             n_ratio = n_low/n_high
