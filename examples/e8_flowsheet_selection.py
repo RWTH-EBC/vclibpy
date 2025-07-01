@@ -9,6 +9,39 @@ from vclibpy import utils
 import os
 import datetime
 
+def create_heat_exchanger(model: str, hx_type: str, **kwargs):
+    """
+    Factory function for moving boundary heat exchanger.
+
+    Args:
+        model (str): "NTU" or "LMTD"
+        hx_type (str): "condenser", "evaporator", "ihx", "economizer"
+        kwargs: arguments for the designated class
+
+    Returns:
+        object of the specified heat exchanger.
+    """
+    if model == "NTU":
+        if hx_type == "condenser":
+            return moving_boundary_ntu.MovingBoundaryNTUCondenser(**kwargs)
+        elif hx_type == "evaporator":
+            return moving_boundary_ntu.MovingBoundaryNTUEvaporator(**kwargs)
+        elif hx_type == "ihx":
+            return InternalHeatExchangerNTU(**kwargs)
+        elif hx_type == "economizer":
+            return VaporInjectionEconomizerNTU(**kwargs)
+    elif model == "LMTD":
+        from vclibpy.components.heat_exchangers import moving_boundary_lmtd
+        if hx_type == "condenser":
+            return moving_boundary_lmtd.MovingBoundaryLMTDCondenser(**kwargs)
+        elif hx_type == "evaporator":
+            return moving_boundary_lmtd.MovingBoundaryLMTDEvaporator(**kwargs)
+        elif hx_type == "ihx":
+            return moving_boundary_lmtd.MovingBoundaryLMTDIHX(**kwargs)
+        # TODO: Add economizer LMTD implementation
+    else:
+        raise ValueError(f"Unknown heat exchanger model: {model}")
+
 def calculate_compressor_volumes(V_h, V_h_ratio):
     """
     Calculates the high- and low-pressure compressor volumes based on the total volume and the volume ratio.
@@ -106,14 +139,23 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
     if flowsheet_type == "InternalHeatExchanger":
         compressor_params = common_params["compressor_params"]
         compressor = create_compressor(common_params["compressor_type"], compressor_params)
-        pressure_valve = Bernoulli(A=A_valve)
+
+        # create main pressure valve
+        pressure_valve = Bernoulli(A=common_params["A_valve"])
+
+        # Always create the second pressure valve for the IHX to avoid passing None.
+        # The internal logic of the cycle seems to require a valid object here.
+        A_valve_ihx = common_params.get('A_valve_ihx', common_params['A_valve'])
+        pressure_valve_ihx = Bernoulli(A=A_valve_ihx)
+
         return InternalHeatExchangerCycle(
             evaporator=common_params['evaporator'],
             condenser=common_params['condenser'],
-            internal_heat_exchanger=common_params['ihx'],
+            ihx=common_params['ihx'],
             fluid=common_params['fluid'],
             compressor=compressor,
             expansion_valve=pressure_valve,
+            expansion_valveIHX=pressure_valve_ihx,
         )
 
     elif flowsheet_type == "VaporInjectionPhaseSeparator":
@@ -141,8 +183,15 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
         raise ValueError("ERROR when selecting flowsheet. Unsupported flowsheet selected.")
 
 def main():
-    # 1. define heat exchanger parameters
-    condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
+    # 1. choose heat exchanger model from:
+        #"NTU",
+        #"LMTD"
+    hx_model = "LMTD"
+
+    # 2. define heat exchanger parameters
+    condenser = create_heat_exchanger(
+        model=hx_model,
+        hx_type="condenser",
         A=3,
         secondary_medium="water",
         flow_type="counter",
@@ -154,7 +203,9 @@ def main():
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=4500)
     )
 
-    evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
+    evaporator = create_heat_exchanger(
+        model=hx_model,
+        hx_type="evaporator",
         A=5,
         secondary_medium="air",
         flow_type="counter",
@@ -166,22 +217,36 @@ def main():
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=100)
     )
 
-    economizer = VaporInjectionEconomizerNTU(
+    economizer = create_heat_exchanger(
+        model=hx_model,
+        hx_type="economizer",
         A=0.2,
+        flow_type="counter",
+        ratio_outer_to_inner_area=1,
         gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=200),
         two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000),
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
         wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=20, thickness=0.6e-3),
+        secondary_medium=None,  # No secondary medium for economizer
+        secondary_heat_transfer=None,
     )
 
-    ihx = InternalHeatExchangerNTU(
+    ihx = create_heat_exchanger(
+        model=hx_model,
+        hx_type="ihx",
         A=0.2,
+        flow_type="counter",
+        ratio_outer_to_inner_area=1,
         gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=150),
+        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000), #cold side always vapor
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
         wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=20, thickness=0.6e-3),
+        secondary_medium=None,  # No secondary medium for IHX
+        secondary_heat_transfer=None,
+
     )
 
-    # 2. define common parameters for the flowsheet
+    # 3. define common parameters for the flowsheet
     common_params = {
         'evaporator': evaporator,
         'condenser': condenser,
@@ -189,12 +254,16 @@ def main():
         'economizer': economizer,
         'ihx': ihx,
         'A_valve': 0.1,  # TODO: Maybe distinction between high- and low-pressure valve?
+        # ---- parameters for IHX Valves ----
+        'two_ev_ihx': False,  # True means two valves, auf False just one valve
+        'A_valve_ihx': 0.1,  # Separate Größe für das zweite Ventil (optional)
+        # ---- parameters for compressor ----
         'V_h_ratio': 1,  # Ratio between high-and low-pressure compressor volume (V_h_ratio = V_h_high / V_h_low)
         # Compressor Type selection between:
             # ConstantEffectivenessCompressor
             # RotaryCompressor
             # TenCoefficientCompressor
-        'compressor_type': "RotaryCompressor",
+        'compressor_type': "ConstantEffectivenessCompressor",
         'compressor_params': {
             # General parameters
             'N_max': 120, # Maximal rotations per second of the compressor.
@@ -217,18 +286,18 @@ def main():
         }
     }
 
-    # 3. choose flowsheet from:
+    # 4. choose flowsheet from:
         # StandardCycle
         # VaporInjectionEconomizer      TODO: Distinction between up- and down-stream economizer implementation
         # VaporInjectionPhaseSeparator
-        # InternalHeatExchanger
+        # InternalHeatExchanger TODO: Implementation pending
         # DirectInjection       TODO: Implementation pending
     flowsheet_type = "InternalHeatExchanger"
 
-    # 4. create flowsheet object
+    # 5. create flowsheet object
     heat_pump = create_flowsheet(flowsheet_type, common_params)
 
-    # 5. generate performance map (Study settings)
+    # 6. generate performance map (Study settings)
     base_output_dir = r"D:\00_temp\flowsheet_selection"
 
     flowsheet_output_dir = os.path.join(base_output_dir, flowsheet_type)
@@ -258,6 +327,11 @@ def main():
         dT_eva_superheating=5,
         dT_con_subcooling=3,
         k_vapor_injection_ar=k_vapor_injection_ar,
+        # Fügen Sie diese Standardwerte hinzu, um den Fehler zu beheben
+        Q_eva_set=-9999,
+        T_eva_out_set=-9999,
+        Q_con_set=-9999,
+        T_con_out_set=-9999
     )
 
 if __name__ == "__main__":

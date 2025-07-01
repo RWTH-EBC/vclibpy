@@ -1,85 +1,826 @@
-from vclibpy.flowsheets import StandardCycle
+import abc
+import logging
+import os
 
-class InternalHeatExchangerCycle(StandardCycle):
-    flowsheet_name = "InternalHeatExchanger"
+from vclibpy.flowsheets import BaseCycle
+from vclibpy.datamodels import FlowsheetState, Inputs
+from vclibpy.components.compressors import Compressor
+from vclibpy.components.expansion_valves import ExpansionValve
+from vclibpy.components.heat_exchangers import HeatExchanger
+import numpy as np
+import matplotlib.pyplot as plt
+
+logger = logging.getLogger(__name__)
+
+
+class InternalHeatExchangerCycle(BaseCycle, abc.ABC):
+    """
+    Class for a ihx cycle with 6 components.
+
+    For the ihx cycle, we have 6 possible states:
+
+    1. Before compressor, after ihx_lt
+    2. Before condenser, after compressor
+    3. Before ihx_EV, after condenser
+    4. Before ihx_ht, after ihx_EV
+    5. Before EV, after ihx_ht
+    6. Before Evaporator, after EV
+    7. Before ihx_lt, after Evaporator
+    """
+
+    flowsheet_name = "InternalHeatExchange"
 
     def __init__(
             self,
-            compressor,
-            expansion_valve,
-            internal_heat_exchanger,
+            compressor: Compressor,
+            expansion_valve: ExpansionValve,
+            ihx: HeatExchanger,
+            expansion_valveIHX: ExpansionValve = None,  # Expansionsventil vor IHX
             **kwargs
     ):
-        super().__init__(compressor=compressor, expansion_valve=expansion_valve, **kwargs)
-        self.internal_heat_exchanger = internal_heat_exchanger
+        super().__init__(**kwargs)
+        self.compressor = compressor
+        self.expansion_valveIHX = expansion_valveIHX
+        self.expansion_valve = expansion_valve
+        self.ihx = ihx
+
 
     def get_all_components(self):
         return super().get_all_components() + [
-            self.internal_heat_exchanger
+            self.compressor,
+            self.expansion_valve,
+            self.ihx
         ]
 
-    def calc_states(self, p_1, p_2, inputs, fs_state):
-        # 1. evaporator outlet: q=1, p=p_1 (no superheat in evaporator)
-        state_eva_out = self.med_prop.calc_state("PQ", p_1, 1)
-        self.evaporator.state_outlet = state_eva_out
+    def get_states_in_order_for_plotting(self):
+        """
+        Return a list of state points to plot the flowsheet states.
+        Includes a distinction depending on weather one or two expansion valves are used.
+        """
+        # state 1:
+        states = [self.compressor.state_inlet]
 
-        # 2. IHX cold side: superheat to assumed value
-        T_ihx_gas_out = state_eva_out.T + inputs.dT_eva_superheating
-        state_ihx_gas_out = self.med_prop.calc_state("PT", p_1, T_ihx_gas_out)
-        self.internal_heat_exchanger.state_gas_inlet = state_eva_out
-        self.internal_heat_exchanger.state_gas_outlet = state_ihx_gas_out
+        # state 2:
+        states.append(self.compressor.state_outlet)
 
-        # 3. compressor:
-        self.compressor.state_inlet = state_ihx_gas_out
+        # state 3_Q1:
+        states.append(self.med_prop.calc_state("PQ", self.condenser.state_inlet.p, 1))
+
+        # state 3_Q0:
+        states.append(self.med_prop.calc_state("PQ", self.condenser.state_inlet.p, 0))
+
+        # state 3:
+        states.append(self.condenser.state_outlet)
+
+        # Distinction if two expansion valves are used.
+        if self.expansion_valveIHX is not None and self.expansion_valveIHX.state_outlet is not None:
+            # state 3a:
+            states.append(self.expansion_valveIHX.state_outlet)
+
+        # state 4b/4a:
+        states.append(self.expansion_valve.state_inlet)
+
+        # state 5:
+        states.append(self.expansion_valve.state_outlet)
+
+        # state 6:
+        states.append(self.evaporator.state_outlet)
+
+        return states
+
+    # def get_states_in_order_for_plotting(self):  # noch anpasseny
+    #     return [
+    #         self.evaporator.state_inlet,
+    #         self.med_prop.calc_state("PQ", self.evaporator.state_inlet.p, 1),
+    #         self.evaporator.state_outlet,
+    #         self.compressor.state_inlet,
+    #         self.compressor.state_outlet,
+    #         self.condenser.state_inlet,
+    #         self.med_prop.calc_state("PQ", self.condenser.state_inlet.p, 1),
+    #         self.med_prop.calc_state("PQ", self.condenser.state_inlet.p, 0),
+    #         self.condenser.state_outlet,
+    #
+    #         self.ihx.state_inlet,
+    #         self.ihx.state_outlet,
+    #         self.expansion_valve.state_inlet,
+    #         self.expansion_valve.state_outlet,
+    #     ]
+
+    def set_evaporator_outlet_ihx(self, p_eva: float, dh_sh):
+        """
+        Calculate the outlet state of the evaporator in IHX Cycle (q=1)
+        Args:
+            p_eva (float): Evaporation pressure
+            dt_sh (float): Superheat if positiv, not saturated if negativ
+        """
+        state_saturated = self.med_prop.calc_state("PQ", p_eva, 1)
+        if dh_sh == 0:
+            self.evaporator.state_outlet = state_saturated
+        else:
+            self.evaporator.state_outlet = self.med_prop.calc_state("PH", p_eva, state_saturated.h + dh_sh)
+
+
+    def set_ihx_outlet_based_on_superheating(self, p_eva: float, inputs: Inputs):
+        """
+        Calculate the outlet state of the ihx_lt based on
+        the required degree of superheating.
+        Args:
+            p_eva (float): Evaporation pressure
+            inputs (Inputs): Inputs with superheating level
+        """
+        T_1 = self.med_prop.calc_state("PQ", p_eva, 1).T + inputs.dT_eva_superheating
+        if inputs.dT_eva_superheating > 0:
+            self.ihx.state_outlet = self.med_prop.calc_state("PT", p_eva, T_1)
+        else:
+            self.ihx.state_outlet = self.med_prop.calc_state("PQ", p_eva, 1)
+
+    def set_evaporator_inlet_IHX(self, p_eva: float):
+        """
+        Calculate the inlet state of the evaporator in ihx cycle based on
+        the internal heat exchange
+        Args:
+            p_eva (float): Evaporation pressure
+            inputs (Inputs): Inputs with superheating level
+        """
+        h_eva_in = self.condenser.state_outlet.h - (self.ihx.state_outlet.h - self.evaporator.state_outlet.h)
+        self.evaporator.state_inlet = self.med_prop.calc_state("PH", p_eva, h_eva_in)
+
+    def calc_states(self, p_1, p_2, dh_sh, two_ev, inputs: Inputs, fs_state: FlowsheetState):
+        """
+        Calculate all required states of the ihx cycle for evaporating and
+        condensing pressure iteration. calculation of the ihx-ht inlet and outlet state
+        is implemented in "calc_steady_state"
+        """
+        self.set_condenser_outlet_based_on_subcooling(p_con=p_2, inputs=inputs) # Subcooling after condenser, before IHX
+        if two_ev:
+            self.expansion_valveIHX.state_inlet = self.condenser.state_outlet
+        # self.expansion_valve.calc_outlet(p_outlet=p_1)
+        self.set_evaporator_outlet_ihx(p_eva=p_1, dh_sh=dh_sh)
+        self.ihx.state_inlet = self.evaporator.state_outlet
+        self.set_ihx_outlet_based_on_superheating(p_eva=p_1, inputs=inputs)
+        self.compressor.state_inlet = self.ihx.state_outlet
+        self.set_evaporator_inlet_IHX(p_eva=p_1)
+        self.expansion_valve.state_outlet = self.evaporator.state_inlet
+
+        n_start = inputs.n
+        if inputs.Q_con_set > 0 > inputs.n:
+            n_next = 0.5
+            n_step = 0.1
+            max_rel_error = 0.0001
+            bigger = False
+            smaller = False
+            n_iter = 0
+            n_iter_max = 100000
+            while n_iter <= n_iter_max:
+                n_iter += 1
+                inputs.set(
+                    name="n",
+                    value=n_next,
+                    unit="-",
+                    description="Relative compressor speed"
+                )
+                self.compressor.calc_state_outlet(p_outlet=p_2, inputs=inputs, fs_state=fs_state)
+                self.condenser.state_inlet = self.compressor.state_outlet
+                self.compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
+                self.condenser.m_flow = self.compressor.m_flow
+                Q_con_iter = self.condenser.calc_Q_flow()
+                rel_error = 100 * (Q_con_iter - inputs.Q_con_set) / inputs.Q_con_set
+                if abs(rel_error) < max_rel_error:
+                    break
+                elif rel_error < 0:
+                    if n_next > 1.5:
+                        n_next = 1.5
+                        break
+                    n_next += n_step
+                    bigger = True
+                    if bigger and smaller:
+                        n_next -= n_step
+                        n_step /= 10
+                        n_next += n_step
+                        bigger = False
+                        smaller = False
+                    continue
+                elif rel_error > 0:
+                    if n_next < 0.2:
+                        n_next = 0.2
+                        break
+                    n_next -= n_step
+                    smaller = True
+                    if bigger and smaller:
+                        n_next += n_step
+                        n_step /= 10
+                        n_next -= n_step
+                        bigger = False
+                        smaller = False
+                    continue
         self.compressor.calc_state_outlet(p_outlet=p_2, inputs=inputs, fs_state=fs_state)
-
-        # 4. condenser (with assumed subcooling)
         self.condenser.state_inlet = self.compressor.state_outlet
-        self.set_condenser_outlet_based_on_subcooling(p_con=p_2, inputs=inputs)
-        state_con_out = self.condenser.state_outlet
-        self.condenser.state_q1 = self.med_prop.calc_state("PQ", p_2, 1)
-        self.condenser.state_q0 = self.med_prop.calc_state("PQ", p_2, 0)
 
-        # 5. IHX hot side: additional subcooling by IHX
-        # calculate specific enthalpy difference, required for superheat in IHX cold side
-        delta_h_superheat = self.internal_heat_exchanger.state_gas_outlet.h - self.internal_heat_exchanger.state_gas_inlet.h
-        # calculate liquid outlet state of IHX
-        h_ihx_liq_out = state_con_out.h - delta_h_superheat
-        state_ihx_liq_out = self.med_prop.calc_state("PH", p_2, h_ihx_liq_out)
-        self.internal_heat_exchanger.state_liquid_inlet = state_con_out
-        self.internal_heat_exchanger.state_liquid_outlet = state_ihx_liq_out
-
-        # 6. expansionvalve: isenthalp to p_1
-        self.expansion_valve.state_inlet = state_ihx_liq_out
-        self.expansion_valve.calc_outlet(p_outlet=p_1)
-        self.evaporator.state_inlet = self.expansion_valve.state_outlet
-
-        # 7. massflow calculation:
+        # Mass flow rate:
         self.compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
+
         self.condenser.m_flow = self.compressor.m_flow
         self.evaporator.m_flow = self.compressor.m_flow
         self.expansion_valve.m_flow = self.compressor.m_flow
-        self.internal_heat_exchanger.m_flow = self.compressor.m_flow
+        self.ihx.m_flow = self.compressor.m_flow
 
-        # Logging to fs_state (optional, similar to StandardCycle)
+        if two_ev:
+            self.expansion_valveIHX.m_flow = self.compressor.m_flow
+
+        # inputs.set(
+        #     name="Q_con",
+        #     value=self.condenser.calc_Q_flow(),
+        #     unit="W",
+        #     description="heating power"
+        # )
+        #
+        # inputs.set(
+        #     name="Q_eva",
+        #     value=self.evaporator.calc_Q_flow(),
+        #     unit="W",
+        #     description="evaporating power"
+        # )
+        #
+        # inputs.set(
+        #     name="Q_ihx",
+        #     value=self.ihx.calc_Q_flow(),
+        #     unit="W",
+        #     description="IHX power"
+        # )
+
+        Q_con = self.condenser.calc_Q_flow()
+        Q_eva = self.evaporator.calc_Q_flow()
+        Q_ihx = self.ihx.calc_Q_flow() # is not in use
+
+        if self.evaporator.secondary_medium is not None:
+            if inputs.T_eva_out_set > -9999:
+                self.evaporator.calc_secondary_cp(T=inputs.T_eva_in)
+                if self.evaporator._secondary_cp > 0 and (inputs.T_eva_in - inputs.T_eva_out_set) > 0:
+                    m_flow_eva = Q_eva / (
+                                self.evaporator._secondary_cp * (inputs.T_eva_in - inputs.T_eva_out_set))
+                    inputs.set(
+                        name="m_flow_eva",
+                        value=m_flow_eva,
+                        unit="kg/s",
+                        description="Secondary side evaporator mass flow rate"
+                    )
+            else:
+                self.evaporator.m_flow_secondary = inputs.m_flow_eva # addition to enable cp calculation in next line
+                self.evaporator.calc_secondary_cp(T=inputs.T_eva_in)
+                if self.evaporator._secondary_cp > 0 and inputs.m_flow_eva > 0:
+                    T_eva_out = inputs.T_eva_in - (Q_eva / (self.evaporator._secondary_cp * inputs.m_flow_eva))
+                    inputs.set(
+                        name="T_eva_out",
+                        value=T_eva_out,
+                        unit="K",
+                        description="Secondary side evaporator outlet temperature"
+                    )
+
+        if self.condenser.secondary_medium is not None:
+            if inputs.T_con_out_set > -9999:
+                self.condenser.calc_secondary_cp(T=inputs.T_con_in)
+                if self.condenser._secondary_cp > 0 and (inputs.T_con_out_set - inputs.T_con_in) > 0:
+                    m_flow_con = Q_con / (self.condenser._secondary_cp * (inputs.T_con_out_set - inputs.T_con_in))
+                    inputs.set(
+                        name="m_flow_con",
+                        value=m_flow_con,
+                        unit="kg/s",
+                        description="Secondary side condenser mass flow rate"
+                    )
+            else:
+                self.condenser.m_flow_secondary = inputs.m_flow_con # addition to enable cp calculation in next line
+                self.condenser.calc_secondary_cp(T=inputs.T_con_in)
+                if self.condenser._secondary_cp > 0 and inputs.m_flow_con > 0:
+                    T_con_out = inputs.T_con_in + (Q_con / (self.condenser._secondary_cp * inputs.m_flow_con))
+                    inputs.set(
+                        name="T_con_out",
+                        value=T_con_out,
+                        unit="K",
+                        description="Secondary side condenser outlet temperature"
+                    )
+
+        # fs_state.set(
+        #     name="y_EV", value=self.expansion_valve.calc_opening_at_m_flow(m_flow=self.expansion_valve.m_flow),
+        #     unit="-", description="Expansion valve opening"
+        # )
         fs_state.set(
-            name="T_ihx_gas_out", value=state_ihx_gas_out.T,
-            unit="K", description="T_IHX cold side outlet"
+            name="T_7", value=self.evaporator.state_outlet.T,
+            unit="K", description="Refrigerant temperature at evaporator outlet"
         )
         fs_state.set(
-            name="T_ihx_liq_out", value=state_ihx_liq_out.T,
-            unit="K",description="T_IHX hot side outlet"
+            name="T_1", value=self.ihx.state_outlet.T,
+            unit="K", description="IHX LT outlet temperature"
+        )
+        fs_state.set(
+            name="T_2", value=self.compressor.state_outlet.T,
+            unit="K", description="Compressor outlet temperature"
+        )
+        fs_state.set(
+            name="T_3", value=self.condenser.state_outlet.T, unit="K",
+            description="Refrigerant temperature at condenser outlet"
+        )
+        fs_state.set(
+            name="T_6", value=self.evaporator.state_inlet.T,
+            unit="K", description="Refrigerant temperature at evaporator inlet"
         )
 
-    def get_states_in_order_for_plotting(self):
-        return [
-            self.evaporator.state_inlet,  # evaporator inlet
-            self.evaporator.state_outlet,  # evaporator outlet
-            self.internal_heat_exchanger.state_gas_outlet,  # cold side IHX outlet
-            self.compressor.state_outlet,  # compressor outlet
-            self.condenser.state_q1,  # condenser entirely vapor,
-            self.condenser.state_q0,  # condenser entirely liquid
-            self.condenser.state_outlet,  # condenser outlet
-            self.internal_heat_exchanger.state_liquid_outlet,  # hot side IHX outlet
-            self.expansion_valve.state_outlet,  # expansion valve outlet
-        ]
+        fs_state.set(name="p_con", value=p_2, unit="Pa", description="Condensation pressure")
+        fs_state.set(name="p_eva", value=p_1, unit="Pa", description="Evaporation pressure")
+        fs_state.set(name="compressor_speed_calc", value=inputs.n, unit="1/s", description="Compressor Speed")
+
+        inputs.set(
+            name="n",
+            value=n_start,
+            unit="-",
+            description="Relative compressor speed"
+        )
+
+    def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
+        """Based on simple energy balance - Adiabatic"""
+        return self.compressor.calc_electrical_power(inputs=inputs, fs_state=fs_state)
+
+    def calc_steady_state(self, inputs: Inputs, fluid: str = None, **kwargs):
+        """
+        This function is modified for the ihx-cycle with two expansion valves.
+        After the iteration of evaporating and condesing pressure, the pressure
+        for the high temperature side of the ihx is determined.
+
+        Calculate the steady-state performance of a vapor compression cycle
+        based on given inputs and assumptions.
+
+        This function ensures consistent assumptions across different cycles.
+        It calculates the performance of the heat pump under
+        specific conditions while adhering to several general assumptions.
+
+        General Assumptions:
+        ---------------------
+        - Isenthalpic expansion valves:
+          The enthalpy at the inlet equals the enthalpy at the outlet.
+        - No heat losses in any component:
+          The heat input to the condenser equals the heat
+          output of the evaporator plus the power input.
+        - Input to the evaporator is always in the two-phase region.
+        - Output of the evaporator and output of the condenser maintain
+          a constant overheating or subcooling (can be set in Inputs).
+
+        Args:
+            inputs (Inputs):
+                An instance of the Inputs class containing the
+                necessary parameters to calculate the flowsheet state.
+            fluid (str):
+                The fluid to be used in the calculations.
+                Required only if 'fluid' is not specified during the object's initialization.
+
+        Keyword Arguments:
+            min_iteration_step (int):
+                The minimum step size for iterations (default: 1).
+            save_path_plots (str or None):
+                The path to save plots (default: None).
+                If None, no plots are created.
+            show_iteration (bool):
+                Whether to display iteration progress (default: False).
+            T_max (float):
+                Maximum temperature allowed (default: 273.15 + 150).
+            use_quick_solver (bool):
+                Whether to use a quick solver (default: True).
+            max_err_ntu (float):
+                Maximum allowable error for the heat exchanger in percent (default: 0.5).
+            max_err_dT_min (float):
+                Maximum allowable error for minimum temperature difference in K (default: 0.1).
+            max_num_iterations (int or None):
+                Maximum number of iterations allowed (default: None).
+
+        Returns:
+            fs_state (FlowsheetState):
+                An instance of the FlowsheetState class representing
+                the calculated state of the vapor compression cycle.
+        """
+        # Settings
+        min_iteration_step = kwargs.pop("min_iteration_step", 1)
+        save_path_plots = kwargs.get("save_path_plots", None)
+        input_name = ";".join([k + "=" + str(np.round(v.value, 3)).replace(".", "_")
+                               for k, v in inputs.get_variables().items()])
+        show_iteration = kwargs.get("show_iteration", False)
+        use_quick_solver = kwargs.pop("use_quick_solver", True)
+        err_ntu = kwargs.pop("max_err_ntu", 0.5)
+        err_ntu_ihx = 0.1
+        err_dT_min = kwargs.pop("max_err_dT_min", 0.1)
+        max_num_iterations = kwargs.pop("max_num_iterations", 1e5)
+        max_ihx_iteration = 500
+        p_1_history = []
+        p_2_history = []
+        dh_sh_history = []
+
+        # Define wether it is Cycle with 1 or 2 EV
+        if self.expansion_valveIHX is None:
+            two_ev = False
+        else:
+            two_ev = True
+
+        if use_quick_solver:
+            step_p1 = kwargs.get("step_max", 10000)
+            step_p2 = kwargs.get("step_max", 10000)
+        else:
+            step_p1 = min_iteration_step
+            step_p2 = min_iteration_step
+
+        # Setup fluid:
+        if fluid is None:
+            fluid = self.fluid
+        self.setup_new_fluid(fluid)
+
+        # First: Iterate with given conditions to get the 4 states and the mass flow rate:
+        T_1_start = inputs.T_eva_in - inputs.dT_eva_superheating
+        T_3_start = inputs.T_con_in + inputs.dT_con_subcooling
+        p_1_start = self.med_prop.calc_state("TQ", T_1_start, 1).p
+        p_2_start = self.med_prop.calc_state("TQ", T_3_start, 0).p
+        p_1_next = p_1_start
+        p_2_next = p_2_start
+        dh_sh_start = 0
+        dh_sh_next = dh_sh_start
+        dh_sh_history.append(dh_sh_start)
+        dh_iteration_step = 1000 #J/Kg
+
+        fs_state = FlowsheetState()  # Always log what is happening in the whole flowsheet
+        fs_state.set(name="Q_con", value=1, unit="W", description="Condenser heat flow rate")
+        fs_state.set(name="COP", value=0, unit="-", description="Coefficient of performance")
+
+        if show_iteration:
+            fig_iterations, ax_iterations = plt.subplots(2)
+
+        num_iterations = 0
+        while True:
+            while True:
+                if isinstance(max_num_iterations, (int, float)):
+                    if num_iterations > max_num_iterations:
+                        logger.warning("Maximum number of iterations %s exceeded. Stopping.",
+                                       max_num_iterations)
+                        return
+
+                    if (num_iterations + 1) % (0.1 * max_num_iterations) == 0:
+                        logger.info("Info: %s percent of max_num_iterations %s used",
+                                    100 * (num_iterations + 1) / max_num_iterations, max_num_iterations)
+                p_1 = p_1_next
+                p_2 = p_2_next
+                p_1_history.append(p_1)
+                p_2_history.append(p_2)
+                if show_iteration:
+                    ax_iterations[0].cla()
+                    ax_iterations[1].cla()
+                    ax_iterations[0].scatter(list(range(len(p_1_history))), p_1_history)
+                    ax_iterations[1].scatter(list(range(len(p_2_history))), p_2_history)
+                    plt.draw()
+                    plt.pause(1e-5)
+
+                # Increase counter
+                num_iterations += 1
+                # Check critical pressures:
+                if p_2 >= self._p_max:
+                    if step_p2 == min_iteration_step:
+                        logger.error("Pressure too high. Configuration is infeasible.")
+                        return
+                    p_2_next = p_2 - step_p2
+                    step_p2 /= 10
+                    continue
+                if p_1 <= self._p_min:
+                    if p_1_next == min_iteration_step:
+                        logger.error("Pressure too low. Configuration is infeasible.")
+                        return
+                    p_1_next = p_1 + step_p1
+                    step_p1 /= 10
+                    continue
+
+                # Calculate the states based on the given flowsheet
+                try:
+                    self.calc_states(p_1, p_2, dh_sh=dh_sh_next, two_ev=two_ev, inputs=inputs, fs_state=fs_state)
+                except ValueError as err:
+                    logger.error("An error occurred while calculating states. "
+                                 "Can't guess next pressures, thus, exiting: %s", err)
+                    return
+                if save_path_plots is not None and num_iterations == 1 and show_iteration:
+                    self.plot_cycle(save_path=save_path_plots.joinpath(f"{input_name}_initialization.png"), inputs=inputs)
+
+                # Check heat exchangers:
+                error_eva, dT_min_eva = self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+                if not isinstance(error_eva, float):
+                    print(error_eva)
+                if error_eva < 0:
+                    p_1_next = p_1 - step_p1
+                    continue
+                else:
+                    if step_p1 > min_iteration_step:
+                        p_1_next = p_1 + step_p1
+                        step_p1 /= 10
+                        continue
+                    elif error_eva > err_ntu and dT_min_eva > err_dT_min:
+                        step_p1 = 1000
+                        p_1_next = p_1 + step_p1
+                        continue
+
+                error_con, dT_min_con = self.condenser.calc(inputs=inputs, fs_state=fs_state)
+                if error_con < 0:
+                    p_2_next = p_2 + step_p2
+                    continue
+                else:
+                    if step_p2 > min_iteration_step:
+                        p_2_next = p_2 - step_p2
+                        step_p2 /= 10
+                        continue
+                    elif error_con > err_ntu and dT_min_con > err_dT_min:
+                        p_2_next = p_2 - step_p2
+                        step_p2 = 1000
+                        continue
+
+                # If still here, and the values are equal, we may break.
+                if p_1 == p_1_next and p_2 == p_2_next:
+                    # Check if solution was too far away. If so, jump back
+                    # And decrease the iteration step by factor 10.
+                    if step_p2 > min_iteration_step:
+                        p_2_next = p_2 - step_p2
+                        step_p2 /= 10
+                        continue
+                    if step_p1 > min_iteration_step:
+                        p_1_next = p_1 + step_p1
+                        step_p1 /= 10
+                        continue
+                    logger.info("Breaking: Converged")
+                    break
+
+                # Check if values are not converging at all:
+                p_1_unique = set(p_1_history[-10:])
+                p_2_unique = set(p_2_history[-10:])
+                if len(p_1_unique) == 2 and len(p_2_unique) == 2 \
+                        and step_p1 == min_iteration_step and step_p2 == min_iteration_step:
+                    logger.critical("Breaking: not converging at all")
+                    break
+
+            # Check IHX if Cycle with one EV
+            if not two_ev:
+
+                dh_sh = dh_sh_next
+                dh_sh_history.append(dh_sh)
+                dh_change = dh_sh_history[-1] - dh_sh_history[-2]
+                self.ihx.state_inlet_ht = self.condenser.state_outlet
+                h_outlet_lt = self.ihx.state_inlet_ht.h - (self.ihx.state_outlet.h - self.ihx.state_inlet.h)
+                self.ihx.state_outlet_ht = self.med_prop.calc_state("PH", self.condenser.state_outlet.p, h_outlet_lt)
+                self.expansion_valve.state_inlet = self.ihx.state_outlet_ht
+
+                error_ihx, dT_min_ihx = self.ihx.calc_one_ev(inputs=inputs, fs_state=fs_state)
+
+                if len(dh_sh_history) > max_ihx_iteration:
+                    logger.critical("Breaking: Too many iteration for IHX")
+                    success = False
+                    break
+
+                if abs(error_ihx) < err_ntu_ihx and dT_min_ihx > err_dT_min:
+                    logger.info("Breaking: Converged")
+                    success = True
+                    break
+
+                if error_ihx > 0:
+                    # print(f"1 - err: {error_ihx} - p1: {p_1} - p2: {p_2}")
+                    dh_sh_next = dh_sh - dh_iteration_step
+                    if dh_change > 0:
+                        dh_iteration_step /= 5
+                else:
+                    # print(f"2- err: {error_ihx} - p1: {p_1} - p2: {p_2}")
+                    dh_sh_next = dh_sh + dh_iteration_step
+                    if dh_change < 0:
+                        dh_iteration_step /= 5
+                step_p1 *= 10
+                step_p2 *= 10
+            else:
+                break
+
+
+
+        if show_iteration:
+            plt.close(fig_iterations)
+
+        # Interal Heat Exchanger
+        if two_ev:
+            step_p_ihx = 10000
+            p_ihx_next = p_2
+            num_iterations = 0
+            p_ihx_history = []
+            firstIteration = True
+            success = True
+            while True:
+                if isinstance(max_num_iterations, (int, float)):
+                    if num_iterations > max_num_iterations:
+                        logger.warning("Maximum number of iterations %s exceeded. Stopping.",
+                                       max_num_iterations)
+                        return
+
+                    if (num_iterations + 1) % (0.1 * max_num_iterations) == 0:
+                        logger.info("Info: %s percent of max_num_iterations %s used",
+                                    100 * (num_iterations + 1) / max_num_iterations, max_num_iterations)
+
+                p_ihx = p_ihx_next
+                p_ihx_history.append(p_ihx)
+
+                self.expansion_valveIHX.state_inlet = self.condenser.state_outlet
+                self.expansion_valveIHX.state_outlet = self.med_prop.calc_state("PH", p_ihx,
+                                                                                self.expansion_valveIHX.state_inlet.h)
+                self.ihx.state_inlet_ht = self.expansion_valveIHX.state_outlet
+                h_outlet_lt = self.ihx.state_inlet_ht.h - (self.ihx.state_outlet.h - self.ihx.state_inlet.h)
+                self.ihx.state_outlet_ht = self.med_prop.calc_state("PH", p_ihx, h_outlet_lt)
+
+                # Check IHX
+                error_ihx, dT_min_ihx = self.ihx.calc(inputs=inputs, fs_state=fs_state)
+                # starting pressure is p_2, so the pressure cannot be increased
+                if firstIteration:
+                    firstIteration = False
+                    if error_ihx < 0:
+                        success = False
+                        logger.critical("Breaking: IXH-pressure is higher than pressure after condenser")
+                        break
+
+                if error_ihx > 0:
+                    p_ihx_next = p_ihx - step_p_ihx
+                    continue
+                else:
+                    if step_p_ihx > min_iteration_step:
+                        p_ihx_next = p_ihx + step_p_ihx
+                        step_p_ihx /= 10
+                        continue
+                    elif error_ihx > err_ntu and dT_min_ihx > err_dT_min:
+                        step_p_ihx = 1000
+                        p_ihx_next = p_ihx + step_p_ihx
+                        continue
+
+                if p_ihx == p_ihx_next:
+                    # Check if solution was too far away. If so, jump back
+                    # And decrease the iteration step by factor 10.
+                    if step_p_ihx > min_iteration_step:
+                        p_ihx_next = p_ihx - step_p_ihx
+                        step_p_ihx /= 10
+                        continue
+                    logger.info("Breaking: Converged")
+                    if p_ihx < p_1:
+                        logger.critical("Breaking: IHX-pressure is lower than evaporating pressure")
+                    break
+
+        # iterations = list(range(len(p_ihx_history)))
+        # plt.ylabel("$p$ in Pa")
+        # plt.xlabel("$No$ in -")
+        # plt.plot(iterations, p_ihx_history, marker=".", color="red")
+        # savefolder = os.getcwd() + "\\iterations"
+        # if not os.path.exists(savefolder):
+        #     os.mkdir(savefolder)
+        # savename = savefolder +"\\iteration_" + str(int(p_ihx)) + ".png"
+        # plt.savefig(savename)
+        # plt.close()
+        show_plot = False
+        if show_plot:
+            state_6 = self.evaporator.state_outlet
+            state_1 = self.ihx.state_outlet
+            state_2 = self.compressor.state_outlet
+            state_2q = self.med_prop.calc_state("PQ", state_2.p, 1)
+            state_3 = self.condenser.state_outlet
+            state_3q = self.med_prop.calc_state("PQ", state_2.p, 0)
+            state_4 = self.ihx.state_outlet_ht
+            state_5 = self.evaporator.state_inlet
+
+            p_min = self.med_prop.calc_state("TQ", 273.15 - 40, 0).p  # Pa
+            T_crit, p_crit, d_crit = self.med_prop.get_critical_point()
+            p_max = p_crit
+            # p_max = 4000000
+            # Let's create two lists, q0 and q1 for states with quality of 0 and 1. Further,
+            # we loop only each 10000 Pa to reduce number of function calls.
+            p_step = 10000  # Pa
+            q0 = []
+            q1 = []
+            for p in range(int(p_min), int(p_max), p_step):
+                q0.append(self.med_prop.calc_state("PQ", p, 0))
+                q1.append(self.med_prop.calc_state("PQ", p, 1))
+            # Now, we can plot these states, for example in a T-h Diagram.
+            # Note: [::-1] reverts the list, letting it start from the critical point.
+            # `[state.T for state in q0]` is a list comprehension, quite useful in Python.
+            p = [state.p for state in q0 + q1[::-1]]
+            h = [state.h for state in q0 + q1[::-1]]
+
+            plt.clf()
+            plt.ylabel("$p$ in Pa")
+            plt.xlabel("$h$ in J/kg")
+
+            plt.plot(h, p, color="black")
+
+            plot_lines_h = [state_1.h, state_2.h, state_2q.h, state_3q.h, state_3.h, state_4.h, state_5.h,
+                            state_6.h, state_1.h]
+            plot_lines_p = [state_1.p, state_2.p, state_2q.p, state_3q.p, state_3.p, state_4.p , state_5.p,
+                            state_6.p, state_1.p]
+            plt.plot(plot_lines_h, plot_lines_p, marker="x", color="red")
+            title = f"W{inputs.T_eva_in-273.15}W{inputs.T_con_out_set-273.15}- dh: {dh_sh}"
+            plt.title(title)
+            plt.yscale("log")
+            plt.show()
+
+        # Set States for expansion Valves
+
+        # self.expansion_valveIHX.calc_outlet(p_ihx)
+        self.expansion_valve.state_inlet = self.ihx.state_outlet_ht
+        self.expansion_valve.calc_outlet(p_1)
+
+        # Calculate the heat flow rates for the selected states.
+        Q_con = self.condenser.calc_Q_flow()
+        Q_eva = self.evaporator.calc_Q_flow()
+        P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
+
+        # Initialize secondary side values to prevent errors if not set
+        Q_con_outer = 0
+        Q_eva_outer = 0
+        T_con_out = inputs.T_con_in  # Default to inlet temperature
+
+        if self.condenser.secondary_medium is not None:
+            Q_con_outer = self.condenser.calc_secondary_Q_flow(Q_con)
+            self.condenser.calc(inputs=inputs, fs_state=fs_state)
+            if hasattr(self.condenser, 'm_flow_secondary_cp') and self.condenser.m_flow_secondary_cp > 0:
+                T_con_out = inputs.T_con_in + Q_con_outer / self.condenser.m_flow_secondary_cp
+
+        if self.evaporator.secondary_medium is not None:
+            Q_eva_outer = self.evaporator.calc_secondary_Q_flow(Q_eva)
+            self.evaporator.calc(inputs=inputs, fs_state=fs_state)
+
+        # COP based on P_el and Q_con:
+        COP_inner = Q_con / P_el if P_el > 0 else 0
+        COP_outer = Q_con_outer / P_el if P_el > 0 else 0
+        if not success:
+            COP_inner = 0
+            COP_outer = 0
+
+        # Calculate carnot quality as a measure of reliability of model:
+        carnot_quality = 0
+        if (T_con_out - inputs.T_eva_in) > 0:
+            COP_carnot = T_con_out / (T_con_out - inputs.T_eva_in)
+            if COP_carnot > 0:
+                carnot_quality = COP_inner / COP_carnot
+
+        if two_ev:
+            fs_state.set(name="p_ihx", value=p_ihx, unit="Pa", description="Evaporation pressure")
+            if success:
+                fs_state.set(
+                    name="y_EV_IHX",
+                    value=self.expansion_valveIHX.calc_opening_at_m_flow(m_flow=self.expansion_valveIHX.m_flow),
+                    unit="-", description="Expansion valve opening (IHX)"
+                )
+            else:
+                fs_state.set(
+                    name="y_EV_IHX",
+                    value=0,
+                    unit="-", description="Expansion valve opening (IHX)"
+                )
+        else:
+            fs_state.set(name="dh_evap_sh", value=dh_sh,
+                        unit="J/kg", description="Deviation of evaporator outlet"
+            )
+
+        fs_state.set(
+            name="T_4", value=self.ihx.state_inlet_ht.T,
+            unit="K", description="IHX HT inlet temperature"
+        )
+
+        fs_state.set(
+            name="T_5", value=self.ihx.state_outlet_ht.T,
+            unit="K", description="IHX HT outlet temperature"
+        )
+
+        fs_state.set(
+            name="y_EV", value=self.expansion_valve.calc_opening_at_m_flow(m_flow=self.expansion_valve.m_flow),
+            unit="-", description="Expansion valve opening"
+        )
+
+        fs_state.set(
+            name="P_el", value=P_el, unit="W",
+            description="Power consumption"
+        )
+        fs_state.set(
+            name="carnot_quality", value=carnot_quality,
+            unit="-", description="Carnot Quality"
+        )
+        fs_state.set(
+            name="Q_con", value=Q_con, unit="W",
+            description="Condenser refrigerant heat flow rate"
+        )
+        # COP based on P_el and Q_con:
+        fs_state.set(
+            name="Q_con_outer", value=Q_con_outer, unit="W",
+            description="Secondary medium condenser heat flow rate"
+        )
+        fs_state.set(
+            name="Q_eva_outer", value=Q_eva_outer, unit="W",
+            description="Secondary medium evaporator heat flow rate"
+        )
+        fs_state.set(
+            name="COP", value=COP_inner,
+            unit="-", description="Coefficient of Performance"
+        )
+        fs_state.set(
+            name="COP_outer", value=COP_outer,
+            unit="-", description="Outer COP, including heat losses"
+        )
+
+        if save_path_plots is not None:
+            self.plot_cycle(save_path=save_path_plots.joinpath(f"{COP_inner}_final_result.png"), inputs=inputs)
+
+        return fs_state

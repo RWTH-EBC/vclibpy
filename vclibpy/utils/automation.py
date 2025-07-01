@@ -120,6 +120,17 @@ def full_factorial_map_generation(
                                     dT_con_subcooling=dT_con_subcooling,
                                     k_vapor_injection=k_vapor_injection,
                                     )
+                    # Manually add optional arguments from kwargs to the inputs object.
+                    # This is necessary because the Inputs class has a strict constructor,
+                    # but some cycles (like IHX) expect additional attributes.
+                    optional_input_keys = [
+                        'Q_eva_set', 'T_eva_out_set',
+                        'Q_con_set', 'T_con_out_set'
+                    ]
+                    for key in optional_input_keys:
+                        if key in kwargs:
+                            setattr(inputs, key, kwargs[key])
+
                     list_mp_inputs.append([heat_pump, inputs, kwargs])
                     list_inputs.append(inputs)
     fs_states = []

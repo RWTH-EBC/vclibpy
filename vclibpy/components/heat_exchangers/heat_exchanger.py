@@ -37,11 +37,14 @@ class HeatExchanger(BaseComponent, abc.ABC):
             gas_heat_transfer: HeatTransfer,
             liquid_heat_transfer: HeatTransfer,
             two_phase_heat_transfer: TwoPhaseHeatTransfer,
-            secondary_medium: str
+            secondary_medium: str = None,
     ):
         super().__init__()
         self.A = A
-        self.secondary_medium = secondary_medium.lower()
+        if secondary_medium is not None:
+            self.secondary_medium = secondary_medium.lower()
+        else:
+            self.secondary_medium = None
 
         self._wall_heat_transfer = wall_heat_transfer
         self._secondary_heat_transfer = secondary_heat_transfer
@@ -58,6 +61,8 @@ class HeatExchanger(BaseComponent, abc.ABC):
         """
         Set up the wrapper for the secondary medium's media properties.
         """
+        if self.secondary_medium is None:
+            return # no secondary medium (eg. internal heat exchanger), do nothing in this case
         # Set up the secondary_medium wrapper:
         med_prop_class, med_prop_kwargs = media.get_global_med_prop_and_kwargs()
         if self.secondary_medium == "air" and med_prop_class == media.RefProp:
@@ -224,6 +229,8 @@ class HeatExchanger(BaseComponent, abc.ABC):
         Returns:
             media.TransportProperties: The calculated transport properties.
         """
+        if self.secondary_medium is None:
+            raise RuntimeError("No secondary medium defined – this method is not applicable for IHX.")
         if p is None:
             if self.secondary_medium == "water":
                 p = 2e5  # 2 bar (default hydraulic pressure)
