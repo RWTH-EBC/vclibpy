@@ -1,3 +1,3 @@
-from .heat_exchanger import HeatExchanger
+from .heat_exchanger import HeatExchanger, ExternalHeatExchanger, InternalHeatExchanger
 from .moving_boundary_ntu import MovingBoundaryNTUCondenser, MovingBoundaryNTUEvaporator
 from .moving_boundary_lmtd import MovingBoundaryLMTDCondenser, MovingBoundaryLMTDEvaporator

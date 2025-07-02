@@ -28,18 +28,6 @@ def main():
         wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=20, thickness=0.6e-3),
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=4500)
     )
-    # condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
-    #     A=2.4,
-    #     secondary_medium="water",
-    #     flow_type="counter",
-    #     ratio_outer_to_inner_area=1,
-    #     two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=2400),
-    #     gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1200),
-    #     wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=400, thickness=0.6e-3),
-    #     liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
-    #     secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500)
-    # )
-
     evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
         A=5,
         secondary_medium="air",
@@ -51,18 +39,6 @@ def main():
         wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=20, thickness=0.6e-3),
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=100)
     )
-    #
-    # evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
-    #     A=15,
-    #     secondary_medium="air",
-    #     flow_type="counter",
-    #     ratio_outer_to_inner_area=1,
-    #     two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000),
-    #     gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1200),
-    #     wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=400, thickness=0.6e-3),
-    #     liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
-    #     secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500)
-    # )
     from vclibpy.components.expansion_valves import Bernoulli
     high_pressure_valve = Bernoulli(A=0.1)
     low_pressure_valve = Bernoulli(A=0.1)
@@ -81,22 +57,22 @@ def main():
     )
 
     # Now, we can plug everything into the flowsheet:
-    heat_pump = VaporInjectionPhaseSeparator(
+    flowsheet = VaporInjectionPhaseSeparator(
         evaporator=evaporator,
         condenser=condenser,
         fluid="Propane",
         high_pressure_compressor=high_pressure_compressor,
         low_pressure_compressor=low_pressure_compressor,
         high_pressure_valve=high_pressure_valve,
-        low_pressure_valve=low_pressure_valve                               #TODO: warum nicht der phase_separator?
+        low_pressure_valve=low_pressure_valve
     )
     # As in the other example, we can specify save-paths,
     # solver settings and inputs to vary:
     save_path = r"D:\00_temp\vapor_injection"
-    T_eva_in_ar = [-20 + 273.15, 12 + 273.15]
-    T_con_in_ar = [35 + 273.15, 75 + 273.15]
-    n_ar = [1]
-    k_vapor_injection_ar = [0.5, 1]
+    T_eva_in = [-10 + 273.15, 10 + 273.15]
+    T_con = [30 + 273.15, 60 + 273.15]
+    n = [0.3, 1]
+    k_vapor_injection = [1, 1.3]
 
     # Now, we can generate the full-factorial performance map
     # using all inputs. The results will be stored under the
@@ -107,18 +83,19 @@ def main():
 
     from vclibpy import utils
     utils.full_factorial_map_generation(
-        heat_pump=heat_pump,
+        flowsheet=flowsheet,
         save_path=save_path,
-        T_con_in_ar=T_con_in_ar,
-        T_eva_in_ar=T_eva_in_ar,
-        n_ar=n_ar,
+        T_con=T_con,
+        T_eva_in=T_eva_in,
+        n=n,
+        use_condenser_inlet=True,
         use_multiprocessing=False,
         save_plots=True,
         m_flow_con=0.8,
         m_flow_eva=2.7,
         dT_eva_superheating=5,
         dT_con_subcooling=3,
-        k_vapor_injection_ar=k_vapor_injection_ar,
+        k_vapor_injection=k_vapor_injection,
     )
     # As in the prior examples, feel free to load the plots,
     # .csv or .sdf result files and further analyze them
@@ -142,7 +119,7 @@ def main():
         wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=20, thickness=0.6e-3),
     )
     # And create the heat pump, and run the map generation:
-    heat_pump = VaporInjectionEconomizer(
+    flowsheet = VaporInjectionEconomizer(
         evaporator=evaporator,
         condenser=condenser,
         fluid="Propane",
@@ -153,18 +130,18 @@ def main():
         low_pressure_valve=low_pressure_valve
     )
     utils.full_factorial_map_generation(
-        heat_pump=heat_pump,
+        flowsheet=flowsheet,
         save_path=r"D:\00_temp\vapor_injection_economizer",
-        T_con_in_ar=T_con_in_ar,
-        T_eva_in_ar=T_eva_in_ar,
-        n_ar=n_ar,
+        T_con=T_con,
+        T_eva_in=T_eva_in,
+        n=n,
         use_multiprocessing=False,
         save_plots=True,
         m_flow_con=0.75,
         m_flow_eva=2.7,
         dT_eva_superheating=5,
         dT_con_subcooling=3,
-        k_vapor_injection_ar=k_vapor_injection_ar,
+        k_vapor_injection=k_vapor_injection,
     )
 
 

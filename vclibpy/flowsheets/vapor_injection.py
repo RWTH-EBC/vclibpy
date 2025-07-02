@@ -51,7 +51,7 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
         ]
 
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
-        k_vapor_injection_var = inputs.get("k_vapor_injection", default=1)
+        k_vapor_injection = inputs.control.get("k_vapor_injection", default=1)
         # Default according to Xu, 2019
         k_vapor_injection = k_vapor_injection_var.value
 

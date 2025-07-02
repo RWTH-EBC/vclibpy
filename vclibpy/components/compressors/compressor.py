@@ -2,11 +2,11 @@
 Module for different compressor models
 """
 
-from vclibpy.components.component import BaseComponent
+from vclibpy.components.component import TwoPortComponent
 from vclibpy.datamodels import Inputs, FlowsheetState
 
 
-class Compressor(BaseComponent):
+class Compressor(TwoPortComponent):
     """
     Base compressor class to be extended for specific compressor models.
 
@@ -145,7 +145,7 @@ class Compressor(BaseComponent):
         V_flow_ref = (
                 lambda_h *
                 self.V_h *
-                self.get_n_absolute(inputs.n)
+                self.get_n_absolute(inputs.control.n)
         )
         self.m_flow = self.state_inlet.d * V_flow_ref
         fs_state.set(name="lambda_h", value=lambda_h, unit="-", description="Volumetric efficiency")

@@ -2,6 +2,7 @@ import numpy as np
 
 from vclibpy.flowsheets.vapor_injection import BaseVaporInjection
 from vclibpy.components.heat_exchangers.economizer import VaporInjectionEconomizerNTU
+from vclibpy.components.heat_exchangers import ntu
 
 
 class VaporInjectionEconomizer(BaseVaporInjection):
@@ -91,7 +92,7 @@ class VaporInjectionEconomizer(BaseVaporInjection):
         else:
             cp_4 = dh_ihe_goal / dT_secondary
         self.economizer.set_secondary_cp(cp=cp_4)
-        self.economizer.set_primary_cp(cp=tra_properties_liquid.cp)
+        primary_cp = tra_properties_liquid.cp
 
         # We have to iterate to ensure the correct fraction of mass is
         # used to ensure state5 has q=1
@@ -111,14 +112,18 @@ class VaporInjectionEconomizer(BaseVaporInjection):
             # This dT_max is always valid, as the primary inlet is cooled
             # and the secondary inlet (the vapor) is either heated
             # or isothermal for pure fluids
-            Q_flow, k = self.economizer.calc_Q_ntu(
+            k = self.economizer.calc_k(alpha_liquid, alpha_two_phase)
+
+            Q_flow = ntu.calc_Q_ntu(
+                k=k,
                 dT_max=(
                         self.economizer.state_inlet.T -
                         self.economizer.state_two_phase_inlet.T
                 ),
-                alpha_pri=alpha_liquid,
-                alpha_sec=alpha_two_phase,
-                A=self.economizer.A
+                A=self.economizer.A,
+                flow_type=self.economizer.flow_type,
+                m_flow_primary_cp=self.economizer.m_flow * primary_cp,
+                m_flow_secondary_cp=self.economizer.m_flow_secondary_cp
             )
             if Q_flow > Q_flow_goal:
                 # Heat flow that can be transferred > heat flow that ist transferred at current step

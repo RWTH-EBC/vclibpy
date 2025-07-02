@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1156.752"
+   height="404.03815"
+   viewBox="0 0 1156.752 404.03815"
+   version="1.1"
+   id="svg19"
+   sodipodi:docname="test.svg"
+   inkscape:version="1.3.2 (091e20e, 2023-11-25, custom)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview19"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:zoom="0.64111015"
+     inkscape:cx="439.86201"
+     inkscape:cy="74.090233"
+     inkscape:window-width="1920"
+     inkscape:window-height="1017"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg19" />
+  <!-- Background grid -->
+  <defs
+     id="defs1">
+    <pattern
+       id="grid"
+       width="50"
+       height="50"
+       patternUnits="userSpaceOnUse">
+      <path
+         d="M 50 0 L 0 0 0 50"
+         fill="none"
+         stroke="#f0f0f0"
+         stroke-width="0.5"
+         id="path1" />
+    </pattern>
+  </defs>
+  <!-- Axes -->
+  <line
+     x1="28.736328"
+     y1="346.51373"
+     x2="528.73633"
+     y2="346.51373"
+     stroke="#000000"
+     stroke-width="2"
+     id="line1" />
+  <line
+     x1="28.736328"
+     y1="46.513737"
+     x2="28.736328"
+     y2="346.51373"
+     stroke="#000000"
+     stroke-width="2"
+     id="line2" />
+  <!-- Axis labels -->
+  <text
+     x="278.73633"
+     y="386.51373"
+     text-anchor="middle"
+     font-family="Arial"
+     id="text2">Enthalpy (h)</text>
+  <text
+     x="-196.51373"
+     y="8.7363281"
+     text-anchor="middle"
+     font-family="Arial"
+     transform="rotate(-90)"
+     id="text3">Temperature (T)</text>
+  <!-- Saturation curves -->
+  <!-- High pressure process line -->
+  <path
+     d="M 127.63339,190.81521 299.14074,96.146088 427.63339,96.513735"
+     fill="none"
+     stroke="#ff0000"
+     stroke-width="2"
+     id="path5"
+     sodipodi:nodetypes="ccc" />
+  <!-- Low pressure process line -->
+  <path
+     d="m 128.73633,276.51374 151.10294,0.33088 148.89706,-80.33088"
+     fill="none"
+     stroke="#0000ff"
+     stroke-width="2"
+     id="path6"
+     sodipodi:nodetypes="ccc" />
+  <!-- First regime -->
+  <!-- Second regime -->
+  <!-- State points -->
+  <circle
+     cx="299.6922"
+     cy="96.697556"
+     r="4"
+     fill="#ff0000"
+     id="circle9" />
+  <circle
+     cx="126.92015"
+     cy="191.02844"
+     r="4"
+     fill="#ff0000"
+     id="circle9-8" />
+  <circle
+     cx="427.63339"
+     cy="95.962265"
+     r="4"
+     fill="#ff0000"
+     id="circle10" />
+  <circle
+     cx="128.73633"
+     cy="276.51373"
+     r="4"
+     fill="#0000ff"
+     id="circle11" />
+  <circle
+     cx="279.83926"
+     cy="276.29312"
+     r="4"
+     fill="#0000ff"
+     id="circle12" />
+  <circle
+     cx="428.73633"
+     cy="196.51373"
+     r="4"
+     fill="#0000ff"
+     id="circle13" />
+  <!-- Labels -->
+  <text
+     x="330.22556"
+     y="316.17819"
+     font-family="Arial"
+     font-size="12px"
+     id="text14">First regime</text>
+  <text
+     x="256.92197"
+     y="341.73215"
+     font-family="Arial"
+     font-size="12px"
+     id="text15">Second regime</text>
+  <text
+     x="169.84879"
+     y="261.00208"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-1"><tspan
+       sodipodi:role="line"
+       x="169.84879"
+       y="261.00208"
+       id="tspan21">Third regime</tspan><tspan
+       sodipodi:role="line"
+       id="tspan20"
+       x="169.84879"
+       y="276.00208" /></text>
+  <text
+     x="253.66785"
+     y="305.01474"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-3">low-q1</text>
+  <text
+     x="287.44672"
+     y="81.859322"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-3-0">high-q0</text>
+  <text
+     x="401.72473"
+     y="87.190201"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-3-0-5">high-in</text>
+  <text
+     x="140.04366"
+     y="195.21289"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-3-0-5-6">high-out</text>
+  <text
+     x="412.4968"
+     y="184.02269"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-3-0-5-0">low-out</text>
+  <!-- Legend -->
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:2;stroke-dasharray:8, 2;stroke-dashoffset:0"
+     d="m 428.73633,95.778441 c 0,234.375009 0,234.375009 0,234.375009"
+     id="path19" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:2;stroke-dasharray:8, 2;stroke-dashoffset:0"
+     d="m 300.69221,92.638735 c 0,234.375005 0,234.375005 0,234.375005"
+     id="path19-9" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:2;stroke-dasharray:8, 2;stroke-dashoffset:0"
+     d="m 279.78045,56.256382 c 0,234.375008 0,234.375008 0,234.375008"
+     id="path19-9-3" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:2;stroke-dasharray:8, 2;stroke-dashoffset:0"
+     d="m 127.39074,82.543147 c 0,234.375003 0,234.375003 0,234.375003"
+     id="path19-9-3-9" />
+  <line
+     x1="537.34027"
+     y1="347.17453"
+     x2="1037.3403"
+     y2="347.17453"
+     stroke="#000000"
+     stroke-width="2"
+     id="line1-4" />
+  <line
+     x1="537.34027"
+     y1="47.174526"
+     x2="537.34027"
+     y2="347.17453"
+     stroke="#000000"
+     stroke-width="2"
+     id="line2-1" />
+  <text
+     x="787.34027"
+     y="387.17453"
+     text-anchor="middle"
+     font-family="Arial"
+     id="text2-9">Enthalpy (h)</text>
+  <text
+     x="791.79846"
+     y="38.353008"
+     text-anchor="middle"
+     font-family="Arial"
+     id="text2-9-5"
+     style="-inkscape-font-specification:'Arial, Normal';font-family:Arial;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:29.33333333px;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
+       sodipodi:role="line"
+       id="tspan23"
+       x="791.79846"
+       y="38.353008">Option 2</tspan></text>
+  <text
+     x="281.83267"
+     y="39.476513"
+     text-anchor="middle"
+     font-family="Arial"
+     id="text2-9-5-3"
+     style="-inkscape-font-specification:'Arial, Normal';font-family:Arial;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:29.33333333px;font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal"><tspan
+       sodipodi:role="line"
+       x="281.83267"
+       y="39.476513"
+       id="tspan24">Option 1</tspan></text>
+  <text
+     x="-197.17451"
+     y="517.34033"
+     text-anchor="middle"
+     font-family="Arial"
+     transform="rotate(-90)"
+     id="text3-2">Temperature (T)</text>
+  <path
+     d="m 636.23737,191.47599 114.15441,-95.772045 185.84551,1.47058"
+     fill="none"
+     stroke="#ff0000"
+     stroke-width="2"
+     id="path5-3"
+     sodipodi:nodetypes="ccc" />
+  <path
+     d="m 637.34031,277.17452 151.10294,0.33088 148.89704,-80.33088"
+     fill="none"
+     stroke="#0000ff"
+     stroke-width="2"
+     id="path6-8"
+     sodipodi:nodetypes="ccc" />
+  <circle
+     cx="753.70337"
+     cy="96.773422"
+     r="4"
+     fill="#ff0000"
+     id="circle9-5" />
+  <circle
+     cx="635.52411"
+     cy="191.68922"
+     r="4"
+     fill="#ff0000"
+     id="circle9-8-3" />
+  <circle
+     cx="936.2373"
+     cy="96.62307"
+     r="4"
+     fill="#ff0000"
+     id="circle10-3" />
+  <circle
+     cx="637.34027"
+     cy="277.17453"
+     r="4"
+     fill="#0000ff"
+     id="circle11-8" />
+  <circle
+     cx="788.44324"
+     cy="276.95392"
+     r="4"
+     fill="#0000ff"
+     id="circle12-6" />
+  <circle
+     cx="937.34039"
+     cy="197.17451"
+     r="4"
+     fill="#0000ff"
+     id="circle13-2" />
+  <text
+     x="823.23157"
+     y="172.558"
+     font-family="Arial"
+     font-size="12px"
+     id="text14-1">First regime</text>
+  <text
+     x="735.88983"
+     y="329.91458"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-9">Second regime</text>
+  <text
+     x="678.45276"
+     y="261.66287"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-1-2"><tspan
+       sodipodi:role="line"
+       x="678.45276"
+       y="261.66287"
+       id="tspan21-4">Third regime</tspan><tspan
+       sodipodi:role="line"
+       id="tspan20-0"
+       x="678.45276"
+       y="276.66287" /></text>
+  <text
+     x="762.27179"
+     y="305.67554"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-3-9">low-q1</text>
+  <text
+     x="702.65796"
+     y="90.514053"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-3-0-2">high-q0</text>
+  <text
+     x="910.32874"
+     y="87.850983"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-3-0-5-9">high-in</text>
+  <text
+     x="648.64764"
+     y="195.87367"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-3-0-5-6-9">high-out</text>
+  <text
+     x="921.10071"
+     y="184.68347"
+     font-family="Arial"
+     font-size="12px"
+     id="text15-3-0-5-0-8">low-out</text>
+  <rect
+     x="847.06085"
+     y="4.4696174"
+     width="200"
+     height="56.603081"
+     fill="#ffffff"
+     stroke="#cccccc"
+     id="rect15-0" />
+  <line
+     x1="857.06085"
+     y1="24.46962"
+     x2="887.06085"
+     y2="24.46962"
+     stroke="#ff0000"
+     stroke-width="2"
+     id="line15-8" />
+  <line
+     x1="857.06085"
+     y1="44.46962"
+     x2="887.06085"
+     y2="44.46962"
+     stroke="#0000ff"
+     stroke-width="2"
+     id="line16-0" />
+  <text
+     x="897.06085"
+     y="29.46962"
+     font-family="Arial"
+     font-size="12px"
+     id="text17-6">High pressure side</text>
+  <text
+     x="897.06085"
+     y="49.46962"
+     font-family="Arial"
+     font-size="12px"
+     id="text18-5">Low pressure side</text>
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:2;stroke-dasharray:8, 2;stroke-dashoffset:0"
+     d="m 937.34029,96.439235 c 0,234.374995 0,234.374995 0,234.374995"
+     id="path19-7" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:2;stroke-dasharray:8, 2;stroke-dashoffset:0"
+     d="m 789.44325,55.79952 c 0,234.375 0,234.375 0,234.375"
+     id="path19-9-0" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:2;stroke-dasharray:8, 2;stroke-dashoffset:0"
+     d="m 751.98737,72.358352 c 0,234.374998 0,234.374998 0,234.374998"
+     id="path19-9-3-4" />
+  <path
+     style="fill:#000000;stroke:#000000;stroke-width:2;stroke-dasharray:8, 2;stroke-dashoffset:0"
+     d="m 635.99472,83.20394 c 0,234.37499 0,234.37499 0,234.37499"
+     id="path19-9-3-9-5" />
+</svg>
