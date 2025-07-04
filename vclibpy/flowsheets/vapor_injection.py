@@ -51,9 +51,14 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
         ]
 
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
-        k_vapor_injection = inputs.control.get("k_vapor_injection", default=1)
-        # Default according to Xu, 2019
-        k_vapor_injection = k_vapor_injection_var.value
+        k_vapor_injection_var = inputs.control.get("k_vapor_injection")
+
+        # Extract the numerical value. If the variable is not present, use a default.
+        # Default is 1 according to Xu, 2019
+        if k_vapor_injection_var is not None:
+            k_vapor_injection = k_vapor_injection_var.value
+        else:
+            k_vapor_injection = 1.0
 
         p_vapor_injection = k_vapor_injection * np.sqrt(p_1 * p_2) # TODO: are there other ways to set the mid pressure level?
 

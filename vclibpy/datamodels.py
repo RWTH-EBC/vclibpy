@@ -355,6 +355,43 @@ class RelativeCompressorSpeedControl(ControlInputs):
             description="Subcooling after condenser"
         )
 
+class RelativeCompressorSpeedControlInjection(RelativeCompressorSpeedControl):
+    """
+        Class defining inputs to control the vapor compression machine
+        using relative compressor speed and a vapor injection factor.
+        Superheating and subcooling levels must also be specified.
+
+        Args:
+            n (float): Relative compressor speed between 0 and 1 (unit: -).
+            dT_eva_superheating (float): Super-heating after evaporator (unit: K).
+            dT_con_subcooling (float): Subcooling after condenser (unit: K).
+            k_vapor_injection (float): Vapor injection factor (unit: -).
+        """
+
+    def __init__(
+            self,
+            n: float,
+            dT_eva_superheating: float,
+            dT_con_subcooling: float,
+            k_vapor_injection: float
+    ):
+        """
+        Initializes the control inputs by calling the parent class constructor
+        and adding the vapor injection factor.
+        """
+        # Call the constructor of the parent class
+        super().__init__(
+            n=n,
+            dT_eva_superheating=dT_eva_superheating,
+            dT_con_subcooling=dT_con_subcooling
+        )
+        # Set the vapor injection argument
+        self.set(
+            name="k_vapor_injection",
+            value=k_vapor_injection,
+            unit="-",
+            description="Vapor injection factor"
+        )
 
 class CondenserPowerControl(ControlInputs):
     """
@@ -425,6 +462,7 @@ class Inputs:
             control: ControlInputs = None,
             evaporator: HeatExchangerInputs = None,
             condenser: HeatExchangerInputs = None,
+            custom_name: str = None,
     ):
         """
         Initializes an Inputs object with parameters representing external conditions
@@ -433,6 +471,7 @@ class Inputs:
         self.control = control
         self.evaporator = evaporator
         self.condenser = condenser
+        self.custom_name = custom_name
 
     def get(self, name: str, default: Any = None):
         """
@@ -455,7 +494,12 @@ class Inputs:
         return default
 
     def get_name(self):
-        """Get the name based on variable names and rounded values"""
+        """
+        Get the name based on variable names and rounded values.
+        If a custom name is provided, it will be returned instead.
+        """
+        if self.custom_name is not None:
+            return self.custom_name
         return ";".join([
             self.control.get_name(),
             self.evaporator.get_name(),
@@ -474,14 +518,16 @@ class Inputs:
                 [self.evaporator, self.condenser]
         ):
             for input_name, get_fs_name in map_heat_exchanger_inputs_to_fs_state.items():
-                fs_name = get_fs_name(heat_exchanger[:3])  # only use eva or con
                 variable = instance.get(input_name)
-                fs_state.set(
-                    name=fs_name,
-                    value=variable.value,
-                    unit=variable.unit,
-                    description=f"{variable.description} in {heat_exchanger}"
-                )
+                if variable and variable.value is not None:
+                    fs_name = get_fs_name(heat_exchanger[:3])  # only use eva or con
+                    fs_state.set(
+                        name=fs_name,
+                        value=variable.value,
+                        unit=variable.unit,
+                        description=f"{variable.description} in {heat_exchanger}"
+                    )
+
         for fs_name, variable in self.control.items():
             fs_state.set(
                 name=fs_name,

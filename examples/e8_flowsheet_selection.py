@@ -1,8 +1,8 @@
 # # Example for a heat pump where you can select the flowsheet
-from vclibpy.flowsheets import StandardCycle, VaporInjectionPhaseSeparator, VaporInjectionEconomizer, InternalHeatExchangerCycle
-from vclibpy.components.heat_exchangers import moving_boundary_ntu, heat_transfer
+from vclibpy.flowsheets import StandardCycle, VaporInjectionPhaseSeparator, VaporInjectionEconomizer, InternalHeatExchangerCycle, IHX
+from vclibpy.components.heat_exchangers import moving_boundary_ntu, heat_transfer,moving_boundary_lmtd
 from vclibpy.components.heat_exchangers.economizer import VaporInjectionEconomizerNTU
-from vclibpy.components.heat_exchangers.ihx import InternalHeatExchangerNTU
+from vclibpy.components.heat_exchangers.ihx_ntu import IHX_NTU
 from vclibpy.components.expansion_valves import Bernoulli
 from vclibpy.components.compressors import ConstantEffectivenessCompressor,RotaryCompressor, TenCoefficientCompressor
 from vclibpy import utils
@@ -27,17 +27,16 @@ def create_heat_exchanger(model: str, hx_type: str, **kwargs):
         elif hx_type == "evaporator":
             return moving_boundary_ntu.MovingBoundaryNTUEvaporator(**kwargs)
         elif hx_type == "ihx":
-            return InternalHeatExchangerNTU(**kwargs)
+            return IHX_NTU(**kwargs)
         elif hx_type == "economizer":
             return VaporInjectionEconomizerNTU(**kwargs)
     elif model == "LMTD":
-        from vclibpy.components.heat_exchangers import moving_boundary_lmtd
         if hx_type == "condenser":
             return moving_boundary_lmtd.MovingBoundaryLMTDCondenser(**kwargs)
         elif hx_type == "evaporator":
             return moving_boundary_lmtd.MovingBoundaryLMTDEvaporator(**kwargs)
         elif hx_type == "ihx":
-            return moving_boundary_lmtd.MovingBoundaryLMTDIHX(**kwargs)
+            return moving_boundary_lmtd.MovingBoundaryLMTDIHX(**kwargs) # TODO: Add IHX LMTD implementation, current version is from MA Jonas Matthies
         # TODO: Add economizer LMTD implementation
     else:
         raise ValueError(f"Unknown heat exchanger model: {model}")
@@ -98,7 +97,8 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
     Create the selected flowsheet-object based on type.
 
     Args:
-        flowsheet_type (str): flowsheet type ("StandardCycle", "VaporInjectionPhaseSeparator", "VaporInjectionEconomizer").
+        flowsheet_type (str): flowsheet type
+        ("StandardCycle", "VaporInjectionPhaseSeparator", "VaporInjectionEconomizer", "IHX").
         common_params (dict): common parameters for all flowsheets (e.g. evaporator, condenser, fluid).
         vip_params (dict, optional): parameter specific for VaporInjectionPhaseSeparator.
         vie_params (dict, optional): parameter specific for VaporInjectionEconomizer.
@@ -148,7 +148,7 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
         A_valve_ihx = common_params.get('A_valve_ihx', common_params['A_valve'])
         pressure_valve_ihx = Bernoulli(A=A_valve_ihx)
 
-        return InternalHeatExchangerCycle(
+        return IHX(
             evaporator=common_params['evaporator'],
             condenser=common_params['condenser'],
             ihx=common_params['ihx'],
@@ -185,8 +185,8 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
 def main():
     # 1. choose heat exchanger model from:
         #"NTU",
-        #"LMTD"
-    hx_model = "LMTD"
+        #"LMTD"                 # TODO: LMTD does not work since merge from development
+    hx_model = "NTU"
 
     # 2. define heat exchanger parameters
     condenser = create_heat_exchanger(
@@ -237,12 +237,14 @@ def main():
         A=0.2,
         flow_type="counter",
         ratio_outer_to_inner_area=1,
-        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=150),
-        two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000), #cold side always vapor
-        liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
+        alpha_low_side=150, #gaseous
+        alpha_high_side=1500, #liquid
+        # gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=150),
+        # two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000), #cold side always vapor
+        # liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
         wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=20, thickness=0.6e-3),
-        secondary_medium=None,  # No secondary medium for IHX
-        secondary_heat_transfer=None,
+        # secondary_medium=None,  # No secondary medium for IHX
+        # secondary_heat_transfer=None,
 
     )
 
@@ -292,10 +294,11 @@ def main():
         # VaporInjectionPhaseSeparator
         # InternalHeatExchanger TODO: Implementation pending
         # DirectInjection       TODO: Implementation pending
-    flowsheet_type = "InternalHeatExchanger"
+    flowsheet_type = "StandardCycle"
 
     # 5. create flowsheet object
-    heat_pump = create_flowsheet(flowsheet_type, common_params)
+    flowsheet = create_flowsheet(flowsheet_type, common_params)
+
 
     # 6. generate performance map (Study settings)
     base_output_dir = r"D:\00_temp\flowsheet_selection"
@@ -309,29 +312,25 @@ def main():
     os.makedirs(run_save_path, exist_ok=True)
     print(f"Results will be saved in: {run_save_path}")
 
-    T_eva_in_ar = [-20 + 273.15, 12 + 273.15]
-    T_con_in_ar = [35 + 273.15, 75 + 273.15]
-    n_ar = [1]
-    k_vapor_injection_ar = [0.5, 1]
+    T_eva_in = [-20 + 273.15, 12 + 273.15]
+    T_con = [35 + 273.15, 75 + 273.15]                # inlet/outlet temperature depends on use_condenser_inlet setting
+    n = [1]
+    k_vapor_injection = [1.3, 1]
 
     utils.full_factorial_map_generation(
-        heat_pump=heat_pump,
+        flowsheet=flowsheet,
         save_path=run_save_path,
-        T_con_in_ar=T_con_in_ar,
-        T_eva_in_ar=T_eva_in_ar,
-        n_ar=n_ar,
+        T_con=T_con,
+        T_eva_in=T_eva_in,
+        n=n,
+        use_condenser_inlet=False,
         use_multiprocessing=False,
         save_plots=True,
         m_flow_con=0.75,
         m_flow_eva=2.7,
         dT_eva_superheating=5,
         dT_con_subcooling=3,
-        k_vapor_injection_ar=k_vapor_injection_ar,
-        # Fügen Sie diese Standardwerte hinzu, um den Fehler zu beheben
-        Q_eva_set=-9999,
-        T_eva_out_set=-9999,
-        Q_con_set=-9999,
-        T_con_out_set=-9999
+        k_vapor_injection=k_vapor_injection,
     )
 
 if __name__ == "__main__":

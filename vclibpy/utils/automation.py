@@ -8,7 +8,8 @@ from typing import List, Union
 import multiprocessing
 import numpy as np
 import pandas as pd
-from vclibpy.datamodels import FlowsheetState, Inputs, RelativeCompressorSpeedControl, HeatExchangerInputs
+from vclibpy.datamodels import FlowsheetState, Inputs, RelativeCompressorSpeedControl, HeatExchangerInputs, \
+    RelativeCompressorSpeedControlInjection
 from vclibpy.flowsheets import BaseCycle
 from vclibpy.algorithms import Algorithm, Iteration
 from vclibpy import utils, media
@@ -72,8 +73,8 @@ def full_factorial_map_generation(
         T_con: Union[list, np.ndarray, float],
         n: Union[list, np.ndarray, float],
         m_flow_eva: Union[list, np.ndarray, float],
-        k_vapor_injection: Union[list, np.ndarray,float],
         save_path: Union[pathlib.Path, str],
+        k_vapor_injection: Union[list, np.ndarray,float] = None,
         m_flow_con: Union[list, np.ndarray, float] = None,
         dT_con: Union[list, np.ndarray, float] = None,
         algorithm: Algorithm = None,
@@ -104,10 +105,10 @@ def full_factorial_map_generation(
             Array with inputs for n
         m_flow_eva (float):
             Evaporator mass flow rate
-        k_vapor_injection (list):
-            Array with inputs for k_vapor_injection that determines the injection pressure
         save_path (Path):
             Where to save all results.
+        k_vapor_injection (list):
+            Array with inputs for k_vapor_injection that determines the injection pressure
         m_flow_con (float):
             Condenser mass flow rate, required if dT_con is None. Default is None.
         dT_con (float):
@@ -140,6 +141,11 @@ def full_factorial_map_generation(
             return np.array(x)
         return np.array([x])
 
+    # Handle optional k_vapor_injection
+    use_injection = k_vapor_injection is not None
+    if use_injection:
+        k_vapor_injection = ensure_array(k_vapor_injection)
+
     T_eva_in = ensure_array(T_eva_in)
     T_con = ensure_array(T_con)
     n = ensure_array(n)
@@ -164,8 +170,10 @@ def full_factorial_map_generation(
         con_array,
         m_flow_eva,
         dT_eva_superheating,
-        dT_con_subcooling
+        dT_con_subcooling,
     ]
+    if use_injection:
+        all_arrays.append(k_vapor_injection)
 
     if isinstance(save_path, str):
         save_path = pathlib.Path(save_path)
@@ -190,6 +198,13 @@ def full_factorial_map_generation(
 
     # Check which inputs are nd
     is_nd = np.array([len(arr) > 1 for arr in all_arrays])
+    param_names = [
+        "n", "T_con_in" if use_condenser_inlet else "T_con_out", "T_eva_in",
+        "m_flow_con" if use_m_flow_con else "dT_con", "m_flow_eva",
+        "dT_eva_superheating", "dT_con_subcooling"
+    ]
+    if use_injection:
+        param_names.append("k_vapor_injection")
 
     for i in range(len(combinations[0])):
         single_n = float(combinations[0][i])
@@ -199,16 +214,25 @@ def full_factorial_map_generation(
         single_m_flow_eva_val = float(combinations[4][i])
         single_dT_eva_sh = float(combinations[5][i])
         single_dT_con_sc = float(combinations[6][i])
-        single_k_vapor_injection = float(combinations[7][i])
 
         idx = np.unravel_index(i, [len(arr) for arr in all_arrays])
         idx_for_access_later.append(idx)
 
-        control_inputs = RelativeCompressorSpeedControl(
-            n=single_n,
-            dT_eva_superheating=single_dT_eva_sh,
-            dT_con_subcooling=single_dT_con_sc
-        )
+        # Select control object based on use_injection flag
+        if use_injection:
+            single_k_vapor_injection = float(combinations[7][i])
+            control_inputs = RelativeCompressorSpeedControlInjection(
+                n=single_n,
+                dT_eva_superheating=single_dT_eva_sh,
+                dT_con_subcooling=single_dT_con_sc,
+                k_vapor_injection=single_k_vapor_injection,
+            )
+        else:
+            control_inputs = RelativeCompressorSpeedControl(
+                n=single_n,
+                dT_eva_superheating=single_dT_eva_sh,
+                dT_con_subcooling=single_dT_con_sc,
+            )
 
         evaporator_inputs = HeatExchangerInputs(
             T_in=single_T_eva_in,
@@ -225,10 +249,12 @@ def full_factorial_map_generation(
             T_con_kwargs = dict(T_out=single_T_con)
         condenser_inputs = HeatExchangerInputs(**T_con_kwargs, **con_kwargs)
 
+        custom_name= f"run_{i}"
         inputs = Inputs(
             control=control_inputs,
             evaporator=evaporator_inputs,
-            condenser=condenser_inputs
+            condenser=condenser_inputs,
+            custom_name=custom_name,
         )
 
         list_mp_inputs.append([algorithm, flowsheet, inputs, raise_errors, global_med_prop_data])
@@ -292,11 +318,13 @@ def full_factorial_map_generation(
         "n": n,
         "T_con_in" if use_condenser_inlet else "T_con_out": T_con,
         "T_eva_in": T_eva_in,
-        "m_flow_con" if use_m_flow_con else "dT_con": m_flow_con if use_m_flow_con else dT_con,
+        "m_flow_con" if use_m_flow_con else "dT_con": con_array,
         "m_flow_eva": m_flow_eva,
         "dT_eva_superheating": dT_eva_superheating,
         "dT_con_subcooling": dT_con_subcooling,
     }
+    if use_injection:
+        possible_scale_values["k_vapor_injection"] = k_vapor_injection
 
     _scale_values = {}
     for scale_name, values in possible_scale_values.items():
