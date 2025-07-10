@@ -30,7 +30,7 @@ def create_heat_exchanger(model: str, hx_type: str, **kwargs):
             return IHX_NTU(**kwargs)
         elif hx_type == "economizer":
             return VaporInjectionEconomizerNTU(**kwargs)
-    elif model == "LMTD":
+    elif model == "LMTD": #TODO: LMTD models are not working since merge yet
         if hx_type == "condenser":
             return moving_boundary_lmtd.MovingBoundaryLMTDCondenser(**kwargs)
         elif hx_type == "evaporator":
@@ -141,12 +141,12 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
         compressor = create_compressor(common_params["compressor_type"], compressor_params)
 
         # create main pressure valve
-        pressure_valve = Bernoulli(A=common_params["A_valve"])
+        pressure_valve_low = Bernoulli(A=common_params["A_valve"])
 
         # Always create the second pressure valve for the IHX to avoid passing None.
         # The internal logic of the cycle seems to require a valid object here.
         A_valve_ihx = common_params.get('A_valve_ihx', common_params['A_valve'])
-        pressure_valve_ihx = Bernoulli(A=A_valve_ihx)
+        pressure_valve_high = Bernoulli(A=A_valve_ihx)
 
         return IHX(
             evaporator=common_params['evaporator'],
@@ -154,8 +154,8 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
             ihx=common_params['ihx'],
             fluid=common_params['fluid'],
             compressor=compressor,
-            expansion_valve=pressure_valve,
-            expansion_valveIHX=pressure_valve_ihx,
+            expansion_valve_low=pressure_valve_low,
+            expansion_valve_high=pressure_valve_high,
         )
 
     elif flowsheet_type == "VaporInjectionPhaseSeparator":
@@ -206,7 +206,7 @@ def main():
     evaporator = create_heat_exchanger(
         model=hx_model,
         hx_type="evaporator",
-        A=5,
+        A=20,
         secondary_medium="air",
         flow_type="counter",
         ratio_outer_to_inner_area=1,
@@ -234,7 +234,7 @@ def main():
     ihx = create_heat_exchanger(
         model=hx_model,
         hx_type="ihx",
-        A=0.2,
+        A=0.1,
         flow_type="counter",
         ratio_outer_to_inner_area=1,
         alpha_low_side=150, #gaseous
@@ -255,9 +255,9 @@ def main():
         'fluid': "Propane",  # Refrigerant selection
         'economizer': economizer,
         'ihx': ihx,
-        'A_valve': 0.1,  # TODO: Maybe distinction between high- and low-pressure valve?
+        'A_valve': 0.1,  # TODO: Maybe implement a distinction between high- and low-pressure valve?
         # ---- parameters for IHX Valves ----
-        'two_ev_ihx': False,  # True means two valves, auf False just one valve
+        'two_ev_ihx': True,  # True means two valves, auf False just one valve
         'A_valve_ihx': 0.1,  # Separate Größe für das zweite Ventil (optional)
         # ---- parameters for compressor ----
         'V_h_ratio': 1,  # Ratio between high-and low-pressure compressor volume (V_h_ratio = V_h_high / V_h_low)
@@ -294,7 +294,7 @@ def main():
         # VaporInjectionPhaseSeparator
         # InternalHeatExchanger TODO: Implementation pending
         # DirectInjection       TODO: Implementation pending
-    flowsheet_type = "StandardCycle"
+    flowsheet_type = "InternalHeatExchanger"
 
     # 5. create flowsheet object
     flowsheet = create_flowsheet(flowsheet_type, common_params)
@@ -315,7 +315,7 @@ def main():
     T_eva_in = [-20 + 273.15, 12 + 273.15]
     T_con = [35 + 273.15, 75 + 273.15]                # inlet/outlet temperature depends on use_condenser_inlet setting
     n = [1]
-    k_vapor_injection = [1.3, 1]
+    k_vapor_injection = [1]
 
     utils.full_factorial_map_generation(
         flowsheet=flowsheet,
@@ -326,8 +326,8 @@ def main():
         use_condenser_inlet=False,
         use_multiprocessing=False,
         save_plots=True,
-        m_flow_con=0.75,
-        m_flow_eva=2.7,
+        m_flow_con=0.4, # 0.4 aus TIL
+        m_flow_eva=0.5,  # 0.5 aus TIL
         dT_eva_superheating=5,
         dT_con_subcooling=3,
         k_vapor_injection=k_vapor_injection,
