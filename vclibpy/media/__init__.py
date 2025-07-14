@@ -2,6 +2,8 @@ from .states import ThermodynamicState, TransportProperties
 from .media import get_two_phase_limits, MedProp
 from .cool_prop import CoolProp
 from .ref_prop import RefProp
+from.lubricant_media import OilProp
+
 
 
 __all__ = ['ThermodynamicState',
