@@ -40,17 +40,18 @@ class OilProp(MedProp):
     """
     _fluid_mapper = {}
     _oil_mapper = {}
-    def __init__(self, ref_name, lub_name, lub_frac):
+    def __init__(self, fluid_name: str, lub_name: str, lub_frac: float):
         """Initialize the MedProp class instance.
 
         Args:
-            ref_name (str): The name of the refrigerant.
+            fluid_name (str): The name of the refrigerant.
             lub_name (str): The name of the lubricant.
             lub_frac (float): The weight fraction of the lubricant between 0 and 1.
         """
         # Check if better internal names exist (e.g. air is modelled as air.ppf)
-        self.ref_name = self._fluid_mapper.get(ref_name, ref_name)
-        self.lub_name = self._fluid_mapper.get(lub_name, lub_name)
+        super(OilProp, self).__init__(fluid_name)
+        self.fluid_name = self._fluid_mapper.get(fluid_name, fluid_name)
+        self.lub_name = self._oil_mapper.get(lub_name, lub_name)
         self.lub_frac = lub_frac
         self._two_phase_limits: dict = None
 
