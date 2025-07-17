@@ -1,0 +1,728 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.components.heat_exchangers package &mdash; vclibpy 0.1.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../_static/jquery.js"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+      <script src="../_static/doctools.js"></script>
+      <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="vclibpy.components.heat_exchangers.heat_transfer package" href="vclibpy.components.heat_exchangers.heat_transfer.html" />
+    <link rel="prev" title="vclibpy.components.expansion_valves package" href="vclibpy.components.expansion_valves.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">vclibpy</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="vclibpy.html">vclibpy package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vclibpy.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="vclibpy.components.html">vclibpy.components package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html">vclibpy.flowsheets package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html">vclibpy.media package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.utils.html">vclibpy.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.html#module-vclibpy.datamodels">vclibpy.datamodels module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">vclibpy</a></li>
+          <li class="breadcrumb-item"><a href="vclibpy.html">vclibpy package</a></li>
+          <li class="breadcrumb-item"><a href="vclibpy.components.html">vclibpy.components package</a></li>
+      <li class="breadcrumb-item active">vclibpy.components.heat_exchangers package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/code/vclibpy.components.heat_exchangers.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-vclibpy.components.heat_exchangers">
+<span id="vclibpy-components-heat-exchangers-package"></span><h1>vclibpy.components.heat_exchangers package<a class="headerlink" href="#module-vclibpy.components.heat_exchangers" title="Permalink to this heading"></a></h1>
+<section id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this heading"></a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html">vclibpy.components.heat_exchangers.heat_transfer package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#module-vclibpy.components.heat_exchangers.heat_transfer.air_to_wall">vclibpy.components.heat_exchangers.heat_transfer.air_to_wall module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.air_to_wall.AirToWallTransfer"><code class="docutils literal notranslate"><span class="pre">AirToWallTransfer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.air_to_wall.AirToWallTransfer.calc"><code class="docutils literal notranslate"><span class="pre">AirToWallTransfer.calc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.air_to_wall.AirToWallTransfer.calc_laminar_area_nusselt"><code class="docutils literal notranslate"><span class="pre">AirToWallTransfer.calc_laminar_area_nusselt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.air_to_wall.AirToWallTransfer.calc_reynolds"><code class="docutils literal notranslate"><span class="pre">AirToWallTransfer.calc_reynolds()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.air_to_wall.WSUAirToWall"><code class="docutils literal notranslate"><span class="pre">WSUAirToWall</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.air_to_wall.WSUAirToWall.calc_laminar_area_nusselt"><code class="docutils literal notranslate"><span class="pre">WSUAirToWall.calc_laminar_area_nusselt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.air_to_wall.WSUAirToWall.calc_reynolds"><code class="docutils literal notranslate"><span class="pre">WSUAirToWall.calc_reynolds()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#module-vclibpy.components.heat_exchangers.heat_transfer.constant">vclibpy.components.heat_exchangers.heat_transfer.constant module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantHeatTransfer"><code class="docutils literal notranslate"><span class="pre">ConstantHeatTransfer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantHeatTransfer.calc"><code class="docutils literal notranslate"><span class="pre">ConstantHeatTransfer.calc()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantTwoPhaseHeatTransfer"><code class="docutils literal notranslate"><span class="pre">ConstantTwoPhaseHeatTransfer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.constant.ConstantTwoPhaseHeatTransfer.calc"><code class="docutils literal notranslate"><span class="pre">ConstantTwoPhaseHeatTransfer.calc()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#module-vclibpy.components.heat_exchangers.heat_transfer.heat_transfer">vclibpy.components.heat_exchangers.heat_transfer.heat_transfer module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer"><code class="docutils literal notranslate"><span class="pre">HeatTransfer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer.calc"><code class="docutils literal notranslate"><span class="pre">HeatTransfer.calc()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.TwoPhaseHeatTransfer"><code class="docutils literal notranslate"><span class="pre">TwoPhaseHeatTransfer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.TwoPhaseHeatTransfer.calc"><code class="docutils literal notranslate"><span class="pre">TwoPhaseHeatTransfer.calc()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.calc_reynolds_pipe"><code class="docutils literal notranslate"><span class="pre">calc_reynolds_pipe()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#module-vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall">vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall.TurbulentFluidInPipeToWallTransfer"><code class="docutils literal notranslate"><span class="pre">TurbulentFluidInPipeToWallTransfer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall.TurbulentFluidInPipeToWallTransfer.calc"><code class="docutils literal notranslate"><span class="pre">TurbulentFluidInPipeToWallTransfer.calc()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall.TurbulentFluidInPipeToWallTransfer.calc_turbulent_tube_nusselt"><code class="docutils literal notranslate"><span class="pre">TurbulentFluidInPipeToWallTransfer.calc_turbulent_tube_nusselt()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#module-vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall">vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.A"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.A</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.A_FreieOberflaecheRohr"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.A_FreieOberflaecheRohr</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.A_Rippen"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.A_Rippen</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.A_RohrInnen"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.A_RohrInnen</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.A_RohrUnberippt"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.A_RohrUnberippt</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.a"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.a</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.alpha_S"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.alpha_S()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.char_length"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.char_length</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.d_a"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.d_a</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.d_i"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.d_i</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.dicke_rippe"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.dicke_rippe</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.eta_R"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.eta_R()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.hoehe"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.hoehe</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.laenge"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.laenge</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.lambda_R"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.lambda_R</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.n_Rippen"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.n_Rippen</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.n_Rohre"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.n_Rohre</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.phi"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.phi</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.t_l"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.t_l</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.t_q"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.t_q</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.tiefe"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.tiefe</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.AirSourceHeatExchangerGeometry.verjuengungsfaktor"><code class="docutils literal notranslate"><span class="pre">AirSourceHeatExchangerGeometry.verjuengungsfaktor</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.VDIAtlasAirToWallTransfer"><code class="docutils literal notranslate"><span class="pre">VDIAtlasAirToWallTransfer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.VDIAtlasAirToWallTransfer.calc_laminar_area_nusselt"><code class="docutils literal notranslate"><span class="pre">VDIAtlasAirToWallTransfer.calc_laminar_area_nusselt()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall.VDIAtlasAirToWallTransfer.calc_reynolds"><code class="docutils literal notranslate"><span class="pre">VDIAtlasAirToWallTransfer.calc_reynolds()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#module-vclibpy.components.heat_exchangers.heat_transfer.wall">vclibpy.components.heat_exchangers.heat_transfer.wall module</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.wall.WallTransfer"><code class="docutils literal notranslate"><span class="pre">WallTransfer</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.wall.WallTransfer.calc"><code class="docutils literal notranslate"><span class="pre">WallTransfer.calc()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-vclibpy.components.heat_exchangers.economizer">
+<span id="vclibpy-components-heat-exchangers-economizer-module"></span><h2>vclibpy.components.heat_exchangers.economizer module<a class="headerlink" href="#module-vclibpy.components.heat_exchangers.economizer" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.components.heat_exchangers.economizer.</span></span><span class="sig-name descname"><span class="pre">VaporInjectionEconomizerNTU</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/economizer.html#VaporInjectionEconomizerNTU"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#vclibpy.components.heat_exchangers.ntu.BasicNTU" title="vclibpy.components.heat_exchangers.ntu.BasicNTU"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasicNTU</span></code></a></p>
+<p>Economizer heat exchanger which is NTU based.
+Used only for vapor injection cycles, as
+calculations are purely based for two-phase
+and liquid estimations.</p>
+<p>See parent class for more arguments.</p>
+<p>Assumptions:</p>
+<ul class="simple">
+<li><p>Default <cite>flow_type</cite> is counter_flow.</p></li>
+<li><p>Default <cite>ratio_outer_to_inner_area</cite> is 1, as</p></li>
+<li><p>pipes are nearly same diameter and length</p></li>
+<li><p>Secondary heat transfer for alpha is disabled; gas,</p></li>
+</ul>
+<p>liquid and two-phase models are used for both sides.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc">
+<span class="sig-name descname"><span class="pre">calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_state)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'float'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/economizer.html#VaporInjectionEconomizerNTU.calc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the heat exchanger based on the given inputs.</p>
+<p>The flowsheet state can be used to save important variables
+during calculation for later analysis.</p>
+<p>Both return values are used to check if the heat transfer is valid or not.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>inputs (Inputs): The inputs for the calculation.
+fs_state (FlowsheetState): The flowsheet state to save important variables.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>Tuple[float, float]:</dt><dd><p>error: Error in percentage between the required and calculated heat flow rates.
+dT_min: Minimal temperature difference (can be negative).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc_alpha_secondary">
+<span class="sig-name descname"><span class="pre">calc_alpha_secondary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transport_properties</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/economizer.html#VaporInjectionEconomizerNTU.calc_alpha_secondary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc_alpha_secondary" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the secondary-medium heat transfer coefficient.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>transport_properties: Transport properties for the secondary medium.</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: The secondary-medium heat transfer coefficient.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc_transport_properties_secondary_medium">
+<span class="sig-name descname"><span class="pre">calc_transport_properties_secondary_medium</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/economizer.html#VaporInjectionEconomizerNTU.calc_transport_properties_secondary_medium"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.calc_transport_properties_secondary_medium" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the transport properties for the selected secondary_medium.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>T (float): Temperature in K.
+p (float, optional): Pressure to use. Defaults to None.</p>
+</dd>
+<dt>Returns:</dt><dd><p>media.TransportProperties: The calculated transport properties.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.set_secondary_cp">
+<span class="sig-name descname"><span class="pre">set_secondary_cp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/economizer.html#VaporInjectionEconomizerNTU.set_secondary_cp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.set_secondary_cp" title="Permalink to this definition"></a></dt>
+<dd><p>Set primary m_flow_cp</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.start_secondary_med_prop">
+<span class="sig-name descname"><span class="pre">start_secondary_med_prop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/economizer.html#VaporInjectionEconomizerNTU.start_secondary_med_prop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.start_secondary_med_prop" title="Permalink to this definition"></a></dt>
+<dd><p>Set up the wrapper for the secondary medium’s media properties.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.state_two_phase_inlet">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state_two_phase_inlet</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="vclibpy.media.html#vclibpy.media.states.ThermodynamicState" title="vclibpy.media.states.ThermodynamicState"><span class="pre">ThermodynamicState</span></a></em><a class="headerlink" href="#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.state_two_phase_inlet" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.state_two_phase_outlet">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">state_two_phase_outlet</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="vclibpy.media.html#vclibpy.media.states.ThermodynamicState" title="vclibpy.media.states.ThermodynamicState"><span class="pre">ThermodynamicState</span></a></em><a class="headerlink" href="#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.state_two_phase_outlet" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.terminate_secondary_med_prop">
+<span class="sig-name descname"><span class="pre">terminate_secondary_med_prop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/economizer.html#VaporInjectionEconomizerNTU.terminate_secondary_med_prop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.economizer.VaporInjectionEconomizerNTU.terminate_secondary_med_prop" title="Permalink to this definition"></a></dt>
+<dd><p>To use multi-processing, MedProp can’t start
+in the main thread, as the object can’t be pickled.</p>
+<p>This function terminates possible secondary med-prop
+classes, for instance in heat exchangers.
+The default component does not have to override
+this function.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-vclibpy.components.heat_exchangers.heat_exchanger">
+<span id="vclibpy-components-heat-exchangers-heat-exchanger-module"></span><h2>vclibpy.components.heat_exchangers.heat_exchanger module<a class="headerlink" href="#module-vclibpy.components.heat_exchangers.heat_exchanger" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.components.heat_exchangers.heat_exchanger.</span></span><span class="sig-name descname"><span class="pre">HeatExchanger</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">wall_heat_transfer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer" title="vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer"><span class="pre">HeatTransfer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_heat_transfer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer" title="vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer"><span class="pre">HeatTransfer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">gas_heat_transfer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer" title="vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer"><span class="pre">HeatTransfer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">liquid_heat_transfer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer" title="vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.HeatTransfer"><span class="pre">HeatTransfer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">two_phase_heat_transfer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.components.heat_exchangers.heat_transfer.html#vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.TwoPhaseHeatTransfer" title="vclibpy.components.heat_exchangers.heat_transfer.heat_transfer.TwoPhaseHeatTransfer"><span class="pre">TwoPhaseHeatTransfer</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">secondary_medium</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="vclibpy.components.html#vclibpy.components.component.BaseComponent" title="vclibpy.components.component.BaseComponent"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseComponent</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Class for a heat exchanger.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>A (float):</dt><dd><p>Area of HE in m^2 for NTU calculation</p>
+</dd>
+<dt>secondary_medium (str):</dt><dd><p>Name for secondary medium, e.g. <cite>water</cite> or <cite>air</cite></p>
+</dd>
+<dt>wall_heat_transfer (HeatTransfer):</dt><dd><p>Model for heat transfer inside wall</p>
+</dd>
+<dt>secondary_heat_transfer (HeatTransfer):</dt><dd><p>Model for heat transfer from secondary medium to wall</p>
+</dd>
+<dt>gas_heat_transfer (HeatTransfer):</dt><dd><p>Model for heat transfer from refrigerant gas to wall</p>
+</dd>
+<dt>liquid_heat_transfer (HeatTransfer):</dt><dd><p>Model for heat transfer from refrigerant liquid to wall</p>
+</dd>
+<dt>two_phase_heat_transfer (TwoPhaseHeatTransfer):</dt><dd><p>Model for heat transfer from refrigerant two phase to wall</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.FlowsheetState" title="vclibpy.datamodels.FlowsheetState"><span class="pre">FlowsheetState</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Tuple" title="(in Python v3.13)"><span class="pre">Tuple</span></a><span class="p"><span class="pre">[</span></span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.calc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the heat exchanger based on the given inputs.</p>
+<p>The flowsheet state can be used to save important variables
+during calculation for later analysis.</p>
+<p>Both return values are used to check if the heat transfer is valid or not.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>inputs (Inputs): The inputs for the calculation.
+fs_state (FlowsheetState): The flowsheet state to save important variables.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>Tuple[float, float]:</dt><dd><p>error: Error in percentage between the required and calculated heat flow rates.
+dT_min: Minimal temperature difference (can be negative).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_Q_flow">
+<span class="sig-name descname"><span class="pre">calc_Q_flow</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.calc_Q_flow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_Q_flow" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the total heat flow rate.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>float: The total heat flow rate.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_alpha_gas">
+<span class="sig-name descname"><span class="pre">calc_alpha_gas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transport_properties</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.calc_alpha_gas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_alpha_gas" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the gas-phase heat transfer coefficient.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>transport_properties: Transport properties for the gas phase.</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: The gas-phase heat transfer coefficient.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_alpha_liquid">
+<span class="sig-name descname"><span class="pre">calc_alpha_liquid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transport_properties</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.calc_alpha_liquid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_alpha_liquid" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the liquid-phase heat transfer coefficient.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>transport_properties: Transport properties for the liquid phase.</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: The liquid-phase heat transfer coefficient.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_alpha_secondary">
+<span class="sig-name descname"><span class="pre">calc_alpha_secondary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transport_properties</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.calc_alpha_secondary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_alpha_secondary" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the secondary-medium heat transfer coefficient.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>transport_properties: Transport properties for the secondary medium.</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: The secondary-medium heat transfer coefficient.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_alpha_two_phase">
+<span class="sig-name descname"><span class="pre">calc_alpha_two_phase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_q0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_q1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.FlowsheetState" title="vclibpy.datamodels.FlowsheetState"><span class="pre">FlowsheetState</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.calc_alpha_two_phase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_alpha_two_phase" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the two-phase heat transfer coefficient.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>state_q0: State at vapor quality 0.
+state_q1: State at vapor quality 1.
+inputs (Inputs): The inputs for the calculation.
+fs_state (FlowsheetState): The flowsheet state to save important variables.</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: The two-phase heat transfer coefficient.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_secondary_Q_flow">
+<span class="sig-name descname"><span class="pre">calc_secondary_Q_flow</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">Q_flow</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.calc_secondary_Q_flow"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_secondary_Q_flow" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_secondary_cp">
+<span class="sig-name descname"><span class="pre">calc_secondary_cp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.calc_secondary_cp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_secondary_cp" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate and set the heat capacity rate m_flow_cp of the secondary medium.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>T (float): Temperature of the secondary medium.
+p (float, optional): Pressure of the secondary medium. Defaults to None.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_transport_properties_secondary_medium">
+<span class="sig-name descname"><span class="pre">calc_transport_properties_secondary_medium</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">T</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.states.TransportProperties" title="vclibpy.media.states.TransportProperties"><span class="pre">TransportProperties</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.calc_transport_properties_secondary_medium"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_transport_properties_secondary_medium" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the transport properties for the selected secondary_medium.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>T (float): Temperature in K.
+p (float, optional): Pressure to use. Defaults to None.</p>
+</dd>
+<dt>Returns:</dt><dd><p>media.TransportProperties: The calculated transport properties.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_wall_heat_transfer">
+<span class="sig-name descname"><span class="pre">calc_wall_heat_transfer</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.calc_wall_heat_transfer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.calc_wall_heat_transfer" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the heat transfer coefficient inside the wall.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>float: The wall heat transfer coefficient.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.m_flow_secondary">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">m_flow_secondary</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></em><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.m_flow_secondary" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.m_flow_secondary_cp">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">m_flow_secondary_cp</span></span><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.m_flow_secondary_cp" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.start_secondary_med_prop">
+<span class="sig-name descname"><span class="pre">start_secondary_med_prop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.start_secondary_med_prop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.start_secondary_med_prop" title="Permalink to this definition"></a></dt>
+<dd><p>Set up the wrapper for the secondary medium’s media properties.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.terminate_secondary_med_prop">
+<span class="sig-name descname"><span class="pre">terminate_secondary_med_prop</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/heat_exchanger.html#HeatExchanger.terminate_secondary_med_prop"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger.terminate_secondary_med_prop" title="Permalink to this definition"></a></dt>
+<dd><p>To use multi-processing, MedProp can’t start
+in the main thread, as the object can’t be pickled.</p>
+<p>This function terminates possible secondary med-prop
+classes, for instance in heat exchangers.
+The default component does not have to override
+this function.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-vclibpy.components.heat_exchangers.moving_boundary_ntu">
+<span id="vclibpy-components-heat-exchangers-moving-boundary-ntu-module"></span><h2>vclibpy.components.heat_exchangers.moving_boundary_ntu module<a class="headerlink" href="#module-vclibpy.components.heat_exchangers.moving_boundary_ntu" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.components.heat_exchangers.moving_boundary_ntu.</span></span><span class="sig-name descname"><span class="pre">MovingBoundaryNTU</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flow_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio_outer_to_inner_area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/moving_boundary_ntu.html#MovingBoundaryNTU"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#vclibpy.components.heat_exchangers.ntu.BasicNTU" title="vclibpy.components.heat_exchangers.ntu.BasicNTU"><code class="xref py py-class docutils literal notranslate"><span class="pre">BasicNTU</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Moving boundary NTU based heat exchanger.</p>
+<p>See parent classe for arguments.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU.iterate_area">
+<span class="sig-name descname"><span class="pre">iterate_area</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dT_max</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_pri</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_sec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">Q</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/moving_boundary_ntu.html#MovingBoundaryNTU.iterate_area"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU.iterate_area" title="Permalink to this definition"></a></dt>
+<dd><p>Iteratively calculates the required area for the heat exchange.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dT_max (float): Maximum temperature differential.
+alpha_pri (float): Heat transfer coefficient for the primary medium.
+alpha_sec (float): Heat transfer coefficient for the secondary medium.
+Q (float): Heat flow rate.</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: Required area for heat exchange.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU.separate_phases">
+<span class="sig-name descname"><span class="pre">separate_phases</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state_max</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.states.ThermodynamicState" title="vclibpy.media.states.ThermodynamicState"><span class="pre">ThermodynamicState</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">state_min</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.media.html#vclibpy.media.states.ThermodynamicState" title="vclibpy.media.states.ThermodynamicState"><span class="pre">ThermodynamicState</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">p</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/moving_boundary_ntu.html#MovingBoundaryNTU.separate_phases"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU.separate_phases" title="Permalink to this definition"></a></dt>
+<dd><p>Separates a flow with possible phase changes into three parts:
+subcooling (sc), latent phase change (lat), and superheating (sh)
+at the given pressure.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>state_max (ThermodynamicState): State with higher enthalpy.
+state_min (ThermodynamicState): State with lower enthalpy.
+p (float): Pressure of phase change.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>Tuple[float, float, float, ThermodynamicState, ThermodynamicState]:</dt><dd><p>Q_sc: Heat for subcooling.
+Q_lat: Heat for latent phase change.
+Q_sh: Heat for superheating.
+state_q0: State at vapor quality 0 and the given pressure.
+state_q1: State at vapor quality 1 and the given pressure.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUCondenser">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.components.heat_exchangers.moving_boundary_ntu.</span></span><span class="sig-name descname"><span class="pre">MovingBoundaryNTUCondenser</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flow_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio_outer_to_inner_area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/moving_boundary_ntu.html#MovingBoundaryNTUCondenser"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUCondenser" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU" title="vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU"><code class="xref py py-class docutils literal notranslate"><span class="pre">MovingBoundaryNTU</span></code></a></p>
+<p>Condenser class which implements the actual <cite>calc</cite> method.</p>
+<p>Assumptions:
+- No phase changes in secondary medium
+- cp of secondary medium is constant over heat-exchanger</p>
+<p>See parent classes for arguments.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUCondenser.calc">
+<span class="sig-name descname"><span class="pre">calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs:</span> <span class="pre">~vclibpy.datamodels.Inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_state:</span> <span class="pre">~vclibpy.datamodels.FlowsheetState)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'float'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/moving_boundary_ntu.html#MovingBoundaryNTUCondenser.calc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUCondenser.calc" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the heat exchanger with the NTU-Method based on the given inputs.</p>
+<p>The flowsheet state can be used to save important variables
+during calculation for later analysis.</p>
+<p>Both return values are used to check if the heat transfer is valid or not.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>inputs (Inputs): The inputs for the calculation.
+fs_state (FlowsheetState): The flowsheet state to save important variables.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>Tuple[float, float]:</dt><dd><p>error: Error in percentage between the required and calculated heat flow rates.
+dT_min: Minimal temperature difference (can be negative).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUEvaporator">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.components.heat_exchangers.moving_boundary_ntu.</span></span><span class="sig-name descname"><span class="pre">MovingBoundaryNTUEvaporator</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flow_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio_outer_to_inner_area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/moving_boundary_ntu.html#MovingBoundaryNTUEvaporator"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUEvaporator" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU" title="vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTU"><code class="xref py py-class docutils literal notranslate"><span class="pre">MovingBoundaryNTU</span></code></a></p>
+<p>Evaporator class which implements the actual <cite>calc</cite> method.</p>
+<p>Assumptions:
+- No phase changes in secondary medium
+- cp of secondary medium is constant over heat-exchanger</p>
+<p>See parent classes for arguments.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUEvaporator.calc">
+<span class="sig-name descname"><span class="pre">calc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">inputs:</span> <span class="pre">~vclibpy.datamodels.Inputs</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fs_state:</span> <span class="pre">~vclibpy.datamodels.FlowsheetState)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'float'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/moving_boundary_ntu.html#MovingBoundaryNTUEvaporator.calc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.moving_boundary_ntu.MovingBoundaryNTUEvaporator.calc" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the heat exchanger with the NTU-Method based on the given inputs.</p>
+<p>The flowsheet state can be used to save important variables
+during calculation for later analysis.</p>
+<p>Both return values are used to check if the heat transfer is valid or not.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>inputs (Inputs): The inputs for the calculation.
+fs_state (FlowsheetState): The flowsheet state to save important variables.</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>Tuple[float, float]:</dt><dd><p>error: Error in percentage between the required and calculated heat flow rates.
+dT_min: Minimal temperature difference (can be negative).</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-vclibpy.components.heat_exchangers.ntu">
+<span id="vclibpy-components-heat-exchangers-ntu-module"></span><h2>vclibpy.components.heat_exchangers.ntu module<a class="headerlink" href="#module-vclibpy.components.heat_exchangers.ntu" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.ntu.BasicNTU">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.components.heat_exchangers.ntu.</span></span><span class="sig-name descname"><span class="pre">BasicNTU</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flow_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">ratio_outer_to_inner_area</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/ntu.html#BasicNTU"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.ntu.BasicNTU" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger" title="vclibpy.components.heat_exchangers.heat_exchanger.HeatExchanger"><code class="xref py py-class docutils literal notranslate"><span class="pre">HeatExchanger</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Moving boundary NTU based heat exchanger.</p>
+<p>See parent class for more arguments.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>flow_type (str):</dt><dd><p>Counter, Cross or parallel flow</p>
+</dd>
+<dt>ratio_outer_to_inner_area (float):</dt><dd><p>The NTU method uses the overall heat transfer coefficient <cite>k</cite>
+and multiplies it with the outer area <cite>A</cite> (area of the secondary side).
+However, depending on the heat exchanger type, the areas may
+differ drastically. For instance in an air-to-water heat exchanger.
+The VDI-Atlas proposes the ratio of outer area to inner pipe area
+to account for this mismatch in sizes.
+The calculation follows the code in the function <cite>calc_k</cite>.
+Typical values are around 20-30.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_NTU">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calc_NTU</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">A</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_flow_cp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/ntu.html#BasicNTU.calc_NTU"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_NTU" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the Number of Transfer Units (NTU) for the heat exchanger.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>A (float): Area of the heat exchanger.
+k (float): Overall heat transfer coefficient.
+m_flow_cp (float): Minimal heat capacity rates (m_flow*cp) between primary and secondary side.</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: Number of Transfer Units (NTU).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_Q_ntu">
+<span class="sig-name descname"><span class="pre">calc_Q_ntu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dT_max:</span> <span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_pri:</span> <span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_sec:</span> <span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">A:</span> <span class="pre">float)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'float'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/ntu.html#BasicNTU.calc_Q_ntu"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_Q_ntu" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the heat transfer and overall heat transfer coefficient for the heat exchanger based on NTU.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>dT_max (float): Maximum temperature differential.
+alpha_pri (float): Heat transfer coefficient for the primary medium.
+alpha_sec (float): Heat transfer coefficient for the secondary medium.
+A (float): Area of the heat exchanger.</p>
+</dd>
+<dt>Returns:</dt><dd><p>Tuple[float, float]: Heat transfer and overall heat transfer coefficient.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_R">
+<span class="sig-name descname"><span class="pre">calc_R</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/ntu.html#BasicNTU.calc_R"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_R" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the R value, which is the ratio of heat capacity rates (m_flow*cp) of the primary to secondary medium.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>float: R value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_eps">
+<span class="sig-name descname"><span class="pre">calc_eps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">R</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">NTU</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/ntu.html#BasicNTU.calc_eps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_eps" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the effectiveness (eps) of the heat exchanger based on NTU.</p>
+<p>Source of implementation: EBC Lecture SimModelle.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>R (float): Ratio of heat capacity rates (m_flow*cp) of the primary to secondary medium.
+NTU (float): Number of Transfer Units.</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: Effectiveness (eps) of the heat exchanger.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_k">
+<span class="sig-name descname"><span class="pre">calc_k</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">alpha_pri</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha_sec</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/ntu.html#BasicNTU.calc_k"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_k" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the overall heat transfer coefficient (k) of the heat exchanger.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>alpha_pri (float): Heat transfer coefficient for the primary medium.
+alpha_sec (float): Heat transfer coefficient for the secondary medium.</p>
+</dd>
+<dt>Returns:</dt><dd><p>float: Overall heat transfer coefficient (k).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_m_flow_cp_min">
+<span class="sig-name descname"><span class="pre">calc_m_flow_cp_min</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/ntu.html#BasicNTU.calc_m_flow_cp_min"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.ntu.BasicNTU.calc_m_flow_cp_min" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the minimum value between the heat capacity rates (m_flow*cp) for the primary and secondary mediums.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>float: Minimum value.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.components.heat_exchangers.ntu.BasicNTU.set_primary_cp">
+<span class="sig-name descname"><span class="pre">set_primary_cp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cp</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/components/heat_exchangers/ntu.html#BasicNTU.set_primary_cp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.components.heat_exchangers.ntu.BasicNTU.set_primary_cp" title="Permalink to this definition"></a></dt>
+<dd><p>Set the specific heat (cp) for the primary medium.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>cp (float): Specific heat for the primary medium.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="vclibpy.components.expansion_valves.html" class="btn btn-neutral float-left" title="vclibpy.components.expansion_valves package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="vclibpy.components.heat_exchangers.heat_transfer.html" class="btn btn-neutral float-right" title="vclibpy.components.heat_exchangers.heat_transfer package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
