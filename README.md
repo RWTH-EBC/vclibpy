@@ -62,6 +62,8 @@ Visit our official [Documentation](https://rwth-ebc.github.io/vclibpy/main/docs/
 # Problems?
 Please [raise an issue here](https://github.com/RWTH-EBC/vclibpy/issues/new).
 
+For other inquires, please contact [ebc-tools@eonerc.rwth-aachen.de](mailto:ebc-tools@eonerc.rwth-aachen.de).
+
 # Acknowledgements
 
 We gratefully acknowledge the financial support by the Federal Ministry for Economic Affairs and Climate Action (BMWK), promotional reference 03EN1022B, as well as the European Regional Development Fund (ERDF) (ERDF-0500029).
