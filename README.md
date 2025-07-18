@@ -50,6 +50,7 @@ Until the paper is published, you may cite the following DOI: https://doi.org/10
 
 Moreoever, the following list of related publications show `VCLibPy` in use.
 
+
 ## Related publications
 
 - Vering, C., Wüllhorst, F., Mehrfeld, P., & Müller, D. (2021). Towards an integrated design of heat pump systems: Application of process intensification using two-stage optimization. Energy Conversion and Management, 250, 114888.  https://doi.org/10.1016/j.enconman.2021.114888
@@ -60,6 +61,8 @@ Visit our official [Documentation](https://rwth-ebc.github.io/vclibpy/main/docs/
 
 # Problems?
 Please [raise an issue here](https://github.com/RWTH-EBC/vclibpy/issues/new).
+
+For other inquires, please contact [ebc-tools@eonerc.rwth-aachen.de](mailto:ebc-tools@eonerc.rwth-aachen.de).
 
 # Acknowledgements
 
