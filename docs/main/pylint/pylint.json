@@ -6399,28 +6399,6 @@
             "column": 0,
             "path": "vclibpy/components/expansion_valves/__init__.py",
             "symbol": "cyclic-import",
-            "message": "Cyclic import (vclibpy.components.expansion_valves -> vclibpy.components.expansion_valves.bernoulli)",
-            "message-id": "R0401"
-        },
-        {
-            "type": "refactor",
-            "module": "vclibpy.components.expansion_valves.__init__",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "vclibpy/components/expansion_valves/__init__.py",
-            "symbol": "cyclic-import",
-            "message": "Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection)",
-            "message-id": "R0401"
-        },
-        {
-            "type": "refactor",
-            "module": "vclibpy.components.expansion_valves.__init__",
-            "obj": "",
-            "line": 1,
-            "column": 0,
-            "path": "vclibpy/components/expansion_valves/__init__.py",
-            "symbol": "cyclic-import",
             "message": "Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection)",
             "message-id": "R0401"
         },
@@ -6432,7 +6410,29 @@
             "column": 0,
             "path": "vclibpy/components/expansion_valves/__init__.py",
             "symbol": "cyclic-import",
+            "message": "Cyclic import (vclibpy.components.expansion_valves -> vclibpy.components.expansion_valves.bernoulli)",
+            "message-id": "R0401"
+        },
+        {
+            "type": "refactor",
+            "module": "vclibpy.components.expansion_valves.__init__",
+            "obj": "",
+            "line": 1,
+            "column": 0,
+            "path": "vclibpy/components/expansion_valves/__init__.py",
+            "symbol": "cyclic-import",
             "message": "Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.standard)",
+            "message-id": "R0401"
+        },
+        {
+            "type": "refactor",
+            "module": "vclibpy.components.expansion_valves.__init__",
+            "obj": "",
+            "line": 1,
+            "column": 0,
+            "path": "vclibpy/components/expansion_valves/__init__.py",
+            "symbol": "cyclic-import",
+            "message": "Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection)",
             "message-id": "R0401"
         },
         {
@@ -6929,36 +6929,36 @@
         },
         "dependencies": {
             "vclibpy.datamodels": [
-                "vclibpy",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-                "vclibpy.utils.automation",
-                "vclibpy.flowsheets.standard",
-                "vclibpy.flowsheets.base",
-                "vclibpy.components.compressors.rotary",
-                "vclibpy.flowsheets.vapor_injection",
                 "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.components.compressors.compressor",
-                "vclibpy.components.compressors.constant_effectivness",
-                "vclibpy.media.states",
+                "vclibpy.utils.automation",
                 "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
-                "vclibpy.components.heat_exchangers.heat_exchanger"
+                "vclibpy.flowsheets.base",
+                "vclibpy.flowsheets.standard",
+                "vclibpy.components.compressors.rotary",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
+                "vclibpy.media.states",
+                "vclibpy.components.compressors.constant_effectivness",
+                "vclibpy.flowsheets.vapor_injection",
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.compressors.compressor",
+                "vclibpy"
             ],
             "numpy": [
-                "vclibpy.flowsheets.vapor_injection_economizer",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.compressors.ten_coefficient",
                 "vclibpy.utils.automation",
                 "vclibpy.utils.plotting",
+                "vclibpy.flowsheets.vapor_injection_economizer",
+                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
                 "vclibpy.flowsheets.base",
-                "vclibpy.flowsheets.vapor_injection",
-                "vclibpy.media.media",
-                "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.components.heat_exchangers.ntu",
                 "vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall",
-                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer"
+                "vclibpy.media.media",
+                "vclibpy.components.heat_exchangers.ntu",
+                "vclibpy.flowsheets.vapor_injection",
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu"
             ],
             "vclibpy.flowsheets.vapor_injection": [
-                "vclibpy.flowsheets.vapor_injection_economizer",
-                "vclibpy.flowsheets.vapor_injection_phase_separator"
+                "vclibpy.flowsheets.vapor_injection_phase_separator",
+                "vclibpy.flowsheets.vapor_injection_economizer"
             ],
             "vclibpy.components.heat_exchangers.economizer": [
                 "vclibpy.flowsheets.vapor_injection_economizer"
@@ -6979,71 +6979,71 @@
                 "vclibpy.flowsheets"
             ],
             "matplotlib.pyplot": [
-                "vclibpy.utils.plotting",
-                "vclibpy.flowsheets.base"
+                "vclibpy.flowsheets.base",
+                "vclibpy.utils.plotting"
             ],
             "vclibpy.media": [
-                "vclibpy.utils.ten_coefficient_compressor_reqression",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-                "vclibpy.utils.plotting",
-                "vclibpy.flowsheets.base",
-                "vclibpy.components.heat_exchangers.economizer",
                 "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
-                "vclibpy.components.heat_exchangers.heat_transfer.wall",
-                "vclibpy.flowsheets.vapor_injection",
+                "vclibpy.utils.plotting",
+                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
+                "vclibpy.flowsheets.base",
+                "vclibpy.components.component",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
+                "vclibpy.components.heat_exchangers.heat_transfer.constant",
+                "vclibpy.utils.ten_coefficient_compressor_reqression",
                 "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
                 "vclibpy.media.media",
-                "vclibpy.media.ref_prop",
-                "vclibpy.components.heat_exchangers.heat_transfer.constant",
+                "vclibpy.components.heat_exchangers.economizer",
                 "vclibpy.components.phase_separator",
-                "vclibpy.components.component",
-                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
-                "vclibpy.components.heat_exchangers.heat_exchanger"
+                "vclibpy.components.heat_exchangers.heat_transfer.wall",
+                "vclibpy.flowsheets.vapor_injection",
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.media.ref_prop"
             ],
             "vclibpy": [
                 "vclibpy.flowsheets.base",
-                "vclibpy.utils.ten_coefficient_compressor_reqression",
-                "vclibpy.utils.nominal_design"
+                "vclibpy.utils.nominal_design",
+                "vclibpy.utils.ten_coefficient_compressor_reqression"
             ],
             "vclibpy.components.heat_exchangers": [
                 "vclibpy.flowsheets.base"
             ],
             "vclibpy.components.component": [
                 "vclibpy.flowsheets.base",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
                 "vclibpy.components.expansion_valves.expansion_valve",
-                "vclibpy.components.compressors.compressor",
                 "vclibpy.components.phase_separator",
-                "vclibpy.components.heat_exchangers.heat_exchanger"
+                "vclibpy.components.compressors.compressor"
             ],
             "vclibpy.utils.plotting": [
                 "vclibpy.flowsheets.base"
             ],
             "vclibpy.flowsheets": [
-                "vclibpy.utils.nominal_design",
-                "vclibpy.utils.automation",
                 "vclibpy.flowsheets.standard",
-                "vclibpy.flowsheets.vapor_injection"
+                "vclibpy.flowsheets.vapor_injection",
+                "vclibpy.utils.automation",
+                "vclibpy.utils.nominal_design"
             ],
             "vclibpy.components.compressors": [
-                "vclibpy.utils.ten_coefficient_compressor_reqression",
                 "vclibpy.flowsheets.standard",
-                "vclibpy.flowsheets.vapor_injection"
+                "vclibpy.flowsheets.vapor_injection",
+                "vclibpy.utils.ten_coefficient_compressor_reqression"
             ],
             "vclibpy.components.expansion_valves": [
-                "vclibpy.components.expansion_valves.bernoulli",
                 "vclibpy.flowsheets.standard",
-                "vclibpy.flowsheets.vapor_injection"
+                "vclibpy.flowsheets.vapor_injection",
+                "vclibpy.components.expansion_valves.bernoulli"
             ],
             "pandas": [
-                "vclibpy.utils.ten_coefficient_compressor_reqression",
-                "vclibpy.utils.automation",
                 "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.utils.printing",
-                "vclibpy.utils.sdf_"
+                "vclibpy.utils.automation",
+                "vclibpy.utils.sdf_",
+                "vclibpy.utils.ten_coefficient_compressor_reqression",
+                "vclibpy.utils.printing"
             ],
             "sdf": [
-                "vclibpy.utils.plotting",
-                "vclibpy.utils.sdf_"
+                "vclibpy.utils.sdf_",
+                "vclibpy.utils.plotting"
             ],
             "vclibpy.utils.automation": [
                 "vclibpy.utils"
@@ -7075,10 +7075,10 @@
                 "vclibpy.media.cool_prop"
             ],
             "vclibpy.components.compressors.compressor": [
-                "vclibpy.components.compressors",
                 "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.components.compressors.rotary",
-                "vclibpy.components.compressors.constant_effectivness"
+                "vclibpy.components.compressors",
+                "vclibpy.components.compressors.constant_effectivness",
+                "vclibpy.components.compressors.rotary"
             ],
             "vclibpy.components.compressors.rotary": [
                 "vclibpy.components.compressors"
@@ -7097,15 +7097,15 @@
                 "vclibpy.components.heat_exchangers"
             ],
             "vclibpy.components.heat_exchangers.ntu": [
-                "vclibpy.components.heat_exchangers.economizer",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu"
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.heat_exchangers.economizer"
             ],
             "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer": [
-                "vclibpy.components.heat_exchangers.heat_transfer.wall",
-                "vclibpy.components.heat_exchangers.heat_transfer",
                 "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
+                "vclibpy.components.heat_exchangers.heat_transfer",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
                 "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
-                "vclibpy.components.heat_exchangers.heat_exchanger"
+                "vclibpy.components.heat_exchangers.heat_transfer.wall"
             ],
             "vclibpy.components.heat_exchangers.heat_transfer.constant": [
                 "vclibpy.components.heat_exchangers.heat_transfer"
@@ -7610,36 +7610,36 @@
         },
         "dependencies": {
             "vclibpy.datamodels": [
-                "vclibpy",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.compressors.ten_coefficient",
                 "vclibpy.utils.automation",
-                "vclibpy.flowsheets.standard",
+                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
                 "vclibpy.flowsheets.base",
                 "vclibpy.components.compressors.rotary",
-                "vclibpy.flowsheets.vapor_injection",
-                "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.components.compressors.compressor",
+                "vclibpy.flowsheets.standard",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
+                "vclibpy",
                 "vclibpy.components.compressors.constant_effectivness",
-                "vclibpy.media.states",
-                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
-                "vclibpy.components.heat_exchangers.heat_exchanger"
+                "vclibpy.flowsheets.vapor_injection",
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.compressors.compressor",
+                "vclibpy.media.states"
             ],
             "numpy": [
-                "vclibpy.flowsheets.vapor_injection_economizer",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.compressors.ten_coefficient",
                 "vclibpy.utils.automation",
                 "vclibpy.utils.plotting",
-                "vclibpy.flowsheets.base",
                 "vclibpy.flowsheets.vapor_injection",
+                "vclibpy.flowsheets.vapor_injection_economizer",
+                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
+                "vclibpy.flowsheets.base",
                 "vclibpy.media.media",
-                "vclibpy.components.compressors.ten_coefficient",
                 "vclibpy.components.heat_exchangers.ntu",
                 "vclibpy.components.heat_exchangers.heat_transfer.vdi_atlas_air_to_wall",
-                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer"
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu"
             ],
             "vclibpy.flowsheets.vapor_injection": [
-                "vclibpy.flowsheets.vapor_injection_economizer",
-                "vclibpy.flowsheets.vapor_injection_phase_separator"
+                "vclibpy.flowsheets.vapor_injection_phase_separator",
+                "vclibpy.flowsheets.vapor_injection_economizer"
             ],
             "vclibpy.components.heat_exchangers.economizer": [
                 "vclibpy.flowsheets.vapor_injection_economizer"
@@ -7660,71 +7660,71 @@
                 "vclibpy.flowsheets"
             ],
             "matplotlib.pyplot": [
-                "vclibpy.utils.plotting",
-                "vclibpy.flowsheets.base"
+                "vclibpy.flowsheets.base",
+                "vclibpy.utils.plotting"
             ],
             "vclibpy.media": [
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
-                "vclibpy.utils.ten_coefficient_compressor_reqression",
+                "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
                 "vclibpy.utils.plotting",
+                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
+                "vclibpy.flowsheets.base",
+                "vclibpy.components.component",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
+                "vclibpy.components.heat_exchangers.heat_transfer.constant",
+                "vclibpy.utils.ten_coefficient_compressor_reqression",
+                "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
                 "vclibpy.components.heat_exchangers.heat_transfer.wall",
                 "vclibpy.components.heat_exchangers.economizer",
-                "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
-                "vclibpy.flowsheets.base",
-                "vclibpy.flowsheets.vapor_injection",
-                "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
-                "vclibpy.media.media",
-                "vclibpy.media.ref_prop",
-                "vclibpy.components.heat_exchangers.heat_transfer.constant",
                 "vclibpy.components.phase_separator",
-                "vclibpy.components.component",
-                "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer",
-                "vclibpy.components.heat_exchangers.heat_exchanger"
+                "vclibpy.media.media",
+                "vclibpy.flowsheets.vapor_injection",
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.media.ref_prop"
             ],
             "vclibpy": [
                 "vclibpy.flowsheets.base",
-                "vclibpy.utils.ten_coefficient_compressor_reqression",
-                "vclibpy.utils.nominal_design"
+                "vclibpy.utils.nominal_design",
+                "vclibpy.utils.ten_coefficient_compressor_reqression"
             ],
             "vclibpy.components.heat_exchangers": [
                 "vclibpy.flowsheets.base"
             ],
             "vclibpy.components.component": [
                 "vclibpy.flowsheets.base",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
                 "vclibpy.components.expansion_valves.expansion_valve",
-                "vclibpy.components.compressors.compressor",
                 "vclibpy.components.phase_separator",
-                "vclibpy.components.heat_exchangers.heat_exchanger"
+                "vclibpy.components.compressors.compressor"
             ],
             "vclibpy.utils.plotting": [
                 "vclibpy.flowsheets.base"
             ],
             "vclibpy.flowsheets": [
-                "vclibpy.flowsheets.vapor_injection",
                 "vclibpy.flowsheets.standard",
+                "vclibpy.flowsheets.vapor_injection",
                 "vclibpy.utils.automation",
                 "vclibpy.utils.nominal_design"
             ],
             "vclibpy.components.compressors": [
-                "vclibpy.utils.ten_coefficient_compressor_reqression",
                 "vclibpy.flowsheets.standard",
-                "vclibpy.flowsheets.vapor_injection"
+                "vclibpy.flowsheets.vapor_injection",
+                "vclibpy.utils.ten_coefficient_compressor_reqression"
             ],
             "vclibpy.components.expansion_valves": [
-                "vclibpy.flowsheets.vapor_injection",
                 "vclibpy.flowsheets.standard",
+                "vclibpy.flowsheets.vapor_injection",
                 "vclibpy.components.expansion_valves.bernoulli"
             ],
             "pandas": [
-                "vclibpy.utils.ten_coefficient_compressor_reqression",
-                "vclibpy.utils.automation",
                 "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.utils.printing",
-                "vclibpy.utils.sdf_"
+                "vclibpy.utils.automation",
+                "vclibpy.utils.sdf_",
+                "vclibpy.utils.ten_coefficient_compressor_reqression",
+                "vclibpy.utils.printing"
             ],
             "sdf": [
-                "vclibpy.utils.plotting",
-                "vclibpy.utils.sdf_"
+                "vclibpy.utils.sdf_",
+                "vclibpy.utils.plotting"
             ],
             "vclibpy.utils.automation": [
                 "vclibpy.utils"
@@ -7756,10 +7756,10 @@
                 "vclibpy.media.cool_prop"
             ],
             "vclibpy.components.compressors.compressor": [
-                "vclibpy.components.compressors",
                 "vclibpy.components.compressors.ten_coefficient",
-                "vclibpy.components.compressors.rotary",
-                "vclibpy.components.compressors.constant_effectivness"
+                "vclibpy.components.compressors",
+                "vclibpy.components.compressors.constant_effectivness",
+                "vclibpy.components.compressors.rotary"
             ],
             "vclibpy.components.compressors.rotary": [
                 "vclibpy.components.compressors"
@@ -7778,15 +7778,15 @@
                 "vclibpy.components.heat_exchangers"
             ],
             "vclibpy.components.heat_exchangers.ntu": [
-                "vclibpy.components.heat_exchangers.economizer",
-                "vclibpy.components.heat_exchangers.moving_boundary_ntu"
+                "vclibpy.components.heat_exchangers.moving_boundary_ntu",
+                "vclibpy.components.heat_exchangers.economizer"
             ],
             "vclibpy.components.heat_exchangers.heat_transfer.heat_transfer": [
-                "vclibpy.components.heat_exchangers.heat_transfer.wall",
-                "vclibpy.components.heat_exchangers.heat_transfer",
                 "vclibpy.components.heat_exchangers.heat_transfer.air_to_wall",
+                "vclibpy.components.heat_exchangers.heat_transfer",
+                "vclibpy.components.heat_exchangers.heat_exchanger",
                 "vclibpy.components.heat_exchangers.heat_transfer.pipe_to_wall",
-                "vclibpy.components.heat_exchangers.heat_exchanger"
+                "vclibpy.components.heat_exchangers.heat_transfer.wall"
             ],
             "vclibpy.components.heat_exchangers.heat_transfer.constant": [
                 "vclibpy.components.heat_exchangers.heat_transfer"

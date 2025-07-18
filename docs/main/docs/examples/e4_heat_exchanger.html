@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Heat Exchanger Example &mdash; vclibpy 0.1.2 documentation</title>
+  <title>Heat Exchanger Example &mdash; vclibpy 0.1.3 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
       <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
@@ -189,7 +189,7 @@ margin and dT_min is greater than 0.</p>
 The error is calculated as follows: <code class="docutils literal notranslate"><span class="pre">(Q_ntu</span> <span class="pre">/</span> <span class="pre">Q</span> <span class="pre">-</span> <span class="pre">1)</span> <span class="pre">*</span> <span class="pre">100</span></code>.
 <code class="docutils literal notranslate"><span class="pre">Q</span></code> is the amount of heat required to be transported, <code class="docutils literal notranslate"><span class="pre">Q_ntu</span></code> is
 the amount possible to transfer according to NTU method.
-This means, a negative value of 100 means we could transport 2 times
+This means, a negative value of 50 means we could transport 2 times
 less heat than we want to.
 Thus, we have to iterate the pressure assumptions and lower it,
 as we need a higher temperature difference to the air.
