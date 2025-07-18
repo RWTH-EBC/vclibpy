@@ -8,7 +8,7 @@ Created on 17.07.2025
 """
 
 import logging
-from vclibpy.media import ThermodynamicState, TransportProperties, OilProp
+from vclibpy.media import ThermodynamicState, TransportProperties, OilProp, RefProp
 
 
 logger = logging.getLogger(__name__)
@@ -1113,109 +1113,3 @@ class OilMixProp(OilProp):
         # Calculate odp
         odp = max(max(tmp.Output), 0)
         # In case some error occured
-        if odp < 0:
-            odp = 0
-        return odp
-
-    def get_safety(self):
-        """ Calculate safety class of refrigerant
-
-        Return:
-        -------
-        :return string safety:
-            Safety class of fluid.
-        """
-        # Call refProp
-        tmp = self._call_refprop("",
-                                 "SAFETY",
-                                 i_mass=1)
-        # Get safety class
-        safety = tmp.hUnits
-        # Return safety
-        return safety
-
-    def get_sat_vap_pressure(self, T_sat):
-        """ Get pressure of saturated vapor for defined temperature
-
-        Note:
-            - works for vapor, liquid and solid
-            - returns equilibrium pressure at defined line (q=1)
-
-        Parameters:
-        :param float T_sat:
-            Temperature in K
-        Return:
-        :return float p_sat:
-            Vapor pressure in Pa
-        """
-        trip = self.get_triple_point()
-        if trip[0] <= T_sat:
-            p_sat = self.calc_state("TQ", T_sat, 1.0).p
-        else:
-            tmp = self.rp.REFPROPdll("", "TSUBL", "P", self.molar_base_si, 0, 0, T_sat, 0.0, self._mol_frac)
-            p_sat = tmp.Output[0]
-        return p_sat
-
-    def get_triple_point(self):
-        """ Get temperature and pressure at triple point of current fluid
-
-        Note: Works fine for pure substances, mixtures might not work properly
-
-        Return:
-        :return float T_tpl:
-            Temperature at triple point in K
-        :return float p_tpl:
-            Pressure at triple point in Pa
-        """
-        # Call Refprop
-        tmp = self._call_refprop("TRIP", "T;P")
-        return tmp.Output[0], tmp.Output[1]
-
-    def get_version(self):
-        """ Get version of wrapper and used RefProp dll
-
-        Return:
-        :return string wrapper_version:
-            Refprop wrapper version
-        :return string refprop_version:
-            Version of used RefProp dll
-        """
-        return self.__version__, self.rp.RPVersion()
-
-    def is_mixture(self):
-        """ Find out if fluid is mixture or not.
-        In case current fluid is mixture, true is returned.
-        In case current fluid is pure substance, false is returned.
-
-        Return:
-        -------
-        :return boolean _mix_flag:
-            Boolean for mixture (True), pure substance (False)
-        """
-        return self._mix_flag
-
-    def set_error_flag(self, flag):
-        """ Set error flag
-
-        Parameters:
-        :param boolean flag:
-            New error flag
-        Return:
-        :return int err:
-            Notifier for error code - in case everything went fine, 0 is returned
-        """
-        self._flag_check_errors = flag
-        return 0
-
-    def set_warning_flag(self, flag):
-        """ Set warning flag
-
-        Parameters:
-        :param boolean flag:
-            New warning flag
-        Return:
-        :return int err:
-            Notifier for error code - in case everything went fine, 0 is returned
-        """
-        self._flag_warnings = flag
-        return 0

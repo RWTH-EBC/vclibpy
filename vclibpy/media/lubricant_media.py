@@ -98,8 +98,8 @@ class OilProp(MedProp):
             AssertionError: If the given mode is not within the available options.
         """
         available_options = ['PD', 'PH', 'PQ', 'PS', 'PT',
-                            # 'PU', 'TD', 'TH', 'TQ', 'TS',
-                            # 'TU', 'DH', 'DS', 'DU', ]
+                             'PU', 'TD', 'TH', 'TQ', 'TS',
+                             'TU', 'DH', 'DS', 'DU', ]
         assert mode in available_options, f'Given mode {mode} is not in available options'
 
     def terminate(self):

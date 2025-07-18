@@ -2,7 +2,8 @@ from .states import ThermodynamicState, TransportProperties
 from .media import get_two_phase_limits, MedProp
 from .cool_prop import CoolProp
 from .ref_prop import RefProp
-from.lubricant_media import OilProp
+from .lubricant_media import OilProp
+from .oil_mix_prop import OilMixProp
 
 
 
@@ -10,7 +11,9 @@ __all__ = ['ThermodynamicState',
            'TransportProperties',
            'MedProp',
            'CoolProp',
-           'RefProp']
+           'RefProp',
+           'OilProp',
+           'OilMixProp']
 
 USED_MED_PROP = (CoolProp, {})
 
