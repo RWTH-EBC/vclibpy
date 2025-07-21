@@ -999,17 +999,17 @@ vclibpy/algorithms/base.py:1:0: R0801: Similar lines in 2 files
                 fs_state=fs_state,
                 inputs=inputs
             ) (duplicate-code)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.heat_exchangers -> vclibpy.components.heat_exchangers.moving_boundary_ntu) (cyclic-import)
 vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.media) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.expansion_valves -> vclibpy.components.expansion_valves.bernoulli) (cyclic-import)
 vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
 vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.standard) (cyclic-import)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.expansion_valves -> vclibpy.components.expansion_valves.bernoulli) (cyclic-import)
 vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.heat_exchangers -> vclibpy.components.heat_exchangers.moving_boundary_ntu -> vclibpy.components.heat_exchangers.utils) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.heat_exchangers -> vclibpy.components.heat_exchangers.moving_boundary_ntu -> vclibpy.components.heat_exchangers.ntu) (cyclic-import)
 vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.utils -> vclibpy.utils.automation) (cyclic-import)
 vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.ref_prop) (cyclic-import)
 vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.cool_prop -> vclibpy.media.media) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.heat_exchangers -> vclibpy.components.heat_exchangers.moving_boundary_ntu) (cyclic-import)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.heat_exchangers -> vclibpy.components.heat_exchangers.moving_boundary_ntu -> vclibpy.components.heat_exchangers.utils) (cyclic-import)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.heat_exchangers -> vclibpy.components.heat_exchangers.moving_boundary_ntu -> vclibpy.components.heat_exchangers.ntu) (cyclic-import)
 
 -----------------------------------
 Your code has been rated at 7.06/10
