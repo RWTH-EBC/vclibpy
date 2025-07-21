@@ -1,0 +1,253 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.components.heat_exchangers.utils &mdash; vclibpy 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../../../../_static/jquery.js"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+      <script src="../../../../_static/doctools.js"></script>
+      <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">vclibpy.components.heat_exchangers.utils</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for vclibpy.components.heat_exchangers.utils</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inputs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeatExchanger</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.media</span><span class="w"> </span><span class="kn">import</span> <span class="n">ThermodynamicState</span>
+
+
+<div class="viewcode-block" id="calc_area"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.utils.calc_area">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">calc_area</span><span class="p">(</span><span class="n">Q</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">Tm</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">Tm</span> <span class="o">*</span> <span class="n">k</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mf">1e10</span>  <span class="c1"># A really large number, but not np.inf to still be able to calculate with it</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Q</span> <span class="o">/</span> <span class="p">(</span><span class="n">k</span> <span class="o">*</span> <span class="n">Tm</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="calc_mean_temperature"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.utils.calc_mean_temperature">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">calc_mean_temperature</span><span class="p">(</span>
+        <span class="n">T_hot_in</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">T_hot_out</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">T_cold_in</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">T_cold_out</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">flow_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;counter&quot;</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="n">T_hot_in</span> <span class="o">&lt;</span> <span class="n">T_hot_out</span> <span class="ow">or</span> <span class="n">T_cold_out</span> <span class="o">&lt;</span> <span class="n">T_cold_in</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Temperatures profiles are not valid for LTMD. &quot;</span>
+            <span class="s2">&quot;Cold stream should heat up and hot stream should cool down.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">flow_type</span> <span class="o">==</span> <span class="s2">&quot;counter&quot;</span><span class="p">:</span>
+        <span class="n">dT_A</span> <span class="o">=</span> <span class="n">T_hot_in</span> <span class="o">-</span> <span class="n">T_cold_out</span>
+        <span class="n">dT_B</span> <span class="o">=</span> <span class="n">T_hot_out</span> <span class="o">-</span> <span class="n">T_cold_in</span>
+    <span class="k">elif</span> <span class="n">flow_type</span> <span class="o">==</span> <span class="s2">&quot;parallel&quot;</span><span class="p">:</span>
+        <span class="n">dT_A</span> <span class="o">=</span> <span class="n">T_hot_in</span> <span class="o">-</span> <span class="n">T_cold_in</span>
+        <span class="n">dT_B</span> <span class="o">=</span> <span class="n">T_hot_out</span> <span class="o">-</span> <span class="n">T_cold_out</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Given flow_type is not supported yet&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dT_B</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">dT_A</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="mi">0</span>  <span class="c1"># Heat can&#39;t be transferred</span>
+
+    <span class="c1"># Handle special cases</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">dT_A</span><span class="p">,</span> <span class="n">dT_B</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">dT_A</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">dT_A</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">dT_B</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">min</span><span class="p">(</span><span class="n">dT_A</span><span class="p">,</span> <span class="n">dT_B</span><span class="p">)</span>  <span class="c1"># No heat transfer if either side is zero</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">dT_A</span> <span class="o">-</span> <span class="n">dT_B</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">dT_A</span> <span class="o">/</span> <span class="n">dT_B</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="separate_phases"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.utils.separate_phases">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">separate_phases</span><span class="p">(</span><span class="n">m_flow</span><span class="p">,</span> <span class="n">med_prop</span><span class="p">,</span> <span class="n">state_max</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">state_min</span><span class="p">:</span> <span class="n">ThermodynamicState</span><span class="p">,</span> <span class="n">p</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Separates a flow with possible phase changes into three parts:</span>
+<span class="sd">    subcooling (sc), latent phase change (lat), and superheating (sh)</span>
+<span class="sd">    at the given pressure.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        state_max (ThermodynamicState): State with higher enthalpy.</span>
+<span class="sd">        state_min (ThermodynamicState): State with lower enthalpy.</span>
+<span class="sd">        p (float): Pressure of phase change.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple[float, float, float, ThermodynamicState, ThermodynamicState]:</span>
+<span class="sd">            Q_sc: Heat for subcooling.</span>
+<span class="sd">            Q_lat: Heat for latent phase change.</span>
+<span class="sd">            Q_sh: Heat for superheating.</span>
+<span class="sd">            state_q0: State at vapor quality 0 and the given pressure.</span>
+<span class="sd">            state_q1: State at vapor quality 1 and the given pressure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Get relevant states:</span>
+    <span class="n">state_q0</span> <span class="o">=</span> <span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">state_q1</span> <span class="o">=</span> <span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">Q_sc</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span>
+               <span class="nb">min</span><span class="p">((</span><span class="n">state_q0</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_min</span><span class="o">.</span><span class="n">h</span><span class="p">),</span>
+                   <span class="p">(</span><span class="n">state_max</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_min</span><span class="o">.</span><span class="n">h</span><span class="p">)))</span> <span class="o">*</span> <span class="n">m_flow</span>
+    <span class="n">Q_lat</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span>
+                <span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">state_max</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="n">state_q1</span><span class="o">.</span><span class="n">h</span><span class="p">)</span> <span class="o">-</span>
+                 <span class="nb">max</span><span class="p">(</span><span class="n">state_min</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="n">state_q0</span><span class="o">.</span><span class="n">h</span><span class="p">)))</span> <span class="o">*</span> <span class="n">m_flow</span>
+    <span class="n">Q_sh</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span>
+               <span class="nb">min</span><span class="p">((</span><span class="n">state_max</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_q1</span><span class="o">.</span><span class="n">h</span><span class="p">),</span>
+                   <span class="p">(</span><span class="n">state_max</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_min</span><span class="o">.</span><span class="n">h</span><span class="p">)))</span> <span class="o">*</span> <span class="n">m_flow</span>
+    <span class="k">return</span> <span class="n">Q_sc</span><span class="p">,</span> <span class="n">Q_lat</span><span class="p">,</span> <span class="n">Q_sh</span><span class="p">,</span> <span class="n">state_q0</span><span class="p">,</span> <span class="n">state_q1</span></div>
+
+
+<div class="viewcode-block" id="get_condenser_phase_temperatures_and_alpha"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.utils.get_condenser_phase_temperatures_and_alpha">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">get_condenser_phase_temperatures_and_alpha</span><span class="p">(</span>
+        <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span>
+        <span class="n">Q_sc</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Q_lat</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">Q_sh</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="n">heat_exchanger</span><span class="p">:</span> <span class="n">HeatExchanger</span>
+<span class="p">):</span>
+    <span class="n">cp</span> <span class="o">=</span> <span class="n">heat_exchanger</span><span class="o">.</span><span class="n">m_flow_secondary_cp</span>
+    <span class="n">Q</span> <span class="o">=</span> <span class="n">Q_sc</span> <span class="o">+</span> <span class="n">Q_lat</span> <span class="o">+</span> <span class="n">Q_sh</span>
+
+    <span class="c1"># Calculate secondary_medium side temperatures:</span>
+    <span class="c1"># Assumption loss is the same correlation for each regime</span>
+
+    <span class="c1"># Calculate secondary_medium side temperatures:</span>
+    <span class="c1"># Assumption loss is the same correlation for each regime</span>
+    <span class="k">if</span> <span class="n">inputs</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">uses_inlet</span><span class="p">:</span>
+        <span class="n">T_in</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">T_in</span>
+        <span class="n">T_sc</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">T_in</span> <span class="o">+</span> <span class="n">heat_exchanger</span><span class="o">.</span><span class="n">calc_secondary_Q_flow</span><span class="p">(</span><span class="n">Q_sc</span><span class="p">)</span> <span class="o">/</span> <span class="n">cp</span>
+        <span class="n">T_sh</span> <span class="o">=</span> <span class="n">T_sc</span> <span class="o">+</span> <span class="n">heat_exchanger</span><span class="o">.</span><span class="n">calc_secondary_Q_flow</span><span class="p">(</span><span class="n">Q_lat</span><span class="p">)</span> <span class="o">/</span> <span class="n">cp</span>
+        <span class="n">T_out</span> <span class="o">=</span> <span class="n">T_sh</span> <span class="o">+</span> <span class="n">heat_exchanger</span><span class="o">.</span><span class="n">calc_secondary_Q_flow</span><span class="p">(</span><span class="n">Q_sh</span><span class="p">)</span> <span class="o">/</span> <span class="n">cp</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">T_out</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">T_out</span>
+        <span class="n">T_sh</span> <span class="o">=</span> <span class="n">T_out</span> <span class="o">-</span> <span class="n">heat_exchanger</span><span class="o">.</span><span class="n">calc_secondary_Q_flow</span><span class="p">(</span><span class="n">Q_sh</span><span class="p">)</span> <span class="o">/</span> <span class="n">cp</span>
+        <span class="n">T_sc</span> <span class="o">=</span> <span class="n">T_sh</span> <span class="o">-</span> <span class="n">heat_exchanger</span><span class="o">.</span><span class="n">calc_secondary_Q_flow</span><span class="p">(</span><span class="n">Q_lat</span><span class="p">)</span> <span class="o">/</span> <span class="n">cp</span>
+        <span class="n">T_in</span> <span class="o">=</span> <span class="n">T_sc</span> <span class="o">-</span> <span class="n">heat_exchanger</span><span class="o">.</span><span class="n">calc_secondary_Q_flow</span><span class="p">(</span><span class="n">Q_sc</span><span class="p">)</span> <span class="o">/</span> <span class="n">cp</span>
+    <span class="k">return</span> <span class="n">T_in</span><span class="p">,</span> <span class="n">T_sc</span><span class="p">,</span> <span class="n">T_sh</span><span class="p">,</span> <span class="n">T_out</span></div>
+
+
+<div class="viewcode-block" id="plot_lmtd_vs_cold_out"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.utils.plot_lmtd_vs_cold_out">[docs]</a><span class="k">def</span><span class="w"> </span><span class="nf">plot_lmtd_vs_cold_out</span><span class="p">(</span><span class="n">T_hot_in</span><span class="p">,</span> <span class="n">T_hot_out</span><span class="p">,</span> <span class="n">dT_cold</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Plot LMTD over decreasing T_cold_out for counter flow.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        T_hot_in: Hot fluid inlet temperature (°C)</span>
+<span class="sd">        T_hot_out: Hot fluid outlet temperature (°C)</span>
+<span class="sd">        dT_cold: Cold fluid temperature difference (K)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+    <span class="c1"># Create array of T_cold_out values from T_hot_in down to below T_cold_in</span>
+    <span class="n">dT_min_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">0.0001</span><span class="p">)</span>
+    <span class="n">T_cold_out_values</span> <span class="o">=</span> <span class="n">T_hot_in</span> <span class="o">+</span> <span class="n">dT_min_values</span>
+
+    <span class="c1"># Calculate LMTD for each T_cold_out</span>
+    <span class="n">lmtd_values</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">calc_mean_temperature</span><span class="p">(</span><span class="n">T_hot_in</span><span class="p">,</span> <span class="n">T_hot_out</span><span class="p">,</span> <span class="n">T_cold_out</span> <span class="o">-</span> <span class="n">dT_cold</span><span class="p">,</span> <span class="n">T_cold_out</span><span class="p">,</span> <span class="s2">&quot;counter&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">T_cold_out</span> <span class="ow">in</span> <span class="n">T_cold_out_values</span>
+    <span class="p">]</span>
+
+    <span class="c1"># Create the plot</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">dT_min_values</span><span class="p">,</span> <span class="n">lmtd_values</span><span class="p">,</span> <span class="s1">&#39;b-&#39;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Add vertical lines for reference temperatures</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">T_hot_in</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;T_hot_in&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">T_hot_out</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;blue&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;T_hot_out&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Customize plot</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;$T_\mathrm{cold,out} - T_\mathrm{hot,in}$ in K&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s1">&#39;$\Delta T_\mathrm</span><span class="si">{LMTD}</span><span class="s1">$ in K&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s1">&#39;Log Mean Temperature Difference vs Cold Outlet Temperature</span><span class="se">\n</span><span class="s1">&#39;</span>
+              <span class="sa">f</span><span class="s1">&#39;(dT_hot=</span><span class="si">{</span><span class="n">T_hot_in</span><span class="o">-</span><span class="n">T_hot_out</span><span class="si">}</span><span class="s1"> K, dT_cold=</span><span class="si">{</span><span class="n">dT_cold</span><span class="si">}</span><span class="s1"> K)&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">plot_lmtd_vs_cold_out</span><span class="p">(</span><span class="n">T_hot_in</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">T_hot_out</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dT_cold</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

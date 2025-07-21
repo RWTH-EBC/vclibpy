@@ -1,0 +1,263 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.algorithms.base &mdash; vclibpy 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../../../_static/jquery.js"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/doctools.js"></script>
+      <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">vclibpy.algorithms.base</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for vclibpy.algorithms.base</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">abc</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.optimize</span><span class="w"> </span><span class="kn">import</span> <span class="n">fsolve</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCycle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">FlowsheetState</span>
+
+
+<div class="viewcode-block" id="Algorithm"><a class="viewcode-back" href="../../../code/vclibpy.algorithms.html#vclibpy.algorithms.base.Algorithm">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Algorithm</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABC</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class to define an algorithm which calculates</span>
+<span class="sd">    steady FlowsheetStates for given flowsheets and inputs.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        max_err (float):</span>
+<span class="sd">            Maximum allowable error for the heat exchanger in percent (default: 0.5).</span>
+<span class="sd">        save_path_plots (pathlib.Path, str or None):</span>
+<span class="sd">            The path to save plots (default: None).</span>
+<span class="sd">            If None, no plots are created.</span>
+<span class="sd">        dT_eva_start_guess (float):</span>
+<span class="sd">            Initial temperature difference guess for outlet-based calculation in evaporator</span>
+<span class="sd">        dT_pinch_eva_guess (float):</span>
+<span class="sd">            Initial pinch point temperature difference guess in evaporator (default: 0)</span>
+<span class="sd">        dT_con_start_guess (float):</span>
+<span class="sd">            Initial temperature difference guess for outlet-based calculation in condenser</span>
+<span class="sd">        dT_pinch_con_guess (float):</span>
+<span class="sd">            Initial pinch point temperature difference guess in condenser,</span>
+<span class="sd">            required for `improve_first_condensing_guess` (default: 0)</span>
+<span class="sd">        improve_first_condensing_guess (bool):</span>
+<span class="sd">            Improve the guess for condensing pressure for inlet-based calculation</span>
+<span class="sd">            using scipy fsolve. Requires a good guess of dT_pinch_con_guess.</span>
+<span class="sd">            (default: False)</span>
+<span class="sd">        p_min (float):</span>
+<span class="sd">            Minimal pressure allowed to ensure p&gt;0 at all times. (default: 10000)</span>
+<span class="sd">        raise_errors (bool):</span>
+<span class="sd">            If true, errors during solving will be raised. Default, False, will just</span>
+<span class="sd">            return None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize class with kwargs&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="s2">&quot;save_path_plots&quot;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_path_plots</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="s2">&quot;save_path_plots&quot;</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_path_plots</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_err</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;max_err&quot;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dT_eva_start_guess</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;dT_eva_start_guess&quot;</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dT_pinch_eva_guess</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;dT_pinch_eva_guess&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dT_con_start_guess</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;dT_con_start_guess&quot;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dT_pinch_con_guess</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;dT_pinch_con_guess&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">improve_first_condensing_guess</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;improve_first_condensing_guess&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_p_min</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;p_min&quot;</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raise_errors</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;raise_errors&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Algorithm.calc_steady_state"><a class="viewcode-back" href="../../../code/vclibpy.algorithms.html#vclibpy.algorithms.base.Algorithm.calc_steady_state">[docs]</a>    <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">calc_steady_state</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">flowsheet</span><span class="p">:</span> <span class="n">BaseCycle</span><span class="p">,</span>
+            <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span>
+            <span class="n">fluid</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">FlowsheetState</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the steady-state performance of a vapor compression cycle</span>
+<span class="sd">        based on given inputs and assumptions.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            flowsheet (BaseCycle):</span>
+<span class="sd">                The flowsheet to calculate the steady state for.</span>
+<span class="sd">            inputs (Inputs):</span>
+<span class="sd">                An instance of the Inputs class containing the</span>
+<span class="sd">                necessary parameters to calculate the flowsheet state.</span>
+<span class="sd">            fluid (str):</span>
+<span class="sd">                The fluid to be used in the calculations.</span>
+<span class="sd">                Required only if &#39;fluid&#39; is not specified during the object&#39;s initialization.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            fs_state (FlowsheetState):</span>
+<span class="sd">                An instance of the FlowsheetState class representing</span>
+<span class="sd">                the calculated state of the vapor compression cycle.</span>
+<span class="sd">            None: If an error occurs (which will be logged, not raised).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+<div class="viewcode-block" id="Algorithm.initial_setup"><a class="viewcode-back" href="../../../code/vclibpy.algorithms.html#vclibpy.algorithms.base.Algorithm.initial_setup">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">initial_setup</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">flowsheet</span><span class="p">:</span> <span class="n">BaseCycle</span><span class="p">,</span> <span class="n">fluid</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">FlowsheetState</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate values required for all algorithms at the initial setup</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            flowsheet (BaseCycle):</span>
+<span class="sd">                The flowsheet to calculate the steady state for.</span>
+<span class="sd">            inputs (Inputs):</span>
+<span class="sd">                An instance of the Inputs class containing the</span>
+<span class="sd">                necessary parameters to calculate the flowsheet state.</span>
+<span class="sd">            fluid (str):</span>
+<span class="sd">                The fluid to be used in the calculations.</span>
+<span class="sd">                Required only if &#39;fluid&#39; is not specified during the object&#39;s initialization.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            p_1_start: Start guess for p_1</span>
+<span class="sd">            p_2_start: Start guess for p_2</span>
+<span class="sd">            p_max: Maximal pressure (critical point)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Setup fluid:</span>
+        <span class="k">if</span> <span class="n">fluid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fluid</span> <span class="o">=</span> <span class="n">flowsheet</span><span class="o">.</span><span class="n">fluid</span>
+        <span class="n">flowsheet</span><span class="o">.</span><span class="n">setup_new_fluid</span><span class="p">(</span><span class="n">fluid</span><span class="p">)</span>
+
+        <span class="c1"># Get max and min pressure</span>
+        <span class="n">_</span><span class="p">,</span> <span class="n">_p_max</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">flowsheet</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">get_critical_point</span><span class="p">()</span>
+        <span class="n">p_1_start</span> <span class="o">=</span> <span class="n">flowsheet</span><span class="o">.</span><span class="n">get_start_evaporating_pressure</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">dT_pinch_guess</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dT_pinch_eva_guess</span><span class="p">,</span>
+            <span class="n">dT_start_guess</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dT_eva_start_guess</span>
+        <span class="p">)</span>
+        <span class="n">p_2_start</span> <span class="o">=</span> <span class="n">flowsheet</span><span class="o">.</span><span class="n">get_start_condensing_pressure</span><span class="p">(</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+            <span class="n">dT_start_guess</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dT_con_start_guess</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">improve_first_condensing_guess</span><span class="p">:</span>
+            <span class="n">p_2_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_improved_start_condensing_pressure</span><span class="p">(</span>
+                <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+                <span class="n">m_flow_guess</span><span class="o">=</span><span class="n">flowsheet</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">m_flow</span><span class="p">,</span>
+                <span class="n">p_2_guess</span><span class="o">=</span><span class="n">p_2_start</span>
+            <span class="p">)</span>
+        <span class="n">fs_state</span> <span class="o">=</span> <span class="n">FlowsheetState</span><span class="p">()</span>  <span class="c1"># Always log what is happening in the whole flowsheet</span>
+        <span class="n">inputs</span><span class="o">.</span><span class="n">add_inputs_to_fs_state</span><span class="p">(</span><span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Q_con&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;W&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Condenser heat flow rate&quot;</span><span class="p">)</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;COP&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Coefficient of performance&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">p_1_start</span><span class="p">,</span> <span class="n">p_2_start</span><span class="p">,</span> <span class="n">_p_max</span><span class="p">,</span> <span class="n">fs_state</span></div>
+
+<div class="viewcode-block" id="Algorithm.get_improved_start_condensing_pressure"><a class="viewcode-back" href="../../../code/vclibpy.algorithms.html#vclibpy.algorithms.base.Algorithm.get_improved_start_condensing_pressure">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_improved_start_condensing_pressure</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">flowsheet</span><span class="p">:</span> <span class="n">BaseCycle</span><span class="p">,</span>
+            <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span>
+            <span class="n">m_flow_guess</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="n">p_2_guess</span><span class="p">:</span> <span class="nb">float</span>
+    <span class="p">):</span>
+        <span class="n">flowsheet</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">m_flow_secondary</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">m_flow</span>  <span class="c1"># [kg/s]</span>
+        <span class="n">flowsheet</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">calc_secondary_cp</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="n">inputs</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">nonlinear_func</span><span class="p">(</span><span class="n">p_2</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+            <span class="n">_flowsheet</span><span class="p">,</span> <span class="n">_inputs</span><span class="p">,</span> <span class="n">_m_flow_ref</span><span class="p">,</span> <span class="n">_dT_pinch</span> <span class="o">=</span> <span class="n">args</span>
+            <span class="n">state_q0</span> <span class="o">=</span> <span class="n">_flowsheet</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_2</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">state_q1</span> <span class="o">=</span> <span class="n">_flowsheet</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">state_3</span> <span class="o">=</span> <span class="n">_flowsheet</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="n">p_2</span><span class="p">,</span> <span class="n">state_q0</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">_inputs</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">dT_con_subcooling</span><span class="p">)</span>
+            <span class="n">Q_water_till_q1</span> <span class="o">=</span> <span class="p">(</span><span class="n">state_q1</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_3</span><span class="o">.</span><span class="n">h</span><span class="p">)</span> <span class="o">*</span> <span class="n">_m_flow_ref</span>
+            <span class="n">T_water_q1</span> <span class="o">=</span> <span class="n">_inputs</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">T_in</span> <span class="o">+</span> <span class="n">Q_water_till_q1</span> <span class="o">/</span> <span class="n">_flowsheet</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">m_flow_secondary_cp</span>
+            <span class="k">return</span> <span class="n">T_water_q1</span> <span class="o">+</span> <span class="n">_dT_pinch</span> <span class="o">-</span> <span class="n">state_q1</span><span class="o">.</span><span class="n">T</span>
+
+        <span class="n">p_2_guess_optimized</span> <span class="o">=</span> <span class="n">fsolve</span><span class="p">(</span>
+            <span class="n">func</span><span class="o">=</span><span class="n">nonlinear_func</span><span class="p">,</span>
+            <span class="n">x0</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">p_2_guess</span><span class="p">]),</span>
+            <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">flowsheet</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">m_flow_guess</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dT_pinch_con_guess</span><span class="p">)</span>
+        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">p_2_guess_optimized</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

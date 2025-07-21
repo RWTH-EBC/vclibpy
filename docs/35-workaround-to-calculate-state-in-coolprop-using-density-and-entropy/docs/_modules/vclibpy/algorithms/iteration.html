@@ -1,0 +1,369 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.algorithms.iteration &mdash; vclibpy 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../../../_static/jquery.js"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/doctools.js"></script>
+      <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">vclibpy.algorithms.iteration</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for vclibpy.algorithms.iteration</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">FlowsheetState</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.algorithms.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">Algorithm</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCycle</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="Iteration"><a class="viewcode-back" href="../../../code/vclibpy.algorithms.html#vclibpy.algorithms.iteration.Iteration">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">Iteration</span><span class="p">(</span><span class="n">Algorithm</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Algorithm to calculate steady states with an iteration based approach.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        min_iteration_step (int):</span>
+<span class="sd">            The minimum step size for iterations (default: 1).</span>
+<span class="sd">        show_iteration (bool):</span>
+<span class="sd">            Whether to display iteration progress (default: False).</span>
+<span class="sd">        use_quick_solver (bool):</span>
+<span class="sd">            Whether to use a quick solver (default: True).</span>
+<span class="sd">        min_allowed_dT_min (float):</span>
+<span class="sd">            Allowable minimum temperature difference in K (default: 0.01).</span>
+<span class="sd">            This setting is relevant in combination with `max_err`.</span>
+<span class="sd">            If the error is bigger than the allowed error but the temperature difference</span>
+<span class="sd">            is lower than this value, the pressure won&#39;t be adjusted further.</span>
+<span class="sd">            If the heat exchanger is too big in some points the error</span>
+<span class="sd">            values will be larger than `max_err`, but if the temperature difference</span>
+<span class="sd">            approaches zero the area has no impact, as dT approaches zero.</span>
+<span class="sd">        max_num_iterations (int or None):</span>
+<span class="sd">            Maximum number of iterations allowed (default: None).</span>
+<span class="sd">        step_max (int):</span>
+<span class="sd">            Maximum step in pressure to take, used for use_quick_solver=True.</span>
+<span class="sd">            (default: 10000)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialize class with kwargs&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_iteration_step</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;min_iteration_step&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">show_iteration</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;show_iteration&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">use_quick_solver</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;use_quick_solver&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_allowed_dT_min</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;min_allowed_dT_min&quot;</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_num_iterations</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;max_num_iterations&quot;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mf">1e5</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">step_max</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;step_max&quot;</span><span class="p">,</span> <span class="mi">10000</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">return_least_error_if_max_reached</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;return_least_error_if_max_reached&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Iteration.calc_steady_state"><a class="viewcode-back" href="../../../code/vclibpy.algorithms.html#vclibpy.algorithms.iteration.Iteration.calc_steady_state">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_steady_state</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">flowsheet</span><span class="p">:</span> <span class="n">BaseCycle</span><span class="p">,</span>
+            <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span>
+            <span class="n">fluid</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="n">FlowsheetState</span><span class="p">,</span> <span class="kc">None</span><span class="p">]:</span>
+        <span class="n">flowsheet</span><span class="o">.</span><span class="n">iteration_converged</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="n">p_1_next</span><span class="p">,</span> <span class="n">p_2_next</span><span class="p">,</span> <span class="n">_p_max</span><span class="p">,</span> <span class="n">fs_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_setup</span><span class="p">(</span>
+            <span class="n">flowsheet</span><span class="o">=</span><span class="n">flowsheet</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fluid</span><span class="o">=</span><span class="n">fluid</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Settings</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_quick_solver</span><span class="p">:</span>
+            <span class="n">step_p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_max</span>
+            <span class="n">step_p2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_max</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">step_p1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_iteration_step</span>
+            <span class="n">step_p2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_iteration_step</span>
+
+        <span class="n">p_1_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">p_2_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">error_con_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">error_eva_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dT_eva_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">dT_con_history</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">error_con</span><span class="p">,</span> <span class="n">dT_min_eva</span><span class="p">,</span> <span class="n">dT_min_con</span><span class="p">,</span> <span class="n">error_eva</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">plot_last</span> <span class="o">=</span> <span class="o">-</span><span class="mi">100</span>
+
+        <span class="c1"># First: Iterate with given conditions to get the 4 states and the mass flow rate:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_iteration</span><span class="p">:</span>
+            <span class="n">fig_iterations</span><span class="p">,</span> <span class="n">ax_iterations</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">num_iterations</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">max_num_iterations</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">num_iterations</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_num_iterations</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Maximum number of iterations </span><span class="si">%s</span><span class="s2"> exceeded. Stopping.&quot;</span><span class="p">,</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">max_num_iterations</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">return_least_error_if_max_reached</span><span class="p">:</span>
+                        <span class="k">return</span>
+                    <span class="c1"># Try to find the best available solution</span>
+                    <span class="n">df_history</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+                        <span class="s2">&quot;p_1&quot;</span><span class="p">:</span> <span class="n">p_1_history</span><span class="p">,</span>
+                        <span class="s2">&quot;p_2&quot;</span><span class="p">:</span> <span class="n">p_2_history</span><span class="p">,</span>
+                        <span class="s2">&quot;error_con&quot;</span><span class="p">:</span> <span class="n">error_con_history</span><span class="p">,</span>
+                        <span class="s2">&quot;error_eva&quot;</span><span class="p">:</span> <span class="n">error_eva_history</span><span class="p">,</span>
+                        <span class="s2">&quot;dT_con&quot;</span><span class="p">:</span> <span class="n">dT_con_history</span><span class="p">,</span>
+                        <span class="s2">&quot;dT_eva&quot;</span><span class="p">:</span> <span class="n">dT_eva_history</span><span class="p">,</span>
+                    <span class="p">})</span>
+                    <span class="c1"># No errors left</span>
+                    <span class="n">df_history</span> <span class="o">=</span> <span class="n">df_history</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">df_history</span><span class="p">[</span><span class="s2">&quot;error_con&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">df_history</span><span class="p">[</span><span class="s2">&quot;error_eva&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)]</span>
+                    <span class="k">if</span> <span class="n">df_history</span><span class="o">.</span><span class="n">empty</span><span class="p">:</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;No iteration yielded pressures where heat transfer would be possible.&quot;</span><span class="p">)</span>
+                        <span class="k">return</span>
+                        <span class="c1"># Take the pressures with the least error</span>
+                    <span class="n">least_error_arg</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_history</span><span class="p">[</span><span class="s2">&quot;error_con&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="n">df_history</span><span class="p">[</span><span class="s2">&quot;error_eva&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">argmin</span><span class="p">()</span>
+                    <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;converged&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span>
+                        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Algorithm converged (1 true, 0 false)&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">return</span> <span class="n">flowsheet</span><span class="o">.</span><span class="n">calculate_outputs_for_valid_pressures</span><span class="p">(</span>
+                        <span class="n">p_1</span><span class="o">=</span><span class="n">df_history</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">least_error_arg</span><span class="p">][</span><span class="s2">&quot;p_1&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1e5</span><span class="p">,</span>
+                        <span class="n">p_2</span><span class="o">=</span><span class="n">df_history</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">least_error_arg</span><span class="p">][</span><span class="s2">&quot;p_2&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1e5</span><span class="p">,</span>
+                        <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">,</span>
+                        <span class="n">save_path_plots</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_path_plots</span>
+                    <span class="p">)</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">num_iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="p">(</span><span class="mf">0.1</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_num_iterations</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Info: </span><span class="si">%s</span><span class="s2"> percent of max_num_iterations </span><span class="si">%s</span><span class="s2"> used&quot;</span><span class="p">,</span>
+                                <span class="mi">100</span> <span class="o">*</span> <span class="p">(</span><span class="n">num_iterations</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_num_iterations</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_num_iterations</span><span class="p">)</span>
+
+            <span class="n">p_1</span> <span class="o">=</span> <span class="n">p_1_next</span>
+            <span class="n">p_2</span> <span class="o">=</span> <span class="n">p_2_next</span>
+            <span class="n">p_1_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_1</span> <span class="o">/</span> <span class="mf">1e5</span><span class="p">)</span>
+            <span class="n">p_2_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">p_2</span> <span class="o">/</span> <span class="mf">1e5</span><span class="p">)</span>
+            <span class="n">error_con_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error_con</span><span class="p">)</span>
+            <span class="n">error_eva_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">error_eva</span><span class="p">)</span>
+            <span class="n">dT_con_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dT_min_con</span><span class="p">)</span>
+            <span class="n">dT_eva_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dT_min_eva</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_iteration</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">ax</span> <span class="ow">in</span> <span class="n">ax_iterations</span><span class="o">.</span><span class="n">flatten</span><span class="p">():</span>
+                    <span class="n">ax</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+                <span class="n">iterations</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">p_1_history</span><span class="p">)))[</span><span class="n">plot_last</span><span class="p">:]</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;error_eva in %&quot;</span><span class="p">)</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;error_con in %&quot;</span><span class="p">)</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;$\Delta T_\mathrm</span><span class="si">{Min}</span><span class="s2">$ in K&quot;</span><span class="p">)</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;$\Delta T_\mathrm</span><span class="si">{Min}</span><span class="s2">$ in K&quot;</span><span class="p">)</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;$p_1$ in bar&quot;</span><span class="p">)</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;$p_2$ in bar&quot;</span><span class="p">)</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">iterations</span><span class="p">,</span> <span class="n">error_eva_history</span><span class="p">[</span><span class="n">plot_last</span><span class="p">:])</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">iterations</span><span class="p">,</span> <span class="n">error_con_history</span><span class="p">[</span><span class="n">plot_last</span><span class="p">:])</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">iterations</span><span class="p">,</span> <span class="n">dT_eva_history</span><span class="p">[</span><span class="n">plot_last</span><span class="p">:])</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">iterations</span><span class="p">,</span> <span class="n">dT_con_history</span><span class="p">[</span><span class="n">plot_last</span><span class="p">:])</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">iterations</span><span class="p">,</span> <span class="n">p_1_history</span><span class="p">[</span><span class="n">plot_last</span><span class="p">:])</span>
+                <span class="n">ax_iterations</span><span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">iterations</span><span class="p">,</span> <span class="n">p_2_history</span><span class="p">[</span><span class="n">plot_last</span><span class="p">:])</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">draw</span><span class="p">()</span>
+                <span class="n">plt</span><span class="o">.</span><span class="n">pause</span><span class="p">(</span><span class="mf">1e-5</span><span class="p">)</span>
+
+            <span class="c1"># Increase counter</span>
+            <span class="n">num_iterations</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="c1"># Check critical pressures:</span>
+            <span class="k">if</span> <span class="n">p_2</span> <span class="o">&gt;=</span> <span class="n">_p_max</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">step_p2</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_iteration_step</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Pressure too high. Inputs </span><span class="si">%s</span><span class="s2"> are infeasible.&quot;</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get_name</span><span class="p">())</span>
+                    <span class="k">return</span>
+                <span class="n">p_2_next</span> <span class="o">=</span> <span class="n">p_2</span> <span class="o">-</span> <span class="n">step_p2</span>
+                <span class="n">step_p2</span> <span class="o">/=</span> <span class="mi">10</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">p_1</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_p_min</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">p_1_next</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_iteration_step</span><span class="p">:</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Pressure too low. Inputs </span><span class="si">%s</span><span class="s2"> are infeasible.&quot;</span><span class="p">,</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get_name</span><span class="p">())</span>
+                    <span class="k">return</span>
+                <span class="n">p_1_next</span> <span class="o">=</span> <span class="n">p_1</span> <span class="o">+</span> <span class="n">step_p1</span>
+                <span class="n">step_p1</span> <span class="o">/=</span> <span class="mi">10</span>
+                <span class="k">continue</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">error_eva</span><span class="p">,</span> <span class="n">dT_min_eva</span><span class="p">,</span> <span class="n">error_con</span><span class="p">,</span> <span class="n">dT_min_con</span> <span class="o">=</span> <span class="n">flowsheet</span><span class="o">.</span><span class="n">calculate_cycle_for_pressures</span><span class="p">(</span>
+                    <span class="n">p_1</span><span class="o">=</span><span class="n">p_1</span><span class="p">,</span> <span class="n">p_2</span><span class="o">=</span><span class="n">p_2</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span>
+                <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span>
+                    <span class="s2">&quot;An error occurred while calculating states. &quot;</span>
+                    <span class="s2">&quot;Can&#39;t guess next pressures for inputs </span><span class="si">%s</span><span class="s2">, thus, exiting: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">inputs</span><span class="o">.</span><span class="n">get_name</span><span class="p">(),</span> <span class="n">err</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">raise_errors</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">err</span>
+                <span class="k">return</span>
+
+            <span class="k">if</span> <span class="n">num_iterations</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_path_plots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_iteration</span><span class="p">:</span>
+                    <span class="n">input_name</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span>
+                    <span class="n">flowsheet</span><span class="o">.</span><span class="n">plot_cycle</span><span class="p">(</span>
+                        <span class="n">save_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_path_plots</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">input_name</span><span class="si">}</span><span class="s2">_initialization.png&quot;</span><span class="p">),</span>
+                        <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span>
+                    <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">error_eva</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">error_eva</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">error_eva</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">p_1_next</span> <span class="o">=</span> <span class="n">p_1</span> <span class="o">-</span> <span class="n">step_p1</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">step_p1</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_iteration_step</span><span class="p">:</span>
+                    <span class="n">p_1_next</span> <span class="o">=</span> <span class="n">p_1</span> <span class="o">+</span> <span class="n">step_p1</span>
+                    <span class="n">step_p1</span> <span class="o">/=</span> <span class="mi">10</span>
+                    <span class="k">continue</span>
+                <span class="c1"># Only increase if the error is bigger than zero (or the allowed error) and</span>
+                <span class="c1"># there is still a temperature difference left to change.</span>
+                <span class="k">elif</span> <span class="n">error_eva</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_err</span> <span class="ow">and</span> <span class="n">dT_min_eva</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_allowed_dT_min</span><span class="p">:</span>
+                    <span class="n">step_p1</span> <span class="o">=</span> <span class="mi">1000</span>
+                    <span class="n">p_1_next</span> <span class="o">=</span> <span class="n">p_1</span> <span class="o">+</span> <span class="n">step_p1</span>
+                    <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="n">error_con</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">p_2_next</span> <span class="o">=</span> <span class="n">p_2</span> <span class="o">+</span> <span class="n">step_p2</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">step_p2</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_iteration_step</span><span class="p">:</span>
+                    <span class="n">p_2_next</span> <span class="o">=</span> <span class="n">p_2</span> <span class="o">-</span> <span class="n">step_p2</span>
+                    <span class="n">step_p2</span> <span class="o">/=</span> <span class="mi">10</span>
+                    <span class="k">continue</span>
+                <span class="c1"># Only decrease if the error is bigger than zero (or the allowed error) and</span>
+                <span class="c1"># there is still a temperature difference left to change.</span>
+                <span class="k">elif</span> <span class="n">error_con</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_err</span> <span class="ow">and</span> <span class="n">dT_min_con</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_allowed_dT_min</span><span class="p">:</span>
+                    <span class="n">p_2_next</span> <span class="o">=</span> <span class="n">p_2</span> <span class="o">-</span> <span class="n">step_p2</span>
+                    <span class="n">step_p2</span> <span class="o">=</span> <span class="mi">1000</span>
+                    <span class="k">continue</span>
+
+            <span class="c1"># If still here, and the values are equal, we may break.</span>
+            <span class="k">if</span> <span class="n">p_1</span> <span class="o">==</span> <span class="n">p_1_next</span> <span class="ow">and</span> <span class="n">p_2</span> <span class="o">==</span> <span class="n">p_2_next</span><span class="p">:</span>
+                <span class="c1"># Check if solution was too far away. If so, jump back</span>
+                <span class="c1"># And decrease the iteration step by factor 10.</span>
+                <span class="k">if</span> <span class="n">step_p2</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_iteration_step</span><span class="p">:</span>
+                    <span class="n">p_2_next</span> <span class="o">=</span> <span class="n">p_2</span> <span class="o">-</span> <span class="n">step_p2</span>
+                    <span class="n">step_p2</span> <span class="o">/=</span> <span class="mi">10</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">step_p1</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_iteration_step</span><span class="p">:</span>
+                    <span class="n">p_1_next</span> <span class="o">=</span> <span class="n">p_1</span> <span class="o">+</span> <span class="n">step_p1</span>
+                    <span class="n">step_p1</span> <span class="o">/=</span> <span class="mi">10</span>
+                    <span class="k">continue</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Breaking: Converged&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+
+            <span class="c1"># Check if values are not converging at all:</span>
+            <span class="n">p_1_unique</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">p_1_history</span><span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">:])</span>
+            <span class="n">p_2_unique</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">p_2_history</span><span class="p">[</span><span class="o">-</span><span class="mi">10</span><span class="p">:])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">p_1_unique</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">p_2_unique</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> \
+                    <span class="ow">and</span> <span class="n">step_p1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_iteration_step</span> <span class="ow">and</span> <span class="n">step_p2</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_iteration_step</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="s2">&quot;Breaking: not converging at all&quot;</span><span class="p">)</span>
+                <span class="k">break</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_iteration</span><span class="p">:</span>
+            <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig_iterations</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_path_plots</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span>
+                    <span class="s2">&quot;p_1&quot;</span><span class="p">:</span> <span class="n">p_1_history</span><span class="p">,</span>
+                    <span class="s2">&quot;p_2&quot;</span><span class="p">:</span> <span class="n">p_2_history</span><span class="p">,</span>
+                    <span class="s2">&quot;error_con&quot;</span><span class="p">:</span> <span class="n">error_con_history</span><span class="p">,</span>
+                    <span class="s2">&quot;error_eva&quot;</span><span class="p">:</span> <span class="n">error_eva_history</span><span class="p">,</span>
+                    <span class="s2">&quot;dT_con&quot;</span><span class="p">:</span> <span class="n">dT_con_history</span><span class="p">,</span>
+                    <span class="s2">&quot;dT_eva&quot;</span><span class="p">:</span> <span class="n">dT_eva_history</span><span class="p">,</span>
+                <span class="p">})</span><span class="o">.</span><span class="n">to_excel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">save_path_plots</span><span class="o">.</span><span class="n">joinpath</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">inputs</span><span class="o">.</span><span class="n">get_name</span><span class="p">()</span><span class="si">}</span><span class="s2">.xlsx&quot;</span><span class="p">))</span>
+
+        <span class="n">flowsheet</span><span class="o">.</span><span class="n">iteration_converged</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;converged&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Algorithm converged (1 true, 0 false)&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">flowsheet</span><span class="o">.</span><span class="n">calculate_outputs_for_valid_pressures</span><span class="p">(</span>
+            <span class="n">p_1</span><span class="o">=</span><span class="n">p_1</span><span class="p">,</span> <span class="n">p_2</span><span class="o">=</span><span class="n">p_2</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">,</span>
+            <span class="n">save_path_plots</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">save_path_plots</span>
+        <span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

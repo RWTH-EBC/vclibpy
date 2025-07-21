@@ -1,0 +1,34 @@
+vclibpy.algorithms package
+==========================
+
+.. automodule:: vclibpy.algorithms
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Submodules
+----------
+
+vclibpy.algorithms.base module
+------------------------------
+
+.. automodule:: vclibpy.algorithms.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.algorithms.fsolve module
+--------------------------------
+
+.. automodule:: vclibpy.algorithms.fsolve
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vclibpy.algorithms.iteration module
+-----------------------------------
+
+.. automodule:: vclibpy.algorithms.iteration
+   :members:
+   :undoc-members:
+   :show-inheritance:
