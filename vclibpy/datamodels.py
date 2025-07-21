@@ -160,16 +160,15 @@ class HeatExchangerInputs(VariableContainer):
     Class defining inputs for a heat exchanger.
 
     Note that some inputs presuppose each other. The equation
-    Q = m_flow * cp * abs(T_out - T_in) = m_flow * cp * dT
-    must be satisfied. For example, if you provide T_in, T_out, and cp, the code
-    will calculate Q and dT. If you provide T_in, dT, and cp, it will calculate
-    T_out and Q.
+    `Q = m_flow * cp * abs(T_out - T_in) = m_flow * cp * dT`
+    must be satisfied. For example, if you provide `T_in`, `T_out`, and `cp`, the code
+    will calculate `Q` and `dT`. If you provide `T_in`, `dT`, and `cp`, it will calculate
+    `T_out` and `Q`.
 
-    The amount of required inputs depends on the control inputs you specify.
-    For example, when providing dT_superheating, dT_subcooling, and n,
-    at least two other arguments (e.g., T_in and T_out) must be provided.
-    However, you always have to specify either T_in or T_out to define
+    For the current calculations, you have to specify least two other arguments (e.g., `T_in` and `T_out`).
+    You always have to specify either `T_in` or `T_out` to define
     the absolute temperature levels.
+    The mass flow rate, temperature difference or other temperature presuppose each other.
 
     Args:
         T_in (float, optional): Secondary side inlet temperature in [K].
@@ -327,9 +326,9 @@ class RelativeCompressorSpeedControl(ControlInputs):
 
     def __init__(
             self,
-            n: float,
-            dT_eva_superheating: float,
-            dT_con_subcooling: float,
+            n: float = 0,
+            dT_eva_superheating: float = 0,
+            dT_con_subcooling: float = 0,
     ):
         """
         Initializes a ControlInputs object with parameters representing external conditions
@@ -371,9 +370,9 @@ class CondenserPowerControl(ControlInputs):
 
     def __init__(
             self,
-            Q_con: float,
-            dT_eva_superheating: float,
-            dT_con_subcooling: float,
+            Q_con: float = 0,
+            dT_eva_superheating: float = 0,
+            dT_con_subcooling: float = 0,
     ):
         """
         Initializes a ControlInputs object with parameters representing external conditions
@@ -433,26 +432,6 @@ class Inputs:
         self.control = control
         self.evaporator = evaporator
         self.condenser = condenser
-
-    def get(self, name: str, default: Any = None):
-        """
-        Get the Variable with the specified name.
-
-        Args:
-            name (str): The name of the variable.
-            default (Any): Default value to return if the variable is not found.
-
-        Returns:
-            Variable: The Variable object.
-
-        """
-        if name in self.condenser.get_variable_names():
-            return self.condenser.get(name, default)
-        if name in self.control.get_variable_names():
-            return self.control.get(name, default)
-        if name in self.evaporator.get_variable_names():
-            return self.evaporator.get(name, default)
-        return default
 
     def get_name(self):
         """Get the name based on variable names and rounded values"""
