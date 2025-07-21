@@ -34,9 +34,9 @@ def main():
     # the argument `inputs` and `fs_state`. The whole concept of the two
     # classes are explained in the third example. For now, we just instantiate
     # the classes and pass a relative compressor speed of 50 % (0.5) as an input.
-    from vclibpy import FlowsheetState, Inputs
+    from vclibpy import FlowsheetState, Inputs, RelativeCompressorSpeedControl
     fs_state = FlowsheetState()
-    inputs = Inputs(n=0.5)
+    inputs = Inputs(control=RelativeCompressorSpeedControl(n=0.5))
     # Now, we can calculate multiple things.
     # ### Outlet state
     # While the constant efficiency compressor does not rely on any
@@ -80,7 +80,10 @@ def main():
     m_flows = []
     speeds = np.arange(0, 1, 0.1)
     for speed in speeds:
-        m_flows.append(constant_efficiency_compressor.calc_m_flow(Inputs(n=speed), fs_state=fs_state))
+        m_flows.append(constant_efficiency_compressor.calc_m_flow(
+            inputs=Inputs(RelativeCompressorSpeedControl(n=speed)),
+            fs_state=fs_state
+        ))
     # Let's plot the results:
     import matplotlib.pyplot as plt
     plt.plot(speeds, m_flows)

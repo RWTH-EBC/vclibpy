@@ -102,8 +102,8 @@ def main(use_condenser_inlet: bool = True):
     # Now, we can plot variables, for example as a scatter plot using matplotlib.
     # You have to know the names, which are the column headers.
     import matplotlib.pyplot as plt
-    x_name = "n in - (Relative compressor speed)"
-    y_name = "COP in - (Coefficient of performance)"
+    x_name = "n"
+    y_name = "COP"
     plt.scatter(df[x_name], df[y_name], s=20)
     plt.ylabel(y_name)
     plt.xlabel(x_name)
