@@ -117,9 +117,9 @@ We assume a super-heated vapor at 1bar as an input state:</p>
 the argument <code class="docutils literal notranslate"><span class="pre">inputs</span></code> and <code class="docutils literal notranslate"><span class="pre">fs_state</span></code>. The whole concept of the two
 classes are explained in the third example. For now, we just instantiate
 the classes and pass a relative compressor speed of 50 % (0.5) as an input.</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">RelativeCompressorSpeedControl</span>
 <span class="n">fs_state</span> <span class="o">=</span> <span class="n">FlowsheetState</span><span class="p">()</span>
-<span class="n">inputs</span> <span class="o">=</span> <span class="n">Inputs</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">inputs</span> <span class="o">=</span> <span class="n">Inputs</span><span class="p">(</span><span class="n">control</span><span class="o">=</span><span class="n">RelativeCompressorSpeedControl</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mf">0.5</span><span class="p">))</span>
 </pre></div>
 </div>
 <p>Now, we can calculate multiple things.</p>
@@ -177,7 +177,10 @@ The function <code class="docutils literal notranslate"><span class="pre">calc_m
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">m_flows</span> <span class="o">=</span> <span class="p">[]</span>
 <span class="n">speeds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">speed</span> <span class="ow">in</span> <span class="n">speeds</span><span class="p">:</span>
-    <span class="n">m_flows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">calc_m_flow</span><span class="p">(</span><span class="n">Inputs</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">speed</span><span class="p">),</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">))</span>
+    <span class="n">m_flows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">constant_efficiency_compressor</span><span class="o">.</span><span class="n">calc_m_flow</span><span class="p">(</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">Inputs</span><span class="p">(</span><span class="n">RelativeCompressorSpeedControl</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="n">speed</span><span class="p">)),</span>
+        <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span>
+    <span class="p">))</span>
 </pre></div>
 </div>
 <p>Let’s plot the results:</p>

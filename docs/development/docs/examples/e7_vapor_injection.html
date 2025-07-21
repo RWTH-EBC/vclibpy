@@ -133,7 +133,7 @@ use two smaller compressors instead of one larger one:</p>
 </pre></div>
 </div>
 <p>Now, we can plug everything into the flowsheet:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">heat_pump</span> <span class="o">=</span> <span class="n">VaporInjectionPhaseSeparator</span><span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">flowsheet</span> <span class="o">=</span> <span class="n">VaporInjectionPhaseSeparator</span><span class="p">(</span>
     <span class="n">evaporator</span><span class="o">=</span><span class="n">evaporator</span><span class="p">,</span>
     <span class="n">condenser</span><span class="o">=</span><span class="n">condenser</span><span class="p">,</span>
     <span class="n">fluid</span><span class="o">=</span><span class="s2">&quot;Propane&quot;</span><span class="p">,</span>
@@ -161,7 +161,7 @@ and get, for example, all messages equal or above the INFO-level</p>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
 <span class="n">utils</span><span class="o">.</span><span class="n">full_factorial_map_generation</span><span class="p">(</span>
-    <span class="n">heat_pump</span><span class="o">=</span><span class="n">heat_pump</span><span class="p">,</span>
+    <span class="n">flowsheet</span><span class="o">=</span><span class="n">flowsheet</span><span class="p">,</span>
     <span class="n">save_path</span><span class="o">=</span><span class="n">save_path</span><span class="p">,</span>
     <span class="n">T_con</span><span class="o">=</span><span class="n">T_con</span><span class="p">,</span>
     <span class="n">T_eva_in</span><span class="o">=</span><span class="n">T_eva_in</span><span class="p">,</span>
@@ -204,7 +204,7 @@ The assumptions are similar, and the usage as well:</p>
 </pre></div>
 </div>
 <p>And create the heat pump, and run the map generation:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">heat_pump</span> <span class="o">=</span> <span class="n">VaporInjectionEconomizer</span><span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">flowsheet</span> <span class="o">=</span> <span class="n">VaporInjectionEconomizer</span><span class="p">(</span>
     <span class="n">evaporator</span><span class="o">=</span><span class="n">evaporator</span><span class="p">,</span>
     <span class="n">condenser</span><span class="o">=</span><span class="n">condenser</span><span class="p">,</span>
     <span class="n">fluid</span><span class="o">=</span><span class="s2">&quot;Propane&quot;</span><span class="p">,</span>
@@ -215,7 +215,7 @@ The assumptions are similar, and the usage as well:</p>
     <span class="n">low_pressure_valve</span><span class="o">=</span><span class="n">low_pressure_valve</span>
 <span class="p">)</span>
 <span class="n">utils</span><span class="o">.</span><span class="n">full_factorial_map_generation</span><span class="p">(</span>
-    <span class="n">heat_pump</span><span class="o">=</span><span class="n">heat_pump</span><span class="p">,</span>
+    <span class="n">flowsheet</span><span class="o">=</span><span class="n">flowsheet</span><span class="p">,</span>
     <span class="n">save_path</span><span class="o">=</span><span class="sa">r</span><span class="s2">&quot;D:\00_temp\vapor_injection_economizer&quot;</span><span class="p">,</span>
     <span class="n">T_con</span><span class="o">=</span><span class="n">T_con</span><span class="p">,</span>
     <span class="n">T_eva_in</span><span class="o">=</span><span class="n">T_eva_in</span><span class="p">,</span>

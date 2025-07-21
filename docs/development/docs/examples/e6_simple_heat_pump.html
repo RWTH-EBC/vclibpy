@@ -127,7 +127,7 @@ using vclibpy, including off-design, but this is one for another example.</p>
 </pre></div>
 </div>
 <p>Now, we can plug everything into the flowsheet:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">heat_pump</span> <span class="o">=</span> <span class="n">StandardCycle</span><span class="p">(</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">flowsheet</span> <span class="o">=</span> <span class="n">StandardCycle</span><span class="p">(</span>
     <span class="n">evaporator</span><span class="o">=</span><span class="n">evaporator</span><span class="p">,</span>
     <span class="n">condenser</span><span class="o">=</span><span class="n">condenser</span><span class="p">,</span>
     <span class="n">fluid</span><span class="o">=</span><span class="s2">&quot;Propane&quot;</span><span class="p">,</span>
@@ -155,7 +155,7 @@ and get, for example, all messages equal or above the INFO-level</p>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
 <span class="n">save_path_sdf</span><span class="p">,</span> <span class="n">save_path_csv</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">full_factorial_map_generation</span><span class="p">(</span>
-    <span class="n">heat_pump</span><span class="o">=</span><span class="n">heat_pump</span><span class="p">,</span>
+    <span class="n">flowsheet</span><span class="o">=</span><span class="n">flowsheet</span><span class="p">,</span>
     <span class="n">save_path</span><span class="o">=</span><span class="n">save_path</span><span class="p">,</span>
     <span class="n">T_con</span><span class="o">=</span><span class="n">T_con</span><span class="p">,</span>
     <span class="n">T_eva_in</span><span class="o">=</span><span class="n">T_eva_in</span><span class="p">,</span>
@@ -185,8 +185,8 @@ files in the save-path - or just open it in our default system explorer.</p>
 <p>Now, we can plot variables, for example as a scatter plot using matplotlib.
 You have to know the names, which are the column headers.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
-<span class="n">x_name</span> <span class="o">=</span> <span class="s2">&quot;n in - (Relative compressor speed)&quot;</span>
-<span class="n">y_name</span> <span class="o">=</span> <span class="s2">&quot;COP in - (Coefficient of performance)&quot;</span>
+<span class="n">x_name</span> <span class="o">=</span> <span class="s2">&quot;n&quot;</span>
+<span class="n">y_name</span> <span class="o">=</span> <span class="s2">&quot;COP&quot;</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">x_name</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">y_name</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">y_name</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">x_name</span><span class="p">)</span>

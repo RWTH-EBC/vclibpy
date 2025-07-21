@@ -76,55 +76,21 @@
 <h1>Inputs and FlowsheetState<a class="headerlink" href="#inputs-and-flowsheetstate" title="Permalink to this heading"></a></h1>
 <p>This example demonstrates how to use the classes <code class="docutils literal notranslate"><span class="pre">Inputs</span></code>,
 and <code class="docutils literal notranslate"><span class="pre">FlowsheetState</span></code></p>
-<p>All Variables in the <code class="docutils literal notranslate"><span class="pre">Inputs</span></code> and <code class="docutils literal notranslate"><span class="pre">FlowsheetState</span></code> will be saved in
-output formats like .csv or .sdf
-Thus, the concept of these two classes is important to
-understand and analyze simulations in VcLibPy.</p>
-<section id="inputs">
-<h2>Inputs<a class="headerlink" href="#inputs" title="Permalink to this heading"></a></h2>
-<p>All external boundary conditions which act on the vapor compression
-cycle may be inputs. This could be the compressor speed, ambient temperature,
-or the inlet temperatures and mass flow rates of the secondary side
-in the heat exchangers.
-You can see all default options by just printing the empty instance:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inputs</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">Inputs</span><span class="p">())</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">k_vapor_injection</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;k_vapor_injection&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">k_vapor_injection</span><span class="p">,</span>
+            <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Calculates the injection pressure level according to &quot;</span>
+                        <span class="s2">&quot;k_vapor_injection * np.sqrt(p_1 * p_2)&quot;</span>
+        <span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">VaporInjectionCompressorControl</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">k_vapor_injection</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span><span class="o">.</span><span class="n">get_variables</span><span class="p">())</span>
 </pre></div>
 </div>
-<p>Currently, the flowsheets need all of these parameters, except for
-the ambient temperature. This is only required for heat loss estimations or
-efficiency calculations in certain models.
-Handling all the inputs in one object makes it easy for component models
-to access any relevant data it needs. Also, you can add new inputs
-as you like. For instance, let’s say you want to control the pressure
-level ratio, at which vapor is injected in the vapor-injection flowsheets.
-Here, the flowsheets can act on the input <code class="docutils literal notranslate"><span class="pre">k_vapor_injection</span></code>. The default is 1.
-You can set custom inputs like this:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">inputs</span> <span class="o">=</span> <span class="n">Inputs</span><span class="p">()</span>
-<span class="n">inputs</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;k_vapor_injection&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Optional arguments of the <code class="docutils literal notranslate"><span class="pre">set</span></code> function are unit and description.
-You should pass those along with the name and value to make
-your results easier to analyze, for others and your future self:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">inputs</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;k_vapor_injection&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.05</span><span class="p">,</span>
-    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span>
-    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Calculates the injection pressure level according to &quot;</span>
-                <span class="s2">&quot;k_vapor_injection * np.sqrt(p_1 * p_2)&quot;</span>
-<span class="p">)</span>
-</pre></div>
-</div>
-<p>The <code class="docutils literal notranslate"><span class="pre">set</span></code> function registers a Variable in the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> object.
-You can get different information types like this:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">inputs</span><span class="o">.</span><span class="n">get_variables</span><span class="p">()</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">inputs</span><span class="o">.</span><span class="n">get_variable_names</span><span class="p">()</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">inputs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;k_vapor_injection&#39;</span><span class="p">)</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">inputs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># To loop over the variable dict.</span>
-</pre></div>
-</div>
-</section>
 <section id="flowsheetstate">
 <h2>FlowsheetState<a class="headerlink" href="#flowsheetstate" title="Permalink to this heading"></a></h2>
 <p>The class <code class="docutils literal notranslate"><span class="pre">FlowsheetState</span></code> is essentially the same as <code class="docutils literal notranslate"><span class="pre">Inputs</span></code>.
@@ -133,8 +99,8 @@ compression cycle like COP, heat flow rate, temperatures, etc.
 Basically, anything a users might be interested in analyzing when
 simulating a steady state vapor compression cycle.
 As the outputs are flowsheet specific, we define no default
-Variables in the <code class="docutils literal notranslate"><span class="pre">FlowsheetState</span></code> as with <code class="docutils literal notranslate"><span class="pre">Inputs</span></code>.
-However, you can set variables the same way as with <code class="docutils literal notranslate"><span class="pre">Inputs</span></code>:</p>
+Variables in the <code class="docutils literal notranslate"><span class="pre">FlowsheetState</span></code>.
+However, you can set variables the same way as with <code class="docutils literal notranslate"><span class="pre">ControlInputs</span></code> or <code class="docutils literal notranslate"><span class="pre">HeatExchangerInputs</span></code>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span>
 <span class="n">fs_state</span> <span class="o">=</span> <span class="n">FlowsheetState</span><span class="p">()</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">fs_state</span><span class="p">)</span>

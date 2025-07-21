@@ -73,7 +73,7 @@ Further, the inputs need to contain the evaporator inlet temperature T_eva_in an
 the evaporator mass flow rate (secondary side):
 
 ```python
-from vclibpy import FlowsheetState, Inputs
+from vclibpy import FlowsheetState, Inputs, RelativeCompressorSpeedControl, HeatExchangerInputs
 fs_state = FlowsheetState()
 from vclibpy.media import CoolProp
 med_prop = CoolProp(fluid_name="Propane")
@@ -89,17 +89,27 @@ evaporator.start_secondary_med_prop()
 ```
 
 Let's assume  a superheat of 10 K and a condenser subcooling of 0 K.
+As described in example 4, all control variables go into the `Inputs` part
+`control`, in our case `RelativeCompressorSpeedControl`.
 With an isenthalp expansion valve, the inlet and outlet are given.
 Further, let's assume a condensation temperature of 40 °C and
-an air temperature of 2 °C, corresponding to the typical heat pump point A2W25
+an air temperature of 2 °C, the evaporator inlet temperature,
+corresponding to the typical heat pump point A2W25.
+As a typical value, we assume 3 K temperature spread for air-source devices.
 
 ```python
 T_eva_in = 273.15 + 2
 dT_eva_superheating = 10
 dT_con_subcooling = 0
 inputs = Inputs(
-    T_eva_in=T_eva_in, m_flow_eva=0.47,
-    dT_eva_superheating=dT_eva_superheating, dT_con_subcooling=dT_con_subcooling
+    control=RelativeCompressorSpeedControl(
+        dT_eva_superheating=dT_eva_superheating,
+        dT_con_subcooling=dT_con_subcooling
+    ),
+    evaporator=HeatExchangerInputs(
+        T_in=T_eva_in,
+        dT=3
+    )
 )
 ```
 
@@ -118,6 +128,12 @@ evaporator.state_inlet = med_prop.calc_state("PH", p_evaporation, state_condense
 T_evaporation = med_prop.calc_state("PQ", p_evaporation, 1).T
 evaporator.state_outlet = med_prop.calc_state("PT", p_evaporation, T_evaporation + dT_eva_superheating)
 print(evaporator.calc_Q_flow())
+```
+
+Also, we need to calculate the media properties of the secondary side medium at a given temperature and pressure
+
+```python
+evaporator.calc_secondary_cp(T=T_eva_in, p=1e5)
 ```
 
 What do they mean?
@@ -187,7 +203,7 @@ errors, dT_mins, p_evaporations = [], [], []  # Store for later plotting
 while n_iteration < max_iterations:
     evaporator.state_inlet = med_prop.calc_state("PH", p_eva_next, state_condenser_outlet.h)
     T_eva = med_prop.calc_state("PQ", p_eva_next, 1).T
-    evaporator.state_outlet = med_prop.calc_state("PT", p_eva_next, T_eva + inputs.get("dT_eva_superheating").value)
+    evaporator.state_outlet = med_prop.calc_state("PT", p_eva_next, T_eva + dT_eva_superheating)
     error, dT_min = evaporator.calc(inputs=inputs, fs_state=fs_state)
     # Store for later plotting
     errors.append(error)
@@ -248,9 +264,8 @@ plt.plot(
     [state.T - 273.15 for state in states_to_plot],
     marker="s", color="red"
 )
-Q_flow = evaporator.calc_Q_flow()
 T_eva_in = T_eva_in - 273.15
-T_eva_out = T_eva_in - Q_flow / inputs.get("m_flow_eva").value / 1000
+T_eva_out = T_eva_in - inputs.evaporator.dT
 plt.plot(
     [evaporator.state_outlet.h / 1000, evaporator.state_inlet.h / 1000],
     [T_eva_in, T_eva_out],

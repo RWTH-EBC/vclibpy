@@ -3,60 +3,20 @@
 This example demonstrates how to use the classes `Inputs`,
 and `FlowsheetState`
 
-All Variables in the `Inputs` and `FlowsheetState` will be saved in
-output formats like .csv or .sdf
-Thus, the concept of these two classes is important to
-understand and analyze simulations in VcLibPy.
-
-## Inputs
-All external boundary conditions which act on the vapor compression
-cycle may be inputs. This could be the compressor speed, ambient temperature,
-or the inlet temperatures and mass flow rates of the secondary side
-in the heat exchangers.
-You can see all default options by just printing the empty instance:
-
 ```python
-from vclibpy import Inputs
-print(Inputs())
-```
-
-Currently, the flowsheets need all of these parameters, except for
-the ambient temperature. This is only required for heat loss estimations or
-efficiency calculations in certain models.
-Handling all the inputs in one object makes it easy for component models
-to access any relevant data it needs. Also, you can add new inputs
-as you like. For instance, let's say you want to control the pressure
-level ratio, at which vapor is injected in the vapor-injection flowsheets.
-Here, the flowsheets can act on the input `k_vapor_injection`. The default is 1.
-You can set custom inputs like this:
-
-```python
-inputs = Inputs()
-inputs.set(name="k_vapor_injection", value=1.05)
-print(inputs)
-```
-
-Optional arguments of the `set` function are unit and description.
-You should pass those along with the name and value to make
-your results easier to analyze, for others and your future self:
-
-```python
-inputs.set(
-    name="k_vapor_injection", value=1.05,
-    unit="-",
-    description="Calculates the injection pressure level according to "
-                "k_vapor_injection * np.sqrt(p_1 * p_2)"
-)
-```
-
-The `set` function registers a Variable in the `inputs` object.
-You can get different information types like this:
-
-```python
-print(f"{inputs.get_variables()=}")
-print(f"{inputs.get_variable_names()=}")
-print(f"{inputs.get(name='k_vapor_injection')=}")
-print(f"{inputs.items()=}")  # To loop over the variable dict.
+    def __init__(
+            self,
+            k_vapor_injection: float = 1,
+            **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.set(
+            name="k_vapor_injection", value=k_vapor_injection,
+            unit="-",
+            description="Calculates the injection pressure level according to "
+                        "k_vapor_injection * np.sqrt(p_1 * p_2)"
+        )
+print(VaporInjectionCompressorControl(n=0.2, k_vapor_injection=0.9).get_variables())
 ```
 
 ## FlowsheetState
@@ -66,8 +26,8 @@ compression cycle like COP, heat flow rate, temperatures, etc.
 Basically, anything a users might be interested in analyzing when
 simulating a steady state vapor compression cycle.
 As the outputs are flowsheet specific, we define no default
-Variables in the `FlowsheetState` as with `Inputs`.
-However, you can set variables the same way as with `Inputs`:
+Variables in the `FlowsheetState`.
+However, you can set variables the same way as with `ControlInputs` or `HeatExchangerInputs`.
 
 ```python
 from vclibpy import FlowsheetState
