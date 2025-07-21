@@ -1,0 +1,324 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.algorithms package &mdash; vclibpy 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../_static/jquery.js"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+      <script src="../_static/doctools.js"></script>
+      <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="vclibpy.components package" href="vclibpy.components.html" />
+    <link rel="prev" title="vclibpy package" href="vclibpy.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">vclibpy</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="vclibpy.html">vclibpy package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="vclibpy.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">vclibpy.algorithms package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.components.html">vclibpy.components package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.flowsheets.html">vclibpy.flowsheets package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.media.html">vclibpy.media package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="vclibpy.utils.html">vclibpy.utils package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="vclibpy.html#module-vclibpy.datamodels">vclibpy.datamodels module</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="modules.html">vclibpy</a></li>
+          <li class="breadcrumb-item"><a href="vclibpy.html">vclibpy package</a></li>
+      <li class="breadcrumb-item active">vclibpy.algorithms package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/code/vclibpy.algorithms.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-vclibpy.algorithms">
+<span id="vclibpy-algorithms-package"></span><h1>vclibpy.algorithms package<a class="headerlink" href="#module-vclibpy.algorithms" title="Permalink to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this heading"></a></h2>
+</section>
+<section id="module-vclibpy.algorithms.base">
+<span id="vclibpy-algorithms-base-module"></span><h2>vclibpy.algorithms.base module<a class="headerlink" href="#module-vclibpy.algorithms.base" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.algorithms.base.Algorithm">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.algorithms.base.</span></span><span class="sig-name descname"><span class="pre">Algorithm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/algorithms/base.html#Algorithm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.algorithms.base.Algorithm" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/abc.html#abc.ABC" title="(in Python v3.13)"><code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></a></p>
+<p>Base class to define an algorithm which calculates
+steady FlowsheetStates for given flowsheets and inputs.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>max_err (float):</dt><dd><p>Maximum allowable error for the heat exchanger in percent (default: 0.5).</p>
+</dd>
+<dt>save_path_plots (pathlib.Path, str or None):</dt><dd><p>The path to save plots (default: None).
+If None, no plots are created.</p>
+</dd>
+<dt>dT_eva_start_guess (float):</dt><dd><p>Initial temperature difference guess for outlet-based calculation in evaporator</p>
+</dd>
+<dt>dT_pinch_eva_guess (float):</dt><dd><p>Initial pinch point temperature difference guess in evaporator (default: 0)</p>
+</dd>
+<dt>dT_con_start_guess (float):</dt><dd><p>Initial temperature difference guess for outlet-based calculation in condenser</p>
+</dd>
+<dt>dT_pinch_con_guess (float):</dt><dd><p>Initial pinch point temperature difference guess in condenser,
+required for <cite>improve_first_condensing_guess</cite> (default: 0)</p>
+</dd>
+<dt>improve_first_condensing_guess (bool):</dt><dd><p>Improve the guess for condensing pressure for inlet-based calculation
+using scipy fsolve. Requires a good guess of dT_pinch_con_guess.
+(default: False)</p>
+</dd>
+<dt>p_min (float):</dt><dd><p>Minimal pressure allowed to ensure p&gt;0 at all times. (default: 10000)</p>
+</dd>
+<dt>raise_errors (bool):</dt><dd><p>If true, errors during solving will be raised. Default, False, will just
+return None.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.algorithms.base.Algorithm.calc_steady_state">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calc_steady_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flowsheet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle" title="vclibpy.flowsheets.base.BaseCycle"><span class="pre">BaseCycle</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.FlowsheetState" title="vclibpy.datamodels.FlowsheetState"><span class="pre">FlowsheetState</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/algorithms/base.html#Algorithm.calc_steady_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.algorithms.base.Algorithm.calc_steady_state" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the steady-state performance of a vapor compression cycle
+based on given inputs and assumptions.</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>flowsheet (BaseCycle):</dt><dd><p>The flowsheet to calculate the steady state for.</p>
+</dd>
+<dt>inputs (Inputs):</dt><dd><p>An instance of the Inputs class containing the
+necessary parameters to calculate the flowsheet state.</p>
+</dd>
+<dt>fluid (str):</dt><dd><p>The fluid to be used in the calculations.
+Required only if ‘fluid’ is not specified during the object’s initialization.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>fs_state (FlowsheetState):</dt><dd><p>An instance of the FlowsheetState class representing
+the calculated state of the vapor compression cycle.</p>
+</dd>
+</dl>
+<p>None: If an error occurs (which will be logged, not raised).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.algorithms.base.Algorithm.get_improved_start_condensing_pressure">
+<span class="sig-name descname"><span class="pre">get_improved_start_condensing_pressure</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flowsheet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle" title="vclibpy.flowsheets.base.BaseCycle"><span class="pre">BaseCycle</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">m_flow_guess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">p_2_guess</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.13)"><span class="pre">float</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/algorithms/base.html#Algorithm.get_improved_start_condensing_pressure"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.algorithms.base.Algorithm.get_improved_start_condensing_pressure" title="Permalink to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.algorithms.base.Algorithm.initial_setup">
+<span class="sig-name descname"><span class="pre">initial_setup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flowsheet:</span> <span class="pre">~vclibpy.flowsheets.base.BaseCycle</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluid:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs:</span> <span class="pre">~vclibpy.datamodels.Inputs)</span> <span class="pre">-&gt;</span> <span class="pre">(&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">&lt;class</span> <span class="pre">'vclibpy.datamodels.FlowsheetState'&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/algorithms/base.html#Algorithm.initial_setup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.algorithms.base.Algorithm.initial_setup" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate values required for all algorithms at the initial setup</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>flowsheet (BaseCycle):</dt><dd><p>The flowsheet to calculate the steady state for.</p>
+</dd>
+<dt>inputs (Inputs):</dt><dd><p>An instance of the Inputs class containing the
+necessary parameters to calculate the flowsheet state.</p>
+</dd>
+<dt>fluid (str):</dt><dd><p>The fluid to be used in the calculations.
+Required only if ‘fluid’ is not specified during the object’s initialization.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>p_1_start: Start guess for p_1
+p_2_start: Start guess for p_2
+p_max: Maximal pressure (critical point)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-vclibpy.algorithms.fsolve">
+<span id="vclibpy-algorithms-fsolve-module"></span><h2>vclibpy.algorithms.fsolve module<a class="headerlink" href="#module-vclibpy.algorithms.fsolve" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.algorithms.fsolve.FSolve">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.algorithms.fsolve.</span></span><span class="sig-name descname"><span class="pre">FSolve</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/algorithms/fsolve.html#FSolve"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.algorithms.fsolve.FSolve" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#vclibpy.algorithms.base.Algorithm" title="vclibpy.algorithms.base.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Algorithm to calculate steady states using scipy’s fsolve.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.algorithms.fsolve.FSolve.calc_steady_state">
+<span class="sig-name descname"><span class="pre">calc_steady_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flowsheet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle" title="vclibpy.flowsheets.base.BaseCycle"><span class="pre">BaseCycle</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.FlowsheetState" title="vclibpy.datamodels.FlowsheetState"><span class="pre">FlowsheetState</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/algorithms/fsolve.html#FSolve.calc_steady_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.algorithms.fsolve.FSolve.calc_steady_state" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the steady-state performance of a vapor compression cycle
+based on given inputs and assumptions.</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>flowsheet (BaseCycle):</dt><dd><p>The flowsheet to calculate the steady state for.</p>
+</dd>
+<dt>inputs (Inputs):</dt><dd><p>An instance of the Inputs class containing the
+necessary parameters to calculate the flowsheet state.</p>
+</dd>
+<dt>fluid (str):</dt><dd><p>The fluid to be used in the calculations.
+Required only if ‘fluid’ is not specified during the object’s initialization.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>fs_state (FlowsheetState):</dt><dd><p>An instance of the FlowsheetState class representing
+the calculated state of the vapor compression cycle.</p>
+</dd>
+</dl>
+<p>None: If an error occurs (which will be logged, not raised).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-vclibpy.algorithms.iteration">
+<span id="vclibpy-algorithms-iteration-module"></span><h2>vclibpy.algorithms.iteration module<a class="headerlink" href="#module-vclibpy.algorithms.iteration" title="Permalink to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="vclibpy.algorithms.iteration.Iteration">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">vclibpy.algorithms.iteration.</span></span><span class="sig-name descname"><span class="pre">Iteration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/vclibpy/algorithms/iteration.html#Iteration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.algorithms.iteration.Iteration" title="Permalink to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#vclibpy.algorithms.base.Algorithm" title="vclibpy.algorithms.base.Algorithm"><code class="xref py py-class docutils literal notranslate"><span class="pre">Algorithm</span></code></a></p>
+<p>Algorithm to calculate steady states with an iteration based approach.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>min_iteration_step (int):</dt><dd><p>The minimum step size for iterations (default: 1).</p>
+</dd>
+<dt>show_iteration (bool):</dt><dd><p>Whether to display iteration progress (default: False).</p>
+</dd>
+<dt>use_quick_solver (bool):</dt><dd><p>Whether to use a quick solver (default: True).</p>
+</dd>
+<dt>min_allowed_dT_min (float):</dt><dd><p>Allowable minimum temperature difference in K (default: 0.01).
+This setting is relevant in combination with <cite>max_err</cite>.
+If the error is bigger than the allowed error but the temperature difference
+is lower than this value, the pressure won’t be adjusted further.
+If the heat exchanger is too big in some points the error
+values will be larger than <cite>max_err</cite>, but if the temperature difference
+approaches zero the area has no impact, as dT approaches zero.</p>
+</dd>
+<dt>max_num_iterations (int or None):</dt><dd><p>Maximum number of iterations allowed (default: None).</p>
+</dd>
+<dt>step_max (int):</dt><dd><p>Maximum step in pressure to take, used for use_quick_solver=True.
+(default: 10000)</p>
+</dd>
+</dl>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="vclibpy.algorithms.iteration.Iteration.calc_steady_state">
+<span class="sig-name descname"><span class="pre">calc_steady_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">flowsheet</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.flowsheets.html#vclibpy.flowsheets.base.BaseCycle" title="vclibpy.flowsheets.base.BaseCycle"><span class="pre">BaseCycle</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">inputs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.Inputs" title="vclibpy.datamodels.Inputs"><span class="pre">Inputs</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">fluid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.13)"><span class="pre">str</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="vclibpy.html#vclibpy.datamodels.FlowsheetState" title="vclibpy.datamodels.FlowsheetState"><span class="pre">FlowsheetState</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.13)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/vclibpy/algorithms/iteration.html#Iteration.calc_steady_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#vclibpy.algorithms.iteration.Iteration.calc_steady_state" title="Permalink to this definition"></a></dt>
+<dd><p>Calculate the steady-state performance of a vapor compression cycle
+based on given inputs and assumptions.</p>
+<dl>
+<dt>Args:</dt><dd><dl class="simple">
+<dt>flowsheet (BaseCycle):</dt><dd><p>The flowsheet to calculate the steady state for.</p>
+</dd>
+<dt>inputs (Inputs):</dt><dd><p>An instance of the Inputs class containing the
+necessary parameters to calculate the flowsheet state.</p>
+</dd>
+<dt>fluid (str):</dt><dd><p>The fluid to be used in the calculations.
+Required only if ‘fluid’ is not specified during the object’s initialization.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>fs_state (FlowsheetState):</dt><dd><p>An instance of the FlowsheetState class representing
+the calculated state of the vapor compression cycle.</p>
+</dd>
+</dl>
+<p>None: If an error occurs (which will be logged, not raised).</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="vclibpy.html" class="btn btn-neutral float-left" title="vclibpy package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="vclibpy.components.html" class="btn btn-neutral float-right" title="vclibpy.components package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

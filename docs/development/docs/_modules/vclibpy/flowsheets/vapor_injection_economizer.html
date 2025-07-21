@@ -1,0 +1,260 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.flowsheets.vapor_injection_economizer &mdash; vclibpy 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../../../_static/jquery.js"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/doctools.js"></script>
+      <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">vclibpy.flowsheets.vapor_injection_economizer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for vclibpy.flowsheets.vapor_injection_economizer</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets.vapor_injection</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseVaporInjection</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers.economizer</span><span class="w"> </span><span class="kn">import</span> <span class="n">VaporInjectionEconomizerNTU</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers</span><span class="w"> </span><span class="kn">import</span> <span class="n">ntu</span>
+
+
+<div class="viewcode-block" id="VaporInjectionEconomizer"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">VaporInjectionEconomizer</span><span class="p">(</span><span class="n">BaseVaporInjection</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Cycle with vapor injection using an economizer.</span>
+
+<span class="sd">    For this cycle, we have 9 relevant states:</span>
+
+<span class="sd">    - 1: Before compressor, after evaporator</span>
+<span class="sd">    - 2: Before condenser, after compressor</span>
+<span class="sd">    - 3: Before ihx, after condenser</span>
+<span class="sd">    - 4: Before Evaporator, after ihx</span>
+<span class="sd">    - 5_ihx: Before ihx, after condenser and EV</span>
+<span class="sd">    - 6_ihx: Before Mixing with 1_VI, after ihx</span>
+<span class="sd">    - 7_ihx: Before second EV, after ihx</span>
+<span class="sd">    - 1_VI: Before Mixing with 6_ihx, After first stage</span>
+<span class="sd">    - 1_VI_mixed. Before second stage of compressor, after mixing with 6_ihx</span>
+
+<span class="sd">    Additional Assumptions:</span>
+<span class="sd">    -----------------------</span>
+<span class="sd">    - No heat losses in ihx</span>
+<span class="sd">    - No pressure loss in ihx</span>
+<span class="sd">    - No losses for splitting of streams</span>
+<span class="sd">    - Isenthalpic second EV</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    See parent docstring for info on further assumptions and parameters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">flowsheet_name</span> <span class="o">=</span> <span class="s2">&quot;VaporInjectionEconomizer&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">economizer</span><span class="p">:</span> <span class="n">VaporInjectionEconomizerNTU</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span> <span class="o">=</span> <span class="n">economizer</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="VaporInjectionEconomizer.get_all_components"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_all_components">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_all_components</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="VaporInjectionEconomizer.calc_injection"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.calc_injection">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_injection</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        This calculation assumes that the heat transfer</span>
+<span class="sd">        of the higher temperature liquid is always in the subcooling</span>
+<span class="sd">        region, while the vapor injection is always a two-phase heat</span>
+<span class="sd">        transfer.</span>
+<span class="sd">        In reality, you would need to achieve a certain degree of superheat.</span>
+<span class="sd">        Thus, a moving boundary approach would be more fitting. For simplicity,</span>
+<span class="sd">        we assume no superheat.</span>
+
+<span class="sd">        This function iterates the amount of vapor injected.</span>
+<span class="sd">        The iteration starts with close to no injection and increases</span>
+<span class="sd">        the amount of injection as long as enough hotter sub-cooled liquid is</span>
+<span class="sd">        present to fully vaporize the injected part.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_outlet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_pressure_valve</span><span class="o">.</span><span class="n">state_outlet</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span>
+            <span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">high_pressure_valve</span><span class="o">.</span><span class="n">state_outlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span>
+        <span class="p">)</span>
+        <span class="n">m_flow_evaporator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">m_flow</span>
+
+        <span class="n">dh_ihe_goal</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_outlet</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_inlet</span><span class="o">.</span><span class="n">h</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Get transport properties:</span>
+        <span class="n">tra_properties_liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_transport_properties</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_inlet</span>
+        <span class="p">)</span>
+        <span class="n">alpha_liquid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">calc_alpha_liquid</span><span class="p">(</span><span class="n">tra_properties_liquid</span><span class="p">)</span>
+        <span class="n">tra_properties_two_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_mean_transport_properties</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_outlet</span>
+        <span class="p">)</span>
+        <span class="n">alpha_two_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">calc_alpha_liquid</span><span class="p">(</span><span class="n">tra_properties_two_phase</span><span class="p">)</span>
+
+        <span class="c1"># Set cp based on transport properties</span>
+        <span class="n">dT_secondary</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_outlet</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_inlet</span><span class="o">.</span><span class="n">T</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">dT_secondary</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cp_4</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cp_4</span> <span class="o">=</span> <span class="n">dh_ihe_goal</span> <span class="o">/</span> <span class="n">dT_secondary</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">set_secondary_cp</span><span class="p">(</span><span class="n">cp</span><span class="o">=</span><span class="n">cp_4</span><span class="p">)</span>
+        <span class="n">primary_cp</span> <span class="o">=</span> <span class="n">tra_properties_liquid</span><span class="o">.</span><span class="n">cp</span>
+
+        <span class="c1"># We have to iterate to ensure the correct fraction of mass is</span>
+        <span class="c1"># used to ensure state5 has q=1</span>
+        <span class="n">_x_vi_step</span> <span class="o">=</span> <span class="mf">0.1</span>
+        <span class="n">_min_step_x_vi</span> <span class="o">=</span> <span class="mf">0.0001</span>
+
+        <span class="n">x_vi_next</span> <span class="o">=</span> <span class="n">_min_step_x_vi</span>  <span class="c1"># Don&#39;t start with zero!</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">x_vi</span> <span class="o">=</span> <span class="n">x_vi_next</span>
+            <span class="n">x_eva</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">x_vi</span>
+            <span class="n">m_flow_vapor_injection</span> <span class="o">=</span> <span class="n">x_vi</span> <span class="o">*</span> <span class="n">m_flow_evaporator</span>
+            <span class="n">Q_flow_goal</span> <span class="o">=</span> <span class="n">dh_ihe_goal</span> <span class="o">*</span> <span class="n">m_flow_vapor_injection</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">m_flow</span> <span class="o">=</span> <span class="n">x_eva</span> <span class="o">*</span> <span class="n">m_flow_evaporator</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">m_flow_secondary</span> <span class="o">=</span> <span class="n">m_flow_vapor_injection</span>
+
+            <span class="c1"># This dT_max is always valid, as the primary inlet is cooled</span>
+            <span class="c1"># and the secondary inlet (the vapor) is either heated</span>
+            <span class="c1"># or isothermal for pure fluids</span>
+            <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">calc_k</span><span class="p">(</span><span class="n">alpha_liquid</span><span class="p">,</span> <span class="n">alpha_two_phase</span><span class="p">)</span>
+
+            <span class="n">Q_flow</span> <span class="o">=</span> <span class="n">ntu</span><span class="o">.</span><span class="n">calc_Q_ntu</span><span class="p">(</span>
+                <span class="n">k</span><span class="o">=</span><span class="n">k</span><span class="p">,</span>
+                <span class="n">dT_max</span><span class="o">=</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_inlet</span><span class="o">.</span><span class="n">T</span>
+                <span class="p">),</span>
+                <span class="n">A</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">A</span><span class="p">,</span>
+                <span class="n">flow_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">flow_type</span><span class="p">,</span>
+                <span class="n">m_flow_primary_cp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">m_flow</span> <span class="o">*</span> <span class="n">primary_cp</span><span class="p">,</span>
+                <span class="n">m_flow_secondary_cp</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">m_flow_secondary_cp</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">Q_flow</span> <span class="o">&gt;</span> <span class="n">Q_flow_goal</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">_x_vi_step</span> <span class="o">&lt;=</span> <span class="n">_min_step_x_vi</span><span class="p">:</span>
+                    <span class="k">break</span>
+                <span class="c1"># We can increase x_vi_next further, as more heat can be extracted</span>
+                <span class="n">x_vi_next</span> <span class="o">=</span> <span class="n">x_vi</span> <span class="o">+</span> <span class="n">_x_vi_step</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x_vi_next</span> <span class="o">=</span> <span class="n">x_vi</span> <span class="o">-</span> <span class="n">_x_vi_step</span> <span class="o">*</span> <span class="mf">0.9</span>
+                <span class="n">_x_vi_step</span> <span class="o">/=</span> <span class="mi">10</span>
+
+        <span class="c1"># Solve Energy Balance</span>
+        <span class="n">h_7</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">dh_ihe_goal</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">m_flow</span>
+        <span class="n">state_7_ihx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PH&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">h_7</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_outlet</span> <span class="o">=</span> <span class="n">state_7_ihx</span>
+        <span class="k">return</span> <span class="n">x_vi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_outlet</span><span class="o">.</span><span class="n">h</span><span class="p">,</span> <span class="n">state_7_ihx</span></div>
+
+<div class="viewcode-block" id="VaporInjectionEconomizer.get_states_in_order_for_plotting"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.vapor_injection_economizer.VaporInjectionEconomizer.get_states_in_order_for_plotting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_states_in_order_for_plotting</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_states_in_order_for_plotting</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">high_pressure_compressor</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="c1"># Go back to the condenser outlet</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_two_phase_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">high_pressure_valve</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">high_pressure_valve</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">economizer</span><span class="o">.</span><span class="n">state_outlet</span>
+        <span class="p">]</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

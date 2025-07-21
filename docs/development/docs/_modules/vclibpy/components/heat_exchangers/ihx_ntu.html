@@ -1,0 +1,244 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.components.heat_exchangers.ihx_ntu &mdash; vclibpy 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../../../../_static/jquery.js"></script>
+      <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../../../" id="documentation_options" src="../../../../_static/documentation_options.js"></script>
+      <script src="../../../../_static/doctools.js"></script>
+      <script src="../../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">vclibpy.components.heat_exchangers.ihx_ntu</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for vclibpy.components.heat_exchangers.ihx_ntu</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers</span><span class="w"> </span><span class="kn">import</span> <span class="n">InternalHeatExchanger</span><span class="p">,</span> <span class="n">ntu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers.heat_transfer.heat_transfer</span><span class="w"> </span><span class="kn">import</span> <span class="n">HeatTransfer</span><span class="p">,</span> <span class="n">TwoPhaseHeatTransfer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">FlowsheetState</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="IHX_NTU"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.ihx_ntu.IHX_NTU">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">IHX_NTU</span><span class="p">(</span><span class="n">InternalHeatExchanger</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Logic for an internal heat exchanger in counter flow arrangement.</span>
+<span class="sd">    The regime logics are depicted here: docs/source/ihx_logic.svg</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">alpha_low_side</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="n">alpha_high_side</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="n">dT_pinch_min</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dT_pinch_min</span> <span class="o">=</span> <span class="n">dT_pinch_min</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">flow_type</span> <span class="o">==</span> <span class="s2">&quot;counter&quot;</span><span class="p">,</span> <span class="s2">&quot;Other types are not implemented&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">calc_k</span><span class="p">(</span>
+            <span class="n">alpha_pri</span><span class="o">=</span><span class="n">alpha_high_side</span><span class="p">,</span>
+            <span class="n">alpha_sec</span><span class="o">=</span><span class="n">alpha_low_side</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="IHX_NTU.calc"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.ihx_ntu.IHX_NTU.calc">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="c1"># First calculate the heat assuming q1 at inlet of lower side:</span>
+        <span class="n">state_low_q1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_outlet_low</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">state_high_q0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet_high</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="n">dh_max_high</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet_high</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_high_q0</span><span class="o">.</span><span class="n">h</span>
+        <span class="n">dh_max_low</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_outlet_low</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_low_q1</span><span class="o">.</span><span class="n">h</span>
+        <span class="k">if</span> <span class="n">dh_max_low</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;This heat exchanger only allows low-pressure outlet states with superheat&quot;</span><span class="p">)</span>
+
+        <span class="c1"># In case dh_max_high &lt; 0, high side is already in subcooling,</span>
+        <span class="c1"># no need for first regime in Option 1 (see svg)</span>
+        <span class="n">Q_high_tp_to_q0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow_high</span> <span class="o">*</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dh_max_high</span><span class="p">)</span>
+        <span class="n">Q_low_sh_to_q1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow_low</span> <span class="o">*</span> <span class="n">dh_max_low</span>
+
+        <span class="c1"># First part of the HX:</span>
+        <span class="n">m_flow_primary_cp</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_outlet_low</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_low_q1</span><span class="o">.</span><span class="n">h</span><span class="p">)</span> <span class="o">/</span>
+                <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">state_outlet_low</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">state_low_q1</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow_low</span>
+        <span class="n">m_flow_secondary_cp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow_high</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+        <span class="n">Q_first_regime</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Q_high_tp_to_q0</span><span class="p">,</span> <span class="n">Q_low_sh_to_q1</span><span class="p">)</span>
+        <span class="n">dT_max_first_regim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet_high</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">state_low_q1</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">Q_ntu_first_regime</span><span class="p">,</span> <span class="n">A_required_first_regime</span> <span class="o">=</span> <span class="n">ntu</span><span class="o">.</span><span class="n">calc_Q_with_available_area</span><span class="p">(</span>
+            <span class="n">heat_exchanger</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+            <span class="n">Q_required</span><span class="o">=</span><span class="n">Q_first_regime</span><span class="p">,</span>
+            <span class="n">A_available</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span><span class="p">,</span>
+            <span class="n">dT_max</span><span class="o">=</span><span class="n">dT_max_first_regim</span><span class="p">,</span>
+            <span class="n">m_flow_primary_cp</span><span class="o">=</span><span class="n">m_flow_primary_cp</span><span class="p">,</span>
+            <span class="n">m_flow_secondary_cp</span><span class="o">=</span><span class="n">m_flow_secondary_cp</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">Q_ntu_first_regime</span> <span class="o">&lt;</span> <span class="n">Q_first_regime</span><span class="p">:</span>
+            <span class="c1"># Area is only sufficient for first regime.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_missing_states</span><span class="p">(</span><span class="n">Q_ntu_first_regime</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="n">state_low_first_regime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span>
+            <span class="s2">&quot;PH&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_outlet_low</span><span class="o">.</span><span class="n">p</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_outlet_low</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">Q_ntu_first_regime</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow_low</span>
+        <span class="p">)</span>
+        <span class="n">state_high_first_regime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span>
+            <span class="s2">&quot;PH&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet_high</span><span class="o">.</span><span class="n">p</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet_high</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">Q_ntu_first_regime</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow_high</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">Q_ntu_first_regime</span> <span class="o">&lt;</span> <span class="n">Q_low_sh_to_q1</span><span class="p">:</span>
+            <span class="n">Q_low_first_to_second_regime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow_low</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="n">state_low_first_regime</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_low_q1</span><span class="o">.</span><span class="n">h</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Q_low_first_to_second_regime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">m_flow_primary_cp</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+        <span class="k">if</span> <span class="n">Q_ntu_first_regime</span> <span class="o">&lt;</span> <span class="n">Q_high_tp_to_q0</span><span class="p">:</span>
+            <span class="n">Q_high_first_to_second_regime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow_high</span> <span class="o">*</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet_high</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_high_q0</span><span class="o">.</span><span class="n">h</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">Q_high_first_to_second_regime</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+            <span class="n">state_artificial</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span>
+                <span class="s2">&quot;PT&quot;</span><span class="p">,</span>
+                <span class="n">state_high_first_regime</span><span class="o">.</span><span class="n">p</span><span class="p">,</span>
+                <span class="n">state_high_first_regime</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="mi">5</span>  <span class="c1"># Some dT to get cp</span>
+            <span class="p">)</span>
+            <span class="n">m_flow_secondary_cp</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">(</span><span class="n">state_high_first_regime</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">state_artificial</span><span class="o">.</span><span class="n">h</span><span class="p">)</span> <span class="o">/</span>
+                <span class="p">(</span><span class="n">state_high_first_regime</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">state_artificial</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">Q_second_regime</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">Q_high_first_to_second_regime</span><span class="p">,</span> <span class="n">Q_low_first_to_second_regime</span><span class="p">)</span>
+        <span class="n">dT_max_second_regime</span> <span class="o">=</span> <span class="n">state_high_first_regime</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">state_low_q1</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">Q_ntu_second_regime</span><span class="p">,</span> <span class="n">A_required_second_regime</span> <span class="o">=</span> <span class="n">ntu</span><span class="o">.</span><span class="n">calc_Q_with_available_area</span><span class="p">(</span>
+            <span class="n">heat_exchanger</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+            <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+            <span class="n">Q_required</span><span class="o">=</span><span class="n">Q_second_regime</span><span class="p">,</span>
+            <span class="n">A_available</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">-</span> <span class="n">A_required_first_regime</span><span class="p">,</span>
+            <span class="n">dT_max</span><span class="o">=</span><span class="n">dT_max_second_regime</span><span class="p">,</span>
+            <span class="n">m_flow_primary_cp</span><span class="o">=</span><span class="n">m_flow_primary_cp</span><span class="p">,</span>
+            <span class="n">m_flow_secondary_cp</span><span class="o">=</span><span class="n">m_flow_secondary_cp</span>
+        <span class="p">)</span>
+        <span class="n">state_high_second_regime</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span>
+            <span class="s2">&quot;PH&quot;</span><span class="p">,</span>
+            <span class="n">state_high_first_regime</span><span class="o">.</span><span class="n">p</span><span class="p">,</span>
+            <span class="n">state_high_first_regime</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">Q_ntu_second_regime</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow_high</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">-</span> <span class="n">A_required_first_regime</span> <span class="o">-</span> <span class="n">A_required_second_regime</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;NTU calculation lead to area above 100 %&quot;</span><span class="p">)</span>
+        <span class="n">dT_max_third_regime</span> <span class="o">=</span> <span class="n">state_high_second_regime</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="n">state_low_q1</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">Q_ntu_third_regime</span> <span class="o">=</span> <span class="n">ntu</span><span class="o">.</span><span class="n">calc_Q_ntu</span><span class="p">(</span>
+            <span class="n">k</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">k</span><span class="p">,</span>
+            <span class="n">A</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">A</span> <span class="o">-</span> <span class="n">A_required_first_regime</span> <span class="o">-</span> <span class="n">A_required_second_regime</span><span class="p">,</span>
+            <span class="n">dT_max</span><span class="o">=</span><span class="n">dT_max_third_regime</span><span class="p">,</span>
+            <span class="n">m_flow_primary_cp</span><span class="o">=</span><span class="n">m_flow_primary_cp</span><span class="p">,</span>
+            <span class="n">m_flow_secondary_cp</span><span class="o">=</span><span class="n">m_flow_secondary_cp</span><span class="p">,</span>
+            <span class="n">flow_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">flow_type</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_missing_states</span><span class="p">(</span><span class="n">Q</span><span class="o">=</span><span class="n">Q_ntu_first_regime</span> <span class="o">+</span> <span class="n">Q_ntu_second_regime</span> <span class="o">+</span> <span class="n">Q_ntu_third_regime</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>  <span class="c1"># Irrelevant for this heat exchanger for now.</span></div>
+
+<div class="viewcode-block" id="IHX_NTU.set_missing_states"><a class="viewcode-back" href="../../../../code/vclibpy.components.heat_exchangers.html#vclibpy.components.heat_exchangers.ihx_ntu.IHX_NTU.set_missing_states">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_missing_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Q</span><span class="p">:</span> <span class="nb">float</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet_low</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span>
+            <span class="s2">&quot;PH&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_outlet_low</span><span class="o">.</span><span class="n">p</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_outlet_low</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">Q</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow_low</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_outlet_high</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span>
+            <span class="s2">&quot;PH&quot;</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet_high</span><span class="o">.</span><span class="n">p</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">state_inlet_high</span><span class="o">.</span><span class="n">h</span> <span class="o">-</span> <span class="n">Q</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">m_flow_high</span>
+        <span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

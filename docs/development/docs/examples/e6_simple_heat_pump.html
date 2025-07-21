@@ -1,0 +1,243 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Example for a heat pump with a standard cycle &mdash; vclibpy 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../_static/jquery.js"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+      <script src="../_static/doctools.js"></script>
+      <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Example for a heat pump with a standard cycle</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/examples/e6_simple_heat_pump.md.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="example-for-a-heat-pump-with-a-standard-cycle">
+<h1>Example for a heat pump with a standard cycle<a class="headerlink" href="#example-for-a-heat-pump-with-a-standard-cycle" title="Permalink to this heading"></a></h1>
+<p>Let’s start the complete cycle simulation with the
+most basic flowsheet, the standard-cycle. As all flowsheets
+contain a condenser and an evaporator, we defined a common BaseCycle
+to avoid code-repetition.
+We can import this flowsheet and see how to use it. Note that
+modern coding IDEs like PyCharm will tell you which arguments belong
+to a class or function. If you don’t have that at hand, you need
+to look into the documentation.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCycle</span><span class="p">,</span> <span class="n">StandardCycle</span>
+<span class="n">help</span><span class="p">(</span><span class="n">BaseCycle</span><span class="p">)</span>
+<span class="n">help</span><span class="p">(</span><span class="n">StandardCycle</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>We fist need to define the components in the cycle.
+Here we are using the components developed in the previous examples.
+Also, note again that the expansion valve model does not influence the results
+for the current algorithm. But, you could size the expansion valve
+using vclibpy, including off-design, but this is one for another example.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers</span><span class="w"> </span><span class="kn">import</span> <span class="n">moving_boundary_ntu</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers</span><span class="w"> </span><span class="kn">import</span> <span class="n">heat_transfer</span>
+<span class="n">condenser</span> <span class="o">=</span> <span class="n">moving_boundary_ntu</span><span class="o">.</span><span class="n">MovingBoundaryNTUCondenser</span><span class="p">(</span>
+    <span class="n">A</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">secondary_medium</span><span class="o">=</span><span class="s2">&quot;water&quot;</span><span class="p">,</span>
+    <span class="n">flow_type</span><span class="o">=</span><span class="s2">&quot;counter&quot;</span><span class="p">,</span>
+    <span class="n">ratio_outer_to_inner_area</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">two_phase_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantTwoPhaseHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">5000</span><span class="p">),</span>
+    <span class="n">gas_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">5000</span><span class="p">),</span>
+    <span class="n">wall_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">wall</span><span class="o">.</span><span class="n">WallTransfer</span><span class="p">(</span><span class="n">lambda_</span><span class="o">=</span><span class="mi">236</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="mf">2e-3</span><span class="p">),</span>
+    <span class="n">liquid_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">5000</span><span class="p">),</span>
+    <span class="n">secondary_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">evaporator</span> <span class="o">=</span> <span class="n">moving_boundary_ntu</span><span class="o">.</span><span class="n">MovingBoundaryNTUEvaporator</span><span class="p">(</span>
+    <span class="n">A</span><span class="o">=</span><span class="mi">15</span><span class="p">,</span>
+    <span class="n">secondary_medium</span><span class="o">=</span><span class="s2">&quot;air&quot;</span><span class="p">,</span>
+    <span class="n">flow_type</span><span class="o">=</span><span class="s2">&quot;counter&quot;</span><span class="p">,</span>
+    <span class="n">ratio_outer_to_inner_area</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+    <span class="n">two_phase_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantTwoPhaseHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">1000</span><span class="p">),</span>
+    <span class="n">gas_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">1000</span><span class="p">),</span>
+    <span class="n">wall_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">wall</span><span class="o">.</span><span class="n">WallTransfer</span><span class="p">(</span><span class="n">lambda_</span><span class="o">=</span><span class="mi">236</span><span class="p">,</span> <span class="n">thickness</span><span class="o">=</span><span class="mf">2e-3</span><span class="p">),</span>
+    <span class="n">liquid_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">5000</span><span class="p">),</span>
+    <span class="n">secondary_heat_transfer</span><span class="o">=</span><span class="n">heat_transfer</span><span class="o">.</span><span class="n">constant</span><span class="o">.</span><span class="n">ConstantHeatTransfer</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mi">25</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.expansion_valves</span><span class="w"> </span><span class="kn">import</span> <span class="n">Bernoulli</span>
+<span class="n">expansion_valve</span> <span class="o">=</span> <span class="n">Bernoulli</span><span class="p">(</span><span class="n">A</span><span class="o">=</span><span class="mf">0.1</span><span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.compressors</span><span class="w"> </span><span class="kn">import</span> <span class="n">RotaryCompressor</span>
+<span class="n">compressor</span> <span class="o">=</span> <span class="n">RotaryCompressor</span><span class="p">(</span>
+    <span class="n">N_max</span><span class="o">=</span><span class="mi">125</span><span class="p">,</span>
+    <span class="n">V_h</span><span class="o">=</span><span class="mf">19e-6</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>Now, we can plug everything into the flowsheet:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">heat_pump</span> <span class="o">=</span> <span class="n">StandardCycle</span><span class="p">(</span>
+    <span class="n">evaporator</span><span class="o">=</span><span class="n">evaporator</span><span class="p">,</span>
+    <span class="n">condenser</span><span class="o">=</span><span class="n">condenser</span><span class="p">,</span>
+    <span class="n">fluid</span><span class="o">=</span><span class="s2">&quot;Propane&quot;</span><span class="p">,</span>
+    <span class="n">compressor</span><span class="o">=</span><span class="n">compressor</span><span class="p">,</span>
+    <span class="n">expansion_valve</span><span class="o">=</span><span class="n">expansion_valve</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>As in the other example, we can specify save-paths,
+solver settings and inputs to vary:
+Note that T_con can either be inlet or outlet, depending on the setting
+of <code class="docutils literal notranslate"><span class="pre">use_condenser_inlet</span></code>. Per default, we simulate the inlet, T_con_in</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">save_path</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;D:\00_temp\simple_heat_pump&quot;</span>
+<span class="n">T_eva_in</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">10</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">,</span> <span class="mf">273.15</span><span class="p">,</span> <span class="mi">10</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">]</span>
+<span class="n">T_con</span> <span class="o">=</span> <span class="p">[</span><span class="mi">30</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">,</span> <span class="mi">50</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">,</span> <span class="mi">70</span> <span class="o">+</span> <span class="mf">273.15</span><span class="p">]</span>
+<span class="n">n</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.3</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Now, we can generate the full-factorial performance map
+using all inputs. The results will be stored under the
+save-path. To see some logs, we can import the logging module
+and get, for example, all messages equal or above the INFO-level</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="s2">&quot;INFO&quot;</span><span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">utils</span>
+<span class="n">save_path_sdf</span><span class="p">,</span> <span class="n">save_path_csv</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">full_factorial_map_generation</span><span class="p">(</span>
+    <span class="n">heat_pump</span><span class="o">=</span><span class="n">heat_pump</span><span class="p">,</span>
+    <span class="n">save_path</span><span class="o">=</span><span class="n">save_path</span><span class="p">,</span>
+    <span class="n">T_con</span><span class="o">=</span><span class="n">T_con</span><span class="p">,</span>
+    <span class="n">T_eva_in</span><span class="o">=</span><span class="n">T_eva_in</span><span class="p">,</span>
+    <span class="n">n</span><span class="o">=</span><span class="n">n</span><span class="p">,</span>
+    <span class="n">use_condenser_inlet</span><span class="o">=</span><span class="n">use_condenser_inlet</span><span class="p">,</span>
+    <span class="n">use_multiprocessing</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">save_plots</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">m_flow_con</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">m_flow_eva</span><span class="o">=</span><span class="mf">0.9</span><span class="p">,</span>
+    <span class="n">dT_eva_superheating</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
+    <span class="n">dT_con_subcooling</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>What did just happen? We can analyze all results by listing the
+files in the save-path - or just open it in our default system explorer.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">save_path</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>One file should be: <code class="docutils literal notranslate"><span class="pre">Standard_Propane.csv</span></code>. We can load this file and plot</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">save_path_csv</span><span class="p">,</span> <span class="n">index_col</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">df</span>
+</pre></div>
+</div>
+<p>Now, we can plot variables, for example as a scatter plot using matplotlib.
+You have to know the names, which are the column headers.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="n">x_name</span> <span class="o">=</span> <span class="s2">&quot;n in - (Relative compressor speed)&quot;</span>
+<span class="n">y_name</span> <span class="o">=</span> <span class="s2">&quot;COP in - (Coefficient of performance)&quot;</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">x_name</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="n">y_name</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="n">y_name</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="n">x_name</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>Looking at the results, we see that a higher frequency often leads to lower COP values.
+However, other inputs (temperatures) have a greater impact on the COP.
+We can also use existing 3D-plotting scripts in vclibpy to analyze the
+dependencies. For this, we need the .sdf file. In the sdf, the field names are without
+the unit and description, as those are accessible in the file-format in other columns.
+Depending on whether we varied the inlet or outlet, we have to specify the correct name.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.utils.plotting</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot_sdf_map</span>
+<span class="n">plot_sdf_map</span><span class="p">(</span>
+    <span class="n">filepath_sdf</span><span class="o">=</span><span class="n">save_path_sdf</span><span class="p">,</span>
+    <span class="n">nd_data</span><span class="o">=</span><span class="s2">&quot;COP&quot;</span><span class="p">,</span>
+    <span class="n">first_dimension</span><span class="o">=</span><span class="s2">&quot;T_eva_in&quot;</span><span class="p">,</span>
+    <span class="n">second_dimension</span><span class="o">=</span><span class="s2">&quot;T_con_in&quot;</span> <span class="k">if</span> <span class="n">use_condenser_inlet</span> <span class="k">else</span> <span class="s2">&quot;T_con_out&quot;</span><span class="p">,</span>
+    <span class="n">fluids</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Propane&quot;</span><span class="p">],</span>
+    <span class="n">flowsheets</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Standard&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,266 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>vclibpy.flowsheets.ihx &mdash; vclibpy 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/autodoc_pydantic.css" />
+
+  
+      <script src="../../../_static/jquery.js"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+      <script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js"></script>
+      <script src="../../../_static/doctools.js"></script>
+      <script src="../../../_static/sphinx_highlight.js"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            vclibpy
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../code/modules.html">vclibpy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html">Contribute as a user</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../Contribution.html#contribute-as-a-developer">Contribute as a developer</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../version_his.html">Version History</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">vclibpy</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">vclibpy.flowsheets.ihx</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for vclibpy.flowsheets.ihx</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.flowsheets</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseCycle</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.datamodels</span><span class="w"> </span><span class="kn">import</span> <span class="n">FlowsheetState</span><span class="p">,</span> <span class="n">Inputs</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.compressors</span><span class="w"> </span><span class="kn">import</span> <span class="n">Compressor</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.expansion_valves</span><span class="w"> </span><span class="kn">import</span> <span class="n">ExpansionValve</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.components.heat_exchangers.ihx_ntu</span><span class="w"> </span><span class="kn">import</span> <span class="n">IHX_NTU</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="IHX"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.ihx.IHX">[docs]</a><span class="k">class</span><span class="w"> </span><span class="nc">IHX</span><span class="p">(</span><span class="n">BaseCycle</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Class for a IHX cycle with internal heat exchanger (ihx).</span>
+
+<span class="sd">    For the internal heat exchanger cycle, we have 7 possible states:</span>
+
+<span class="sd">    1. Before compressor, after ihx low temperature side</span>
+<span class="sd">    2. Before condenser, after compressor</span>
+<span class="sd">    3. Before first EV, after condenser</span>
+<span class="sd">    4. Before ihx high temperature side, after first EV</span>
+<span class="sd">    5. Before second EV, after ihx high temperature side</span>
+<span class="sd">    6. Before evaporator, after second EV</span>
+<span class="sd">    7. Before idx low temperature side, after evaporator</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">flowsheet_name</span> <span class="o">=</span> <span class="s2">&quot;IHX&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="n">compressor</span><span class="p">:</span> <span class="n">Compressor</span><span class="p">,</span>
+            <span class="n">expansion_valve_high</span><span class="p">:</span> <span class="n">ExpansionValve</span><span class="p">,</span>
+            <span class="n">expansion_valve_low</span><span class="p">:</span> <span class="n">ExpansionValve</span><span class="p">,</span>
+            <span class="n">ihx</span><span class="p">:</span> <span class="n">IHX_NTU</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">kwargs</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span> <span class="o">=</span> <span class="n">compressor</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span> <span class="o">=</span> <span class="n">expansion_valve_high</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_low</span> <span class="o">=</span> <span class="n">expansion_valve_low</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span> <span class="o">=</span> <span class="n">ihx</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flowsheet_name</span> <span class="o">=</span> <span class="s2">&quot;IHX&quot;</span>
+
+<div class="viewcode-block" id="IHX.get_all_components"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.ihx.IHX.get_all_components">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_components</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">get_all_components</span><span class="p">()</span> <span class="o">+</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_low</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span>
+        <span class="p">]</span></div>
+
+<div class="viewcode-block" id="IHX.get_states_in_order_for_plotting"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.ihx.IHX.get_states_in_order_for_plotting">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_states_in_order_for_plotting</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">first_states</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_outlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_outlet</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_inlet_high</span>
+        <span class="p">]</span>
+        <span class="n">second_part_states</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_outlet_high</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_low</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_low</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_inlet_low</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="n">third_part_states</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_outlet_low</span>
+        <span class="p">]</span>
+        <span class="c1"># ihx_high in tp region:</span>
+        <span class="n">state_ihx_high_q0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_inlet_high</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">state_ihx_high_q0</span><span class="o">.</span><span class="n">h</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_inlet_high</span><span class="o">.</span><span class="n">h</span><span class="p">:</span>
+            <span class="n">states_until_low_side</span> <span class="o">=</span> <span class="n">first_states</span> <span class="o">+</span> <span class="p">[</span><span class="n">state_ihx_high_q0</span><span class="p">]</span> <span class="o">+</span> <span class="n">second_part_states</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">states_until_low_side</span> <span class="o">=</span> <span class="n">first_states</span> <span class="o">+</span> <span class="n">second_part_states</span>
+        <span class="n">state_ihx_low_q1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_inlet_low</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">state_ihx_low_q1</span><span class="o">.</span><span class="n">h</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_inlet_low</span><span class="o">.</span><span class="n">h</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">states_until_low_side</span> <span class="o">+</span> <span class="p">[</span><span class="n">state_ihx_low_q1</span><span class="p">]</span> <span class="o">+</span> <span class="n">third_part_states</span>
+        <span class="k">return</span> <span class="n">states_until_low_side</span> <span class="o">+</span> <span class="n">third_part_states</span></div>
+
+<div class="viewcode-block" id="IHX.set_ihx_outlet_based_on_superheating"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.ihx.IHX.set_ihx_outlet_based_on_superheating">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_ihx_outlet_based_on_superheating</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_eva</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">):</span>
+        <span class="n">T_1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_eva</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="n">inputs</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">dT_eva_superheating</span>
+        <span class="k">if</span> <span class="n">inputs</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">dT_eva_superheating</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_outlet_low</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PT&quot;</span><span class="p">,</span> <span class="n">p_eva</span><span class="p">,</span> <span class="n">T_1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_outlet_low</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;PQ&quot;</span><span class="p">,</span> <span class="n">p_eva</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IHX.calc_states"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.ihx.IHX.calc_states">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_states</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p_1</span><span class="p">,</span> <span class="n">p_2</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">):</span>
+        <span class="c1"># State 1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_ihx_outlet_based_on_superheating</span><span class="p">(</span><span class="n">p_eva</span><span class="o">=</span><span class="n">p_1</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_outlet_low</span>
+        <span class="c1"># State 2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">calc_state_outlet</span><span class="p">(</span><span class="n">p_outlet</span><span class="o">=</span><span class="n">p_2</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">state_outlet</span>
+        <span class="c1"># Mass flow rate:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">calc_m_flow</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">m_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">m_flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">m_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">m_flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_low</span><span class="o">.</span><span class="n">m_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">m_flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">m_flow</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">m_flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">m_flow_high</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">m_flow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">m_flow_low</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">m_flow</span>
+
+        <span class="c1"># State 3</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_condenser_outlet_based_on_subcooling</span><span class="p">(</span><span class="n">p_con</span><span class="o">=</span><span class="n">p_2</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_outlet</span>
+        <span class="c1"># State 4</span>
+        <span class="k">if</span> <span class="s2">&quot;opening&quot;</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">get_variable_names</span><span class="p">():</span>
+            <span class="n">opening</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">control</span><span class="o">.</span><span class="n">opening</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">opening</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">calc_outlet_pressure_at_m_flow_and_opening</span><span class="p">(</span>
+                <span class="n">m_flow</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">m_flow</span><span class="p">,</span>
+                <span class="n">opening</span><span class="o">=</span><span class="n">opening</span>
+            <span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="c1"># During iteration, p_1 and p_2 can get very close together,</span>
+            <span class="c1"># leading to high m_flows and then p_outlets below zero, depending on the EV model</span>
+            <span class="n">T_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_outlet_low</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">dT_pinch_min</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">calc_outlet</span><span class="p">(</span><span class="n">p_outlet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;TQ&quot;</span><span class="p">,</span> <span class="n">T_min</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
+        <span class="n">dp_ev_high</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">state_inlet</span><span class="o">.</span><span class="n">p</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">state_outlet</span><span class="o">.</span><span class="n">p</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">state_outlet</span><span class="o">.</span><span class="n">T</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">dT_pinch_min</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_outlet_low</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
+            <span class="n">T_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_outlet_low</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">dT_pinch_min</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">calc_outlet</span><span class="p">(</span><span class="n">p_outlet</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">med_prop</span><span class="o">.</span><span class="n">calc_state</span><span class="p">(</span><span class="s2">&quot;TQ&quot;</span><span class="p">,</span> <span class="n">T_min</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;Pressure to low to at given opening to match dT_pinch_min=</span><span class="si">%s</span><span class="s2">. &quot;</span>
+                <span class="s2">&quot;Setting minimal required pressure.&quot;</span>
+            <span class="p">)</span>
+            <span class="c1"># TODO: Re-calculate required opening</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_inlet_high</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">state_outlet</span>
+        <span class="c1"># State 5</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">calc</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_low</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_outlet_high</span>
+        <span class="c1"># State 6</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_low</span><span class="o">.</span><span class="n">calc_outlet</span><span class="p">(</span><span class="n">p_outlet</span><span class="o">=</span><span class="n">p_1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_inlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_low</span><span class="o">.</span><span class="n">state_outlet</span>
+        <span class="c1"># State 7</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_outlet</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_inlet_low</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;dp_ev_high&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">dp_ev_high</span> <span class="o">/</span> <span class="mf">1e5</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Pressure difference due to first EV&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">no</span><span class="p">,</span> <span class="n">state</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">state_inlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">condenser</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_high</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ihx</span><span class="o">.</span><span class="n">state_outlet_high</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">expansion_valve_low</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">evaporator</span><span class="o">.</span><span class="n">state_outlet</span><span class="p">,</span>
+        <span class="p">]):</span>
+            <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;T_</span><span class="si">{</span><span class="n">no</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;K&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Temperature in state </span><span class="si">{</span><span class="n">no</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;p_con&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">p_2</span> <span class="o">/</span> <span class="mf">1e5</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Condensation pressure&quot;</span><span class="p">)</span>
+        <span class="n">fs_state</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;p_eva&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">p_1</span> <span class="o">/</span> <span class="mf">1e5</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;bar&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Evaporation pressure&quot;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="IHX.calc_electrical_power"><a class="viewcode-back" href="../../../code/vclibpy.flowsheets.html#vclibpy.flowsheets.ihx.IHX.calc_electrical_power">[docs]</a>    <span class="k">def</span><span class="w"> </span><span class="nf">calc_electrical_power</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">:</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="p">:</span> <span class="n">FlowsheetState</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Based on simple energy balance - Adiabatic&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">compressor</span><span class="o">.</span><span class="n">calc_electrical_power</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">fs_state</span><span class="o">=</span><span class="n">fs_state</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2023, EON EBC.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
