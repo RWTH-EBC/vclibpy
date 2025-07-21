@@ -28,7 +28,7 @@
 
         
         <h2>Score</h2>
-        7.06 / 10
+        7.07 / 10
             
             (previous score: 7.06 / 10)
             
@@ -144,13 +144,13 @@
         T_in, T_out, dT, m_flow = inputs.evaporator.get_all_inputs(cp=self.cp_secondary, Q=Q)
         self.m_flow_secondary = m_flow
 
-        # Note: As Q_eva_Tm has to converge to Q_eva (m_ref*delta_h), we can safely
+        # Note: As Q_eva_ntu has to converge to Q_eva (m_ref*delta_h), we can safely
         # calculate the output temperature.
         T_mean = inputs.evaporator.T_in - Q / (self.m_flow_secondary_cp * 2)
         tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
-        # alpha_med_wall = 26
-</pre></td>
+
+        # Calculate secondary_medium side temperatures:</pre></td>
             </tr>
             
             <tr>
@@ -168,8 +168,7 @@
             state_max=self.state_outlet,
             state_min=self.state_inlet,
             p=self.state_outlet.p
-        )
-</pre></td>
+        )</pre></td>
             </tr>
             
             <tr>
@@ -216,17 +215,7 @@
                 <td><code>cyclic-import</code></td>
                 <td>R0401</td>
                 <td></td>
-                <td><pre>Cyclic import (vclibpy.components.expansion_valves -&gt; vclibpy.components.expansion_valves.bernoulli)</pre></td>
-            </tr>
-            
-            <tr>
-                <td>1</td>
-                <td>0</td>
-                <td>refactor</td>
-                <td><code>cyclic-import</code></td>
-                <td>R0401</td>
-                <td></td>
-                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.media)</pre></td>
+                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.cool_prop -&gt; vclibpy.media.media)</pre></td>
             </tr>
             
             <tr>
@@ -246,7 +235,27 @@
                 <td><code>cyclic-import</code></td>
                 <td>R0401</td>
                 <td></td>
+                <td><pre>Cyclic import (vclibpy.components.heat_exchangers -&gt; vclibpy.components.heat_exchangers.moving_boundary_ntu -&gt; vclibpy.components.heat_exchangers.utils)</pre></td>
+            </tr>
+            
+            <tr>
+                <td>1</td>
+                <td>0</td>
+                <td>refactor</td>
+                <td><code>cyclic-import</code></td>
+                <td>R0401</td>
+                <td></td>
                 <td><pre>Cyclic import (vclibpy.flowsheets -&gt; vclibpy.flowsheets.standard)</pre></td>
+            </tr>
+            
+            <tr>
+                <td>1</td>
+                <td>0</td>
+                <td>refactor</td>
+                <td><code>cyclic-import</code></td>
+                <td>R0401</td>
+                <td></td>
+                <td><pre>Cyclic import (vclibpy.components.expansion_valves -&gt; vclibpy.components.expansion_valves.bernoulli)</pre></td>
             </tr>
             
             <tr>
@@ -296,27 +305,7 @@
                 <td><code>cyclic-import</code></td>
                 <td>R0401</td>
                 <td></td>
-                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.cool_prop -&gt; vclibpy.media.media)</pre></td>
-            </tr>
-            
-            <tr>
-                <td>1</td>
-                <td>0</td>
-                <td>refactor</td>
-                <td><code>cyclic-import</code></td>
-                <td>R0401</td>
-                <td></td>
-                <td><pre>Cyclic import (vclibpy.components.heat_exchangers -&gt; vclibpy.components.heat_exchangers.moving_boundary_ntu)</pre></td>
-            </tr>
-            
-            <tr>
-                <td>1</td>
-                <td>0</td>
-                <td>refactor</td>
-                <td><code>cyclic-import</code></td>
-                <td>R0401</td>
-                <td></td>
-                <td><pre>Cyclic import (vclibpy.components.heat_exchangers -&gt; vclibpy.components.heat_exchangers.moving_boundary_ntu -&gt; vclibpy.components.heat_exchangers.utils)</pre></td>
+                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.media)</pre></td>
             </tr>
             
             <tr>
@@ -9926,7 +9915,7 @@
             
             <tr>
                 <td>refactor</td>
-                <td>120</td>
+                <td>119</td>
             </tr>
             
             <tr>
@@ -10211,7 +10200,7 @@
             
             <tr>
                 <td>cyclic-import</td>
-                <td>11</td>
+                <td>10</td>
             </tr>
             
         </table>
@@ -10476,7 +10465,7 @@
             
             <tr>
                 <td>vclibpy.algorithms.base</td>
-                <td>29</td>
+                <td>28</td>
             </tr>
             
         </table>
@@ -10741,7 +10730,7 @@
             
             <tr>
                 <td>vclibpy/algorithms/base.py</td>
-                <td>29</td>
+                <td>28</td>
             </tr>
             
         </table>

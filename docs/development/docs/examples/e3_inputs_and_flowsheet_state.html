@@ -76,7 +76,99 @@
 <h1>Inputs and FlowsheetState<a class="headerlink" href="#inputs-and-flowsheetstate" title="Permalink to this heading"></a></h1>
 <p>This example demonstrates how to use the classes <code class="docutils literal notranslate"><span class="pre">Inputs</span></code>,
 and <code class="docutils literal notranslate"><span class="pre">FlowsheetState</span></code></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+<p>All Variables in the <code class="docutils literal notranslate"><span class="pre">Inputs</span></code> and <code class="docutils literal notranslate"><span class="pre">FlowsheetState</span></code> will be saved in
+output formats like .csv or .sdf
+Thus, the concept of these two classes is important to
+understand and analyze simulations in VcLibPy.</p>
+<section id="inputs">
+<h2>Inputs<a class="headerlink" href="#inputs" title="Permalink to this heading"></a></h2>
+<p>All external boundary conditions which act on the vapor compression
+cycle may be inputs.
+We separate the external inputs into <code class="docutils literal notranslate"><span class="pre">ControlInputs</span></code> and
+<code class="docutils literal notranslate"><span class="pre">HeatExchangerInputs</span></code>.
+Depending on the vapor compression cycle, you may have different
+control options and may have multiple heat exchangers.
+In most cases, each machine has some controls and has
+an evaporator and condenser.
+Thus, the <code class="docutils literal notranslate"><span class="pre">Inputs</span></code> class requires to specify
+<code class="docutils literal notranslate"><span class="pre">control',</span> <span class="pre">'evaporator',</span> <span class="pre">and</span> <span class="pre">'condenser'.</span>
+<span class="pre">However,</span> <span class="pre">if</span> <span class="pre">necessary,</span> <span class="pre">you</span> <span class="pre">could</span> <span class="pre">inherit</span></code>Inputs` and define
+additional input requirements.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy</span><span class="w"> </span><span class="kn">import</span> <span class="n">Inputs</span><span class="p">,</span> <span class="n">RelativeCompressorSpeedControl</span><span class="p">,</span> <span class="n">HeatExchangerInputs</span>
+</pre></div>
+</div>
+<section id="heatexchangerinputs">
+<h3>HeatExchangerInputs<a class="headerlink" href="#heatexchangerinputs" title="Permalink to this heading"></a></h3>
+<p>The heat exchanger inputs are necessary to define the secondary (outer) temperature
+levels and to check if the heat can be transferred
+given the inlet and outlet temperatures.</p>
+<p>During calculations, the equation
+<code class="docutils literal notranslate"><span class="pre">Q</span> <span class="pre">=</span> <span class="pre">m_flow</span> <span class="pre">*</span> <span class="pre">cp</span> <span class="pre">*</span> <span class="pre">abs(T_out</span> <span class="pre">-</span> <span class="pre">T_in)</span> <span class="pre">=</span> <span class="pre">m_flow</span> <span class="pre">*</span> <span class="pre">cp</span> <span class="pre">*</span> <span class="pre">dT</span></code>
+must be satisfied. For example, if you provide <code class="docutils literal notranslate"><span class="pre">T_in</span></code>, <code class="docutils literal notranslate"><span class="pre">T_out</span></code>, and <code class="docutils literal notranslate"><span class="pre">cp</span></code>, the code
+will calculate <code class="docutils literal notranslate"><span class="pre">Q</span></code> and <code class="docutils literal notranslate"><span class="pre">dT</span></code>. If you provide <code class="docutils literal notranslate"><span class="pre">T_in</span></code>, <code class="docutils literal notranslate"><span class="pre">dT</span></code>, and <code class="docutils literal notranslate"><span class="pre">cp</span></code>, it will calculate
+<code class="docutils literal notranslate"><span class="pre">T_out</span></code> and <code class="docutils literal notranslate"><span class="pre">Q</span></code>. <code class="docutils literal notranslate"><span class="pre">Q</span></code> and <code class="docutils literal notranslate"><span class="pre">cp</span></code> are automatically provided during cycle iteration.</p>
+<p>For the current calculations, you have to specify at least two other arguments (e.g., <code class="docutils literal notranslate"><span class="pre">T_in</span></code> and <code class="docutils literal notranslate"><span class="pre">T_out</span></code>).
+You always have to specify either <code class="docutils literal notranslate"><span class="pre">T_in</span></code> or <code class="docutils literal notranslate"><span class="pre">T_out</span></code> to define
+the absolute temperature and pressure levels.
+The mass flow rate, temperature difference or other temperature presuppose each other.
+Sometimes you have a mass flow rate at hand, sometimes you want to achieve a certain
+temperature spread. Thus, all options are available.</p>
+<p>Moreover, you can add inputs (e.g. <code class="docutils literal notranslate"><span class="pre">T_ambient</span></code>), which may be required to perform calculations
+of the heat exchangers. This concept is shown in the section “Adding new inputs”.</p>
+<section id="control-inputs">
+<h4>Control inputs<a class="headerlink" href="#control-inputs" title="Permalink to this heading"></a></h4>
+<p>The control inputs are strongly linked to the way the
+cycle calculation works. For instance, most examples use
+a <code class="docutils literal notranslate"><span class="pre">RelativeCompressorSpeedControl</span></code> class, controlling the
+states via compressor speed <code class="docutils literal notranslate"><span class="pre">n</span></code>, evaporator superheat <code class="docutils literal notranslate"><span class="pre">dT_eva_superheating</span></code>
+and condenser subcooling <code class="docutils literal notranslate"><span class="pre">dT_con_subcooling</span></code>.
+Another example is <code class="docutils literal notranslate"><span class="pre">CondenserPowerControl</span></code>, which controls the states
+according to a desired condenser heat flow rate <code class="docutils literal notranslate"><span class="pre">Q_con</span></code>. Here, the cycle
+calculation has to iterate in a different manner to map the desired <code class="docutils literal notranslate"><span class="pre">Q_con</span></code>
+to a compressor speed in order to calculate the compressor models.</p>
+</section>
+<section id="adding-new-inputs">
+<h4>Adding new inputs<a class="headerlink" href="#adding-new-inputs" title="Permalink to this heading"></a></h4>
+<p>If you are required to add new inputs, you can in two ways.
+For instance, let’s say you want to control the pressure
+level ratio, at which vapor is injected in the vapor-injection flowsheets.
+Here, the flowsheets can act on the control-input <code class="docutils literal notranslate"><span class="pre">k_vapor_injection</span></code>.
+You can set custom inputs like this to test out new implementations:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_inputs</span> <span class="o">=</span> <span class="n">RelativeCompressorSpeedControl</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">control_inputs</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;k_vapor_injection&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.05</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">control_inputs</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Optional arguments of the <code class="docutils literal notranslate"><span class="pre">set</span></code> function are unit and description.
+You should pass those along with the name and value to make
+your results easier to analyze, for others and your future self:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">control_inputs</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;k_vapor_injection&quot;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.05</span><span class="p">,</span>
+    <span class="n">unit</span><span class="o">=</span><span class="s2">&quot;-&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Calculates the injection pressure level according to &quot;</span>
+                <span class="s2">&quot;k_vapor_injection * np.sqrt(p_1 * p_2)&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">set</span></code> function registers a Variable in the <code class="docutils literal notranslate"><span class="pre">inputs</span></code> object.
+You can get different information types like this:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">control_inputs</span><span class="o">.</span><span class="n">get_variables</span><span class="p">()</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">control_inputs</span><span class="o">.</span><span class="n">get_variable_names</span><span class="p">()</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">control_inputs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s1">&#39;k_vapor_injection&#39;</span><span class="p">)</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">control_inputs</span><span class="o">.</span><span class="n">items</span><span class="p">()</span><span class="si">=}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># To loop over the variable dict.</span>
+</pre></div>
+</div>
+<p>If you decide a new flowsheet always requires this control option,
+you can further extend any <code class="docutils literal notranslate"><span class="pre">ControlInputs</span></code> classes and add such an option:
+To mimic the example above, we extend RelativeCompressorSpeedControl</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">vclibpy.datamodels</span><span class="w"> </span><span class="kn">import</span> <span class="n">RelativeCompressorSpeedControl</span>
+
+<span class="k">class</span><span class="w"> </span><span class="nc">VaporInjectionCompressorControl</span><span class="p">(</span><span class="n">RelativeCompressorSpeedControl</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Example on how to define custom controls as classes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
             <span class="bp">self</span><span class="p">,</span>
             <span class="n">k_vapor_injection</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
             <span class="o">**</span><span class="n">kwargs</span>
@@ -91,6 +183,9 @@ and <code class="docutils literal notranslate"><span class="pre">FlowsheetState<
 <span class="nb">print</span><span class="p">(</span><span class="n">VaporInjectionCompressorControl</span><span class="p">(</span><span class="n">n</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">k_vapor_injection</span><span class="o">=</span><span class="mf">0.9</span><span class="p">)</span><span class="o">.</span><span class="n">get_variables</span><span class="p">())</span>
 </pre></div>
 </div>
+</section>
+</section>
+</section>
 <section id="flowsheetstate">
 <h2>FlowsheetState<a class="headerlink" href="#flowsheetstate" title="Permalink to this heading"></a></h2>
 <p>The class <code class="docutils literal notranslate"><span class="pre">FlowsheetState</span></code> is essentially the same as <code class="docutils literal notranslate"><span class="pre">Inputs</span></code>.
