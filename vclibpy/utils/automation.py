@@ -9,7 +9,7 @@ import multiprocessing
 import numpy as np
 import pandas as pd
 from vclibpy.datamodels import FlowsheetState, Inputs, RelativeCompressorSpeedControl, HeatExchangerInputs
-from vclibpy.flowsheets import BaseCycle
+from vclibpy.flowsheets.base import fill_fs_state_from_inputs, BaseCycle
 from vclibpy.algorithms import Algorithm, Iteration
 from vclibpy import utils, media
 
@@ -35,6 +35,8 @@ def calc_multiple_states(
         inputs (List[Inputs]): A list with all inputs to simulate
         algorithm (Algorithm): A supported algorithm to calculate a steady state.
         use_multiprocessing (bool): True to use all cores, default no multiprocessing
+        raise_errors (bool): True to raise any errors during cycle iteration, Default is False
+        with_unit_and_description (bool): Export result names with unit and description (Default)
     """
     rel_infos = []
     fs_states = []
@@ -83,7 +85,8 @@ def full_factorial_map_generation(
         use_multiprocessing: bool = False,
         save_plots: bool = False,
         raise_errors: bool = False,
-        save_sdf: bool = True
+        save_sdf: bool = True,
+        with_unit_and_description: bool = False
 ) -> (pathlib.Path, pathlib.Path):
     """
     Run a full-factorial simulation to create performance maps
@@ -129,6 +132,9 @@ def full_factorial_map_generation(
             True to raise errors if they occur.
         save_sdf (bool):
             = False to not save sdf files. Default is True
+        with_unit_and_description (bool):
+            Export result names with unit and description (Default is False)
+
 
     Returns:
         tuple (pathlib.Path, pathlib.Path):
@@ -269,36 +275,6 @@ def full_factorial_map_generation(
     _dummy = np.zeros(result_shape)
     if result_shape:
         _dummy[:] = np.nan
-    # Get all possible values:
-    all_variables = {}
-    all_variables_info = {}
-    variables_to_excel = []
-    for fs_state, inputs in zip(fs_states, list_inputs):
-        all_variables.update({var: _dummy.copy() for var in fs_state.get_variable_names()})
-        all_variables_info.update({var: variable for var, variable in fs_state.get_variables().items()})
-        variables_to_excel.append({
-            **fs_state.convert_to_str_value_format(with_unit_and_description=False),
-        })
-
-    # Save to excel
-    save_path_sdf = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.sdf")
-    save_path_csv = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.csv")
-    pd.DataFrame(variables_to_excel).to_csv(
-        save_path_csv, sep=","
-    )
-
-    # Terminate heat pump med-props:
-    flowsheet.terminate()
-    if not save_sdf:
-        return save_path_csv
-
-    if not result_shape:
-        raise IndexError("No inputs are varied, saving as sdf is not possible")
-
-    for fs_state, idx in zip(fs_states, idx_for_access_later):
-        idx_nd = tuple(i for i, i_is_nd in zip(idx, is_nd) if i_is_nd)
-        for variable_name, variable in fs_state.get_variables().items():
-            all_variables[variable_name][idx_nd] = variable.value
 
     # The order needs to be the same as all_arrays
     possible_scale_values = {
@@ -315,6 +291,48 @@ def full_factorial_map_generation(
     for scale_name, values in possible_scale_values.items():
         if len(values) > 1:
             _scale_values[scale_name] = values
+
+    # Get all possible values:
+    all_variables = {}
+    all_variables_info = {}
+    variables_to_excel = []
+    for fs_state, inputs in zip(fs_states, list_inputs):
+        all_variables.update({var: _dummy.copy() for var in fs_state.get_variable_names()})
+        all_variables_info.update({var: variable for var, variable in fs_state.get_variables().items()})
+        variables_to_excel.append({
+            **fs_state.convert_to_str_value_format(with_unit_and_description=with_unit_and_description),
+        })
+
+    input_names = list(possible_scale_values.keys())
+
+    def reorder_columns(df, first_cols):
+        # Get all columns that aren't in first_cols
+        other_cols = [col for col in df.columns if col not in first_cols]
+        # Return DataFrame with reordered columns
+        return df[first_cols + other_cols]
+
+    df_csv = pd.DataFrame(variables_to_excel)
+    df_csv = reorder_columns(df_csv, input_names)
+
+    # Save to excel
+    save_path_sdf = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.sdf")
+    save_path_csv = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.csv")
+    df_csv.to_csv(
+        save_path_csv, sep=","
+    )
+
+    # Terminate heat pump med-props:
+    flowsheet.terminate()
+    if not save_sdf:
+        return save_path_csv
+
+    if not result_shape:
+        raise IndexError("No inputs are varied, saving as sdf is not possible")
+
+    for fs_state, idx in zip(fs_states, idx_for_access_later):
+        idx_nd = tuple(i for i, i_is_nd in zip(idx, is_nd) if i_is_nd)
+        for variable_name, variable in fs_state.get_variables().items():
+            all_variables[variable_name][idx_nd] = variable.value
 
     # Use the first non-None entry, only relevant for unit and description
     for fs_state in fs_states:
@@ -376,6 +394,16 @@ def _calc_single_state(data):
             raise e
         logger.error(f"An error occurred for input: {inputs.get_name()}: {e}")
     if fs_state is None:
-        fs_state = FlowsheetState()
+        fs_state = fill_fs_state_from_inputs(
+            fs_state=FlowsheetState(), inputs=inputs,
+            T_con_out=inputs.condenser.T_out,
+            T_con_in=inputs.condenser.T_in,
+            dT_con=inputs.condenser.dT,
+            m_flow_con=inputs.condenser.m_flow,
+            T_eva_out=inputs.evaporator.T_out,
+            T_eva_in=inputs.evaporator.T_in,
+            dT_eva=inputs.evaporator.dT,
+            m_flow_eva=inputs.evaporator.m_flow,
+        )
     # Append the data to the dataframe
     return fs_state

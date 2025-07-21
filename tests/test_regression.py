@@ -207,6 +207,9 @@ class TestRegressionWithAllFluidsAndFlowsheets(unittest.TestCase):
 
     def _compare_results(self, path_csv, path_csv_regression):
         df = pd.read_csv(path_csv, index_col=0)
+        # Old structure was always sorted like this:
+        df = df.sort_values(by=['T_eva_in', 'n', 'T_con_in'])
+        # Load old regression results
         df_regression = pd.read_csv(path_csv_regression, index_col=0)
         # Rename columns as with_unit_and_description=False in automation:
         df_regression.columns = [col.split(" ")[0] for col in df_regression.columns]
