@@ -87,10 +87,10 @@ class OilMixProp(OilProp):
     _fluid_mapper = {}
 
     def __init__(self,
-                 fluid_name):
+                 fluid_name, lub_name):
 
 
-        super().__init__(fluid_name=fluid_name)
+        super().__init__(fluid_name=fluid_name, lub_name=lub_name)
 
 
 
@@ -148,6 +148,9 @@ class OilMixProp(OilProp):
         :return ThermodynamicState state:
             Thermodynamic state with state variables
         """
+
+        ref = self.fluid_name
+        lub = self.lub_name
 
         state = ThermodynamicState(p=p, T=T, u=u, h=h, s=s, d=d, q=q)
         return state
