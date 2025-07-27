@@ -199,9 +199,14 @@ class MovingBoundaryNTUGasCooler(ExternalHeatExchanger):
         if np.isclose(Q, 0):
             return 0.0, self.state_inlet.T - self.T_out
         # Get secondary medium inlet and outlet temperatures
-        T_in, T_out = get_gas_cooler_phase_temperatures(inputs=inputs, Q=Q, heat_exchanger=self)
-        self.T_in = T_in
-        self.T_out = T_out
+
+        # T_in, T_out = get_gas_cooler_phase_temperatures(inputs=inputs, Q=Q, heat_exchanger=self)
+
+        self.T_in = inputs.condenser.T_in
+        self.T_out = None
+
+        self.T_sec_steps = np.zeros(self.steps + 1)
+        self.T_sec_steps[0] = self.T_in
 
         p_current = self.state_inlet.p
         total_pressure_drop = 0.0
@@ -227,8 +232,10 @@ class MovingBoundaryNTUGasCooler(ExternalHeatExchanger):
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
 
         for i in range(self.steps):
-            state_in_seg = self.med_prop.calc_state("PH", p_current, h_steps[i])
-            state_out_seg = self.med_prop.calc_state("PH", p_current, h_steps[i + 1])
+
+            idx = self.steps - 1  - i
+            state_in_seg = self.med_prop.calc_state("PH", p_current, h_steps[idx])
+            state_out_seg = self.med_prop.calc_state("PH", p_current, h_steps[idx + 1])
             T_ref_in_seg = state_in_seg.T
             T_sec_out_seg = T_sec_steps[::-1][i + 1]
             dT_max_seg = T_ref_in_seg - T_sec_out_seg
@@ -273,7 +280,7 @@ class MovingBoundaryNTUGasCooler(ExternalHeatExchanger):
                 segment_length = A_used_step / (self.num_tubes * np.pi * self.d_i)
 
                 rho_mean = (state_in_seg.d + state_out_seg.d) / 2
-                eta_mean = (tra_prop_ref_con.dyn_vis)
+                eta_mean = tra_prop_ref_con.dyn_vis
 
                 velocity = self.m_flow / (rho_mean * self.A_cross_section)
 

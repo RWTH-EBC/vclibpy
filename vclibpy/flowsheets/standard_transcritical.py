@@ -116,42 +116,6 @@ class StandardCycleTranscritical(BaseCycle):
           a constant overheating or subcooling (can be set in Inputs).
         """
 
-        # last_cop = 1
-        # q_4_step = 0.1
-        # q_4 = 0.15
-        #
-        # while q_4_step > 0.0001:
-        #     self.set_condenser_outlet_based_on_q(p_con=p_2, inputs=inputs, q_4=q_4, p_eva=p_1)
-        #     self.expansion_valve.state_inlet = self.condenser.state_outlet
-        #     self.expansion_valve.calc_outlet(p_outlet=p_1)
-        #     self.evaporator.state_inlet = self.expansion_valve.state_outlet
-        #     self.set_evaporator_outlet_based_on_superheating(p_eva=p_1, inputs=inputs)
-        #     self.compressor.state_inlet = self.evaporator.state_outlet
-        #     self.compressor.calc_state_outlet(p_outlet=p_2, inputs=inputs, fs_state=fs_state)
-        #     self.condenser.state_inlet = self.compressor.state_outlet
-        #     # Mass flow rate:
-        #     self.compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
-        #     self.condenser.m_flow = self.compressor.m_flow
-        #     self.evaporator.m_flow = self.compressor.m_flow
-        #     self.expansion_valve.m_flow = self.compressor.m_flow
-        #     Q_con = self.condenser.calc_Q_flow()
-        #     P_el = self.calc_electrical_power(fs_state=fs_state, inputs=inputs)
-        #     current_cop = Q_con / P_el
-        #     print(f"COP: {current_cop}; q_4: {q_4}")
-        #     if current_cop < last_cop:
-        #         q_4 += q_4_step
-        #         q_4_step /= 10
-        #         q_4 -= q_4_step
-        #         if 0 > q_4 or q_4 > 1:
-        #             q_4 += q_4_step
-        #             q_4_step /= 10
-        #     else:
-        #         q_4 -= q_4_step
-        #         if 0 > q_4 or q_4 > 1:
-        #             q_4 += q_4_step
-        #             q_4_step /= 10
-        #     #print("q_4: ", q_4)
-        #     last_cop = current_cop
 
         # Calling the function from base.py to set the evaporator outlet based on superheating
         # When superheating > 0, the outlet state is calculated based on "PT" so given pressure and outlet temperature.
