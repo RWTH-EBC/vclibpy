@@ -124,7 +124,6 @@ class StandardCycleTranscritical(BaseCycle):
 
         # Calling the function from compressor.py to calculate the compressor outlet state
         # Isentropic state is calculated based on p_2, entropy of inlet state (see self.compressor.state_inlet = self.evaporator.state_outlet)
-        # The isentropic efficiency is calculated based on the regression of Mirko Engelpracht.
         self.compressor.calc_state_outlet(p_outlet=p_2, inputs=inputs, fs_state=fs_state)
         self.condenser.state_inlet = self.compressor.state_outlet
 
@@ -143,6 +142,7 @@ class StandardCycleTranscritical(BaseCycle):
         # until the output (error) is zero.
         def get_condenser_error(T_3_guess_array):
             T_3_guess = T_3_guess_array[0]
+            print(f"\n>>> Testing T_3_guess: {T_3_guess} K <<<\n")
             self.condenser.state_outlet = self.med_prop.calc_state("PT", p_2, T_3_guess)
             error, _ = self.condenser.calc(inputs=inputs, fs_state=fs_state)
             return error
@@ -155,7 +155,7 @@ class StandardCycleTranscritical(BaseCycle):
             T_3_initial_guess = T_con_sec_out - 3.0
 
         try:
-            T_3_solution_array, _, ier, _ = fsolve(get_condenser_error, x0=[T_3_initial_guess], xtol=0.01,
+            T_3_solution_array, _, ier, _ = fsolve(get_condenser_error, x0=numpy.array([T_3_initial_guess]), xtol=0.01,
                                                    full_output=True)
 
             if ier != 1:
