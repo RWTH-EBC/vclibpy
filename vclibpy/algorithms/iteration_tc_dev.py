@@ -240,7 +240,7 @@ class Iteration_TC(Algorithm):
                 plt.tight_layout(pad=2.0)
                 plt.pause(0.01)
 
-            if p_1_stable and abs(error_eva) < 1e-3:
+            if p_1_stable and abs(error_eva) < 0.05:
                 if final_cop_for_this_p2 > best_cop:
                     best_cop = final_cop_for_this_p2
                     best_p2 = p_2

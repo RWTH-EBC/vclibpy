@@ -7,25 +7,23 @@ def calculate_single_point():
     from vclibpy.components.heat_exchangers import heat_transfer
 
     condenser = moving_boundary_ntu.MovingBoundaryNTUGasCooler(
-        A=5.74,
-        d_i=0.00874,
-        num_tubes=4,
+        A=0.8,
         secondary_medium="air",
         flow_type="counter",
-        ratio_outer_to_inner_area=10,
+        ratio_outer_to_inner_area=1,
         two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=1000),
-        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=55),
+        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1200),
         wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000)
     )
     evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
-        A=10,
+        A=0.250,
         secondary_medium="air",
         flow_type="counter",
-        ratio_outer_to_inner_area=10,
+        ratio_outer_to_inner_area=1,
         two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=1000),
-        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1000),
+        gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1200),
         wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
         secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=25)
@@ -36,7 +34,7 @@ def calculate_single_point():
     from vclibpy.components.compressors import RotaryCompressor
     compressor = RotaryCompressor(
         N_max=125,
-        V_h=19e-6,
+        V_h=8.34e-6,
         eta_is_const = 0.75
     )
 
@@ -61,10 +59,10 @@ def calculate_single_point():
     timestamped_save_path = create_timestamped_folder(base_path=base_save_path, prefix="SinglePointRun")
     print(f"Info: Result-folder for this run created: {timestamped_save_path}")
 
-    algorithm = Iteration_TC(raise_errors=True, save_path_plots=timestamped_save_path, show_iteration=True)
+    algorithm = Iteration_TC(raise_errors=True, save_path_plots=timestamped_save_path, show_iteration=False)
     speed_control = RelativeCompressorSpeedControl(0.2, 5.0, 0)
     eva_inputs = HeatExchangerInputs(T_in=5 + 273.15, m_flow=1)
-    con_inputs = HeatExchangerInputs(T_in=28 + 273.15, m_flow=1)
+    con_inputs = HeatExchangerInputs(T_in=35 + 273.15, m_flow=1)
     inputs = Inputs(control=speed_control, evaporator=eva_inputs, condenser=con_inputs)
 
     start_time = time.perf_counter()
