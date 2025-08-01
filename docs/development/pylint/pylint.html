@@ -30,7 +30,7 @@
         <h2>Score</h2>
         7.07 / 10
             
-            (previous score: 7.06 / 10)
+            (previous score: 7.07 / 10)
             
         
 
@@ -144,13 +144,13 @@
         T_in, T_out, dT, m_flow = inputs.evaporator.get_all_inputs(cp=self.cp_secondary, Q=Q)
         self.m_flow_secondary = m_flow
 
-        # Note: As Q_eva_ntu has to converge to Q_eva (m_ref*delta_h), we can safely
+        # Note: As Q_eva_Tm has to converge to Q_eva (m_ref*delta_h), we can safely
         # calculate the output temperature.
         T_mean = inputs.evaporator.T_in - Q / (self.m_flow_secondary_cp * 2)
         tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
-
-        # Calculate secondary_medium side temperatures:</pre></td>
+        # alpha_med_wall = 26
+</pre></td>
             </tr>
             
             <tr>
@@ -186,8 +186,7 @@
                 state_q1=state_q1,
                 fs_state=fs_state,
                 inputs=inputs
-            )
-</pre></td>
+            )</pre></td>
             </tr>
             
             <tr>
@@ -215,17 +214,7 @@
                 <td><code>cyclic-import</code></td>
                 <td>R0401</td>
                 <td></td>
-                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.cool_prop -&gt; vclibpy.media.media)</pre></td>
-            </tr>
-            
-            <tr>
-                <td>1</td>
-                <td>0</td>
-                <td>refactor</td>
-                <td><code>cyclic-import</code></td>
-                <td>R0401</td>
-                <td></td>
-                <td><pre>Cyclic import (vclibpy.components.heat_exchangers -&gt; vclibpy.components.heat_exchangers.moving_boundary_ntu -&gt; vclibpy.components.heat_exchangers.ntu)</pre></td>
+                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.ref_prop)</pre></td>
             </tr>
             
             <tr>
@@ -245,16 +234,6 @@
                 <td><code>cyclic-import</code></td>
                 <td>R0401</td>
                 <td></td>
-                <td><pre>Cyclic import (vclibpy.flowsheets -&gt; vclibpy.flowsheets.standard)</pre></td>
-            </tr>
-            
-            <tr>
-                <td>1</td>
-                <td>0</td>
-                <td>refactor</td>
-                <td><code>cyclic-import</code></td>
-                <td>R0401</td>
-                <td></td>
                 <td><pre>Cyclic import (vclibpy.components.expansion_valves -&gt; vclibpy.components.expansion_valves.bernoulli)</pre></td>
             </tr>
             
@@ -265,7 +244,7 @@
                 <td><code>cyclic-import</code></td>
                 <td>R0401</td>
                 <td></td>
-                <td><pre>Cyclic import (vclibpy.flowsheets -&gt; vclibpy.flowsheets.vapor_injection_economizer -&gt; vclibpy.flowsheets.vapor_injection)</pre></td>
+                <td><pre>Cyclic import (vclibpy.flowsheets -&gt; vclibpy.flowsheets.standard)</pre></td>
             </tr>
             
             <tr>
@@ -285,6 +264,16 @@
                 <td><code>cyclic-import</code></td>
                 <td>R0401</td>
                 <td></td>
+                <td><pre>Cyclic import (vclibpy.flowsheets -&gt; vclibpy.flowsheets.vapor_injection_economizer -&gt; vclibpy.flowsheets.vapor_injection)</pre></td>
+            </tr>
+            
+            <tr>
+                <td>1</td>
+                <td>0</td>
+                <td>refactor</td>
+                <td><code>cyclic-import</code></td>
+                <td>R0401</td>
+                <td></td>
                 <td><pre>Cyclic import (vclibpy.utils -&gt; vclibpy.utils.automation)</pre></td>
             </tr>
             
@@ -295,7 +284,7 @@
                 <td><code>cyclic-import</code></td>
                 <td>R0401</td>
                 <td></td>
-                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.ref_prop)</pre></td>
+                <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.cool_prop -&gt; vclibpy.media.media)</pre></td>
             </tr>
             
             <tr>
@@ -306,6 +295,26 @@
                 <td>R0401</td>
                 <td></td>
                 <td><pre>Cyclic import (vclibpy.media -&gt; vclibpy.media.media)</pre></td>
+            </tr>
+            
+            <tr>
+                <td>1</td>
+                <td>0</td>
+                <td>refactor</td>
+                <td><code>cyclic-import</code></td>
+                <td>R0401</td>
+                <td></td>
+                <td><pre>Cyclic import (vclibpy.components.heat_exchangers -&gt; vclibpy.components.heat_exchangers.moving_boundary_ntu)</pre></td>
+            </tr>
+            
+            <tr>
+                <td>1</td>
+                <td>0</td>
+                <td>refactor</td>
+                <td><code>cyclic-import</code></td>
+                <td>R0401</td>
+                <td></td>
+                <td><pre>Cyclic import (vclibpy.components.heat_exchangers -&gt; vclibpy.components.heat_exchangers.moving_boundary_ntu -&gt; vclibpy.components.heat_exchangers.ntu)</pre></td>
             </tr>
             
             <tr>
@@ -5661,7 +5670,7 @@
             </tr>
             
             <tr>
-                <td>66</td>
+                <td>70</td>
                 <td>19</td>
                 <td>error</td>
                 <td><code>no-member</code></td>
@@ -5671,7 +5680,7 @@
             </tr>
             
             <tr>
-                <td>168</td>
+                <td>172</td>
                 <td>0</td>
                 <td>convention</td>
                 <td><code>line-too-long</code></td>
@@ -5681,7 +5690,7 @@
             </tr>
             
             <tr>
-                <td>183</td>
+                <td>187</td>
                 <td>4</td>
                 <td>refactor</td>
                 <td><code>too-many-arguments</code></td>
@@ -5691,7 +5700,7 @@
             </tr>
             
             <tr>
-                <td>183</td>
+                <td>187</td>
                 <td>4</td>
                 <td>refactor</td>
                 <td><code>too-many-branches</code></td>
@@ -5701,7 +5710,7 @@
             </tr>
             
             <tr>
-                <td>197</td>
+                <td>201</td>
                 <td>8</td>
                 <td>refactor</td>
                 <td><code>no-else-raise</code></td>
@@ -5711,7 +5720,7 @@
             </tr>
             
             <tr>
-                <td>222</td>
+                <td>226</td>
                 <td>0</td>
                 <td>convention</td>
                 <td><code>line-too-long</code></td>
@@ -5721,33 +5730,13 @@
             </tr>
             
             <tr>
-                <td>224</td>
+                <td>228</td>
                 <td>0</td>
                 <td>convention</td>
                 <td><code>line-too-long</code></td>
                 <td>C0301</td>
                 <td></td>
                 <td><pre>Line too long (108/100)</pre></td>
-            </tr>
-            
-            <tr>
-                <td>285</td>
-                <td>12</td>
-                <td>convention</td>
-                <td><code>invalid-name</code></td>
-                <td>C0103</td>
-                <td>HeatExchangerInputs.get_all_inputs</td>
-                <td><pre>Variable name &#34;T_in&#34; doesn&#39;t conform to snake_case naming style</pre></td>
-            </tr>
-            
-            <tr>
-                <td>286</td>
-                <td>12</td>
-                <td>convention</td>
-                <td><code>invalid-name</code></td>
-                <td>C0103</td>
-                <td>HeatExchangerInputs.get_all_inputs</td>
-                <td><pre>Variable name &#34;T_out&#34; doesn&#39;t conform to snake_case naming style</pre></td>
             </tr>
             
             <tr>
@@ -5777,7 +5766,7 @@
                 <td><code>invalid-name</code></td>
                 <td>C0103</td>
                 <td>HeatExchangerInputs.get_all_inputs</td>
-                <td><pre>Variable name &#34;T_out&#34; doesn&#39;t conform to snake_case naming style</pre></td>
+                <td><pre>Variable name &#34;T_in&#34; doesn&#39;t conform to snake_case naming style</pre></td>
             </tr>
             
             <tr>
@@ -5787,11 +5776,31 @@
                 <td><code>invalid-name</code></td>
                 <td>C0103</td>
                 <td>HeatExchangerInputs.get_all_inputs</td>
+                <td><pre>Variable name &#34;T_out&#34; doesn&#39;t conform to snake_case naming style</pre></td>
+            </tr>
+            
+            <tr>
+                <td>297</td>
+                <td>12</td>
+                <td>convention</td>
+                <td><code>invalid-name</code></td>
+                <td>C0103</td>
+                <td>HeatExchangerInputs.get_all_inputs</td>
+                <td><pre>Variable name &#34;T_out&#34; doesn&#39;t conform to snake_case naming style</pre></td>
+            </tr>
+            
+            <tr>
+                <td>298</td>
+                <td>12</td>
+                <td>convention</td>
+                <td><code>invalid-name</code></td>
+                <td>C0103</td>
+                <td>HeatExchangerInputs.get_all_inputs</td>
                 <td><pre>Variable name &#34;T_in&#34; doesn&#39;t conform to snake_case naming style</pre></td>
             </tr>
             
             <tr>
-                <td>296</td>
+                <td>300</td>
                 <td>8</td>
                 <td>convention</td>
                 <td><code>invalid-name</code></td>
@@ -5801,7 +5810,7 @@
             </tr>
             
             <tr>
-                <td>444</td>
+                <td>448</td>
                 <td>4</td>
                 <td>convention</td>
                 <td><code>missing-function-docstring</code></td>
@@ -5811,7 +5820,7 @@
             </tr>
             
             <tr>
-                <td>445</td>
+                <td>449</td>
                 <td>48</td>
                 <td>warning</td>
                 <td><code>duplicate-key</code></td>
@@ -5821,7 +5830,7 @@
             </tr>
             
             <tr>
-                <td>445</td>
+                <td>449</td>
                 <td>48</td>
                 <td>warning</td>
                 <td><code>duplicate-key</code></td>
@@ -9915,7 +9924,7 @@
             
             <tr>
                 <td>refactor</td>
-                <td>119</td>
+                <td>120</td>
             </tr>
             
             <tr>
@@ -10200,7 +10209,7 @@
             
             <tr>
                 <td>cyclic-import</td>
-                <td>10</td>
+                <td>11</td>
             </tr>
             
         </table>
@@ -10465,7 +10474,7 @@
             
             <tr>
                 <td>vclibpy.algorithms.base</td>
-                <td>28</td>
+                <td>29</td>
             </tr>
             
         </table>
@@ -10730,7 +10739,7 @@
             
             <tr>
                 <td>vclibpy/algorithms/base.py</td>
-                <td>28</td>
+                <td>29</td>
             </tr>
             
         </table>

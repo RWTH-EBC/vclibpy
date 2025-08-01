@@ -1,23 +1,23 @@
 ************* Module vclibpy
 vclibpy/__init__.py:5:0: C0301: Line too long (106/100) (line-too-long)
 ************* Module vclibpy.datamodels
-vclibpy/datamodels.py:168:0: C0301: Line too long (107/100) (line-too-long)
-vclibpy/datamodels.py:222:0: C0301: Line too long (101/100) (line-too-long)
-vclibpy/datamodels.py:224:0: C0301: Line too long (108/100) (line-too-long)
-vclibpy/datamodels.py:66:19: E1101: Super of 'VariableContainer' has no '__getattr__' member (no-member)
-vclibpy/datamodels.py:183:4: R0913: Too many arguments (6/5) (too-many-arguments)
-vclibpy/datamodels.py:197:8: R1720: Unnecessary "elif" after "raise", remove the leading "el" from "elif" (no-else-raise)
-vclibpy/datamodels.py:183:4: R0912: Too many branches (13/12) (too-many-branches)
-vclibpy/datamodels.py:285:12: C0103: Variable name "T_in" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/datamodels.py:286:12: C0103: Variable name "T_out" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/datamodels.py:172:0: C0301: Line too long (107/100) (line-too-long)
+vclibpy/datamodels.py:226:0: C0301: Line too long (101/100) (line-too-long)
+vclibpy/datamodels.py:228:0: C0301: Line too long (108/100) (line-too-long)
+vclibpy/datamodels.py:70:19: E1101: Super of 'VariableContainer' has no '__getattr__' member (no-member)
+vclibpy/datamodels.py:187:4: R0913: Too many arguments (6/5) (too-many-arguments)
+vclibpy/datamodels.py:201:8: R1720: Unnecessary "elif" after "raise", remove the leading "el" from "elif" (no-else-raise)
+vclibpy/datamodels.py:187:4: R0912: Too many branches (13/12) (too-many-branches)
 vclibpy/datamodels.py:289:12: C0103: Variable name "T_in" doesn't conform to snake_case naming style (invalid-name)
 vclibpy/datamodels.py:290:12: C0103: Variable name "T_out" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/datamodels.py:293:12: C0103: Variable name "T_out" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/datamodels.py:294:12: C0103: Variable name "T_in" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/datamodels.py:296:8: C0103: Variable name "dT" doesn't conform to snake_case naming style (invalid-name)
-vclibpy/datamodels.py:444:4: C0116: Missing function or method docstring (missing-function-docstring)
-vclibpy/datamodels.py:445:48: W0109: Duplicate key 'T_out' in dictionary (duplicate-key)
-vclibpy/datamodels.py:445:48: W0109: Duplicate key 'T_out' in dictionary (duplicate-key)
+vclibpy/datamodels.py:293:12: C0103: Variable name "T_in" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/datamodels.py:294:12: C0103: Variable name "T_out" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/datamodels.py:297:12: C0103: Variable name "T_out" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/datamodels.py:298:12: C0103: Variable name "T_in" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/datamodels.py:300:8: C0103: Variable name "dT" doesn't conform to snake_case naming style (invalid-name)
+vclibpy/datamodels.py:448:4: C0116: Missing function or method docstring (missing-function-docstring)
+vclibpy/datamodels.py:449:48: W0109: Duplicate key 'T_out' in dictionary (duplicate-key)
+vclibpy/datamodels.py:449:48: W0109: Duplicate key 'T_out' in dictionary (duplicate-key)
 ************* Module vclibpy.flowsheets.vapor_injection_economizer
 vclibpy/flowsheets/vapor_injection_economizer.py:1:0: C0114: Missing module docstring (missing-module-docstring)
 vclibpy/flowsheets/vapor_injection_economizer.py:47:4: R0914: Too many local variables (21/15) (too-many-locals)
@@ -965,13 +965,13 @@ vclibpy/algorithms/base.py:1:0: R0801: Similar lines in 2 files
         T_in, T_out, dT, m_flow = inputs.evaporator.get_all_inputs(cp=self.cp_secondary, Q=Q)
         self.m_flow_secondary = m_flow
 
-        # Note: As Q_eva_ntu has to converge to Q_eva (m_ref*delta_h), we can safely
+        # Note: As Q_eva_Tm has to converge to Q_eva (m_ref*delta_h), we can safely
         # calculate the output temperature.
         T_mean = inputs.evaporator.T_in - Q / (self.m_flow_secondary_cp * 2)
         tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
         alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
-
-        # Calculate secondary_medium side temperatures: (duplicate-code)
+        # alpha_med_wall = 26
+ (duplicate-code)
 vclibpy/algorithms/base.py:1:0: R0801: Similar lines in 2 files
 ==vclibpy.components.heat_exchangers.moving_boundary_Tm:[178:185]
 ==vclibpy.components.heat_exchangers.moving_boundary_ntu:[181:187]
@@ -980,7 +980,8 @@ vclibpy/algorithms/base.py:1:0: R0801: Similar lines in 2 files
             state_max=self.state_outlet,
             state_min=self.state_inlet,
             p=self.state_outlet.p
-        ) (duplicate-code)
+        )
+ (duplicate-code)
 vclibpy/algorithms/base.py:1:0: R0801: Similar lines in 2 files
 ==vclibpy.components.heat_exchangers.moving_boundary_Tm:[232:238]
 ==vclibpy.components.heat_exchangers.moving_boundary_ntu:[231:238]
@@ -989,7 +990,8 @@ vclibpy/algorithms/base.py:1:0: R0801: Similar lines in 2 files
                 state_q1=state_q1,
                 fs_state=fs_state,
                 inputs=inputs
-            ) (duplicate-code)
+            )
+ (duplicate-code)
 vclibpy/algorithms/base.py:1:0: R0801: Similar lines in 2 files
 ==vclibpy.components.heat_exchangers.moving_boundary_Tm:[84:90]
 ==vclibpy.components.heat_exchangers.moving_boundary_ntu:[87:93]
@@ -999,18 +1001,17 @@ vclibpy/algorithms/base.py:1:0: R0801: Similar lines in 2 files
                 fs_state=fs_state,
                 inputs=inputs
             ) (duplicate-code)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.cool_prop -> vclibpy.media.media) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.heat_exchangers -> vclibpy.components.heat_exchangers.moving_boundary_ntu) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.heat_exchangers -> vclibpy.components.heat_exchangers.moving_boundary_ntu -> vclibpy.components.heat_exchangers.ntu) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.expansion_valves -> vclibpy.components.expansion_valves.bernoulli) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.standard) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.utils -> vclibpy.utils.automation) (cyclic-import)
 vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.ref_prop) (cyclic-import)
-vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.media) (cyclic-import)
 vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.heat_exchangers -> vclibpy.components.heat_exchangers.moving_boundary_ntu -> vclibpy.components.heat_exchangers.utils) (cyclic-import)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_economizer -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.vapor_injection_phase_separator -> vclibpy.flowsheets.vapor_injection) (cyclic-import)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.expansion_valves -> vclibpy.components.expansion_valves.bernoulli) (cyclic-import)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.flowsheets -> vclibpy.flowsheets.standard) (cyclic-import)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.utils -> vclibpy.utils.automation) (cyclic-import)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.media) (cyclic-import)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.media -> vclibpy.media.cool_prop -> vclibpy.media.media) (cyclic-import)
+vclibpy/algorithms/base.py:1:0: R0401: Cyclic import (vclibpy.components.heat_exchangers -> vclibpy.components.heat_exchangers.moving_boundary_ntu -> vclibpy.components.heat_exchangers.ntu) (cyclic-import)
 
 -----------------------------------
-Your code has been rated at 7.06/10
+Your code has been rated at 7.07/10
 
