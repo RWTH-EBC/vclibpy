@@ -52,6 +52,10 @@ class VariableContainer:
         """
         if name in self._variables:
             self._variables[name].value = value
+            if unit is not None:
+                self._variables[name].unit = unit
+            if description is not None:
+                self._variables[name].description = description
         else:
             self._variables[name] = Variable(
                 name=name, value=value, unit=unit, description=description
