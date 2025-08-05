@@ -16,8 +16,8 @@ class BasicHX(HeatExchanger, abc.ABC):
                  ratio_outer_to_inner_area: float,
                  model_approach:str,
                  gas_heat_transfer: HeatTransfer,
-                 liquid_heat_transfer: HeatTransfer,
-                 two_phase_heat_transfer: TwoPhaseHeatTransfer,
+                 liquid_heat_transfer: HeatTransfer =None,
+                 two_phase_heat_transfer: TwoPhaseHeatTransfer = None,
                  n_elemente = 1,
                  fixed_pinch = None,
                  **kwargs):
@@ -152,13 +152,16 @@ class BasicHX(HeatExchanger, abc.ABC):
         Qdot_element = Qdot / n_elements
         state_in_element = state_in
         T_sec_in_element = T_sec_out - dT_sec_element-273.15
-
+        dT_mins = []
         A = 0
         for i in range(n_elements):
             state_out_element = self.med_prop.calc_state("PH", state_in.p, state_in_element.h - dh_element)
             T_ref_in_element = state_in_element.T-273.15
             T_ref_out_element = state_out_element.T-273.15
             dT_ref_element = abs(T_ref_in_element - T_ref_out_element)
+
+            dT_mins.append(T_ref_in_element - T_sec_in_element)
+            dT_mins.append(T_ref_out_element - T_sec_in_element-dT_sec_element)
             if dT_ref_element < 0.00001:
                 W_prim = np.inf
             else:
@@ -172,7 +175,7 @@ class BasicHX(HeatExchanger, abc.ABC):
             A += min(W_sec, W_prim) * NTU / U
             state_in_element = state_out_element
             T_sec_in_element -= dT_sec_element
-        return A
+        return A, np.min(dT_mins)
 
     def calc_NTU(
             self,
@@ -316,7 +319,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
             fs_state.set(name="Con_U_lat", value=U)
             if self.model_approach.lower() == "ntu":
                 W_sec = Q_lat / dT_sec_lat
-                A_lat = self.detailed_epsNTU(
+                A_lat,_  = self.detailed_epsNTU(
                     dh=state_q1.h - state_q0.h,
                     Qdot=Q_lat,
                     dT_sec=dT_sec_lat,
@@ -347,7 +350,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
 
                 W_sec = Q_sc / dT_sec_sc
 
-                A_sc = self.detailed_epsNTU(
+                A_sc,_ = self.detailed_epsNTU(
                     dh= state_q0.h - self.state_outlet.h,
                     Qdot=Q_sc,
                     dT_sec=dT_sec_sc,
@@ -375,7 +378,7 @@ class MVB_Condenser(BasicHX, abc.ABC):
             fs_state.set(name="Con_U_sh", value=U)
             if self.model_approach.lower() == "ntu":
                 W_sec = Q_sh / dT_sec_sh
-                A_sh = self.detailed_epsNTU(
+                A_sh,_  = self.detailed_epsNTU(
                     dh=self.state_inlet.h - state_q1.h,
                     Qdot=Q_sh,
                     dT_sec=dT_sec_sh,
@@ -512,7 +515,7 @@ class MVB_Evaporator(BasicHX, abc.ABC):
             fs_state.set(name="Eva_U_lat", value=U)
             if self.model_approach.lower() == "ntu":
                 W_sec = Q_lat / dT_sec_lat
-                A_lat = self.detailed_epsNTU(
+                A_lat,_  = self.detailed_epsNTU(
                     dh=self.state_inlet.h - state_q1.h,
                     Qdot=Q_lat,
                     dT_sec=-dT_sec_lat,
@@ -538,7 +541,7 @@ class MVB_Evaporator(BasicHX, abc.ABC):
             fs_state.set(name="Eva_U_gas", value=U)
             if self.model_approach.lower() == "ntu":
                 W_sec = Q_sh / dT_sec_sh
-                A_sh = self.detailed_epsNTU(
+                A_sh,_  = self.detailed_epsNTU(
                     dh=state_q1.h - self.state_outlet.h,
                     Qdot=Q_sh,
                     dT_sec=-dT_sec_sh,
@@ -583,12 +586,37 @@ class MVB_Evaporator(BasicHX, abc.ABC):
         return error, pinch
 
 
+class GasCooler(BasicHX, abc.ABC):
 
+    def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
+        dh_ref = self.state_inlet.h - self.state_outlet.h
+        Q = self.m_flow * dh_ref
 
+        T_mean = 0.5*(inputs.T_con_in + inputs.T_con_out)
+        tra_prop_med = self.calc_transport_properties_secondary_medium(T_mean)
+        alpha_med_wall = self.calc_alpha_secondary(tra_prop_med)
 
+        tra_prop_ref = self.med_prop.calc_mean_transport_properties(self.state_inlet, self.state_outlet)
+        alpha_ref_wall = self.calc_alpha_gas(tra_prop_ref)
+        U = self.calc_U(alpha_pri=alpha_ref_wall,
+                        alpha_sec=alpha_med_wall)
 
+        dT_sec = inputs.T_con_out - inputs.T_con_in
+        W_sec = Q/dT_sec
 
+        A_calc, pinch = self.detailed_epsNTU(
+            dh=dh_ref,
+            Qdot=Q,
+            dT_sec=dT_sec,
+            state_in=self.state_inlet,
+            T_sec_out=inputs.T_con_out,
+            W_sec=W_sec,
+            U=U,
+            n_elements=self.n_elemente
+        )
 
+        error = (self.A / A_calc - 1) * 100
 
+        return error, pinch
 
 
