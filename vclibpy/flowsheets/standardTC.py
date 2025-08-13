@@ -2,7 +2,7 @@ from vclibpy.flowsheets import BaseCycleTC
 from vclibpy.datamodels import FlowsheetState, Inputs
 from vclibpy.components.compressors import Compressor
 from vclibpy.components.expansion_valves import ExpansionValve
-
+import numpy as np
 
 class StandardCycleTC(BaseCycleTC):
     """
@@ -16,7 +16,7 @@ class StandardCycleTC(BaseCycleTC):
     4. Before Evaporator, after EV
     """
 
-    flowsheet_name = "Standard"
+    flowsheet_name = "Standard_TC"
 
     def __init__(
             self,
@@ -28,58 +28,76 @@ class StandardCycleTC(BaseCycleTC):
         self.compressor = compressor
         self.expansion_valve = expansion_valve
 
+    def set_expansion_valve_based_on_q4(self, p_eva: float, p_con: float, inputs: Inputs):
+        """
+        Calculate the outlet and inlet state of the expansion valve based on the given (or iterated) quality of the refrigerant in state 4.
+
+        Args:
+            p_eva (float): Evaporation pressure
+            inputs (Inputs): Inputs with quality
+        """
+
+        self.expansion_valve.state_outlet = self.med_prop.calc_state("PQ", p_eva, inputs.q4)
+        h4 = self.expansion_valve.state_outlet.h
+
+        self.expansion_valve.state_inlet = self.med_prop.calc_state("PH", p_con, h4)
+
     def get_all_components(self):
         return super().get_all_components() + [
             self.compressor,
             self.expansion_valve
         ]
 
-    def get_states_in_order_for_plotting(self):
-        return [
-            self.evaporator.state_inlet,
-            self.med_prop.calc_state("PQ", self.evaporator.state_inlet.p, 1),
-            self.evaporator.state_outlet,
-            self.compressor.state_inlet,
-            self.compressor.state_outlet,
-            self.condenser.state_inlet,
-            self.med_prop.calc_state("PQ", self.condenser.state_inlet.p, 1),
-            self.med_prop.calc_state("PQ", self.condenser.state_inlet.p, 0),
-            self.condenser.state_outlet,
-            self.expansion_valve.state_inlet,
-            self.expansion_valve.state_outlet,
-        ]
+    def get_states_in_order_for_plotting(self, h_steps=20):
+        p_eva = self.evaporator.state_inlet.p
+        p_con = self.condenser.state_inlet.p
+        state_1 = self.evaporator.state_outlet
+        state_2 = self.compressor.state_outlet
+        state_3 = self.condenser.state_outlet
+        state_4 = self.expansion_valve.state_outlet
+
+        plotting_states = []
+        plotting_states.append(state_4)
+        plotting_states.append(self.med_prop.calc_state("PQ", p_eva, 1))
+        plotting_states.append(state_1)
+        plotting_states.append(state_2)
+        h_values_gc = np.linspace(state_2.h, state_3.h, h_steps)[1:-1]
+        for h in h_values_gc:
+            try:
+                plotting_states.append(self.med_prop.calc_state("PH", p_con, h))
+            except TypeError:
+                pass
+        plotting_states.append(state_3)
+        plotting_states.append(state_4)
+
+        return plotting_states
 
     def get_states(self):
 
         return {"1": self.compressor.state_inlet,
-               "1_q1":  self.med_prop.calc_state("PQ", self.compressor.state_inlet.p, 1),
-               "2": self.compressor.state_outlet,
-               "2_s": self.med_prop.calc_state("PS", self.compressor.state_outlet.p, self.compressor.state_inlet.s),
-               "2_q1": self.med_prop.calc_state("PQ", self.compressor.state_outlet.p, 1),
-               "3_q0": self.med_prop.calc_state("PQ", self.compressor.state_outlet.p, 0),
-               "3": self.condenser.state_outlet,
-               "4": self.evaporator.state_inlet
-               }
+                "1_q1": self.med_prop.calc_state("PQ", self.compressor.state_inlet.p, 1),
+                "2": self.compressor.state_outlet,
+                "2_s": self.med_prop.calc_state("PS", self.compressor.state_outlet.p, self.compressor.state_inlet.s),
+                "3": self.condenser.state_outlet,
+                "4": self.evaporator.state_inlet
+                }
 
     def get_state_keys(self):
 
         return ["1",
-               "1_q1",
-               "2",
-               "2_s",
-               "2_q1",
-               "3_q0",
-               "3",
-               "4"
-               ]
-
+                "1_q1",
+                "2",
+                "2_s",
+                "3",
+                "4"
+                ]
 
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
 
-
-        self.set_condenser_outlet_based_on_subcooling(p_con=p_2, inputs=inputs)
-        self.expansion_valve.state_inlet = self.condenser.state_outlet
-        self.expansion_valve.calc_outlet(p_outlet=p_1)
+        if not np.isnan(self.q4_set):
+            inputs.q4 = self.q4_set
+        self.set_expansion_valve_based_on_q4(p_eva=p_1, p_con=p_2, inputs=inputs)
+        self.condenser.state_outlet = self.expansion_valve.state_inlet
         self.evaporator.state_inlet = self.expansion_valve.state_outlet
         self.set_evaporator_outlet_based_on_superheating(p_eva=p_1, inputs=inputs)
         self.compressor.state_inlet = self.evaporator.state_outlet
@@ -172,31 +190,29 @@ class StandardCycleTC(BaseCycleTC):
                 description="Secondary side condenser outlet temperature"
             )
 
-        #fs_state.set(
-            #name="y_EV", value=self.expansion_valve.calc_opening_at_m_flow(m_flow=self.expansion_valve.m_flow),
-            #unit="-", description="Expansion valve opening"
-        #)
+        # fs_state.set(
+        # name="y_EV", value=self.expansion_valve.calc_opening_at_m_flow(m_flow=self.expansion_valve.m_flow),
+        # unit="-", description="Expansion valve opening"
+        # )
         fs_state.set(name="compressor_speed", value=inputs.n * self.compressor.N_max, unit="1/s",
                      description="Compressor Speed")
         fs_state.set(name="relative_compressor_speed", value=inputs.n, unit="1/s",
                      description="relative Compressor Speed")
-        fs_state.set(name="Comp_dh",value=0.001*(self.compressor.state_outlet.h-self.compressor.state_inlet.h))
+        fs_state.set(name="Comp_dh", value=0.001 * (self.compressor.state_outlet.h - self.compressor.state_inlet.h))
 
         h2_is = self.med_prop.calc_state("PS", self.compressor.state_outlet.p, self.compressor.state_inlet.s).h
         h4_is = self.med_prop.calc_state("PS", self.evaporator.state_inlet.p, self.condenser.state_outlet.s).h
-        Comp_dh_is = 0.001*(h2_is-self.compressor.state_inlet.h)
+        Comp_dh_is = 0.001 * (h2_is - self.compressor.state_inlet.h)
         Ex_dh_is = 0.001 * (self.expansion_valve.state_inlet.h - h4_is)
-        spec_expansion_losses = Ex_dh_is/Comp_dh_is
-
+        spec_expansion_losses = Ex_dh_is / Comp_dh_is
 
         fs_state.set(name="Comp_dh_is", value=Comp_dh_is)
         fs_state.set(name="Exp_dh_is", value=Ex_dh_is)
 
-        fs_state.set(name="Comp_dH_is", value=self.compressor.m_flow*Comp_dh_is)
-        fs_state.set(name="Exp_dH_is", value=self.compressor.m_flow*Ex_dh_is)
+        fs_state.set(name="Comp_dH_is", value=self.compressor.m_flow * Comp_dh_is)
+        fs_state.set(name="Exp_dH_is", value=self.compressor.m_flow * Ex_dh_is)
 
         fs_state.set(name="spec_expansion_losses", value=spec_expansion_losses)
-
 
     def calc_electrical_power(self, inputs: Inputs, fs_state: FlowsheetState):
         """Based on simple energy balance - Adiabatic"""
