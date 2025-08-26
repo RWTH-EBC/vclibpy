@@ -337,7 +337,7 @@ class BaseCycle:
                      description="Evaporator inlet temperature secondary")
         fs_state.set(name="SEC_T_eva_out", value=inputs.T_eva_out - 273.15,
                      description="Evaporator outlet temperature secondary")
-        fs_state.set(name="SEC_dT_eva", value=inputs.T_eva_out - inputs.T_eva_out,
+        fs_state.set(name="SEC_dT_eva", value=inputs.T_eva_in - inputs.T_eva_out,
                      description="Evaporator temperature difference secondary")
         fs_state.set(name="SEC_m_flow_eva", value=self.evaporator.m_flow_secondary,
                      description="Evaporator mass flow secondary")
