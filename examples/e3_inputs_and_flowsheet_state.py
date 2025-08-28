@@ -26,7 +26,7 @@ def main():
     # Here, the flowsheets can act on the input `k_vapor_injection`. The default is 1.
     # You can set custom inputs like this:
     inputs = Inputs()
-    inputs.set(name="k_vapor_injection", value=1.05)
+    inputs.control.set(name="k_vapor_injection", value=1.05)
     print(inputs)
     # Optional arguments of the `set` function are unit and description.
     # You should pass those along with the name and value to make

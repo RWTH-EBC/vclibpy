@@ -13,12 +13,12 @@ class TestExamples(unittest.TestCase):
     def setUp(self) -> None:
         self.timeout = 100  # Seconds which the script is allowed to run
 
-    def _run_example(self, example, timeout=None):
+    def _run_example(self, example, timeout=None, **kwargs):
         ex_py = pathlib.Path(__file__).absolute().parents[1].joinpath("examples", example)
         sys.path.insert(0, str(ex_py.parent))
         module = importlib.import_module(ex_py.stem)
         example_main = getattr(module, "main")
-        example_main()
+        example_main(**kwargs)
 
     def test_e1_refrigerant_data(self):
         self._run_example(example="e1_refrigerant_data.py")
@@ -37,6 +37,9 @@ class TestExamples(unittest.TestCase):
 
     def test_e6_simple_heat_pump(self):
         self._run_example(example="e6_simple_heat_pump.py")
+
+    def test_e6_simple_heat_pump_outlet(self):
+        self._run_example(example="e6_simple_heat_pump.py", use_condenser_inlet=False)
 
     def test_e7_vapor_injection(self):
         self._run_example(example="e7_vapor_injection.py")

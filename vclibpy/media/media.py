@@ -132,7 +132,7 @@ class MedProp(abc.ABC):
         """
         pass
 
-    def get_two_phase_limits(self, quantity: str, p_min: int = 100000, p_step: int = 5000):
+    def get_two_phase_limits(self, quantity: str, p_min: int = 517964, p_step: int = 5000):
         """
         Retrieve the two-phase limits for plotting a specified quantity.
 

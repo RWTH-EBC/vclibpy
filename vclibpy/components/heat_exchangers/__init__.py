@@ -1,2 +1,2 @@
-from .heat_exchanger import HeatExchanger
-from .moving_boundary_ntu import MovingBoundaryNTUCondenser, MovingBoundaryNTUEvaporator
+from .heat_exchanger import HeatExchanger, ExternalHeatExchanger, InternalHeatExchanger
+from .moving_boundary_ntu import MovingBoundaryNTUCondenser, MovingBoundaryNTUEvaporator, MovingBoundaryNTUGasCooler

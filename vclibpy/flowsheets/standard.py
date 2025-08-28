@@ -50,6 +50,18 @@ class StandardCycle(BaseCycle):
         ]
 
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
+        """
+        This function calculates the states of a standard heat pump under
+        specific conditions while adhering to several general assumptions.
+
+        General Assumptions:
+        ---------------------
+        - Isenthalpic expansion valves:
+          The enthalpy at the inlet equals the enthalpy at the outlet.
+        - Input to the evaporator is always in the two-phase region.
+        - Output of the evaporator and output of the condenser maintain
+          a constant overheating or subcooling (can be set in Inputs).
+        """
         self.set_condenser_outlet_based_on_subcooling(p_con=p_2, inputs=inputs)
         self.expansion_valve.state_inlet = self.condenser.state_outlet
         self.expansion_valve.calc_outlet(p_outlet=p_1)

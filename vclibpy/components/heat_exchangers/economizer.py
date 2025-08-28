@@ -1,12 +1,12 @@
 import logging
 
-from vclibpy.components.heat_exchangers.ntu import BasicNTU
+from vclibpy.components.heat_exchangers import ExternalHeatExchanger
 from vclibpy.media import ThermodynamicState
 
 logger = logging.getLogger(__name__)
 
 
-class VaporInjectionEconomizerNTU(BasicNTU):
+class VaporInjectionEconomizerNTU(ExternalHeatExchanger):
     """
     Economizer heat exchanger which is NTU based.
     Used only for vapor injection cycles, as

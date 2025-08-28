@@ -25,6 +25,22 @@ class RotaryCompressor(Compressor):
 
     """
 
+    def __init__(self, N_max: float, V_h: float, eta_is_const: float = None):
+        """
+        Initialisiert den RotaryCompressor.
+
+        Args:
+            N_max (float): Maximale Drehzahl in 1/s.
+            V_h (float): Hubvolumen in m^3.
+            eta_is_const (float, optional): Ein konstanter isentroper Wirkungsgrad.
+                                            Wenn angegeben, wird die Regression übersprungen.
+        """
+        # Rufe den Konstruktor der Elternklasse mit den Argumenten auf, die er erwartet.
+        super().__init__(N_max=N_max, V_h=V_h)
+
+        # Speichere den neuen, optionalen Wert nur hier in dieser Klasse.
+        self.eta_is_const = eta_is_const
+
     def get_lambda_h(self, inputs: Inputs) -> float:
         """
         Returns the volumetric efficiency based on the regressions of Mirko Engelpracht.
@@ -37,7 +53,7 @@ class RotaryCompressor(Compressor):
         """
         p_outlet = self.get_p_outlet()
         # If not constant value is given, eta_is is calculated based on the regression of Mirko Engelpracht
-        n = self.get_n_absolute(inputs.n)
+        n = self.get_n_absolute(inputs.control.n)
         T_1 = self.state_inlet.T
 
         a_1 = 0.80179
@@ -75,22 +91,25 @@ class RotaryCompressor(Compressor):
             float: Isentropic efficiency.
         """
         # If not constant value is given, eta_is is calculated based on the regression of Mirko Engelpracht
-        n = self.get_n_absolute(inputs.n)
+        if self.eta_is_const is not None:
+            return self.eta_is_const
+        else:
+            n = self.get_n_absolute(inputs.control.n)
 
-        a_1 = 0.5816
-        a_2 = 0.002604
-        a_3 = -1.515e-7
-        a_4 = -0.00473
-        pi = p_outlet / self.state_inlet.p
-        eta = (
-                a_1 +
-                a_2 * n +
-                a_3 * n ** 3 +
-                a_4 * pi ** 2
-        )
-        if eta <= 0:
-            raise ValueError("Efficiency is lower or equal to 0")
-        return eta
+            a_1 = 0.5816
+            a_2 = 0.002604
+            a_3 = -1.515e-7
+            a_4 = -0.00473
+            pi = p_outlet / self.state_inlet.p
+            eta = (
+                    a_1 +
+                    a_2 * n +
+                    a_3 * n ** 3 +
+                    a_4 * pi ** 2
+            )
+            if eta <= 0:
+                raise ValueError("Efficiency is lower or equal to 0")
+            return eta
 
     def get_eta_mech(self, inputs: Inputs) -> float:
         """
@@ -103,7 +122,7 @@ class RotaryCompressor(Compressor):
             float: Mechanical efficiency.
         """
         p_outlet = self.get_p_outlet()
-        n = self.get_n_absolute(inputs.n)
+        n = self.get_n_absolute(inputs.control.n)
         # If not constant value is given, eta_is is calculated based on the regression of Mirko Engelpracht
         a_00 = 0.2199
         a_10 = -0.0193
