@@ -46,7 +46,6 @@ class OilProp(MedProp):
         Args:
             fluid_name (str): The name of the refrigerant.
             lub_name (str): The name of the lubricant.
-            lub_frac (float): The weight fraction of the lubricant between 0 and 1.
         """
         # Check if better internal names exist (e.g. air is modelled as air.ppf)
         super(OilProp, self).__init__(fluid_name)

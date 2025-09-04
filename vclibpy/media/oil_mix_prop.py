@@ -87,10 +87,10 @@ class OilMixProp(OilProp):
     _fluid_mapper = {}
 
     def __init__(self,
-                 fluid_name, lub_name):
+                 fluid_name, lub_name, eos):
 
 
-        super().__init__(fluid_name=fluid_name, lub_name=lub_name)
+        super().__init__(fluid_name=fluid_name, lub_name=lub_name, eos=eos)
 
 
 
@@ -153,6 +153,17 @@ class OilMixProp(OilProp):
         lub = self.lub_name
 
         state = ThermodynamicState(p=p, T=T, u=u, h=h, s=s, d=d, q=q)
+        props = TransportProperties(lam=None,
+                                    dyn_vis=None,
+                                    kin_vis=None,
+                                    pr=None,
+                                    cp=None,
+                                    cv=None,
+                                    beta=None,
+                                    sur_ten=None,
+                                    ace_fac=None,
+                                    state=state)
+        self.props = props
         return state
 
 
@@ -181,5 +192,7 @@ class OilMixProp(OilProp):
                                     ace_fac=None,
                                     state=state)
 
+        assert self.props
+        props = self.props
         #Return props
         return props
