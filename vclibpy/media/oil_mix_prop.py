@@ -4,14 +4,12 @@ Created on 25.07.2025
 
 @author: Anna Halle, Roman Provolotskyi, Bogdan Bykov
 
-
 """
-
 import abc
 import logging
 import matlab.engine
 from vclibpy.media import ThermodynamicState, TransportProperties, OilProp, RefProp
-
+eng = matlab.engine.start_matlab()
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +23,7 @@ class OilMixProp(OilProp):
 
     _fluid_mapper = {}
 
-    def __init__(self, fluid_name, lub_name, OilMixProp_path='D:\\OilMixProp-main'):
+    def __init__(self, fluid_name, lub_name, OilMixProp_path):
 
         super().__init__(fluid_name=fluid_name, lub_name=lub_name)
         self.OilMixProp_path = OilMixProp_path
@@ -184,7 +182,7 @@ class OilMixProp(OilProp):
         mf_column = matlab.double([[mf] for mf in mass_fracs])  # Spaltenvektor
 
 
-        result = eng.FluidCalc(
+        result = eng.FluidCalc_1(
             mf_column,
             eos_choice,
             refrigerants,
@@ -198,15 +196,20 @@ class OilMixProp(OilProp):
 
 
         eng.quit()
-
+        q = self.get_field_safe(result, 'FracV_mass')
         p = self.get_field_safe(result, 'p_Pa')
         T = self.get_field_safe(result, 'T_K')
         h = self.get_field_safe(result, 'hh_Jkg')
+
         s = self.get_field_safe(result, 'ss_JkgK')
         d = self.get_field_safe(result, 'rho_kgm3')
-        q = self.get_field_safe(result, 'FracV_mass')
         v = self.get_field_safe(result, 'v_spez')
-        u = h - p * v if h is not None and p is not None and v is not None else None
+        if q is not None:
+            h = h[0] * (1-q) + h[1]*q
+            s = s[0] * (1 - q) + s[1] * q
+            d = d[0] * (1 - q) + d[1] * q
+            v = v[0] * (1 - q) + v[1] * q
+        u = (h - p * v) if h is not None and p is not None and v is not None else None
 
         state = ThermodynamicState(
             p=p,
@@ -218,9 +221,17 @@ class OilMixProp(OilProp):
             q=q
         )
         cp = self.get_field_safe(result, 'cp_JkgK')
+        cv = self.get_field_safe(result, 'cv_JkgK')
         dyn_vis = self.get_field_safe(result, 'vis_Pas')
         lam = self.get_field_safe(result, 'lambda_WmK')
         drho_dT = self.get_field_safe(result, 'drhokg_dT')
+        if q is not None:
+            cp = cp[0] * (1 - q) + cp[1] * q
+            cp = cv[0] * (1 - q) + cv[1] * q
+            dyn_vis = dyn_vis[0] * (1-q) + dyn_vis[1]*q
+            lam = lam[0] * (1 - q) + lam[1] * q
+            drho_dT = drho_dT[0] * (1 - q) + drho_dT[1] * q
+
 
         kin_vis = dyn_vis / d if dyn_vis is not None and d is not None else None
         pr = cp * dyn_vis / lam if cp is not None and dyn_vis is not None and lam is not None else None
@@ -235,7 +246,7 @@ class OilMixProp(OilProp):
             kin_vis=kin_vis,
             pr=pr,
             cp=cp,
-            cv=self.get_field_safe(result, 'cv_JkgK'),
+            cv=cv,
             beta=beta,
             sur_ten=sur_ten,
             ace_fac=ace_fac,

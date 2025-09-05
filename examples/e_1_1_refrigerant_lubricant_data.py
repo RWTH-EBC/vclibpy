@@ -1,16 +1,15 @@
-from vclibpy.media.oil_mix_prop import OilMixProp
+from vclibpy.media import OilMixProp
 
-fluid_name = "WATER"
-lub_name = "R134A"
-
+fluid_name="Propane"
+lub_name = "PAG68"
 oilmix = OilMixProp(
     fluid_name=fluid_name,
     lub_name=lub_name,
-    OilMixProp_path="D:\\OilMixProp-main" #todo: update
+    OilMixProp_path="C:\\Users\\ahl\\Downloads\\OilMixProp-mailRightVersion\\OilMixProp-mailRightVersion" #todo: update
 )
 mode = "TP"
 temperature = 300.0   # [K]
-pressure = 800000.0      # [kPa]
+pressure = 2*1e2      # [kPa]
 lubricant_fraction = 0.2
 
 state, props_ = oilmix.calc_state(mode, temperature, pressure, lubricant_fraction)

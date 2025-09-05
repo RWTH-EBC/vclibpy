@@ -14,7 +14,7 @@ import abc
 import logging
 import warnings
 from typing import List
-import numpy as np
+#import numpy as np
 
 
 from vclibpy.media import ThermodynamicState, TransportProperties, MedProp

@@ -19,6 +19,11 @@ To install, run
 pip install vclibpy
 ```
 To use RefProp, you have to buy the licence and obtain a valid .dll file.
+To use OilMixProp, you have to install the MATLAB Engine API for Python manually:
+```
+cd (fullfile(matlabroot,'extern','engines','python'))
+python setup.py install
+```
 
 In order to help development, install it as an egg:
 
