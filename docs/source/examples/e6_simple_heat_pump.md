@@ -60,7 +60,7 @@ compressor = RotaryCompressor(
 Now, we can plug everything into the flowsheet:
 
 ```python
-heat_pump = StandardCycle(
+flowsheet = StandardCycle(
     evaporator=evaporator,
     condenser=condenser,
     fluid="Propane",
@@ -92,7 +92,7 @@ logging.basicConfig(level="INFO")
 
 from vclibpy import utils
 save_path_sdf, save_path_csv = utils.full_factorial_map_generation(
-    heat_pump=heat_pump,
+    flowsheet=flowsheet,
     save_path=save_path,
     T_con=T_con,
     T_eva_in=T_eva_in,
@@ -128,8 +128,8 @@ You have to know the names, which are the column headers.
 
 ```python
 import matplotlib.pyplot as plt
-x_name = "n in - (Relative compressor speed)"
-y_name = "COP in - (Coefficient of performance)"
+x_name = "n"
+y_name = "COP"
 plt.scatter(df[x_name], df[y_name], s=20)
 plt.ylabel(y_name)
 plt.xlabel(x_name)

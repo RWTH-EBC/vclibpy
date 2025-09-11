@@ -18,6 +18,12 @@ def calc_mean_temperature(
         T_cold_in: float, T_cold_out: float,
         flow_type: str = "counter"
 ):
+    if T_hot_in < T_hot_out or T_cold_out < T_cold_in:
+        raise ValueError(
+            "Temperatures profiles are not valid for LTMD. "
+            "Cold stream should heat up and hot stream should cool down."
+        )
+
     if flow_type == "counter":
         dT_A = T_hot_in - T_cold_out
         dT_B = T_hot_out - T_cold_in
@@ -28,8 +34,14 @@ def calc_mean_temperature(
         raise TypeError("Given flow_type is not supported yet")
     if dT_B < 0 or dT_A < 0:
         return 0  # Heat can't be transferred
-    if np.isclose(dT_B, 0) or np.isclose(dT_A, 0) or np.isclose(dT_B, dT_A):
-        return abs((dT_A + dT_B) / 2)
+
+    # Handle special cases
+    if np.isclose(dT_A, dT_B, rtol=1e-5):
+        return dT_A
+
+    if np.isclose(dT_A, 0, rtol=1e-2) or np.isclose(dT_B, 0, rtol=1e-2):
+        return min(dT_A, dT_B)  # No heat transfer if either side is zero
+
     return (dT_A - dT_B) / np.log(dT_A / dT_B)
 
 
@@ -91,3 +103,47 @@ def get_condenser_phase_temperatures_and_alpha(
         T_sc = T_sh - heat_exchanger.calc_secondary_Q_flow(Q_lat) / cp
         T_in = T_sc - heat_exchanger.calc_secondary_Q_flow(Q_sc) / cp
     return T_in, T_sc, T_sh, T_out
+
+
+def plot_lmtd_vs_cold_out(T_hot_in, T_hot_out, dT_cold):
+    """
+    Plot LMTD over decreasing T_cold_out for counter flow.
+
+    Args:
+        T_hot_in: Hot fluid inlet temperature (°C)
+        T_hot_out: Hot fluid outlet temperature (°C)
+        dT_cold: Cold fluid temperature difference (K)
+    """
+    import matplotlib.pyplot as plt
+
+    # Create array of T_cold_out values from T_hot_in down to below T_cold_in
+    dT_min_values = np.arange(-5, 2, 0.0001)
+    T_cold_out_values = T_hot_in + dT_min_values
+
+    # Calculate LMTD for each T_cold_out
+    lmtd_values = [
+        calc_mean_temperature(T_hot_in, T_hot_out, T_cold_out - dT_cold, T_cold_out, "counter")
+        for T_cold_out in T_cold_out_values
+    ]
+
+    # Create the plot
+    plt.figure(figsize=(10, 6))
+    plt.plot(dT_min_values, lmtd_values, 'b-', linewidth=2)
+
+    # Add vertical lines for reference temperatures
+    plt.axvline(x=T_hot_in, color='red', linestyle='--', label='T_hot_in')
+    plt.axvline(x=T_hot_out, color='blue', linestyle='--', label='T_hot_out')
+
+    # Customize plot
+    plt.xlabel('$T_\mathrm{cold,out} - T_\mathrm{hot,in}$ in K')
+    plt.ylabel('$\Delta T_\mathrm{LMTD}$ in K')
+    plt.title('Log Mean Temperature Difference vs Cold Outlet Temperature\n'
+              f'(dT_hot={T_hot_in-T_hot_out} K, dT_cold={dT_cold} K)')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+
+if __name__ == '__main__':
+    plot_lmtd_vs_cold_out(T_hot_in=0, T_hot_out=-1, dT_cold=10)

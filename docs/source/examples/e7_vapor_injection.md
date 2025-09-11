@@ -68,7 +68,7 @@ low_pressure_compressor = RotaryCompressor(
 Now, we can plug everything into the flowsheet:
 
 ```python
-heat_pump = VaporInjectionPhaseSeparator(
+flowsheet = VaporInjectionPhaseSeparator(
     evaporator=evaporator,
     condenser=condenser,
     fluid="Propane",
@@ -100,7 +100,7 @@ logging.basicConfig(level="INFO")
 
 from vclibpy import utils
 utils.full_factorial_map_generation(
-    heat_pump=heat_pump,
+    flowsheet=flowsheet,
     save_path=save_path,
     T_con=T_con,
     T_eva_in=T_eva_in,
@@ -149,7 +149,7 @@ economizer = VaporInjectionEconomizerNTU(
 And create the heat pump, and run the map generation:
 
 ```python
-heat_pump = VaporInjectionEconomizer(
+flowsheet = VaporInjectionEconomizer(
     evaporator=evaporator,
     condenser=condenser,
     fluid="Propane",
@@ -160,7 +160,7 @@ heat_pump = VaporInjectionEconomizer(
     low_pressure_valve=low_pressure_valve
 )
 utils.full_factorial_map_generation(
-    heat_pump=heat_pump,
+    flowsheet=flowsheet,
     save_path=r"D:\00_temp\vapor_injection_economizer",
     T_con=T_con,
     T_eva_in=T_eva_in,

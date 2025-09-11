@@ -13,7 +13,7 @@ class IHX(BaseCycle):
     """
     Class for a IHX cycle with internal heat exchanger (ihx).
 
-    For the standard cycle, we have 4 possible states:
+    For the internal heat exchanger cycle, we have 7 possible states:
 
     1. Before compressor, after ihx low temperature side
     2. Before condenser, after compressor
@@ -101,7 +101,6 @@ class IHX(BaseCycle):
         self.compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
         self.condenser.m_flow = self.compressor.m_flow
         self.expansion_valve_high.m_flow = self.compressor.m_flow
-        self.ihx.m_flow = self.compressor.m_flow
         self.expansion_valve_low.m_flow = self.compressor.m_flow
         self.evaporator.m_flow = self.compressor.m_flow
         self.ihx.m_flow_high = self.compressor.m_flow

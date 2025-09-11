@@ -38,10 +38,10 @@ setuptools.setup(
     # that you indicate whether you support Python 2, Python 3 or both.
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
     ],
     keywords=[
         "vapor-compression", "heat pumps",

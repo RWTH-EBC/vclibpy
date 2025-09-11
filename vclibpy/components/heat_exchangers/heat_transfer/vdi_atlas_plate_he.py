@@ -18,14 +18,14 @@ class PlateHeatExchangerGeometry:
 
 
     """
-    wall_thickness: float   # thickness of a plate
-    lambda_w: float         # thermal conductivity of plates
-    amplitude: float        # amplitude of a wavy plate
-    wave_length: float      # wavelength of a wavy plate
-    phi: float              # embossing angle
-    width: float            # width of a plate
-    height: float           # height of a plate
-    n_plates: float         # number of plates
+    wall_thickness: float  # thickness of a plate
+    lambda_w: float  # thermal conductivity of plates
+    amplitude: float  # amplitude of a wavy plate
+    wave_length: float  # wavelength of a wavy plate
+    phi: float  # embossing angle
+    width: float  # width of a plate
+    height: float  # height of a plate
+    n_plates: float  # number of plates
 
     @property
     def X(self) -> float:
@@ -103,7 +103,11 @@ class VDIAtlasPlateHeatTransfer(HeatTransfer):
 
         """
 
-        return 2 * m_flow / (self.geometry_parameters.enlargement_factor * self.geometry_parameters.width * dynamic_viscosity)
+        return 2 * m_flow / (
+                    self.geometry_parameters.enlargement_factor *
+                    self.geometry_parameters.width *
+                    dynamic_viscosity
+        )
 
     def calc_turbulent_plate_nusselt(self, Re: float, Pr: float) -> float:
         """
@@ -123,4 +127,9 @@ class VDIAtlasPlateHeatTransfer(HeatTransfer):
         eta_by_eta_w = 1
         Zeta = 1
 
-        return c_q * Pr ** (1/3) * eta_by_eta_w ** (1/6) * (Zeta * Re ** 2 * np.sin(2 * self.geometry_parameters.phi * np.pi / 180)) ** q
+        return (
+                c_q *
+                Pr ** (1 / 3) *
+                eta_by_eta_w ** (1 / 6) *
+                (Zeta * Re ** 2 * np.sin(2 * self.geometry_parameters.phi * np.pi / 180)) ** q
+        )

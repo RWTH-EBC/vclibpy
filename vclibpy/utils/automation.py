@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from vclibpy.datamodels import FlowsheetState, Inputs, RelativeCompressorSpeedControl, HeatExchangerInputs, \
     RelativeCompressorSpeedControlInjection
-from vclibpy.flowsheets import BaseCycle
+from vclibpy.flowsheets.base import fill_fs_state_from_inputs, BaseCycle
 from vclibpy.algorithms import Algorithm, Iteration
 from vclibpy import utils, media
 
@@ -36,6 +36,8 @@ def calc_multiple_states(
         inputs (List[Inputs]): A list with all inputs to simulate
         algorithm (Algorithm): A supported algorithm to calculate a steady state.
         use_multiprocessing (bool): True to use all cores, default no multiprocessing
+        raise_errors (bool): True to raise any errors during cycle iteration, Default is False
+        with_unit_and_description (bool): Export result names with unit and description (Default)
     """
     rel_infos = []
     fs_states = []
@@ -69,11 +71,12 @@ def calc_multiple_states(
 
 def full_factorial_map_generation(
         flowsheet: BaseCycle,
+        save_path: Union[pathlib.Path, str],
         T_eva_in: Union[list, np.ndarray, float],
         T_con: Union[list, np.ndarray, float],
         n: Union[list, np.ndarray, float],
-        m_flow_eva: Union[list, np.ndarray, float],
-        save_path: Union[pathlib.Path, str],
+        m_flow_eva: Union[list, np.ndarray, float] = None,
+        dT_eva: Union[list, np.ndarray, float] = None,
         k_vapor_injection: Union[list, np.ndarray,float] = None,
         m_flow_con: Union[list, np.ndarray, float] = None,
         dT_con: Union[list, np.ndarray, float] = None,
@@ -84,7 +87,8 @@ def full_factorial_map_generation(
         use_multiprocessing: bool = False,
         save_plots: bool = False,
         raise_errors: bool = False,
-        save_sdf: bool = True
+        save_sdf: bool = True,
+        with_unit_and_description: bool = False
 ) -> (pathlib.Path, pathlib.Path):
     """
     Run a full-factorial simulation to create performance maps
@@ -103,12 +107,14 @@ def full_factorial_map_generation(
             Array with inputs for T_con_in or T_con_out, see `use_condenser_inlet`
         n (list):
             Array with inputs for n
-        m_flow_eva (float):
-            Evaporator mass flow rate
         save_path (Path):
             Where to save all results.
         k_vapor_injection (list):
             Array with inputs for k_vapor_injection that determines the injection pressure
+        m_flow_eva (float):
+            Evaporator mass flow rate, required if m_flow_eva is None. Default is None.
+        dT_eva (float):
+            Condenser temperature spread, required if m_flow_eva is None. Default is None.
         m_flow_con (float):
             Condenser mass flow rate, required if dT_con is None. Default is None.
         dT_con (float):
@@ -130,6 +136,9 @@ def full_factorial_map_generation(
             True to raise errors if they occur.
         save_sdf (bool):
             = False to not save sdf files. Default is True
+        with_unit_and_description (bool):
+            Export result names with unit and description (Default is False)
+
 
     Returns:
         tuple (pathlib.Path, pathlib.Path):
@@ -149,7 +158,6 @@ def full_factorial_map_generation(
     T_eva_in = ensure_array(T_eva_in)
     T_con = ensure_array(T_con)
     n = ensure_array(n)
-    m_flow_eva = ensure_array(m_flow_eva)
     dT_eva_superheating = ensure_array(dT_eva_superheating)
     dT_con_subcooling = ensure_array(dT_con_subcooling)
     if m_flow_con is not None and dT_con is not None:
@@ -157,18 +165,33 @@ def full_factorial_map_generation(
     if m_flow_con is None and dT_con is None:
         raise ValueError("Either m_flow_con or dT_con are required")
     if m_flow_con is not None:
-        con_array = ensure_array(m_flow_con)
+        m_flow_con = ensure_array(m_flow_con)
         use_m_flow_con = True
+        con_array = m_flow_con
     else:
         use_m_flow_con = False
-        con_array = ensure_array(dT_con)
+        dT_con = ensure_array(dT_con)
+        con_array = dT_con
+
+    if m_flow_eva is not None and dT_eva is not None:
+        raise ValueError("Can only run m_flow_eva or dT_eva, not both")
+    if m_flow_eva is None and dT_eva is None:
+        raise ValueError("Either m_flow_eva or dT_eva are required")
+    if m_flow_eva is not None:
+        m_flow_eva = ensure_array(m_flow_eva)
+        eva_array = m_flow_eva
+        use_m_flow_eva = True
+    else:
+        use_m_flow_eva = False
+        dT_eva = ensure_array(dT_eva)
+        eva_array = dT_eva
 
     all_arrays = [
         n,
         T_con,
         T_eva_in,
         con_array,
-        m_flow_eva,
+        eva_array,
         dT_eva_superheating,
         dT_con_subcooling,
     ]
@@ -211,7 +234,7 @@ def full_factorial_map_generation(
         single_T_con = float(combinations[1][i])
         single_T_eva_in = float(combinations[2][i])
         single_con_val = float(combinations[3][i])
-        single_m_flow_eva_val = float(combinations[4][i])
+        single_eva_val = float(combinations[4][i])
         single_dT_eva_sh = float(combinations[5][i])
         single_dT_con_sc = float(combinations[6][i])
 
@@ -233,11 +256,11 @@ def full_factorial_map_generation(
                 dT_eva_superheating=single_dT_eva_sh,
                 dT_con_subcooling=single_dT_con_sc,
             )
+        if use_m_flow_eva:
+            evaporator_inputs = HeatExchangerInputs(T_in=single_T_eva_in, m_flow=single_eva_val)
+        else:
+            evaporator_inputs = HeatExchangerInputs(T_in=single_T_eva_in, dT=single_eva_val)
 
-        evaporator_inputs = HeatExchangerInputs(
-            T_in=single_T_eva_in,
-            m_flow=single_m_flow_eva_val
-        )
         if use_m_flow_con:
             con_kwargs = dict(m_flow=single_con_val)
         else:
@@ -282,6 +305,23 @@ def full_factorial_map_generation(
     _dummy = np.zeros(result_shape)
     if result_shape:
         _dummy[:] = np.nan
+
+    # The order needs to be the same as all_arrays
+    possible_scale_values = {
+        "n": n,
+        "T_con_in" if use_condenser_inlet else "T_con_out": T_con,
+        "T_eva_in": T_eva_in,
+        "m_flow_con" if use_m_flow_con else "dT_con": m_flow_con if use_m_flow_con else dT_con,
+        "m_flow_eva" if use_m_flow_eva else "dT_eva": m_flow_eva if use_m_flow_eva else dT_eva,
+        "dT_eva_superheating": dT_eva_superheating,
+        "dT_con_subcooling": dT_con_subcooling,
+    }
+
+    _scale_values = {}
+    for scale_name, values in possible_scale_values.items():
+        if len(values) > 1:
+            _scale_values[scale_name] = values
+
     # Get all possible values:
     all_variables = {}
     all_variables_info = {}
@@ -290,14 +330,25 @@ def full_factorial_map_generation(
         all_variables.update({var: _dummy.copy() for var in fs_state.get_variable_names()})
         all_variables_info.update({var: variable for var, variable in fs_state.get_variables().items()})
         variables_to_excel.append({
-            **fs_state.convert_to_str_value_format(with_unit_and_description=False),
+            **fs_state.convert_to_str_value_format(with_unit_and_description=with_unit_and_description),
         })
+
+    input_names = list(possible_scale_values.keys())
+
+    def reorder_columns(df, first_cols):
+        # Get all columns that aren't in first_cols
+        other_cols = [col for col in df.columns if col not in first_cols]
+        # Return DataFrame with reordered columns
+        return df[first_cols + other_cols]
+
+    df_csv = pd.DataFrame(variables_to_excel)
+    df_csv = reorder_columns(df_csv, input_names)
 
     # Save to excel
     save_path_sdf = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.sdf")
     save_path_csv = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.csv")
-    pd.DataFrame(variables_to_excel).to_csv(
-        save_path_csv, sep=";"
+    df_csv.to_csv(
+        save_path_csv, sep=","
     )
 
     # Terminate heat pump med-props:
@@ -313,31 +364,19 @@ def full_factorial_map_generation(
         for variable_name, variable in fs_state.get_variables().items():
             all_variables[variable_name][idx_nd] = variable.value
 
-    # The order needs to be the same as all_arrays
-    possible_scale_values = {
-        "n": n,
-        "T_con_in" if use_condenser_inlet else "T_con_out": T_con,
-        "T_eva_in": T_eva_in,
-        "m_flow_con" if use_m_flow_con else "dT_con": con_array,
-        "m_flow_eva": m_flow_eva,
-        "dT_eva_superheating": dT_eva_superheating,
-        "dT_con_subcooling": dT_con_subcooling,
-    }
-    if use_injection:
-        possible_scale_values["k_vapor_injection"] = k_vapor_injection
-
-    _scale_values = {}
-    for scale_name, values in possible_scale_values.items():
-        if len(values) > 1:
-            _scale_values[scale_name] = values
-
-    fs_state = fs_states[0]  # Use the first entry, only relevant for unit and description
+    # Use the first non-None entry, only relevant for unit and description
+    for fs_state in fs_states:
+        if fs_state != FlowsheetState():  # Empty means None
+            fs_state_for_scales = fs_state
+            break
+    else:
+        raise ValueError("Only empty flowsheet states, can't generate sdf.")
     _scales = {}
     for name, data in _scale_values.items():
         _scales[name] = {
             "data": data,
-            "unit": fs_state.get(name).unit,
-            "comment": fs_state.get(name).description
+            "unit": fs_state_for_scales.get(name).unit,
+            "comment": fs_state_for_scales.get(name).description
         }
 
     _nd_data = {}
@@ -385,6 +424,16 @@ def _calc_single_state(data):
             raise e
         logger.error(f"An error occurred for input: {inputs.get_name()}: {e}")
     if fs_state is None:
-        fs_state = FlowsheetState()
+        fs_state = fill_fs_state_from_inputs(
+            fs_state=FlowsheetState(), inputs=inputs,
+            T_con_out=inputs.condenser.T_out,
+            T_con_in=inputs.condenser.T_in,
+            dT_con=inputs.condenser.dT,
+            m_flow_con=inputs.condenser.m_flow,
+            T_eva_out=inputs.evaporator.T_out,
+            T_eva_in=inputs.evaporator.T_in,
+            dT_eva=inputs.evaporator.dT,
+            m_flow_eva=inputs.evaporator.m_flow,
+        )
     # Append the data to the dataframe
     return fs_state
