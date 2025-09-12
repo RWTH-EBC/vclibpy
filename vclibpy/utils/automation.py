@@ -316,6 +316,8 @@ def full_factorial_map_generation(
         "dT_eva_superheating": dT_eva_superheating,
         "dT_con_subcooling": dT_con_subcooling,
     }
+    if use_injection:
+        possible_scale_values["k_vapor_injection"] = k_vapor_injection
 
     _scale_values = {}
     for scale_name, values in possible_scale_values.items():
@@ -348,7 +350,7 @@ def full_factorial_map_generation(
     save_path_sdf = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.sdf")
     save_path_csv = save_path.joinpath(f"{flowsheet.flowsheet_name}_{flowsheet.fluid}.csv")
     df_csv.to_csv(
-        save_path_csv, sep=","
+        save_path_csv, sep=";"
     )
 
     # Terminate heat pump med-props:

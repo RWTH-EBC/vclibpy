@@ -292,9 +292,9 @@ def main():
         # StandardCycle
         # VaporInjectionEconomizer      TODO: Distinction between up- and down-stream economizer implementation
         # VaporInjectionPhaseSeparator
-        # InternalHeatExchanger TODO: Implementation pending
+        # InternalHeatExchanger TODO: Implementation improvement (valves)
         # DirectInjection       TODO: Implementation pending
-    flowsheet_type = "InternalHeatExchanger"
+    flowsheet_type = "VaporInjectionPhaseSeparator"
 
     # 5. create flowsheet object
     flowsheet = create_flowsheet(flowsheet_type, common_params)
