@@ -16,6 +16,8 @@ import math
 import warnings
 from typing import Dict, Optional, Tuple
 import numpy as np
+from CoolProp.CoolProp import PropsSI
+
 from vclibpy.components.heat_exchangers.heat_exchanger import ExternalHeatExchanger
 from vclibpy.datamodels import FlowsheetState, Inputs
 
@@ -152,12 +154,12 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         T_sat, h_f, h_g = self._get_saturation_properties_current()
         margin = 0.95  # safety margin near boundaries
 
-        if h_now < h_f:
+        if h_now <= h_f:
             # Subcooled: don't overshoot into two-phase
             dq_max = self.m_flow * (h_f - h_now) * margin
             return min(dq_trial, dq_max)
 
-        elif h_now <= h_g:
+        elif h_now < h_g:
             # Two-phase: don't overshoot into superheated
             dq_max = self.m_flow * (h_g - h_now) * margin
             return min(dq_trial, dq_max)
@@ -191,7 +193,6 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         if model is None:
             raise RuntimeError("two_phase_heat_transfer model is not set")
 
-        # 모델로 필요한 표준 인자만 전달 (d_h, x, q_flux는 fs_state에서 읽음)
         return model.calc(
             state_q0=state_q0,
             state_q1=state_q1,
@@ -418,9 +419,9 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         tp_iters_total = 0
 
         for seg_idx in range(self.n_segments):
-            state = self.med_prop.calc_state("PH", p, h)
             x = float(state.q)
             T_ref = float(state.T)
+            state = self.med_prop.calc_state("TQ", T_ref, x)
 
             # Determine regime by quality
             if x < 0.0:
@@ -440,7 +441,8 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
                     alpha_sec = self.alpha_sec_const
 
                 # Refrigerant single-phase (liquid) HTC from VcLibPy
-                tp_ref = self.med_prop.calc_transport_properties(state)
+                # tp_ref = self.med_prop.calc_transport_properties(state)
+                tp_ref = PropsSI('T', 'P', p, 'Q', 1, 'Propane')
                 alpha_i = self.calc_alpha_liquid(tp_ref)
 
                 k = self.calc_k(alpha_pri=alpha_i, alpha_sec=alpha_sec)
@@ -455,6 +457,8 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
                 fs_state.set(f"seg_dT_{seg_idx}", float(dT), "K", "driving ΔT in segment")
                 fs_state.set(f"seg_alpha_in_{seg_idx}", float(alpha_i), "W/m2K", "inner HTC (liquid)")
                 fs_state.set(f"seg_alpha_sec_{seg_idx}", float(alpha_sec), "W/m2K", "secondary-side HTC")
+                fs_state.set(f"seg_x_{seg_idx}", float(max(0.0, min(1.0, x))), "-",
+                             "segment vapor quality (clamped to [0,1])")
 
 
             elif x <= 1.0:
@@ -496,6 +500,8 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
                     fs_state.set(f"seg_q_flux_{seg_idx}", float(qpp), "W/m2", "converged heat flux q''")
                     fs_state.set(f"seg_q_flux_{seg_idx}", float(qpp_eff), "W/m2", "effective heat flux after capping")
                     fs_state.set(f"seg_dT_{seg_idx}", float(dT), "K", "driving ΔT = T_sec - T_sat")
+                    fs_state.set(f"seg_x_{seg_idx}", float(max(0.0, min(1.0, x))), "-",
+                                 "segment vapor quality (clamped to [0,1])")
 
                     if alpha_in_final is not None:
                         fs_state.set(f"seg_alpha_in_{seg_idx}", float(alpha_in_final), "W/m2K", "inner HTC (G&W)")
@@ -533,6 +539,8 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
                 fs_state.set(f"seg_dT_{seg_idx}", float(dT), "K", "driving ΔT in segment")
                 fs_state.set(f"seg_alpha_in_{seg_idx}", float(alpha_i), "W/m2K", "inner HTC (gas)")
                 fs_state.set(f"seg_alpha_sec_{seg_idx}", float(alpha_sec), "W/m2K", "secondary-side HTC")
+                fs_state.set(f"seg_x_{seg_idx}", float(max(0.0, min(1.0, x))), "-",
+                             "segment vapor quality (clamped to [0,1])")
 
             # Cross-flow single-row: keep secondary bulk temperature constant per row
             # T_sec remains equal to T_sec_in within this calculation
