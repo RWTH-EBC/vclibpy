@@ -71,6 +71,7 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
             tol: float = 1e-6,
             max_iter: int = 50,
             use_dynamic_secondary: bool = True,
+            x_vap_min: float = 0.99,
             **kwargs,
     ):
         super().__init__(**kwargs)
@@ -108,6 +109,8 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         self.relax_omega = float(relax_omega)
         self.tol = float(tol)
         self.max_iter = int(max_iter)
+
+        self.x_vap_min = float(x_vap_min)
 
         self._sat_props_current = None
         self._st_f = None
@@ -419,36 +422,34 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         tp_iters_total = 0
 
         for seg_idx in range(self.n_segments):
-            x = float(state.q)
+            state = self.med_prop.calc_state("PH", p, h)
             T_ref = float(state.T)
-            state = self.med_prop.calc_state("TQ", T_ref, x)
+
+            h_f = float(self._st_f.h)
+            h_g = float(self._st_g.h)
+            x_raw = (state.h - h_f) / (h_g - h_f)
+            x01 = max(0.0, min(1.0, x_raw))
 
             # Determine regime by quality
-            if x < 0.0:
-                # Subcooled liquid: ΔT = T_sec - T_ref
-                seg_count["subcooled"] += 1
+            if x_raw <= 0.0:
+                # Subcooled
                 dT = T_sec - T_ref
                 if dT <= 0:
                     dT_min = min(dT_min, dT)
                     fs_state.set("pinch_reached", 1, "-", "No driving ΔT in subcooled")
                     break
 
-                # Secondary HTC
                 if self.use_dynamic_secondary:
                     tp_sec = self.calc_transport_properties_secondary_medium(T=T_sec)
                     alpha_sec = self.calc_alpha_secondary(tp_sec)
                 else:
                     alpha_sec = self.alpha_sec_const
 
-                # Refrigerant single-phase (liquid) HTC from VcLibPy
-                # tp_ref = self.med_prop.calc_transport_properties(state)
-                tp_ref = PropsSI('T', 'P', p, 'Q', 1, 'Propane')
+                tp_ref = self.med_prop.calc_transport_properties(state)
                 alpha_i = self.calc_alpha_liquid(tp_ref)
-
                 k = self.calc_k(alpha_pri=alpha_i, alpha_sec=alpha_sec)
                 dQ_trial = k * da * dT
                 dQ = self._cap_dq_to_phase_boundary(h, dQ_trial)
-
                 q_flux = dQ / da
 
                 fs_state.set(f"seg_regime_{seg_idx}", "subcooled", "-", "segment regime")
@@ -457,80 +458,54 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
                 fs_state.set(f"seg_dT_{seg_idx}", float(dT), "K", "driving ΔT in segment")
                 fs_state.set(f"seg_alpha_in_{seg_idx}", float(alpha_i), "W/m2K", "inner HTC (liquid)")
                 fs_state.set(f"seg_alpha_sec_{seg_idx}", float(alpha_sec), "W/m2K", "secondary-side HTC")
-                fs_state.set(f"seg_x_{seg_idx}", float(max(0.0, min(1.0, x))), "-",
-                             "segment vapor quality (clamped to [0,1])")
+                fs_state.set(f"seg_x_{seg_idx}", float(x01), "-", "segment vapor quality (clamped to [0,1])")
 
-
-            elif x <= 1.0:
-                # Two-phase: ΔT = T_sec - T_sat
-                seg_count["two_phase"] += 1
+            elif x_raw < self.x_vap_min:
+                # Two-phase (x_raw in (0,x_vap_min))
                 qpp, dQ_trial, converged, iters, alpha_in_final, k_final = self._solve_qpp_two_phase(
-                    x=x,
-                    p=p,
-                    T_sec=T_sec,
-                    da=da,
-                    qpp_guess=last_qpp,
-                    inputs=inputs,
-                    fs_state=fs_state,
-                    return_diagnostics=False,  # keep False; we'll store per-segment keys below
+                    x=x_raw, p=p, T_sec=T_sec, da=da, qpp_guess=last_qpp,
+                    inputs=inputs, fs_state=fs_state, return_diagnostics=False
                 )
                 last_qpp = qpp
-                tp_iters_total += iters
-                if not converged:
-                    n_fail += 1
-                # Cap to phase boundary
                 dQ = self._cap_dq_to_phase_boundary(h, dQ_trial)
                 qpp_eff = dQ / da
-
-                # Track ΔT_min properly for two-phase
                 T_sat, _, _ = self._get_saturation_properties_current()
-                dT = T_sec - T_sat  # _solve_qpp_two_phase protects against dT<=0
+                dT = T_sec - T_sat
 
-                # If you want alpha_sec recorded per segment, compute it once here for logging
                 if self.use_dynamic_secondary:
                     tp_sec = self.calc_transport_properties_secondary_medium(T=T_sec)
                     alpha_sec = self.calc_alpha_secondary(tp_sec)
                 else:
                     alpha_sec = self.alpha_sec_const
-                # --- Per-segment diagnostics (indexed keys for later analysis/plots) ---
 
+                fs_state.set(f"seg_regime_{seg_idx}", "two_phase", "-", "segment regime")
                 if k_final is not None:
-                    fs_state.set(f"seg_regime_{seg_idx}", "two_phase", "-", "segment regime")
                     fs_state.set(f"seg_k_{seg_idx}", float(k_final), "W/m2K", "overall U in segment (two-phase)")
-                    fs_state.set(f"seg_q_flux_{seg_idx}", float(qpp), "W/m2", "converged heat flux q''")
-                    fs_state.set(f"seg_q_flux_{seg_idx}", float(qpp_eff), "W/m2", "effective heat flux after capping")
-                    fs_state.set(f"seg_dT_{seg_idx}", float(dT), "K", "driving ΔT = T_sec - T_sat")
-                    fs_state.set(f"seg_x_{seg_idx}", float(max(0.0, min(1.0, x))), "-",
-                                 "segment vapor quality (clamped to [0,1])")
-
-                    if alpha_in_final is not None:
-                        fs_state.set(f"seg_alpha_in_{seg_idx}", float(alpha_in_final), "W/m2K", "inner HTC (G&W)")
-
-                    fs_state.set(f"seg_alpha_sec_{seg_idx}", float(alpha_sec), "W/m2K", "secondary-side HTC")
+                fs_state.set(f"seg_q_flux_{seg_idx}", float(qpp_eff), "W/m2", "effective heat flux after capping")
+                fs_state.set(f"seg_dT_{seg_idx}", float(dT), "K", "driving ΔT = T_sec - T_sat")
+                fs_state.set(f"seg_alpha_sec_{seg_idx}", float(alpha_sec), "W/m2K", "secondary-side HTC")
+                if alpha_in_final is not None:
+                    fs_state.set(f"seg_alpha_in_{seg_idx}", float(alpha_in_final), "W/m2K", "inner HTC (G&W)")
+                fs_state.set(f"seg_x_{seg_idx}", float(x01), "-", "segment vapor quality (clamped to [0,1])")
 
             else:
-                # Superheated vapor: ΔT = T_sec - T_ref
-                seg_count["superheated"] += 1
+                # Superheated
                 dT = T_sec - T_ref
                 if dT <= 0:
                     dT_min = min(dT_min, dT)
                     fs_state.set("pinch_reached", 1, "-", "No driving ΔT in superheated")
                     break
 
-                # Secondary HTC
                 if self.use_dynamic_secondary:
                     tp_sec = self.calc_transport_properties_secondary_medium(T=T_sec)
                     alpha_sec = self.calc_alpha_secondary(tp_sec)
                 else:
                     alpha_sec = self.alpha_sec_const
 
-                # Refrigerant single-phase (gas) HTC from VcLibPy
                 tp_ref = self.med_prop.calc_transport_properties(state)
                 alpha_i = self.calc_alpha_gas(tp_ref)
-
                 k = self.calc_k(alpha_pri=alpha_i, alpha_sec=alpha_sec)
                 dQ = k * da * dT
-
                 q_flux = dQ / da
 
                 fs_state.set(f"seg_regime_{seg_idx}", "superheated", "-", "segment regime")
@@ -539,16 +514,13 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
                 fs_state.set(f"seg_dT_{seg_idx}", float(dT), "K", "driving ΔT in segment")
                 fs_state.set(f"seg_alpha_in_{seg_idx}", float(alpha_i), "W/m2K", "inner HTC (gas)")
                 fs_state.set(f"seg_alpha_sec_{seg_idx}", float(alpha_sec), "W/m2K", "secondary-side HTC")
-                fs_state.set(f"seg_x_{seg_idx}", float(max(0.0, min(1.0, x))), "-",
-                             "segment vapor quality (clamped to [0,1])")
+                fs_state.set(f"seg_x_{seg_idx}", float(x01), "-", "segment vapor quality (clamped to [0,1])")
 
             # Cross-flow single-row: keep secondary bulk temperature constant per row
             # T_sec remains equal to T_sec_in within this calculation
 
             # Refrigerant enthalpy/state update
-            h = h + dQ / self.m_flow
-
-            # Accumulators
+            h += dQ / self.m_flow
             Q_sum += dQ
             dT_min = min(dT_min, dT)
 

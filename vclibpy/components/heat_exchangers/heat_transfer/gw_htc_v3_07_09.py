@@ -118,18 +118,16 @@ class GungorWintertonTwoPhase(TwoPhaseHeatTransfer):
                 raise ValueError(f"invalid property {name}={val}")
 
         # --- Gungor & Winterton correlation ---
-        a_flow = math.pi * (d_h ** 2) / 4.0
-        G = m_flow / a_flow  # mass flux [kg/m^2/s]
+        A = math.pi * (d_h ** 2) / 4.0
+        G = m_flow / A  # mass flux [kg/m^2/s]
 
-        re_l = G * d_h / mu_l
+        x_safe = max(1.0e-3, min(1.0 - 1.0e-3, x))
+        re_l = G * d_h * (1 - x_safe) / mu_l # liquid Reynold's number
         # Dittus–Boelter: liquid-only reference HTC
         h_lo = 0.023 * (re_l ** 0.8) * (pr_l ** 0.4) * (k_l / d_h)
 
-        x_safe = max(1.0e-3, min(1.0 - 1.0e-3, x))
         bo = q_flux / (G * h_lv)
-        x_tt = ((1.0 - x_safe) / x_safe) ** 0.9 * (rho_v / rho_l) ** 0.5 * (
-            mu_l / mu_v
-        ) ** 0.1
+        x_tt = ((1.0 - x_safe) / x_safe) ** 0.9 * (rho_v / rho_l) ** 0.5 * (mu_l / mu_v) ** 0.1
 
         e = 1.0 + 24000.0 * (bo ** 1.16) + 1.37 * (x_tt ** -0.86)
         s = 1.0 / (1.0 + 1.15e-6 * (e ** 2) * (re_l ** 1.17))
