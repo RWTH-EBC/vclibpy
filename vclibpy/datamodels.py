@@ -448,8 +448,8 @@ class Inputs:
     def add_inputs_to_fs_state(self, fs_state: FlowsheetState):
         map_heat_exchanger_inputs_to_fs_state = {
             "T_out": lambda hx_name: f"T_{hx_name}_out",
-            "T_out": lambda hx_name: f"T_{hx_name}_in",
-            "T_out": lambda hx_name: f"dT_{hx_name}",
+            "T_in": lambda hx_name: f"T_{hx_name}_in",
+            "dT": lambda hx_name: f"dT_{hx_name}",
             "m_flow": lambda hx_name: f"m_flow_{hx_name}",
         }
         for heat_exchanger, instance in zip(
