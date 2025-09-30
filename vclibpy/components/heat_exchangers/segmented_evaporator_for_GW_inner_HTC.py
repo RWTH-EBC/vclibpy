@@ -16,7 +16,6 @@ import math
 import warnings
 from typing import Dict, Optional, Tuple
 import numpy as np
-from CoolProp.CoolProp import PropsSI
 
 from vclibpy.components.heat_exchangers.heat_exchanger import ExternalHeatExchanger
 from vclibpy.datamodels import FlowsheetState, Inputs
@@ -42,10 +41,6 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         Number of segments across the total area `A`.
     d_h : float, default 0.01
         Hydraulic diameter [m]. Used for Reynolds/Db HTC and two-phase callable.
-    alpha_liq_const : float, default 1200.0
-        Constant single-phase liquid HTC [W/m²K] (used if desired).
-    alpha_gas_const : float, default 80.0
-        Constant single-phase vapor HTC [W/m²K] (used if desired).
     alpha_sec_const : float, default 50.0
         Constant secondary-side HTC [W/m²K] if dynamic calc is disabled.
     relax_omega : float, default 0.4
@@ -76,19 +71,12 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
     ):
         super().__init__(**kwargs)
 
-        # --- normalize / alias handles from base class so our override can find them ---
-        # try the common attribute names the base class could have used
-        tp = (
-                kwargs.get("two_phase_heat_transfer", None)
-                or getattr(self, "two_phase_heat_transfer", None)
-                or getattr(self, "two_phase_heat_transfer_model", None)
-                or getattr(self, "two_phase_model", None)
-        )
+        tp = kwargs.get("two_phase_heat_transfer", None)
+
         if tp is None:
             raise ValueError(
                 "two_phase_heat_transfer must be provided (e.g., GungorWintertonTwoPhase instance)."
             )
-        # store under the name our override expects
         self.two_phase_heat_transfer = tp
 
         # --- input validation ---
@@ -138,38 +126,15 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
             )
         return self._sat_props_current
 
-    def _cap_dq_to_phase_boundary(self, h_now: float, dq_trial: float) -> float:
-        """
-        Limit segment heat transfer so a single segment does not cross a phase boundary.
-
-        Parameters
-        ----------
-        h_now : float
-            Current refrigerant specific enthalpy [J/kg].
-        dq_trial : float
-            Trial segment heat [W] given by k * dA * ΔT.
-
-        Returns
-        -------
-        float
-            Capped segment heat [W].
-        """
-        T_sat, h_f, h_g = self._get_saturation_properties_current()
-        margin = 0.95  # safety margin near boundaries
-
-        if h_now <= h_f:
-            # Subcooled: don't overshoot into two-phase
-            dq_max = self.m_flow * (h_f - h_now) * margin
-            return min(dq_trial, dq_max)
-
-        elif h_now < h_g:
-            # Two-phase: don't overshoot into superheated
-            dq_max = self.m_flow * (h_g - h_now) * margin
-            return min(dq_trial, dq_max)
-
-        else:
-            # Superheated: no limit
-            return dq_trial
+    def _dq_to_boundary(self, h_now: float) -> float:
+        """Return heat needed to reach the next phase boundary from h_now (no margin)."""
+        _, h_f, h_g = self._get_saturation_properties_current()
+        if h_now < h_f:  # subcooled → two-phase
+            return self.m_flow * (h_f - h_now)
+        elif h_now < h_g:  # two-phase → superheated
+            return self.m_flow * (h_g - h_now)
+        else:  # superheated
+            return float("inf")  # no boundary ahead within this phase
 
     def _adaptive_relaxation(self, iteration: int) -> float:
         """
@@ -215,7 +180,7 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
             *,
             x: float,
             p: float,
-            T_sec: float,
+            T_sec_in: float,
             da: float,
             qpp_guess: Optional[float] = None,
             inputs: Inputs,
@@ -233,7 +198,7 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         Args:
             x (float): Segment representative vapor quality (can be out-of-bounds; will be clamped).
             p (float): Segment pressure [Pa] (assumed constant within the segment).
-            T_sec (float): Secondary-side bulk temperature [K] for this segment.
+            T_sec_in (float): Secondary-side bulk temperature [K] for this segment.
             da (float): Segment area [m^2].
             qpp_guess (Optional[float]): Initial guess for q'' [W/m^2].
             inputs (Inputs): Flowsheet/cycle inputs.
@@ -256,7 +221,7 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         T_sat, h_f, h_g = self._get_saturation_properties_current()
 
         # Driving ΔT (evaporator): secondary hotter than refrigerant saturation
-        dT = T_sec - T_sat
+        dT = T_sec_in - T_sat
         if dT <= 0.0:
             # No driving force; nothing to transfer in this segment
             if return_diagnostics:
@@ -268,7 +233,7 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
 
         # Secondary-side HTC (dynamic or constant)
         if self.use_dynamic_secondary:
-            tra_sec = self.calc_transport_properties_secondary_medium(T=T_sec)
+            tra_sec = self.calc_transport_properties_secondary_medium(T=T_sec_in)
             alpha_sec = self.calc_alpha_secondary(tra_sec)
         else:
             alpha_sec = self.alpha_sec_const
@@ -286,7 +251,7 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         alpha_lo = 0.023 * (Re_l ** 0.8) * (Pr_l ** 0.4) * (k_l / self.d_h)
 
         k0 = self.calc_k(alpha_pri=alpha_lo, alpha_sec=alpha_sec)
-        qpp = float(qpp_guess) if (qpp_guess is not None and qpp_guess > 0.0) else max(100.0, k0 * dT)
+        qpp = float(qpp_guess) if (qpp_guess is not None and qpp_guess > 0.0) else k0 * dT
 
         # Reference states for the two-phase HTC implementation
         state_q0 = st_l
@@ -362,7 +327,7 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
             pass
         raise RuntimeError(
             f"Two-phase q'' iteration did not converge in {self.max_iter} iterations. "
-            f"(p={p:.3f} Pa, T_sec={T_sec:.3f} K, dT={dT:.6g} K, x={x:.6f}, last_qpp={qpp:.6g} W/m^2)"
+            f"(p={p:.3f} Pa, T_sec={T_sec_in:.3f} K, dT={dT:.6g} K, x={x:.6f}, last_qpp={qpp:.6g} W/m^2)"
         )
 
     # --------------------------------------------------------------------- #
@@ -398,16 +363,14 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         #     We fetch inlet temperature and mass flow again to ensure consistency with flowsheet.
         #     If cp was not set in _initialize_secondary_medium, compute it here at T_in.
         T_sec_in, _, _, m_sec = inputs.evaporator.get_all_inputs(
-            cp=self.cp_secondary or 1.0,
+            cp=self.cp_secondary,
             Q=0.0
         )
+
         # Update mass flow and capacity rate robustly (idempotent)
         self.m_flow_secondary = float(m_sec)
         if not self.cp_secondary:
             self.calc_secondary_cp(T=T_sec_in)
-
-        # Update mass flow; DO NOT assign to a read-only property like m_flow_secondary_cp
-        self.m_flow_secondary = float(m_sec)
 
         # --- Cross-flow single-row assumption: keep secondary bulk temperature constant per row ---
         T_sec = float(T_sec_in)
@@ -431,13 +394,13 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
             x01 = max(0.0, min(1.0, x_raw))
 
             # Determine regime by quality
-            if x_raw <= 0.0:
+            if x_raw < 0.0:
                 # Subcooled
                 dT = T_sec - T_ref
                 if dT <= 0:
                     dT_min = min(dT_min, dT)
                     fs_state.set("pinch_reached", 1, "-", "No driving ΔT in subcooled")
-                    break
+                    #break
 
                 if self.use_dynamic_secondary:
                     tp_sec = self.calc_transport_properties_secondary_medium(T=T_sec)
@@ -449,8 +412,48 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
                 alpha_i = self.calc_alpha_liquid(tp_ref)
                 k = self.calc_k(alpha_pri=alpha_i, alpha_sec=alpha_sec)
                 dQ_trial = k * da * dT
-                dQ = self._cap_dq_to_phase_boundary(h, dQ_trial)
-                q_flux = dQ / da
+                dQ_to = self._dq_to_boundary(h)  # heat to reach h_f exactly
+
+                if dQ_trial <= dQ_to or not math.isfinite(dQ_to):
+                    # 경계를 넘지 않음: 전 면적을 liquid로 사용
+                    dQ = dQ_trial
+                    q_flux = dQ / da
+                else:
+                    # 경계까지 쓴 뒤, 남은 면적은 두상으로 즉시 진행
+                    da_to = dQ_to / (k * dT)  # liquid로 경계에 닿는 데 필요한 부분면적
+                    dQ1 = dQ_to  # liquid 부분에서 소비된 열량
+                    h_tmp = h + dQ1 / self.m_flow  # == h_f
+
+                    da_rem = max(0.0, da - da_to)  # 남은 면적
+
+                    dQ2 = 0.0
+                    if da_rem > 0.0:
+                        # 두상 시작은 x≈0에서 시작 (함수 내부에서 안전하게 clamp함)
+                        qpp, dQ2_trial, converged, iters, alpha_in_final, k_final = self._solve_qpp_two_phase(
+                            x=0.0, p=p, T_sec_in=T_sec, da=da_rem, qpp_guess=last_qpp,
+                            inputs=inputs, fs_state=fs_state, return_diagnostics=False
+                        )
+                        last_qpp = qpp
+
+                        # 두상에서 상한: h_g까지
+                        dQ2_to = self._dq_to_boundary(h_tmp)  # m*(h_g - h_f)
+                        dQ2 = min(dQ2_trial, dQ2_to)
+
+                        # 두상 메타데이터(선택): k_final/alpha_in_final 있으면 기록
+                        if k_final is not None:
+                            fs_state.set(f"seg_k_{seg_idx}_tp", float(k_final), "W/m2K", "U in two-phase (partial)")
+                        if alpha_in_final is not None:
+                            fs_state.set(f"seg_alpha_in_{seg_idx}_tp", float(alpha_in_final), "W/m2K",
+                                         "inner HTC (G&W, partial)")
+
+                        # 만약 dQ2_trial > dQ2_to 여서 superheated로도 넘어가야 할 면적이 남는다면,
+                        # 그 처리는 아래 3) 두상 블록에서와 동일한 패턴으로 구현할 수 있지만,
+                        # 여기서는 '서브쿨드→두상'까지만 split 하고, superheated는 다음 세그먼트에서 처리되도록 놔둬도 충분히 안정적임.
+
+                    dQ = dQ1 + dQ2
+                    q_flux = dQ / da
+
+                seg_count["subcooled"] += 1
 
                 fs_state.set(f"seg_regime_{seg_idx}", "subcooled", "-", "segment regime")
                 fs_state.set(f"seg_k_{seg_idx}", float(k), "W/m2K", "overall U in segment")
@@ -460,17 +463,57 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
                 fs_state.set(f"seg_alpha_sec_{seg_idx}", float(alpha_sec), "W/m2K", "secondary-side HTC")
                 fs_state.set(f"seg_x_{seg_idx}", float(x01), "-", "segment vapor quality (clamped to [0,1])")
 
-            elif x_raw < self.x_vap_min:
-                # Two-phase (x_raw in (0,x_vap_min))
-                qpp, dQ_trial, converged, iters, alpha_in_final, k_final = self._solve_qpp_two_phase(
-                    x=x_raw, p=p, T_sec=T_sec, da=da, qpp_guess=last_qpp,
-                    inputs=inputs, fs_state=fs_state, return_diagnostics=False
-                )
+            elif x_raw <= self.x_vap_min:    # Two-phase (x_raw in (0,x_vap_min))
+                qpp, dQ_trial, converged, iters, alpha_in_final, k_final = (
+                    self._solve_qpp_two_phase(x=x_raw, p=p, T_sec_in=T_sec, da=da, qpp_guess=last_qpp, inputs=inputs,
+                    fs_state=fs_state, return_diagnostics=False))
                 last_qpp = qpp
-                dQ = self._cap_dq_to_phase_boundary(h, dQ_trial)
-                qpp_eff = dQ / da
+                dQ_to = self._dq_to_boundary(h)  # heat to reach h_g exactly
+
+                if dQ_trial <= dQ_to or not math.isfinite(dQ_to):
+                    # 경계를 넘지 않음: 전 면적을 두상으로 사용
+                    dQ = dQ_trial
+                    qpp_eff = dQ / da
+                else:
+                    # 두상 면적 중 일부만 써서 h_g에 정확히 도달
+                    da_tp = dQ_to / qpp  # 두상에서 경계까지 필요한 부분면적 (qpp는 W/m2)
+                    dQ_tp = dQ_to  # 두상에서 소비된 열량
+                    h_tmp = h + dQ_tp / self.m_flow  # == h_g
+
+                    # 남은 면적은 superheated로 즉시 진행
+                    da_rem = max(0.0, da - da_tp)
+                    dQ_sh = 0.0
+                    if da_rem > 0.0:
+                        state_sh = self.med_prop.calc_state("PH", p, h_tmp)
+                        T_ref_sh = float(state_sh.T)
+                        dT_sh = T_sec - T_ref_sh
+                        if dT_sh > 0.0:
+                            if self.use_dynamic_secondary:
+                                tp_sec = self.calc_transport_properties_secondary_medium(T=T_sec)
+                                alpha_sec = self.calc_alpha_secondary(tp_sec)
+                            else:
+                                alpha_sec = self.alpha_sec_const
+
+                            tp_ref_sh = self.med_prop.calc_transport_properties(state_sh)
+                            alpha_i_sh = self.calc_alpha_gas(tp_ref_sh)
+                            k_sh = self.calc_k(alpha_pri=alpha_i_sh, alpha_sec=alpha_sec)
+                            dQ_sh = k_sh * da_rem * dT_sh
+                            # 필요하면 진단값 기록:
+                            fs_state.set(f"seg_k_{seg_idx}_sh", float(k_sh), "W/m2K", "U in superheated (partial)")
+                            fs_state.set(f"seg_alpha_in_{seg_idx}_sh", float(alpha_i_sh), "W/m2K",
+                                         "inner HTC (gas, partial)")
+                        else:
+                            fs_state.set("pinch_reached", 1, "-", "No driving ΔT in superheated (partial)")
+
+                    dQ = dQ_tp + dQ_sh
+                    qpp_eff = dQ / da
+
+                # 두상일 때의 ΔT는 포화온도 기준
                 T_sat, _, _ = self._get_saturation_properties_current()
                 dT = T_sec - T_sat
+
+                seg_count["two_phase"] += 1
+                tp_iters_total += iters
 
                 if self.use_dynamic_secondary:
                     tp_sec = self.calc_transport_properties_secondary_medium(T=T_sec)
@@ -492,9 +535,10 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
                 # Superheated
                 dT = T_sec - T_ref
                 if dT <= 0:
+                    dT = 0
                     dT_min = min(dT_min, dT)
                     fs_state.set("pinch_reached", 1, "-", "No driving ΔT in superheated")
-                    break
+                    #break
 
                 if self.use_dynamic_secondary:
                     tp_sec = self.calc_transport_properties_secondary_medium(T=T_sec)
@@ -507,6 +551,7 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
                 k = self.calc_k(alpha_pri=alpha_i, alpha_sec=alpha_sec)
                 dQ = k * da * dT
                 q_flux = dQ / da
+                seg_count["superheated"] += 1
 
                 fs_state.set(f"seg_regime_{seg_idx}", "superheated", "-", "segment regime")
                 fs_state.set(f"seg_k_{seg_idx}", float(k), "W/m2K", "overall U in segment")
@@ -541,11 +586,13 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         # Energy conservation diagnostic
         self._check_energy_conservation(Q_sum, Q_ref)
 
-        if not getattr(self, "m_flow_secondary_cp", None):
-            self.m_flow_secondary_cp = self.m_flow_secondary * (self.cp_secondary or 1.0)
 
         # Cross-flow single-row: compute secondary outlet once from the total row heat
         T_sec_out = T_sec_in - Q_sum / self.m_flow_secondary_cp
+
+        print(f"Debug: Q_sum={Q_sum:.1f}W, C_sec={self.m_flow_secondary_cp:.3f}W/K")
+        print(f"Debug: T_sec_in={T_sec_in:.2f}K, T_sec_out={T_sec_out:.2f}K")
+        print(f"Debug: dT_sec={T_sec_in - T_sec_out:.2f}K")
 
         # Record results in fs_state
         self._record_results(
@@ -599,7 +646,7 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         # Retrieve inlet temperature and mass flow via standardized interface
         # cp is set to self.cp_secondary if already available, otherwise a dummy (1.0) is passed
         T_sec_in, _, _, m_sec = inputs.evaporator.get_all_inputs(
-            cp=self.cp_secondary or 1.0, Q=0.0
+            cp=self.cp_secondary, Q=0.0
         )
 
         if m_sec is None:
@@ -613,9 +660,6 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
             self.calc_secondary_cp(T=T_sec_in)
 
         # Update mass flow and derived capacity rate
-        self.m_flow_secondary = float(m_sec)
-
-        # Update mass flow; DO NOT assign to a read-only property like m_flow_secondary_cp
         self.m_flow_secondary = float(m_sec)
 
     @staticmethod
