@@ -10,7 +10,7 @@ oilmix = OilMixProp(
 mode = "TP"
 temperature = 300.0   # [K]
 pressure = 2*1e2      # [kPa]
-lubricant_fraction = 0.2
+lubricant_fraction = 0.01
 
 state, props_ = oilmix.calc_state(mode, temperature, pressure, lubricant_fraction)
 

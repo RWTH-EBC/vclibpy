@@ -6,12 +6,12 @@
 def main():
     # First, let's import the important classes from vclibpy's
     # `media` module:
-    from vclibpy.media import CoolProp, ThermodynamicState, TransportProperties
+    from vclibpy.media import RefProp, ThermodynamicState, TransportProperties
     # We have two media property classes, `CoolProp` and `RefProp`.
     # The latter requires a dll, which you have to purchase together with RefProp.
     # Thus, in this example, we will use `CoolProp`. Pass the `fluid_name` to
     # select the fluid you are going to use.
-    cool_prop = CoolProp(fluid_name="Propane")
+    cool_prop = RefProp(fluid_name="Propane")
     # ## ThermodynamicState calculation
     # Let's start and show how the media property classes work. You always
     # call `calc_state()`. The documentation explains how to use it:
