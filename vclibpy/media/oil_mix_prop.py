@@ -94,7 +94,7 @@ class OilMixProp(OilProp):
         # Entsprechenden internen Zustandsschlüssel zurückgeben
         return supported_states[key]
 
-    def calc_state(self, mode: str, var1: float, var2: float, lub_frac: float):
+    def calc_state(self, mode: str, phase: str, var1: float, var2: float, lub_frac: float):
         """
     Calculates thermodynamic state and transport properties for a given input condition.
 
@@ -204,11 +204,27 @@ class OilMixProp(OilProp):
         s = self.get_field_safe(result, 'ss_JkgK')
         d = self.get_field_safe(result, 'rho_kgm3')
         v = self.get_field_safe(result, 'v_spez')
+
         if q is not None:
-            h = h[0] * (1-q) + h[1]*q
-            s = s[0] * (1 - q) + s[1] * q
-            d = d[0] * (1 - q) + d[1] * q
-            v = v[0] * (1 - q) + v[1] * q
+            if phase =="mix":
+                h = h[0] * (1-q) + h[1]*q
+                s = s[0] * (1 - q) + s[1] * q
+                d = d[0] * (1 - q) + d[1] * q
+                v = v[0] * (1 - q) + v[1] * q
+            elif phase == "gas":
+                h = h[1]
+                s = s[1]
+                d = d[1]
+                v = v[1]
+            elif phase == "liq":
+                h = h[0]
+                s = s[0]
+                d = d[0]
+                v = v[0]
+            else:
+                raise ValueError('Specify phase.')
+
+
         u = (h - p * v) if h is not None and p is not None and v is not None else None
 
         state = ThermodynamicState(
@@ -226,11 +242,26 @@ class OilMixProp(OilProp):
         lam = self.get_field_safe(result, 'lambda_WmK')
         drho_dT = self.get_field_safe(result, 'drhokg_dT')
         if q is not None:
-            cp = cp[0] * (1 - q) + cp[1] * q
-            cp = cv[0] * (1 - q) + cv[1] * q
-            dyn_vis = dyn_vis[0] * (1-q) + dyn_vis[1]*q
-            lam = lam[0] * (1 - q) + lam[1] * q
-            drho_dT = drho_dT[0] * (1 - q) + drho_dT[1] * q
+            if phase == "mix":
+                cp = cp[0] * (1 - q) + cp[1] * q
+                cv = cv[0] * (1 - q) + cv[1] * q
+                dyn_vis = dyn_vis[0] * (1-q) + dyn_vis[1]*q
+                lam = lam[0] * (1 - q) + lam[1] * q
+                drho_dT = drho_dT[0] * (1 - q) + drho_dT[1] * q
+            elif phase == "gas":
+                cp = cp[1]
+                cv = cv[1]
+                dyn_vis = dyn_vis[1]
+                lam =  lam[1]
+                drho_dT = drho_dT[1]
+            elif phase == "liq":
+                cp = cp[0]
+                cv = cv[0]
+                dyn_vis = dyn_vis[0]
+                lam =  lam[0]
+                drho_dT = drho_dT[0]
+            else:
+                raise ValueError('Specify phase.')
 
 
         kin_vis = dyn_vis / d if dyn_vis is not None and d is not None else None

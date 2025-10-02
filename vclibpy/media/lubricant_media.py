@@ -55,7 +55,7 @@ class OilProp(MedProp):
         self._two_phase_limits: dict = None
 
  
-    def calc_state(self, mode: str, var1: float, var2: float, lub_frac: float):
+    def calc_state(self, mode: str, phase: str, var1: float, var2: float, lub_frac: float):
         """Calculate the thermodynamic state based on the specified mode and state variables.
 
         This function calculates the thermodynamic state based on the chosen mode and provided state variables.
@@ -104,7 +104,7 @@ class OilProp(MedProp):
         assert mode in available_options, f'Given mode {mode} is not in available options'
 
 
-    def calc_transport_properties(self, state: ThermodynamicState, lub_frac: float):
+    def calc_transport_properties(self, state: ThermodynamicState, phase: str, lub_frac: float):
         """Calculate the transport properties for the given state.
 
         Args:
