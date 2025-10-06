@@ -356,13 +356,13 @@ def fill_fs_state_from_inputs(
     fs_state.set(
         name="dT_con",
         value=dT_con,
-        unit=inputs.condenser.get('m_flow').unit,
+        unit=inputs.condenser.get('dT').unit,
         description=f"Condenser {inputs.condenser.get('m_flow').description}"
     )
     fs_state.set(
         name="m_flow_con",
         value=m_flow_con,
-        unit=inputs.condenser.get('dT').unit,
+        unit=inputs.condenser.get('m_flow').unit,
         description=f"Condenser {inputs.condenser.get('dT').description}"
     )
     fs_state.set(
@@ -380,13 +380,13 @@ def fill_fs_state_from_inputs(
     fs_state.set(
         name="dT_eva",
         value=dT_eva,
-        unit=inputs.evaporator.get('m_flow').unit,
+        unit=inputs.evaporator.get('dT').unit,
         description=f"Evaporator {inputs.evaporator.get('m_flow').description}"
     )
     fs_state.set(
         name="m_flow_eva",
         value=m_flow_eva,
-        unit=inputs.evaporator.get('dT').unit,
+        unit=inputs.evaporator.get('m_flow').unit,
         description=f"Evaporator {inputs.evaporator.get('dT').description}"
     )
     # Add control inputs
