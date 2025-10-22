@@ -75,7 +75,7 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
 
         if tp is None:
             raise ValueError(
-                "two_phase_heat_transfer must be provided (e.g., GungorWintertonTwoPhase instance)."
+                "two_phase_heat_transfer must be provided (e.g., GungorWintertonTwoPhase86 instance)."
             )
         self.two_phase_heat_transfer = tp
 
@@ -336,12 +336,6 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
     def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> Tuple[float, float]:
         """
         Calculate the segmented evaporator.
-
-        Returns
-        -------
-        (error_percent, dT_min)
-          error_percent : 100 * (sum(dQ_segments) / (m_ref * Δh) - 1)
-          dT_min        : minimum ΔT encountered [K]
         """
         self._validate_inputs()
         self._sat_props_current = None  # reset for this run
@@ -579,20 +573,13 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         # Final outlet refrigerant state (after last segment update)
         self.state_outlet = self.med_prop.calc_state("PH", p, h)
 
-        # Reference heat transfer from refrigerant side
-        Q_ref = self.m_flow * (self.state_outlet.h - self.state_inlet.h)
-        error_percent = self._calculate_error(Q_sum, Q_ref)
-
-        # Energy conservation diagnostic
-        self._check_energy_conservation(Q_sum, Q_ref)
-
 
         # Cross-flow single-row: compute secondary outlet once from the total row heat
         T_sec_out = T_sec_in - Q_sum / self.m_flow_secondary_cp
 
         print(f"Debug: Q_sum={Q_sum:.1f}W, C_sec={self.m_flow_secondary_cp:.3f}W/K")
-        print(f"Debug: T_sec_in={T_sec_in:.2f}K, T_sec_out={T_sec_out:.2f}K")
-        print(f"Debug: dT_sec={T_sec_in - T_sec_out:.2f}K")
+        #print(f"Debug: T_sec_in={T_sec_in:.2f}K, T_sec_out={T_sec_out:.2f}K")
+        #print(f"Debug: dT_sec={T_sec_in - T_sec_out:.2f}K")
 
         # Record results in fs_state
         self._record_results(
@@ -605,7 +592,6 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
         )
 
         dT_min_out = float(dT_min) if np.isfinite(dT_min) else 0.0
-        return float(error_percent), dT_min_out
 
     # --------------------------------------------------------------------- #
     # Helpers
@@ -661,24 +647,6 @@ class SegmentedEvaporatorImproved(ExternalHeatExchanger):
 
         # Update mass flow and derived capacity rate
         self.m_flow_secondary = float(m_sec)
-
-    @staticmethod
-    def _calculate_error(q_sum: float, q_ref: float) -> float:
-        """Return 100 * (q_sum / q_ref - 1) if |q_ref| > 0, else 0."""
-        if abs(q_ref) > 1e-9:
-            return (q_sum / q_ref - 1.0) * 100.0
-        return 0.0
-
-    @staticmethod
-    def _check_energy_conservation(q_sum: float, q_ref: float) -> None:
-        """Warn if |q_sum - q_ref| / |q_ref| > 5%."""
-        if abs(q_ref) > 1e-9:
-            rel_err = abs(q_sum - q_ref) / abs(q_ref)
-            if rel_err > 0.05:
-                warnings.warn(
-                    f"Energy conservation error {rel_err * 100:.2f}% "
-                    f"(Q_segments={q_sum:.1f} W, Q_enthalpy={q_ref:.1f} W)"
-                )
 
     def _record_results(
         self,

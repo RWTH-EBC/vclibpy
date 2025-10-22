@@ -4,7 +4,7 @@ from vclibpy.components.heat_exchangers.heat_transfer.heat_transfer import (
 )
 
 
-class GungorWintertonTwoPhase(TwoPhaseHeatTransfer):
+class GungorWintertonTwoPhase86(TwoPhaseHeatTransfer):
     """
     Gungor & Winterton (1986) flow-boiling correlation integrated with VcLibPy.
 
@@ -86,7 +86,7 @@ class GungorWintertonTwoPhase(TwoPhaseHeatTransfer):
         )
 
         # --- validation ---
-        if not (0.0 < x < 1.0):
+        if not (0.0 <= x <= 1.0):
             raise ValueError(f"segment vapor quality must be in (0,1); got {x}")
         if q_flux <= 0.0:
             raise ValueError(f"seg_q_flux must be > 0; got {q_flux}")
@@ -122,7 +122,7 @@ class GungorWintertonTwoPhase(TwoPhaseHeatTransfer):
         G = m_flow / A  # mass flux [kg/m^2/s]
 
         x_safe = max(1.0e-3, min(1.0 - 1.0e-3, x))
-        re_l = G * d_h * (1 - x_safe) / mu_l # liquid Reynold's number
+        re_l = G * d_h * (1 - x_safe) / mu_l # Reynolds number for liquid phase flowing alone in tube
         # Dittus–Boelter: liquid-only reference HTC
         h_lo = 0.023 * (re_l ** 0.8) * (pr_l ** 0.4) * (k_l / d_h)
 
@@ -155,7 +155,7 @@ class GungorWintertonTwoPhase(TwoPhaseHeatTransfer):
         if orientation == "horizontal":
             g0 = 9.80665
             fr = G ** 2 / (rho_l ** 2 * g0 * d_h)
-            if 0.0 < fr <= 0.05:
+            if fr < 0.05:
                 e *= fr ** (0.1 - 2.0 * fr)
                 s *= fr ** 0.5
 
@@ -165,9 +165,9 @@ class GungorWintertonTwoPhase(TwoPhaseHeatTransfer):
 
         # Optional diagnostics
         try:
-            fs_state.set("gw_htc", h_tp, "W/m2K", "G&W local two-phase HTC")
-            fs_state.set("gw_x", x, "-", "segment vapor quality used")
-            fs_state.set("gw_q_flux", q_flux, "W/m2", "segment heat flux used")
+            fs_state.set("gw1986_htc", h_tp, "W/m2K", "G&W local two-phase HTC")
+            fs_state.set("gw1986_x", x, "-", "segment vapor quality used")
+            fs_state.set("gw1986_q_flux", q_flux, "W/m2", "segment heat flux used")
         except Exception:
             pass
 
