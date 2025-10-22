@@ -97,10 +97,12 @@ class CoolProp(MedProp):
             # Internal calculation as kinematic vis is ration of dyn_vis to density
             # In m^2/s
             kin_vis = dyn_vis / state.d
+            # CoolProp returns N/m
+            sur_ten = CoolPropInternal.PropsSI('SURFACE_TENSION', *args)
 
             # Create transport properties instance
             return TransportProperties(lam=lam, dyn_vis=dyn_vis, kin_vis=kin_vis,
-                                       pr=pr, cp=cp, cv=cv, state=state)
+                                       pr=pr, cp=cp, cv=cv, sur_ten=sur_ten, state=state)
         # Low-level API
         self._update_coolprop_heos(mode=mode, var1=var1, var2=var2)
         # Create transport properties instance
@@ -111,7 +113,8 @@ class CoolProp(MedProp):
             pr=self._helmholtz_equation_of_state.Prandtl(),
             cp=self._helmholtz_equation_of_state.cpmass(),
             cv=self._helmholtz_equation_of_state.cvmass(),
-            state=state
+            sur_ten=self._helmholtz_equation_of_state.surface_tension(),
+        state=state
         )
 
     def _update_coolprop_heos(self, mode, var1, var2):
