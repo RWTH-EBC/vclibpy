@@ -12,55 +12,88 @@ class FrostModel:
     
     def __init__(self, 
                  parameters: FrostEvaporatorParameters, 
-                 delta_t: float
                  ):
         """
         Initializes the model.
         
         Args:
             parameters: The (read-only) parameters object.
-            delta_t: The simulation time step in seconds (e.g., 1.0).
         """
         self.params = parameters
-        self.delta_t = delta_t
 
-    def calculate(self, state: FrostEvaporatorState):
+    def update_properties(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
         """
-        Runs the frost calculation for the current time step.
+        Calculates and updates density and k_frost based on the state.
         
-        This method reads all values from the *previous* state (t),
-        calculates all *new* values (t + delta_t),
-        and then updates the state object once at the end.
+        This IS safe to call inside an iterative loop, as it just recalculates
+        properties based on the latest guessed values (like T_frost_surface).
         """
         
-        # Get all required values from the previous state
-        prev_T_frost_surface = state.hmt.T_frost_surface
-        prev_thickness = state.frost.thickness
-        m_dot_frost_flux = state.hmt.m_dot_frost_flux # Assumed constant over delta_t
+        # Get the current *guess* for T_frost_surface from the state
+        T_frost = state.hmt.T_frost_surface
         
-        # Calculate all new values for the next state (t + delta_t)
-        
-        # New density depends on the previous frost surface temperature
+        # Calculate new density
         new_density = self.calculate_density(
-            T_frost_surface=prev_T_frost_surface
+            T_frost_surface=T_frost
         )
         
-        # New thickness depends on the previous thickness and the *new* density
+        # Calculate new k_frost
+        new_k_frost = self.calculate_k_frost(
+            new_density=new_density
+        )
+        
+        # Update the state with the new properties
+        state.frost.set("density", new_density)
+        state.frost.set("k_frost", new_k_frost)
+
+
+    def step_forward(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
+        """
+        Performs the one-time integration step for frost thickness.
+        
+        This is NOT safe to call in a loop. Call it ONCE after the
+        iterative loop has converged.
+        """
+        
+        # Get the *converged* values from the state
+        prev_thickness = state.frost.thickness
+        m_dot_frost_flux = state.hmt.m_dot_frost_flux
+        new_density = state.frost.density
+        
+        # Calculate the new thickness
         new_thickness = self.calculate_thickness(
             prev_thickness=prev_thickness,
             m_dot_frost_flux=m_dot_frost_flux,
             new_density=new_density 
         )
 
-        # New k_frost depends on the *new* density
-        new_k_frost = self.calculate_k_frost(
-            new_density=new_density
+        # Calculate the tube diameter with frost
+        new_tube_diameter_w_frost = self.calculate_tube_diameter_w_frost(
+            frost_thickness=new_thickness,
+            tube_outer_diameter=self.params.tube_outer_diameter
+        )
+ 
+        # Calculate the space between frost layers
+        new_space_between_frost = self.calculate_space_between_frost(
+            frost_thickness=new_thickness, 
+            fin_spacing=self.params.fin_spacing, 
+            fin_thickness=self.params.fin_thickness
+        )
+
+        # Calculate the new flow area for air
+        new_flow_area_air = self.calculate_flow_area_air(
+            space_between_frost=new_space_between_frost, 
+            fin_height=self.params.fin_height, 
+            fin_amount=self.params.fin_amount, 
+            tube_diameter_w_frost=new_tube_diameter_w_frost, 
+            tubes_per_layer=self.params.tubes_per_layer
         )
         
-        # Update the state with all new values
-        state.frost.set("density", new_density)
+        # Update the state with the final new geometric values
         state.frost.set("thickness", new_thickness)
-        state.frost.set("k_frost", new_k_frost)
+        state.frost.set("tube_diameter_w_frost", new_tube_diameter_w_frost)
+        state.frost.set("space_between_frost", new_space_between_frost)
+        state.frost.set("flow_area_air", new_flow_area_air)
 
     
     def calculate_density(self, T_frost_surface: float) -> float:
@@ -93,7 +126,7 @@ class FrostModel:
         """
         if self.params.frost_thickness_correlation_choice == "jonas_diss":
             # Euler forward step: new = old + delta
-            return prev_thickness + (m_dot_frost_flux * self.delta_t) / new_density
+            return prev_thickness + (m_dot_frost_flux * self.params.time_step) / new_density
         else:
             raise ValueError(f"Unknown frost thickness correlation: {self.params.frost_thickness_correlation_choice}")
         
@@ -112,3 +145,48 @@ class FrostModel:
             return 1.202e-3 * new_density ** 0.963
         else:
             raise ValueError(f"Unknown frost conductivity correlation: {self.params.frost_conductivity_correlation_choice}")
+    
+
+    def calculate_tube_diameter_w_frost(self, frost_thickness:float, tube_outer_diameter:float) -> float:
+            """
+            Calculates the effective tube outer diameter including frost.
+            
+            Args:
+                frost_thickness: The current frost thickness [m].
+                tube_outer_diameter: The outer diameter of the clean tube [m].
+                
+            Returns:
+                The tube outer diameter plus twice the frost thickness [m].
+            """
+            return tube_outer_diameter + 2 * frost_thickness
+
+    def calculate_space_between_frost(self, frost_thickness:float, fin_spacing:float, fin_thickness:float) -> float:
+            """
+            Calculates the air flow channel width between fins, considering frost on both sides.
+            
+            Args:
+                frost_thickness: The current frost thickness [m].
+                fin_spacing: The distance between the fins [m].
+                fin_thickness: The thickness of a single fin [m].
+                
+            Returns:
+                The reduced space between the frosted fins [m].
+            """
+            return fin_spacing - fin_thickness - 2 * frost_thickness
+
+
+    def calculate_flow_area_air(self, space_between_frost:float, fin_height:float, fin_amount:int, tube_diameter_w_frost:float, tubes_per_layer:int) -> float:
+        """
+        Calculates the total cross-sectional area for air flow.
+        
+        Args:
+            space_between_frost: The air flow channel width between frosted fins [m].
+            fin_height: The height of the fins [m].
+            fin_amount: The total number of fins [-].
+            tube_diameter_w_frost: The effective tube outer diameter including frost [m].
+            tubes_per_layer: The number of tubes per layer [-].
+            
+        Returns:
+            The total air flow area [m^2].
+        """
+        return fin_amount * (fin_height - tube_diameter_w_frost * tubes_per_layer) * space_between_frost
