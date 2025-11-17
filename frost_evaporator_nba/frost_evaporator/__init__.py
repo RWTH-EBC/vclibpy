@@ -5,13 +5,13 @@ from .datamodels_nba import (
     
     # Inputs
     AirInputs,
-    CoolingFluidInputs,
+    RefrigerantInputs,
     FrostEvaporatorInputs,
     
     # States
     FrostState,
     AirState,
-    CoolingFluidState,
+    RefrigerantState,
     HeatMassTransferState,
     ThermodynamicsState,
     FrostEvaporatorState
@@ -19,9 +19,9 @@ from .datamodels_nba import (
 
 # Import all model classes from their respective files
 from .frost import FrostModel
-# from .air import AirModel               # (Uncomment when you create air.py)
-# from .fluid import CoolingFluidModel      # (Uncomment when you create fluid.py)
-# from .hmt import HeatMassTransferModel  # (Uncomment when you create hmt.py)
+from .air import AirModel 
+from .refrigerant import RefrigerantModel 
+from .heat_mass_transfer import HeatMassTransferModel
 # from .thermo import ThermoModel         # (Uncomment when you create thermo.py)
 
 
@@ -33,21 +33,21 @@ __all__ = [
 
     # Inputs
     "AirInputs",
-    "CoolingFluidInputs",
+    "RefrigerantInputs",
     "FrostEvaporatorInputs",
 
     # States
     "FrostState",
     "AirState",
-    "CoolingFluidState",
+    "RefrigerantState",
     "HeatMassTransferState",
     "ThermodynamicsState",
     "FrostEvaporatorState",
     
     # Model Classes
     "FrostModel",
-    # "AirModel",
-    # "CoolingFluidModel",
-    # "HeatMassTransferModel",
+    "AirModel",
+    "RefrigerantModel",
+    "HeatMassTransferModel",
     # "ThermoModel",
 ]

@@ -31,14 +31,17 @@ class FrostModel:
         
         # Get the current *guess* for T_frost_surface from the state
         T_frost = state.hmt.T_frost_surface
+
+        if T_frost > 273.15:
+            raise ValueError("Calculated frost surface temperature is above freezing point.")
         
         # Calculate new density
-        new_density = self.calculate_density(
+        new_density = self._calculate_density(
             T_frost_surface=T_frost
         )
         
         # Calculate new k_frost
-        new_k_frost = self.calculate_k_frost(
+        new_k_frost = self._calculate_k_frost(
             new_density=new_density
         )
         
@@ -61,27 +64,27 @@ class FrostModel:
         new_density = state.frost.density
         
         # Calculate the new thickness
-        new_thickness = self.calculate_thickness(
+        new_thickness = self._calculate_thickness(
             prev_thickness=prev_thickness,
             m_dot_frost_flux=m_dot_frost_flux,
             new_density=new_density 
         )
 
         # Calculate the tube diameter with frost
-        new_tube_diameter_w_frost = self.calculate_tube_diameter_w_frost(
+        new_tube_diameter_w_frost = self._calculate_tube_diameter_w_frost(
             frost_thickness=new_thickness,
             tube_outer_diameter=self.params.tube_outer_diameter
         )
  
         # Calculate the space between frost layers
-        new_space_between_frost = self.calculate_space_between_frost(
+        new_space_between_frost = self._calculate_space_between_frost(
             frost_thickness=new_thickness, 
-            fin_spacing=self.params.fin_spacing, 
+            fin_pitch=self.params.fin_pitch, 
             fin_thickness=self.params.fin_thickness
         )
 
         # Calculate the new flow area for air
-        new_flow_area_air = self.calculate_flow_area_air(
+        new_flow_area_air = self._calculate_flow_area_air(
             space_between_frost=new_space_between_frost, 
             fin_height=self.params.fin_height, 
             fin_amount=self.params.fin_amount, 
@@ -96,7 +99,7 @@ class FrostModel:
         state.frost.set("flow_area_air", new_flow_area_air)
 
     
-    def calculate_density(self, T_frost_surface: float) -> float:
+    def _calculate_density(self, T_frost_surface: float) -> float:
         """
         Determines the new frost density.
         
@@ -112,7 +115,7 @@ class FrostModel:
             raise ValueError(f"Unknown frost density correlation: {self.params.frost_density_correlation_choice}")
 
 
-    def calculate_thickness(self, prev_thickness: float, m_dot_frost_flux: float, new_density: float) -> float:
+    def _calculate_thickness(self, prev_thickness: float, m_dot_frost_flux: float, new_density: float) -> float:
         """
         Determines the new frost thickness.
         
@@ -131,7 +134,7 @@ class FrostModel:
             raise ValueError(f"Unknown frost thickness correlation: {self.params.frost_thickness_correlation_choice}")
         
 
-    def calculate_k_frost(self, new_density: float) -> float:
+    def _calculate_k_frost(self, new_density: float) -> float:
         """
         Determines the new thermal conductivity.
         
@@ -147,7 +150,7 @@ class FrostModel:
             raise ValueError(f"Unknown frost conductivity correlation: {self.params.frost_conductivity_correlation_choice}")
     
 
-    def calculate_tube_diameter_w_frost(self, frost_thickness:float, tube_outer_diameter:float) -> float:
+    def _calculate_tube_diameter_w_frost(self, frost_thickness:float, tube_outer_diameter:float) -> float:
             """
             Calculates the effective tube outer diameter including frost.
             
@@ -160,22 +163,22 @@ class FrostModel:
             """
             return tube_outer_diameter + 2 * frost_thickness
 
-    def calculate_space_between_frost(self, frost_thickness:float, fin_spacing:float, fin_thickness:float) -> float:
+    def _calculate_space_between_frost(self, frost_thickness:float, fin_pitch:float, fin_thickness:float) -> float:
             """
             Calculates the air flow channel width between fins, considering frost on both sides.
             
             Args:
                 frost_thickness: The current frost thickness [m].
-                fin_spacing: The distance between the fins [m].
+                fin_pitch: The distance between the fins [m].
                 fin_thickness: The thickness of a single fin [m].
                 
             Returns:
                 The reduced space between the frosted fins [m].
             """
-            return fin_spacing - fin_thickness - 2 * frost_thickness
+            return fin_pitch - fin_thickness - 2 * frost_thickness
 
 
-    def calculate_flow_area_air(self, space_between_frost:float, fin_height:float, fin_amount:int, tube_diameter_w_frost:float, tubes_per_layer:int) -> float:
+    def _calculate_flow_area_air(self, space_between_frost:float, fin_height:float, fin_amount:int, tube_diameter_w_frost:float, tubes_per_layer:int) -> float:
         """
         Calculates the total cross-sectional area for air flow.
         
@@ -189,4 +192,4 @@ class FrostModel:
         Returns:
             The total air flow area [m^2].
         """
-        return fin_amount * (fin_height - tube_diameter_w_frost * tubes_per_layer) * space_between_frost
+        return (fin_amount-1) * (fin_height - tube_diameter_w_frost * tubes_per_layer) * space_between_frost

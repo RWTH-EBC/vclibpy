@@ -32,7 +32,7 @@ class AirModel:
         """
 
         # Calculate average air properties between inlet and outlet
-        pressure_avg, density_avg, dyn_viscosity_avg, heat_capacity_avg, thermal_conductivity_avg, prandtl_avg, lewis_avg, rho_w_avg = self.calculate_air_averages(
+        pressure_avg, density_avg, dyn_viscosity_avg, heat_capacity_avg, thermal_conductivity_avg, prandtl_avg, lewis_avg, rho_w_avg = self._calculate_air_averages(
             T_in=inputs.air.T_in,
             p_in=state.air.p_in,
             W_in=inputs.air.W_in,
@@ -42,7 +42,7 @@ class AirModel:
         )
 
         # Calculate water vapor density at frost surface (saturated)
-        rho_w_frost_sat = self.get_water_vapor_density(
+        rho_w_frost_sat = self._get_water_vapor_density(
             T=state.hmt.T_frost_surface, 
             p=pressure_avg, 
             R=1.0  # R=1.0 for fully saturated air
@@ -52,13 +52,13 @@ class AirModel:
         flow_area_air = state.frost.flow_area_air
 
 
-        pressure_loss_coeff = self.calculate_pressure_loss_coefficient_haaf(
+        pressure_loss_coeff = self._calculate_pressure_loss_coefficient_haaf(
             reynolds=state.air.reynolds,
             space_between_frost=space_between_frost,
             fin_length=self.params.fin_length
         )
 
-        velocity, delta_p = self.calculate_velocity_and_pressure_drop(
+        velocity, delta_p = self._calculate_velocity_and_pressure_drop(
             hydraulic_fan_power=self.params.hydraulic_fan_power,
             flow_area_air=flow_area_air,
             pressure_loss_coeff=pressure_loss_coeff,
@@ -68,27 +68,34 @@ class AirModel:
 
         p_in = self.params.ambient_pressure + delta_p
 
-        reynolds = self.calculate_reynolds_number(
+        reynolds = self._calculate_reynolds_number(
             density=density_avg,
             velocity=velocity,
             characteristic_length=space_between_frost,
             dyn_viscosity=dyn_viscosity_avg
         )
 
-        nusselt = self.calculate_nusselt(
+        nusselt = self._calculate_nusselt(
             Re_Dh=reynolds, 
             Pr=prandtl_avg, 
             Dh=space_between_frost, 
             L=self.params.fin_length
         )
 
-        h_conv = self.calculate_h_conv(
+        h_conv = self._calculate_heat_transfer_coefficient(
             nusselt=nusselt,
             thermal_conductivity=thermal_conductivity_avg,
             characteristic_length=space_between_frost
         )
 
-        m_flow = self.calculate_mass_flow(
+        betta = self._calculate_mass_transfer_coefficient(
+            h_conv=h_conv,
+            density=density_avg,
+            heat_capacity=heat_capacity_avg,
+            lewis_number=lewis_avg
+        )
+
+        m_flow = self._calculate_mass_flow(
             density=density_avg,
             flow_area_air=flow_area_air,
             velocity=velocity
@@ -108,6 +115,7 @@ class AirModel:
         state.air.set("reynolds", reynolds)
         state.air.set("nusselt", nusselt)
         state.air.set("h_conv", h_conv)
+        state.air.set("betta", betta)
         state.air.set("velocity", velocity)
         state.air.set("p_in", p_in)
         state.air.set("pressure_loss_coeff", pressure_loss_coeff)
@@ -118,18 +126,15 @@ class AirModel:
 
     
 
-    def get_air_properties(self, T:float, p:float, W:float):
+    def _get_air_properties(self, T:float, p:float, W:float):
         """Calculates multiple moist air properties for a single state."""
         
-        properties = {}
         # List of properties to calculate
         # Vha: specific Volume per humid air, mu: Dynamic Viscosity, cp_ha: Heat Capacity, k: Thermal Conductivity
         prop_list = ['Vha', 'mu', 'cp_ha', 'k'] 
         
-        # Calculate all properties in a loop
-        for prop in prop_list:
-            # One HAPropsSI call per property
-            properties[prop] = CP_HumidAir.HAPropsSI(prop, 'T', T, 'P', p, 'W', W) 
+        # Calculate all properties
+        properties = {prop: CP_HumidAir.HAPropsSI(prop, 'T', T, 'P', p, 'W', W) for prop in prop_list}
 
         properties['density'] = 1 / properties['Vha']  # Convert specific volume to density
 
@@ -140,7 +145,7 @@ class AirModel:
         properties['lewis'] = 0.85
 
         # Calculate water vapor density
-        properties['rho_w'] = self.get_water_vapor_density(T=T,p=p, W=W)
+        properties['rho_w'] = self._get_water_vapor_density(T=T,p=p, W=W)
             
         # Return as a simple tuple for easy unpacking in the main function
         return (
@@ -153,10 +158,10 @@ class AirModel:
             properties['rho_w']
         )
 
-    def calculate_air_averages(self, T_in:float, p_in:float, W_in:float, T_out:float, p_out:float, W_out:float):
+    def _calculate_air_averages(self, T_in:float, p_in:float, W_in:float, T_out:float, p_out:float, W_out:float):
         # Get all properties for inlet and outlet in two compact calls
-        density_in,  mu_in,  cp_in,  k_in,  prandtl_in,  lewis_in,  rho_w_in  = self.get_air_properties(T_in,  p_in,  W_in)
-        density_out, mu_out, cp_out, k_out, prandtl_out, lewis_out, rho_w_out = self.get_air_properties(T_out, p_out, W_out)
+        density_in,  mu_in,  cp_in,  k_in,  prandtl_in,  lewis_in,  rho_w_in  = self._get_air_properties(T_in,  p_in,  W_in)
+        density_out, mu_out, cp_out, k_out, prandtl_out, lewis_out, rho_w_out = self._get_air_properties(T_out, p_out, W_out)
 
         # Calculate averages
         pressure_avg = (p_in + p_out) / 2
@@ -172,7 +177,7 @@ class AirModel:
         return pressure_avg, density_avg, dyn_viscosity_avg, heat_capacity_avg, thermal_conductivity_avg, prandtl_avg, lewis_avg, rho_w_avg
     
 
-    def get_water_vapor_density(self, T: float, p: float, W: float = None, R: float = None) -> float:
+    def _get_water_vapor_density(self, T: float, p: float, W: float = None, R: float = None) -> float:
         """
         Calculates the density of the water vapor in the moist air.
         
@@ -212,7 +217,7 @@ class AirModel:
         return W_calc / Vda
 
 
-    def calculate_pressure_loss_coefficient_haaf(self, reynolds: float, space_between_frost: float, fin_length: float) -> float:
+    def _calculate_pressure_loss_coefficient_haaf(self, reynolds: float, space_between_frost: float, fin_length: float) -> float:
         """
         Calculates the pressure loss coefficient (ζ) based on the Haaf correlation (Klingebiel Diss. Eq. 4.3).
         
@@ -232,7 +237,7 @@ class AirModel:
 
 
 
-    def calculate_velocity_and_pressure_drop(self, hydraulic_fan_power: float, flow_area_air: float, pressure_loss_coeff: float, density: float, K: float) -> tuple[float, float]:
+    def _calculate_velocity_and_pressure_drop(self, hydraulic_fan_power: float, flow_area_air: float, pressure_loss_coeff: float, density: float, K: float) -> tuple[float, float]:
         """
         Calculates the air velocity (uL) AND the pressure drop (Delta p) 
         simultaneously, based on the fan's hydraulic power.
@@ -273,14 +278,14 @@ class AirModel:
         return velocity, delta_p
 
 
-    def calculate_reynolds_number(self, density: float, velocity: float, characteristic_length: float, dyn_viscosity: float):
+    def _calculate_reynolds_number(self, density: float, velocity: float, characteristic_length: float, dyn_viscosity: float):
         """Calculates the Reynolds number (Re = rho * v * L / mu)."""
         if dyn_viscosity == 0:
             # The simulation cannot continue if viscosity is zero.
             raise ValueError("Dynamic viscosity cannot be zero in Reynolds calculation.")
         return (density * velocity * characteristic_length) / dyn_viscosity
 
-    def calculate_nusselt(self, Re_Dh: float, Pr: float, Dh: float, L: float) -> float:
+    def _calculate_nusselt(self, Re_Dh: float, Pr: float, Dh: float, L: float) -> float:
         """
         Calculates the mean Nusselt number (Nu_m) for flow in a flat gap (ebener Spalt), 
         covering laminar, transition, and turbulent flow regimes.
@@ -300,7 +305,7 @@ class AirModel:
         """
 
         # --- Helper function for laminar flow (VDI G2 2.3.2, Gl. 43) ---
-        def stephan_laminar(Gz: float, Pr: float) -> float:
+        def _stephan_laminar(Gz: float, Pr: float) -> float:
             """
             Calculates Nu_m for laminar flow in a flat gap (constant wall temp.).
             Gz: Graetz Number (Re_Dh * Pr * Dh / L).
@@ -312,7 +317,7 @@ class AirModel:
             return Num_lam
 
         # --- Helper function for turbulent flow (VDI G1 4.1 26/27) ---
-        def gnielinski_turbulent(Re: float, Pr: float, Dh: float, L: float) -> float:
+        def _gnielinski_turbulent(Re: float, Pr: float, Dh: float, L: float) -> float:
             """
             Calculates Nu_m for turbulent flow using the Gnielinski correlation (VDI G1 4.1).
             """
@@ -338,12 +343,12 @@ class AirModel:
         # --- LAMINAR REGIME (Re <= 2300) ---
         if Re_Dh <= RE_CRIT:
             # Use Stephan's correlation (VDI 2.3.2, Gl. 43)
-            return stephan_laminar(Gz, Pr)
+            return _stephan_laminar(Gz, Pr)
 
         # --- TURBULENT REGIME (Re >= 4000) ---
         elif Re_Dh >= RE_TURB_START:
             # Use Gnielinski correlation (VDI G1, Gl. 26/27)
-            return gnielinski_turbulent(Re_Dh, Pr, Dh, L)
+            return _gnielinski_turbulent(Re_Dh, Pr, Dh, L)
 
         # --- TRANSITION REGIME (2300 < Re < 4000) ---
         else:
@@ -352,10 +357,10 @@ class AirModel:
 
             # Nu at Re=2300 (Nu_m,L,2300)
             Gz_crit = RE_CRIT * Pr * (Dh / L)
-            Nu_m_L_2300 = stephan_laminar(Gz_crit, Pr)
+            Nu_m_L_2300 = _stephan_laminar(Gz_crit, Pr)
             
             # Nu at Re=4000 (Nu_m,T,4000)
-            Nu_m_T_4000 = gnielinski_turbulent(RE_TURB_START, Pr, Dh, L)
+            Nu_m_T_4000 = _gnielinski_turbulent(RE_TURB_START, Pr, Dh, L)
             
             # Interpolation - VDI G1 4.1 Gl. 29
             Num_transition = (1.0 - gamma) * Nu_m_L_2300 + gamma * Nu_m_T_4000
@@ -363,15 +368,43 @@ class AirModel:
             return Num_transition
 
 
-    def calculate_h_conv(self, nusselt: float, thermal_conductivity: float, characteristic_length: float):
+    def _calculate_heat_transfer_coefficient(self, nusselt: float, thermal_conductivity: float, characteristic_length: float):
         """Calculates the convective heat transfer coefficient (h = Nu * k / L)."""
         if characteristic_length == 0:
             return 0.0
         return (nusselt * thermal_conductivity) / characteristic_length
 
+    def _calculate_mass_transfer_coefficient(self, h_conv: float, density: float, heat_capacity: float, lewis_number: float) -> float:
+        """
+        Calculates the mass transfer coefficient (betta) based on the Chilton-Colburn analogy
+        and the heat transfer coefficient (h_conv, or alpha_air).
+        Args:
+            h_conv: Convective heat transfer coefficient (alpha_air) [W/(m^2*K)].
+            density: Average air density [kg/m^3].
+            heat_capacity: Average air heat capacity (c_p) [J/(kg*K)].
+            lewis_number: Average Lewis number (Le) [dimensionless].
+
+        Returns:
+            Mass transfer coefficient (betta) [m/s].
+        """
+        
+        denominator = density * heat_capacity
+        if denominator <= 0:
+            print(f"Error: Invalid denominator in betta calculation (density * c_p = {denominator}).")
+            return 0.0
+            
+        if lewis_number <= 0:
+            print(f"Error: Invalid Lewis number ({lewis_number}) in betta calculation. Must be positive.")
+            # Use 1.0 as a fallback to avoid division/power errors, though 0.85 is the default
+            lewis_number = 0.85 
+
+        # Calculate betta
+        betta = (h_conv / denominator) * (lewis_number ** (-2.0/3.0))
+        
+        return betta
 
 
-    def calculate_mass_flow(self, density: float, flow_area_air: float, velocity: float) -> float:
+    def _calculate_mass_flow(self, density: float, flow_area_air: float, velocity: float) -> float:
         """
         Calculates the mass flow rate (m_flow) based on the continuity equation:
         m_flow = ρL * A_flow * uL
