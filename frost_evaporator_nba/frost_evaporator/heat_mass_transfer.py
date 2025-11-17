@@ -135,6 +135,10 @@ class HeatMassTransferModel:
         delta_T2 = T_air_out - T_refrigerant_in
 
         if delta_T1 <= 0 or delta_T2 <= 0:
+            print("T_air_in:", T_air_in)
+            print("T_air_out:", T_air_out)
+            print("T_refrigerant_in:", T_refrigerant_in)
+            print("T_refrigerant_out:", T_refrigerant_out)
             raise ValueError("Temperature differences must be positive for LMTD calculation.")
 
         if np.isclose(delta_T1, delta_T2):
@@ -238,6 +242,7 @@ class HeatMassTransferModel:
         return self.params.fin_segment_amount * (A_one_tube_segment_frost + A_one_fin_segment_frost)
 
     def _calculate_fin_efficiency(self, h_effective: float) ->float:
+        # sourcery skip: assign-if-exp, reintroduce-else
         """
         Calculates the efficiency of a rectangular fin.
 
@@ -284,12 +289,9 @@ class HeatMassTransferModel:
         # Equation (7) and (9) from VDI Wärmeatlas M1
         # To avoid division by zero if X is very close to 0,
         # we use the limit of tanh(X)/X as X->0, which is 1.
-        if X < 1e-6:
-            eta_fin = 1.0
-        else:
-            eta_fin = np.tanh(X) / X
-
-        return eta_fin
+        if X < 1e-6: return 1.0
+        
+        return np.tanh(X) / X
 
 
     def _calculate_effective_heat_transfer_coefficient(self, h_conv_air:float, frost_thickness:float, k_frost:float) -> float:

@@ -32,7 +32,7 @@ class AirModel:
         """
 
         # Calculate average air properties between inlet and outlet
-        pressure_avg, density_avg, dyn_viscosity_avg, heat_capacity_avg, thermal_conductivity_avg, prandtl_avg, lewis_avg, rho_w_avg = self._calculate_air_averages(
+        pressure_avg, density_avg, dyn_viscosity_avg, heat_capacity_avg, thermal_conductivity_avg, prandtl_avg, lewis_avg, rho_w_avg, h_in, h_out = self._calculate_air_averages(
             T_in=inputs.air.T_in,
             p_in=state.air.p_in,
             W_in=inputs.air.W_in,
@@ -95,10 +95,20 @@ class AirModel:
             lewis_number=lewis_avg
         )
 
-        m_flow = self._calculate_mass_flow(
+        m_dot_humid = self._calculate_humid_mass_flow(
             density=density_avg,
             flow_area_air=flow_area_air,
             velocity=velocity
+        )
+
+        m_dot_dry = self._calculate_dry_mass_flow(
+            m_dot_humid=m_dot_humid,
+            W_in=inputs.air.W_in,
+            W_out=state.air.W_out
+        )
+
+        h_ice = self._get_ice_enthalpy(
+            T=state.hmt.T_frost_surface
         )
 
 
@@ -119,7 +129,12 @@ class AirModel:
         state.air.set("velocity", velocity)
         state.air.set("p_in", p_in)
         state.air.set("pressure_loss_coeff", pressure_loss_coeff)
-        state.air.set("m_flow", m_flow)
+        state.air.set("m_dot_humid", m_dot_humid)
+        state.air.set("m_dot_dry", m_dot_dry)
+
+        state.air.set("h_in", h_in)
+        state.air.set("h_out", h_out)
+        state.air.set("h_ice", h_ice)
 
 
 
@@ -131,7 +146,8 @@ class AirModel:
         
         # List of properties to calculate
         # Vha: specific Volume per humid air, mu: Dynamic Viscosity, cp_ha: Heat Capacity, k: Thermal Conductivity
-        prop_list = ['Vha', 'mu', 'cp_ha', 'k'] 
+        # Enthalpy: Specific enthalpy [J/kg_dry_air]
+        prop_list = ['Vha', 'mu', 'cp_ha', 'k', 'Enthalpy'] 
         
         # Calculate all properties
         properties = {prop: CP_HumidAir.HAPropsSI(prop, 'T', T, 'P', p, 'W', W) for prop in prop_list}
@@ -155,13 +171,14 @@ class AirModel:
             properties['k'], 
             properties['prandtl'], 
             properties['lewis'],
-            properties['rho_w']
+            properties['rho_w'],
+            properties['Enthalpy']
         )
 
     def _calculate_air_averages(self, T_in:float, p_in:float, W_in:float, T_out:float, p_out:float, W_out:float):
         # Get all properties for inlet and outlet in two compact calls
-        density_in,  mu_in,  cp_in,  k_in,  prandtl_in,  lewis_in,  rho_w_in  = self._get_air_properties(T_in,  p_in,  W_in)
-        density_out, mu_out, cp_out, k_out, prandtl_out, lewis_out, rho_w_out = self._get_air_properties(T_out, p_out, W_out)
+        density_in,  mu_in,  cp_in,  k_in,  prandtl_in,  lewis_in,  rho_w_in,  h_in  = self._get_air_properties(T_in,  p_in,  W_in)   # <-- h_in added
+        density_out, mu_out, cp_out, k_out, prandtl_out, lewis_out, rho_w_out, h_out = self._get_air_properties(T_out, p_out, W_out)  # <-- h_out added
 
         # Calculate averages
         pressure_avg = (p_in + p_out) / 2
@@ -173,8 +190,10 @@ class AirModel:
         lewis_avg = (lewis_in + lewis_out) / 2
         rho_w_avg = (rho_w_in + rho_w_out) / 2
         
-
-        return pressure_avg, density_avg, dyn_viscosity_avg, heat_capacity_avg, thermal_conductivity_avg, prandtl_avg, lewis_avg, rho_w_avg
+        # Return averages AND specific enthalpies
+        return (
+            pressure_avg, density_avg, dyn_viscosity_avg, heat_capacity_avg, 
+            thermal_conductivity_avg, prandtl_avg, lewis_avg, rho_w_avg, h_in, h_out)
     
 
     def _get_water_vapor_density(self, T: float, p: float, W: float = None, R: float = None) -> float:
@@ -399,24 +418,40 @@ class AirModel:
             lewis_number = 0.85 
 
         # Calculate betta
-        betta = (h_conv / denominator) * (lewis_number ** (-2.0/3.0))
         
-        return betta
+        return (h_conv / denominator) * (lewis_number ** (-2.0/3.0))
 
 
-    def _calculate_mass_flow(self, density: float, flow_area_air: float, velocity: float) -> float:
+    def _calculate_humid_mass_flow(self, density: float, flow_area_air: float, velocity: float) -> float:
         """
-        Calculates the mass flow rate (m_flow) based on the continuity equation:
-        m_flow = ρL * A_flow * uL
-
-        :param density: Density of the fluid (ρL) [kg/m^3].
-        :param flow_area_air: Cross-sectional area of the air flow (A_flow) [m^2].
-        :param velocity: Air velocity (uL) [m/s].
-        :return: Mass flow rate (m_flow) [kg/s].
+        Calculates the mass flow rate (m_dot) based on the continuity equation:
+        m_dot = ρL * A_flow * uL
         """
         if density < 0 or flow_area_air < 0 or velocity < 0:
             print("Error: Density, flow area, and velocity must be non-negative.")
             return 0.0
             
         return density * flow_area_air * velocity
+    
+    def _calculate_dry_mass_flow(self, m_dot_humid: float, W_in: float, W_out: float) -> float:
+        """
+        Calculates the dry air mass flow rate (m_dot_da) from the humid mass flow rate (m_dot_ha)
+        using the humidity ratios at inlet and outlet.
+        """
+        W_avg = (W_in + W_out) / 2.0
+        
+        # Calculate dry air mass flow
+        return m_dot_humid / (1.0 + W_avg)
 
+
+    def _get_ice_enthalpy(self, T: float) -> float:
+        """
+        Calculates the specific enthalpy of saturated solid ice [J/kg].
+        
+        Wrapper for CoolProp PropsSI 'H' for 'Water' at Q=0 (saturated solid).
+        T_frost must be below the triple point (273.16 K).
+        """
+        # Check if T is in a valid range for ice
+        if T >= 273.16:
+            raise ValueError(f"Temperature for ice enthalpy calculation must be below 273.16 K. Given: {T} K")
+        return CP_HumidAir.PropsSI('H', 'T', T, 'Q', 0, 'Water')

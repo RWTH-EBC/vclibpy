@@ -107,11 +107,11 @@ class AirInputs(VariableContainer):
 
 class RefrigerantInputs(VariableContainer):
     """Holds all external inputs for the refrigerant-side."""
-    def __init__(self, h_in: float, p_eva: float, m_flow: float):
+    def __init__(self, h_in: float, p_eva: float, m_dot: float):
         super().__init__()
         self.set("h_in", h_in, "J/kg", "Inlet refrigerant enthalpy")
         self.set("p_eva", p_eva, "Pa", "Refrigerant pressure in Evaporator (constant)")
-        self.set("m_flow", m_flow, "kg/s", "Inlet refrigerant mass flow rate")
+        self.set("m_dot", m_dot, "kg/s", "Inlet refrigerant mass flow rate")
 
 class FrostEvaporatorInputs(VariableContainer):
     """
@@ -208,7 +208,12 @@ class AirState(VariableContainer):
         self.set("betta", 0.0, "m/s", "Air-side mass transfer coefficient")
         self.set("pressure_loss_coeff", 0.0, "-", "Air-side pressure loss coefficient")
         self.set("velocity", 0.0, "m/s", "Air velocity through the evaporator")
-        self.set("m_flow", 0.0, "kg/s", "Outlet air mass flow")
+        self.set("m_dot_humid", 0.0, "kg/s", "Humid air mass flow")
+        self.set("m_dot_dry", 0.0, "kg/s", "Dry air mass flow")
+
+        self.set("h_in", 0.0, "J/kg", "Inlet air enthalpy per dry air kg")
+        self.set("h_out", 0.0, "J/kg", "Outlet air enthalpy per dry air kg")
+        self.set("h_ice", 0.0, "J/kg", "Enthalpy of ice formed from frost growth")
 
 
         

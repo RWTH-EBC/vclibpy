@@ -22,7 +22,7 @@ from .frost import FrostModel
 from .air import AirModel 
 from .refrigerant import RefrigerantModel 
 from .heat_mass_transfer import HeatMassTransferModel
-# from .thermo import ThermoModel         # (Uncomment when you create thermo.py)
+from .thermo import ThermoModel
 
 
 
@@ -49,5 +49,5 @@ __all__ = [
     "AirModel",
     "RefrigerantModel",
     "HeatMassTransferModel",
-    # "ThermoModel",
+    "ThermoModel",
 ]

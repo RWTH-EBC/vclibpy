@@ -67,7 +67,7 @@ class RefrigerantModel:
 
         h_conv = self.calculate_heat_transfer_coefficient(
             refrigerant_props = refrigerant_props,
-            m_flow = inputs.refrigerant.m_flow,
+            m_dot = inputs.refrigerant.m_dot,
             h_in = inputs.refrigerant.h_in,
             h_out = state.refrigerant.h_out
         )
@@ -79,6 +79,7 @@ class RefrigerantModel:
 
 
     def calculate_refrigerant_props(self, h_in: float, h_out: float, p_eva: float) -> dict:
+        # sourcery skip: merge-dict-assign
         """
         Calculates all necessary refrigerant properties for an average 0D state.
 
@@ -100,11 +101,11 @@ class RefrigerantModel:
             A dictionary containing all calculated properties.
         """
         
-        refrigerant_props = {}
-        
         # --- Define Average State ---
         p_avg = p_eva
         h_avg = (h_in + h_out) / 2
+
+        refrigerant_props = {}     
         
         refrigerant_props['pressure_avg'] = p_avg
         refrigerant_props['enthalpy_avg'] = h_avg
@@ -159,7 +160,7 @@ class RefrigerantModel:
 
 
 
-    def calculate_heat_transfer_coefficient(self, refrigerant_props: dict, m_flow: float, h_in: float, h_out: float) -> float:
+    def calculate_heat_transfer_coefficient(self, refrigerant_props: dict, m_dot: float, h_in: float, h_out: float) -> float:
         """
         Calculates the refrigerant-side heat transfer coefficient.
 
@@ -174,7 +175,7 @@ class RefrigerantModel:
         # Get common geometric parameters
         d_h = self.params.tube_inner_diameter 
         A_c = (np.pi * d_h**2) / 4.0  
-        G = m_flow / A_c               # Mass flux [kg/m^2/s]
+        G = m_dot / A_c               # Mass flux [kg/m^2/s]
 
         # Dispatch based on flow regime
         if quality <= 0.0 or quality >= 1.0:
@@ -183,7 +184,7 @@ class RefrigerantModel:
         
         else:
             # Two-Phase Evaporation
-            return self._calculate_two_phase_htc(refrigerant_props, G, d_h, m_flow, h_in, h_out)
+            return self._calculate_two_phase_htc(refrigerant_props, G, d_h, m_dot, h_in, h_out)
         
 
 
@@ -249,14 +250,14 @@ class RefrigerantModel:
             # Fully Turbulent
             return Nu_turb
             
-        else:
-            # Interpolation between Laminar and Turbulent
-            w = (Re - Re_lam_max) / (Re_turb_min - Re_lam_max)
-            return (1.0 - w) * Nu_lam + w * Nu_turb
+        # Interpolation between Laminar and Turbulent
+        w = (Re - Re_lam_max) / (Re_turb_min - Re_lam_max)
+        return (1.0 - w) * Nu_lam + w * Nu_turb
     
 
 
-    def _calculate_two_phase_htc(self, props: dict, G: float, d_h: float, m_flow: float, h_in: float, h_out: float) -> float:
+    def _calculate_two_phase_htc(self, props: dict, G: float, d_h: float, m_dot: float, h_in: float, h_out: float) -> float:
+        # sourcery skip: remove-unnecessary-else
         """
         Dispatches to the correct evaporation correlation based on Froude number.
         """
@@ -276,7 +277,7 @@ class RefrigerantModel:
             L_tube = self.params.tube_length
 
             A_surface = np.pi * d_h * L_tube  # Wetted surface area [m^2]
-            Q_dot = m_flow * (h_out - h_in)   # Total heat transfer [W]
+            Q_dot = m_dot * (h_out - h_in)   # Total heat transfer [W]
             q_dot = Q_dot / A_surface         # Heat flux [W/m^2]
 
             return self._calculate_chen_htc(props, G, d_h, q_dot)

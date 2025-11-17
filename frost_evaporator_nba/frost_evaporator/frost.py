@@ -31,9 +31,6 @@ class FrostModel:
         
         # Get the current *guess* for T_frost_surface from the state
         T_frost = state.hmt.T_frost_surface
-
-        if T_frost > 273.15:
-            raise ValueError("Calculated frost surface temperature is above freezing point.")
         
         # Calculate new density
         new_density = self._calculate_density(
@@ -57,6 +54,9 @@ class FrostModel:
         This is NOT safe to call in a loop. Call it ONCE after the
         iterative loop has converged.
         """
+
+        if state.hmt.T_frost_surface > 273.15:
+            raise ValueError("Calculated frost surface temperature is above freezing point.")
         
         # Get the *converged* values from the state
         prev_thickness = state.frost.thickness
