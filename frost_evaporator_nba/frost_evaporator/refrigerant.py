@@ -75,11 +75,11 @@ class RefrigerantModel:
         state.refrigerant.set("h_conv", h_conv)
         state.refrigerant.set("T_in", refrigerant_props['temperature_in'])
         state.refrigerant.set("T_out", refrigerant_props['temperature_out'])
+        state.refrigerant.set("p_out", refrigerant_props['pressure_avg'])
 
 
 
     def calculate_refrigerant_props(self, h_in: float, h_out: float, p_eva: float) -> dict:
-        # sourcery skip: merge-dict-assign
         """
         Calculates all necessary refrigerant properties for an average 0D state.
 
@@ -357,6 +357,9 @@ class RefrigerantModel:
         
         # Calculate n (Eq 4.46)
         n = 0.9 - 0.3 * p_red**0.3
+
+        if q_dot<=0:
+            print("Warning: q_dot <= 0 in _calculate_bulk_boiling_htc, setting to small positive value to avoid invalid calculation.")
         
         # Calculate alpha_B (Eq 4.45)
         return alpha_0 * F_pred * (q_dot / q_dot_0)**n

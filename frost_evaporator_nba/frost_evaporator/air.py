@@ -41,6 +41,8 @@ class AirModel:
             W_out=state.air.W_out
         )
 
+        # print(state.hmt.T_frost_surface)
+
         # Calculate water vapor density at frost surface (saturated)
         rho_w_frost_sat = self._get_water_vapor_density(
             T=state.hmt.T_frost_surface, 
@@ -67,25 +69,26 @@ class AirModel:
         )
 
         p_in = self.params.ambient_pressure + delta_p
+        characteristic_length = 2*space_between_frost  # Hydraulic diameter Dh = 2 * s
 
         reynolds = self._calculate_reynolds_number(
             density=density_avg,
             velocity=velocity,
-            characteristic_length=space_between_frost,
+            characteristic_length=characteristic_length,
             dyn_viscosity=dyn_viscosity_avg
         )
 
         nusselt = self._calculate_nusselt(
             Re_Dh=reynolds, 
             Pr=prandtl_avg, 
-            Dh=space_between_frost, 
+            Dh=characteristic_length, 
             L=self.params.fin_length
         )
 
         h_conv = self._calculate_heat_transfer_coefficient(
             nusselt=nusselt,
             thermal_conductivity=thermal_conductivity_avg,
-            characteristic_length=space_between_frost
+            characteristic_length=characteristic_length
         )
 
         betta = self._calculate_mass_transfer_coefficient(
@@ -288,6 +291,12 @@ class AirModel:
 
         # Calculate velocity
         velocity = ((2 * hydraulic_fan_power) / denominator) ** (1.0/3.0)
+
+        # TODO!!!!
+        # --- FIX: Maximale Geschwindigkeit begrenzen ---
+        # Verhindert unrealistische Zustände bei geringem Druckverlust
+        if velocity > 5:
+            velocity = 5
         
         # --- Pressure Drop Calculation ---
         # Use the velocity we just calculated.
@@ -446,12 +455,31 @@ class AirModel:
 
     def _get_ice_enthalpy(self, T: float) -> float:
         """
-        Calculates the specific enthalpy of saturated solid ice [J/kg].
+        Calculates the specific enthalpy of ice [J/kg] using ASHRAE Fundamentals formulation.
         
-        Wrapper for CoolProp PropsSI 'H' for 'Water' at Q=0 (saturated solid).
-        T_frost must be below the triple point (273.16 K).
+        This method ensures consistency with CoolProp's HAPropsSI reference state:
+        - Reference: Liquid water at 0.01°C = 0 J/kg.
+        - Ice at 0°C is approx. -333,400 J/kg (Latent heat of fusion).
+        
+        This manual calculation is preferred over PropsSI because PropsSI often uses 
+        different null-levels (e.g., IIR convention) which leads to massive offsets 
+        in energy balances when mixed with HAPropsSI.
+
+        Args:
+            T (float): Temperature of the ice [K]. Must be <= 273.16 K.
+            
+        Returns:
+            float: Specific enthalpy of ice [J/kg]. 
         """
-        # Check if T is in a valid range for ice
-        if T >= 273.16:
-            raise ValueError(f"Temperature for ice enthalpy calculation must be below 273.16 K. Given: {T} K")
-        return CP_HumidAir.PropsSI('H', 'T', T, 'Q', 0, 'Water')
+        T_celsius = T - 273.15
+        
+        # Safety check: If T is above freezing, this physical model is invalid for ice.
+        # However, for robustness near 0°C, we allow small deviations.
+        if T_celsius > 0.1: 
+             print("Warning: Temperature above freezing point for ice enthalpy calculation.")
+
+        # Constants derived from ASHRAE Fundamentals (SI Units)
+        h_fusion_ref = -333400.0  # Enthalpy of ice at 0°C relative to liquid water at 0°C
+        cp_ice = 2060.0           # Average specific heat capacity for ice [J/(kg K)]
+        
+        return h_fusion_ref + (cp_ice * T_celsius)

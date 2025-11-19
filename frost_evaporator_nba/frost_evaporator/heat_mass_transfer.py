@@ -21,6 +21,8 @@ class HeatMassTransferModel:
             parameters: The (read-only) parameters object.
         """
         self.params = parameters
+        
+        self.R_tube = self._calculate_thermal_resistance_tube()
 
     
     def update_properties(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
@@ -32,35 +34,48 @@ class HeatMassTransferModel:
         """
 
         # Calculate effective area (with fin efficiency) for total thermal resistance
-        A_effective, h_effective = self._calculate_effective_area_and_convection(
+        A_effective, eta_fin = self._calculate_effective_area(
             h_conv_air=state.air.h_conv,
             frost_thickness = state.frost.thickness,
             k_frost=state.frost.k_frost
         )
 
-        R_total = self._calculate_total_thermal_resistance(
-            h_effective=h_effective,
-            h_conv_refrigerant=state.refrigerant.h_conv,
+        R_air = self._calculate_resistance_air(
+            h_conv_air=state.air.h_conv,
             A_effective=A_effective
         )
 
-        delta_T_log = self._calculate_log_temperature_difference(
-            T_air_in=inputs.air.T_in,
-            T_air_out=state.air.T_out,
-            T_refrigerant_in=state.refrigerant.T_in,
-            T_refrigerant_out=state.refrigerant.T_out
+        R_frost = self._calculate_resistance_frost(
+            frost_thickness=state.frost.thickness,
+            k_frost=state.frost.k_frost,
+            A_effective=A_effective
         )
 
-        Q_dot = self._calculate_heat_transfer_rate(
-            delta_T_log=delta_T_log,
-            R_total=R_total
+        
+
+        R_refrigerant = self._calculate_thermal_resistance_refrigerant(
+            h_conv_refrigerant = state.refrigerant.h_conv
         )
 
+        # Combine the "downstream" resistances (everything AFTER the frost surface)
+        R_downstream = R_frost + self.R_tube + R_refrigerant
+
+        # Get Temperatures
+        T_air_avg = 0.5 * (inputs.air.T_in + state.air.T_out)
+        T_refrigerant_avg = 0.5 * (state.refrigerant.T_in + state.refrigerant.T_out)
+        T_frost_surface = state.hmt.T_frost_surface
+
+        # A. Sensible Heat (Air -> Surface)
+        Q_dot_sens = (T_air_avg - T_frost_surface) / R_air
+        
+        # B. Latent Heat (Generated AT Surface)
+        # Calculate vapor density delta based on T_surf
         m_dot_frost_flux = self._calculate_m_dot_frost_flux(
             betta=state.air.betta,
             rho_w_avg=state.air.rho_w_avg,
             rho_w_frost_sat=state.air.rho_w_frost_sat
         )
+
 
         # Calculate total geometric frost surface area (no fin efficiency) for T_frost_surface
         A_frost_surface = self._calculate_frost_surface_area(
@@ -68,25 +83,29 @@ class HeatMassTransferModel:
             space_between_frost=state.frost.space_between_frost
         )
 
-        T_frost_surface = self._calculate_frost_surface_temperature(
-            T_air_in=inputs.air.T_in,
-            T_air_out=state.air.T_out,
-            Q_dot=Q_dot,
-            h_conv_air=state.air.h_conv,
-            A_frost_surface=A_frost_surface
-        )
+        h_sublimation = self._calculate_enthalpy_sublimation(T_frost_surface = T_frost_surface)
 
+        Q_dot_lat = m_dot_frost_flux * A_effective * h_sublimation
+        
+        # C. Total Heat (Surface -> Refrigerant)
+        Q_dot_total = Q_dot_sens + Q_dot_lat
+        
+        # D. Calculate required T_frost_surface to push Q_total through downstream resistance
+        T_frost_surface_new = T_refrigerant_avg + (Q_dot_total * R_downstream)
 
-
+        # alpha is your relaxation factor (e.g., 0.2 to 0.5)
+        alpha = 0.2
+        T_frost_surface_update = (alpha * T_frost_surface_new) + ((1 - alpha) * T_frost_surface)
 
 
         state.hmt.set("A_effective", A_effective)
         state.hmt.set("A_frost_surface", A_frost_surface)
-        state.hmt.set("R_total", R_total)
-        state.hmt.set("delta_T_log", delta_T_log)
-        state.hmt.set("T_frost_surface", T_frost_surface)
-        state.hmt.set("Q_dot", Q_dot)
+        state.hmt.set("R_downstream", R_downstream)
+        state.hmt.set("T_frost_surface", T_frost_surface_update)
+        state.hmt.set("Q_dot_total", Q_dot_total)
+        state.hmt.set("Q_dot_sens", Q_dot_sens)
         state.hmt.set("m_dot_frost_flux", m_dot_frost_flux)
+        state.hmt.set("eta_fin", eta_fin)
         
 
 
@@ -105,67 +124,41 @@ class HeatMassTransferModel:
         if betta < 0:
             raise ValueError("betta cannot be negative.")
         if rho_w_avg < rho_w_frost_sat:
-            raise ValueError("rho_w_avg must be greater than or equal to rho_w_frost_sat.") 
+            print("rho_w_avg must be greater than or equal to rho_w_frost_sat.") 
 
         return betta * (rho_w_avg - rho_w_frost_sat)
     
 
-    def _calculate_frost_surface_temperature(self, T_air_in: float, T_air_out:float, Q_dot: float, h_conv_air: float, A_frost_surface: float) -> float:
-        """
-        Calculates the frost surface temperature based on air temperature,
-        heat transfer rate, convective heat transfer coefficient, and effective area.
-        """
-
-        if np.isclose(h_conv_air, 0):
-            raise ValueError("h_conv_air cannot be zero.")
-        if np.isclose(A_frost_surface, 0):
-            raise ValueError("A_frost_surface cannot be zero.")
-
-        T_air_avg = 0.5 * (T_air_in + T_air_out)
-
-        return T_air_avg - Q_dot / (h_conv_air * A_frost_surface)
-
-    def _calculate_log_temperature_difference(self, T_air_in: float, T_air_out: float, T_refrigerant_in: float, T_refrigerant_out: float) -> float:
-        """
-        Calculates the log mean temperature difference (LMTD) between air and refrigerant.
-        This is a simplification, as LMTD is strictly valid for counterflow heat exchangers only.
-        """
-
-        delta_T1 = T_air_in - T_refrigerant_out
-        delta_T2 = T_air_out - T_refrigerant_in
-
-        if delta_T1 <= 0 or delta_T2 <= 0:
-            print("T_air_in:", T_air_in)
-            print("T_air_out:", T_air_out)
-            print("T_refrigerant_in:", T_refrigerant_in)
-            print("T_refrigerant_out:", T_refrigerant_out)
-            raise ValueError("Temperature differences must be positive for LMTD calculation.")
-
-        if np.isclose(delta_T1, delta_T2):
-            return delta_T1
+    # def _calculate_frost_surface_temperature(self, T_air_in: float, T_air_out:float, Q_dot_sensible: float, h_conv_air: float, A_frost_surface: float) -> float:
+    #     """
+    #     Calculates the frost surface temperature.
         
-        return (delta_T1 - delta_T2) / np.log(delta_T1 / delta_T2)
+    #     NOTE: We must use Q_sensible here (convection only), not total heat.
+    #     Latent heat is released ON the surface, it does not travel THROUGH the air boundary layer 
+    #     in the same way to drive the temperature difference.
+    #     """
 
+    #     if np.isclose(h_conv_air, 0):
+    #         raise ValueError("h_conv_air cannot be zero.")
+    #     if np.isclose(A_frost_surface, 0):
+    #         raise ValueError("A_frost_surface cannot be zero.")
 
-    def _calculate_total_thermal_resistance(self, h_effective:float, h_conv_refrigerant:float, A_effective:float) -> float:
-        """
-        Calculates and returns the total thermal resistance.
-        """
-        R_air_frost = self._calculate_thermal_resistance_air_frost(h_effective, A_effective)
-        R_tube = self._calculate_thermal_resistance_tube()
-        R_refrigerant = self._calculate_thermal_resistance_refrigerant(h_conv_refrigerant)
+    #     T_air_avg = 0.5 * (T_air_in + T_air_out)
 
-        return R_air_frost + R_tube + R_refrigerant
+    #     # T_surf = T_air - (SensibleHeat / (h * A))
+    #     return T_air_avg - Q_dot_sensible / (h_conv_air * A_frost_surface)
+
     
-    def _calculate_thermal_resistance_air_frost(self, h_effective: float, A_effective:float) -> float:
-        """
-        Calculates the convective thermal resistance on the air side + frost.
-        """
-        if np.isclose(h_effective, 0):
-            raise ValueError("h_effective cannot be zero.")
-        if np.isclose(A_effective, 0):
-            raise ValueError("A_effective cannot be zero.")
-        return 1 / (h_effective * A_effective)
+    def _calculate_resistance_air(self, h_conv_air, A_effective):
+        if np.isclose(h_conv_air, 0) or np.isclose(A_effective, 0):
+             raise ValueError("Zero value in resistance calc")
+        return 1 / (h_conv_air * A_effective)
+
+    def _calculate_resistance_frost(self, frost_thickness, k_frost, A_effective):
+        if np.isclose(k_frost, 0) or np.isclose(A_effective, 0):
+             raise ValueError("Zero value in resistance calc")
+        # R = L / (k * A)
+        return frost_thickness / (k_frost * A_effective)
 
     
     def _calculate_thermal_resistance_tube(self) -> float:
@@ -194,7 +187,7 @@ class HeatMassTransferModel:
         return 1 / (h_conv_refrigerant * np.pi * self.params.tube_inner_diameter * self.params.total_tube_length)
 
 
-    def _calculate_effective_area_and_convection(self, h_conv_air: float, frost_thickness:float, k_frost:float) -> tuple[float, float]:
+    def _calculate_effective_area(self, h_conv_air: float, frost_thickness:float, k_frost:float) -> tuple[float, float]:
         """
         Calculates the effective heat transfer area of the finned tube.
         This function works for "Fluchtende Rohre" only.
@@ -221,7 +214,7 @@ class HeatMassTransferModel:
 
         A_effective = self.params.fin_segment_amount * (A_one_tube_segment + eta_fin * A_one_fin_segment)
 
-        return A_effective, h_effective
+        return A_effective, eta_fin
 
     def _calculate_frost_surface_area(self, tube_diameter_w_frost:float, space_between_frost:float)-> float:
         """
@@ -323,3 +316,26 @@ class HeatMassTransferModel:
 
         return 1 / (1 / h_conv_air + frost_thickness / k_frost)
     
+
+    def _calculate_enthalpy_sublimation(self, T_frost_surface: float) -> float:
+        """
+        Calculates the latent heat of sublimation (Ice -> Vapor) 
+        as a function of surface temperature.
+        
+        Based on standard property data for water ice.
+        h_sub is approx 2.834e6 J/kg at 0°C and rises slightly as T drops.
+        
+        Args:
+            T_frost_surface: Surface temperature in Kelvin.
+            
+        Returns:
+            float: Enthalpy of sublimation [J/kg]
+        """
+        T_celsius = T_frost_surface - 273.15
+        
+        # Linear approximation for h_sublimation [J/kg]
+        # h_sub = 2834.3 kJ/kg - 0.29 * T_celsius (approximate slope)
+        # Note: The slope is negative, meaning h_sub INCREASES as T DECREASES.
+        # (Ice crystal lattice binding energy is higher at lower temps)
+        
+        return (2834.3 - 0.29 * T_celsius) * 1000.0

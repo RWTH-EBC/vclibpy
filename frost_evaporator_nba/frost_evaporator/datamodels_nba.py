@@ -161,6 +161,54 @@ class FrostEvaporatorInputs(VariableContainer):
         return ";".join([f"{k}={str(round(v.value, 3)).replace('.', '_')}" 
                          for k, v in all_vars.items() if v.value is not None])
 
+    def __str__(self):
+        """
+        Provides a user-friendly string representation (pretty print) 
+        in the format: VariableName: Value [Unit].
+        """
+        all_vars = self.get_all_variables()
+        
+        # 1. Collect lines for all valid variables
+        output_lines = []
+        for name, var in all_vars.items():
+            value = var.value
+            unit = var.unit
+            description = var.description
+            
+            if value is not None:
+                # Format the value (round to 3 decimal places for readability)
+                # Ensure the value is converted to a string before rounding
+                try:
+                    formatted_value = f"{value:.6f}"
+                except (TypeError, ValueError):
+                    formatted_value = str(value) # Fallback for non-numeric types
+
+                # Determine the prefix/group for sorting and clarity
+                # e.g., 'frost_T_surf' becomes 'frost' group
+                group_name = name.split('_')[0].capitalize()
+                
+                # Create the final line
+                line = f"{name}: {formatted_value} [{unit}]"
+                output_lines.append((group_name, line))
+
+        # 2. Sort lines by their group name (e.g., 'Air' then 'Frost')
+        output_lines.sort(key=lambda x: x[0])
+        
+        # 3. Assemble the final output, adding sub-state headings
+        final_str = f"--- {self.__class__.__name__} State ---\n"
+        current_group = None
+
+        for group, line in output_lines:
+            if group != current_group:
+                # Add a section header for the sub-state
+                final_str += f"\n*** {group} State ***\n"
+                current_group = group
+            
+            final_str += line + "\n"
+            
+        final_str += "--------------------------------------"
+        
+        return final_str
 
 
 ###################################################################################
@@ -173,7 +221,7 @@ class FrostState(VariableContainer):
         super().__init__()
         self.set("density", 100.0, "kg/m^3", "Frost density")
         self.set("thickness", 0.0, "m", "Frost layer thickness")
-        self.set("k_frost", 0.1, "W/m/K", "Frost thermal conductivity")
+        self.set("k_frost", 0.0, "W/m/K", "Frost thermal conductivity")
         self.set("space_between_frost", 0.0, "m", "Space between frost layers")
         self.set("tube_diameter_w_frost", 0.0, "m", "Tube outer diameter including frost")
         self.set("flow_area_air", 0.0, "m^2", "Free flow area for air through the evaporator")
@@ -234,12 +282,13 @@ class HeatMassTransferState(VariableContainer):
         super().__init__()
         self.set("A_effective", 0.0, "m^2", "Effective heat transfer area")
         self.set("A_frost_surface", 0.0, "m^2", "Frost surface area for frost flux")
-        self.set("R_total", 0.0, "K/W", "Total thermal resistance between air and refrigerant")
+        self.set("R_downstream", 0.0, "K/W", "Thermal resistance between frost and refrigerant")
         self.set("delta_T_log", 0.0, "K", "Logarithmic mean temperature difference")
         self.set("T_frost_surface", 0.0, "K", "Frost surface temperature")
-        self.set("Q_dot", 0.0, "W", "Heat transfer rate between air and refrigerant")
+        self.set("Q_dot_total", 0.0, "W", "Total heat transfer rate (sensible + latent)")
+        self.set("Q_dot_sens", 0.0, "W", "Sensible heat transfer rate")
         self.set("m_dot_frost_flux", 0.0, "kg/s/m^2", "Mass flux rate of frost growth")
-        # ...
+        self.set("eta_fin", 0.0, "-", "Fin efficiency")
         
 class ThermodynamicsState(VariableContainer):
     """Holds overall thermodynamic properties and wall temperatures."""
@@ -303,4 +352,53 @@ class FrostEvaporatorState(VariableContainer):
         all_vars = self.get_all_variables()
         return ";".join([f"{k}={str(round(v.value, 3)).replace('.', '_')}" 
                          for k, v in all_vars.items() if v.value is not None])
+    
+    def __str__(self):
+        """
+        Provides a user-friendly string representation (pretty print) 
+        in the format: VariableName: Value [Unit].
+        """
+        all_vars = self.get_all_variables()
+        
+        # 1. Collect lines for all valid variables
+        output_lines = []
+        for name, var in all_vars.items():
+            value = var.value
+            unit = var.unit
+            description = var.description
+            
+            if value is not None:
+                # Format the value (round to 3 decimal places for readability)
+                # Ensure the value is converted to a string before rounding
+                try:
+                    formatted_value = f"{value:.6f}"
+                except (TypeError, ValueError):
+                    formatted_value = str(value) # Fallback for non-numeric types
+
+                # Determine the prefix/group for sorting and clarity
+                # e.g., 'frost_T_surf' becomes 'frost' group
+                group_name = name.split('_')[0].capitalize()
+                
+                # Create the final line
+                line = f"{name}: {formatted_value} [{unit}]"
+                output_lines.append((group_name, line))
+
+        # 2. Sort lines by their group name (e.g., 'Air' then 'Frost')
+        output_lines.sort(key=lambda x: x[0])
+        
+        # 3. Assemble the final output, adding sub-state headings
+        final_str = f"--- {self.__class__.__name__} State ---\n"
+        current_group = None
+
+        for group, line in output_lines:
+            if group != current_group:
+                # Add a section header for the sub-state
+                final_str += f"\n*** {group} State ***\n"
+                current_group = group
+            
+            final_str += line + "\n"
+            
+        final_str += "--------------------------------------"
+        
+        return final_str
     
