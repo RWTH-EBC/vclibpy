@@ -5,7 +5,7 @@ from .datamodels_nba import (
 )
 import numpy as np
 import CoolProp.CoolProp as CP_HumidAir
-
+from functools import lru_cache
 
 class AirModel:
     """
@@ -140,12 +140,26 @@ class AirModel:
         state.air.set("h_ice", h_ice)
 
 
-
+    # 1. Create a static cached wrapper
+    @staticmethod
+    @lru_cache(maxsize=2048)
+    def _cached_HAPropsSI(output_key, T, p, input_key, input_val):
+        """
+        Generic wrapper for CoolProp.
+        input_key: usually 'W' (Humidity Ratio) or 'R' (Relative Humidity)
+        input_val: the value associated with input_key
+        """
+        return CP_HumidAir.HAPropsSI(output_key, 'T', T, 'P', p, input_key, input_val)
 
     
 
     def _get_air_properties(self, T:float, p:float, W:float):
         """Calculates multiple moist air properties for a single state."""
+
+        # Round inputs to ensure cache hits. 
+        T = round(T, 4) # (0.0001 K precision)
+        p = round(p, 0) # (1 Pa precision)
+        W = round(W, 6) # (0.000001 kg/kg precision)
         
         # List of properties to calculate
         # Vha: specific Volume per humid air, mu: Dynamic Viscosity, cp_ha: Heat Capacity, k: Thermal Conductivity
@@ -153,7 +167,7 @@ class AirModel:
         prop_list = ['Vha', 'mu', 'cp_ha', 'k', 'Enthalpy'] 
         
         # Calculate all properties
-        properties = {prop: CP_HumidAir.HAPropsSI(prop, 'T', T, 'P', p, 'W', W) for prop in prop_list}
+        properties = {prop: self._cached_HAPropsSI(prop, T, p, 'W', W) for prop in prop_list}
 
         properties['density'] = 1 / properties['Vha']  # Convert specific volume to density
 
@@ -216,20 +230,24 @@ class AirModel:
         Returns:
             Water vapor density [kg/m^3]
         """
-        
+
+        # Round inputs to ensure cache hits. 
+        T = round(T, 4)
+        p = round(p, 0)
+
         # Determine the humidity ratio W, if not given (e.g., at saturation)
         if W is not None:
             W_calc = W
         elif R is not None:
             # Calculate W at saturation (R=1.0)
-            W_calc = CP_HumidAir.HAPropsSI('W', 'T', T, 'P', p, 'R', R)
+            W_calc = self._cached_HAPropsSI('W', T, p, 'R', R)
         else:
             # Error if neither W nor R is provided
             raise ValueError("Must provide either W (humidity ratio) or R (relative humidity)")
 
         # Get the specific volume Vda (m^3 / kg_dry_air)
         try:
-            Vda = CP_HumidAir.HAPropsSI('Vda', 'T', T, 'P', p, 'W', W_calc)
+            Vda = self._cached_HAPropsSI('Vda', T, p, 'W', W_calc)
         except ValueError as e:
             print(f"CoolProp Error during Vda calculation: T={T}, p={p}, W={W_calc} -> {e}")
             return 0.0 # Safe return value on error
@@ -283,7 +301,7 @@ class AirModel:
         if hydraulic_fan_power < 0:
             print("Error: Hydraulic fan power must be non-negative.")
             return 0.0, 0.0
-        
+
         denominator = flow_area_air * pressure_loss_coeff * density * K
         if denominator <= 0:
             print("Error: The denominator (A_flow * ζ * ρL * K) must be positive.")
@@ -295,14 +313,13 @@ class AirModel:
         # TODO!!!!
         # --- FIX: Maximale Geschwindigkeit begrenzen ---
         # Verhindert unrealistische Zustände bei geringem Druckverlust
-        if velocity > 5:
-            velocity = 5
-        
+        velocity = min(velocity, 5)
+
         # --- Pressure Drop Calculation ---
         # Use the velocity we just calculated.
         # Δp = K * ζ * 0.5 * ρ * uL^2
         delta_p = K * pressure_loss_coeff * 0.5 * density * (velocity ** 2)
-        
+
         return velocity, delta_p
 
 

@@ -6,9 +6,7 @@ from .datamodels_nba import (
 from vclibpy.media import RefProp
 import numpy as np
 import os
-
-# At the top of your file
-import os
+from functools import lru_cache
 
 # Get path from environment variable, fall back to a default if not set
 REFPROP_DIR = os.environ.get("REFPROP_PATH", r"C:\Program Files (x86)\REFPROP")
@@ -79,6 +77,28 @@ class RefrigerantModel:
 
 
 
+    # --- CACHING WRAPPERS ---
+    
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def _cached_calc_state(rp_instance, type_str: str, v1: float, v2: float):
+        """
+        Static wrapper to cache REFPROP state calculations.
+        The 'rp_instance' is hashable by ID (memory address), so as long
+        as the same RefProp object is used, this cache works.
+        """
+        return rp_instance.calc_state(type_str, v1, v2)
+
+    @staticmethod
+    @lru_cache(maxsize=128)
+    def _cached_transport(rp_instance, state_obj):
+        """
+        Caches transport properties. 
+        Note: This requires 'state_obj' returned by vclibpy to be hashable.
+        If this raises an error, remove this wrapper and call .calc_transport_properties directly.
+        """
+        return rp_instance.calc_transport_properties(state=state_obj)
+
     def calculate_refrigerant_props(self, h_in: float, h_out: float, p_eva: float) -> dict:
         """
         Calculates all necessary refrigerant properties for an average 0D state.
@@ -104,6 +124,11 @@ class RefrigerantModel:
         # --- Define Average State ---
         p_avg = p_eva
         h_avg = (h_in + h_out) / 2
+        
+        # --- ROUNDING INPUTS FOR CACHE HIT RATE ---
+        p_avg = round(p_avg, 0) # Pressure to nearest Pa
+        h_avg = round(h_avg, 1) # Enthalpy to nearest 0.1 J/kg
+
 
         refrigerant_props = {}     
         
@@ -111,8 +136,8 @@ class RefrigerantModel:
         refrigerant_props['enthalpy_avg'] = h_avg
         
         # --- Calculate Properties at Average State (P_avg, h_avg) ---
-        avg_state = self.RP.calc_state("PH", p_avg, h_avg)
-        avg_trans_prop = self.RP.calc_transport_properties(state=avg_state)
+        avg_state = self._cached_calc_state(self.RP, "PH", p_avg, h_avg)
+        avg_trans_prop = self._cached_transport(self.RP, avg_state)
     
         refrigerant_props['quality_avg'] = avg_state.q
         refrigerant_props['density_avg'] = avg_state.d
@@ -125,8 +150,8 @@ class RefrigerantModel:
         # These are needed for two-phase correlations (e.g., X_tt)
         
         # Saturated Liquid (Q=0)
-        liq_state = self.RP.calc_state("PQ", p_avg, 0)
-        liq_trans_prop = self.RP.calc_transport_properties(state=liq_state)
+        liq_state = self._cached_calc_state(self.RP, "PQ", p_avg, 0)
+        liq_trans_prop = self._cached_transport(self.RP, liq_state)
 
         refrigerant_props['density_liquid'] = liq_state.d
         refrigerant_props['enthalpy_liquid'] = liq_state.h
@@ -136,8 +161,8 @@ class RefrigerantModel:
         refrigerant_props['prandtl_liquid'] = liq_trans_prop.Pr
         
         # Saturated Vapor (Q=1)
-        vap_state = self.RP.calc_state("PQ", p_avg, 1)
-        vap_trans_prop = self.RP.calc_transport_properties(state=vap_state)
+        vap_state = self._cached_calc_state(self.RP, "PQ", p_avg, 1)
+        vap_trans_prop = self._cached_transport(self.RP, vap_state)
 
         refrigerant_props['density_vapor'] = vap_state.d
         refrigerant_props['enthalpy_vapor'] = vap_state.h
@@ -150,8 +175,8 @@ class RefrigerantModel:
 
 
         # --- Calculate Inlet and Outlet States (at P_avg) ---
-        in_state = self.RP.calc_state("PH", p_avg, h_in)
-        out_state = self.RP.calc_state("PH", p_avg, h_out)
+        in_state = self._cached_calc_state(self.RP, "PH", p_avg, h_in)
+        out_state = self._cached_calc_state(self.RP, "PH", p_avg, h_out)
         
         refrigerant_props['temperature_in'] = in_state.T
         refrigerant_props['temperature_out'] = out_state.T
