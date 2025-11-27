@@ -4,6 +4,7 @@ from .datamodels_nba import (
     FrostEvaporatorState,
 )
 import numpy as np
+import math
 
 
 class HeatMassTransferModel:
@@ -51,30 +52,79 @@ class HeatMassTransferModel:
             A_effective=A_effective
         )
 
-        
-
-        R_refrigerant = self._calculate_thermal_resistance_refrigerant(
-            h_conv_refrigerant = state.refrigerant.h_conv
-        )
+        # R_refrigerant = self._calculate_thermal_resistance_refrigerant(
+        #     h_conv_refrigerant = state.refrigerant.h_conv
+        # )
 
         # Combine the "downstream" resistances (everything AFTER the frost surface)
-        R_downstream = R_frost + self.R_tube + R_refrigerant
+        # TODO change back to original form when refrigerant is reactivated!!!
+        R_downstream = R_frost # + self.R_tube + R_refrigerant
 
-        # Get Temperatures
-        T_air_avg = 0.5 * (inputs.air.T_in + state.air.T_out)
+
         T_refrigerant_avg = 0.5 * (state.refrigerant.T_in + state.refrigerant.T_out)
+
         T_frost_surface = state.hmt.T_frost_surface
 
-        # A. Sensible Heat (Air -> Surface)
-        Q_dot_sens = (T_air_avg - T_frost_surface) / R_air
+
+
+        # --- 1. HEAT TRANSFER (Standard epsilon-NTU) ---
+        # Get Air Stream Capacity Rate (C_air)
+        m_dot_air = state.air.m_dot_humid 
+        cp_air = state.air.heat_capacity_avg       
+        C_air = m_dot_air * cp_air
+
+        # Calculate NTU (Number of Transfer Units) on the air side
+        UA_air = 1.0 / R_air
+        NTU = UA_air / C_air
+
+        # Calculate Effectiveness (epsilon) - surface at constant temperature
+        epsilon = 1.0 - math.exp(-NTU)
+
+        # Calculate Maximum Possible Sensible Heat
+        Q_max_sens = C_air * (inputs.air.T_in - T_frost_surface)
+
+        # Calculate Actual Sensible Heat
+        Q_dot_sens = epsilon * Q_max_sens
+
+
+
+        # --- 2. MASS TRANSFER (Modified epsilon-NTU) ---
         
-        # B. Latent Heat (Generated AT Surface)
-        # Calculate vapor density delta based on T_surf
-        m_dot_frost_flux = self._calculate_m_dot_frost_flux(
-            betta=state.air.betta,
-            rho_w_avg=state.air.rho_w_avg,
-            rho_w_frost_sat=state.air.rho_w_frost_sat
-        )
+        # Calculate Volume Flow Rate [m^3/s]
+        # We need this because betta is usually in [m/s] and applies to volume concentration
+        # m_dot [kg/s] / rho [kg/m^3] = V_dot [m^3/s]
+        rho_air_avg = state.air.density_avg
+        V_dot_air = m_dot_air / rho_air_avg
+
+        # Calculate NTU_mass
+        # Analogous to UA / C_min. 
+        # Here: (Mass Transfer Coeff * Area) / Volume Flow
+        betta = state.air.betta
+        NTU_mass = (betta * A_effective) / V_dot_air
+
+        # Calculate epsilon_mass
+        epsilon_mass = 1.0 - math.exp(-NTU_mass)
+
+        # D. Calculate Mass Transfer
+        # Driving force: Density difference (Inlet Air vs Surface Saturation)
+        rho_w_in = state.air.rho_w_in       # Vapor density at INLET
+        rho_w_surf = state.air.rho_w_frost_sat # Vapor density at SURFACE (saturation)
+        
+        # Max possible mass transfer (if air reached surface saturation perfectly)
+        # kg/s = V_dot [m3/s] * delta_rho [kg/m3]
+        m_dot_frost_max = V_dot_air * (rho_w_in - rho_w_surf)
+        
+        # Actual mass transfer
+        m_dot_frost_total = epsilon_mass * m_dot_frost_max
+
+        # Back-calculate flux for your specific variable tracking
+        m_dot_frost_flux = m_dot_frost_total / A_effective
+
+
+        # --- 3. TOTAL ENERGY ---
+        h_sublimation = self._calculate_enthalpy_sublimation(T_frost_surface=T_frost_surface)
+        Q_dot_lat = m_dot_frost_total * h_sublimation
+        Q_dot_total = Q_dot_sens + Q_dot_lat
 
 
         # Calculate total geometric frost surface area (no fin efficiency) for T_frost_surface
@@ -82,15 +132,8 @@ class HeatMassTransferModel:
             tube_diameter_w_frost=state.frost.tube_diameter_w_frost,
             space_between_frost=state.frost.space_between_frost
         )
-
-        h_sublimation = self._calculate_enthalpy_sublimation(T_frost_surface = T_frost_surface)
-
-        Q_dot_lat = m_dot_frost_flux * A_effective * h_sublimation
         
-        # C. Total Heat (Surface -> Refrigerant)
-        Q_dot_total = Q_dot_sens + Q_dot_lat
-        
-        # D. Calculate required T_frost_surface to push Q_total through downstream resistance
+        # Calculate required T_frost_surface to push Q_total through downstream resistance
         T_frost_surface_new = T_refrigerant_avg + (Q_dot_total * R_downstream)
 
         # alpha is your relaxation factor (e.g., 0.2 to 0.5)
@@ -105,6 +148,7 @@ class HeatMassTransferModel:
         state.hmt.set("Q_dot_total", Q_dot_total)
         state.hmt.set("Q_dot_sens", Q_dot_sens)
         state.hmt.set("m_dot_frost_flux", m_dot_frost_flux)
+        state.hmt.set("m_dot_frost_total", m_dot_frost_total)
         state.hmt.set("eta_fin", eta_fin)
         
 
@@ -263,9 +307,9 @@ class HeatMassTransferModel:
             raise ValueError("fin_segment_length and fin_segment_height cannot be zero.")
             
 
-        # Equation (13) from VDI Wärmeatlas M1
-        if self.params.fin_segment_height > self.params.fin_segment_length:
-            raise ValueError("Fin segment height cannot be greater than fin segment length.")
+        # # Equation (13) from VDI Wärmeatlas M1
+        # if self.params.fin_segment_height > self.params.fin_segment_length:
+        #     raise ValueError("Fin segment height cannot be greater than fin segment length.")
 
 
         # Equation (13) from VDI Wärmeatlas M1

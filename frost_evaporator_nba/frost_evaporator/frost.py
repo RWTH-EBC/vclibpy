@@ -31,13 +31,27 @@ class FrostModel:
         
         # Get the current *guess* for T_frost_surface from the state
         T_frost = state.hmt.T_frost_surface
+        T_dew_point = state.air.T_dew_point
         
-        # Calculate new density
-        new_density = self._calculate_density(
-            T_frost_surface=T_frost
+        # Calculate the Target Density based on current T
+        target_density = self._calculate_density(
+            T_frost_surface=T_frost,
+            T_dew_point=T_dew_point
         )
+
+        # Retrieve the existing density (Previous Iteration)
+        current_density = state.frost.density
+
+        # Safety check for the very first step where density might be 0 or None
+        if current_density is None or current_density <= 0.0:
+            current_density = target_density
+
+        # Apply Under-Relaxation
+        relaxation_factor=0.4
+        new_density = (relaxation_factor * target_density) + \
+                      ((1.0 - relaxation_factor) * current_density)
         
-        # Calculate new k_frost
+
         new_k_frost = self._calculate_k_frost(
             new_density=new_density
         )
@@ -60,7 +74,9 @@ class FrostModel:
         
         # Get the *converged* values from the state
         prev_thickness = state.frost.thickness
+        prev_frost_mass = state.frost.mass
         m_dot_frost_flux = state.hmt.m_dot_frost_flux
+        m_dot_frost_total = state.hmt.m_dot_frost_total
         new_density = state.frost.density
         
         # Calculate the new thickness
@@ -91,15 +107,19 @@ class FrostModel:
             tube_diameter_w_frost=new_tube_diameter_w_frost, 
             tubes_per_layer=self.params.tubes_per_layer
         )
+
+        # Calculate new frost mass
+        new_frost_mass = prev_frost_mass + m_dot_frost_total * self.params.time_step
         
         # Update the state with the final new geometric values
         state.frost.set("thickness", new_thickness)
         state.frost.set("tube_diameter_w_frost", new_tube_diameter_w_frost)
         state.frost.set("space_between_frost", new_space_between_frost)
         state.frost.set("flow_area_air", new_flow_area_air)
+        state.frost.set("mass", new_frost_mass)
 
     
-    def _calculate_density(self, T_frost_surface: float) -> float:
+    def _calculate_density(self, T_frost_surface: float, T_dew_point: float) -> float:
         """
         Determines the new frost density.
         
@@ -111,6 +131,18 @@ class FrostModel:
         """
         if self.params.frost_density_correlation_choice == "jonas_diss":        
             return 650 * np.exp(0.277 * (T_frost_surface - 273.15))
+        if self.params.frost_density_correlation_choice == "da_silva_paper":  
+            # Coefficients from Section 4 "Results" of da Silva et al. (2011)
+            a = 494.0
+            b = 0.11
+            c = -0.06
+            
+            # Convert K to Celsius
+            T_f_C = T_frost_surface - 273.15
+            T_dew_C = T_dew_point - 273.15
+            
+            # Eq. 9
+            return a * np.exp(b * T_f_C + c * T_dew_C)      
         else:
             raise ValueError(f"Unknown frost density correlation: {self.params.frost_density_correlation_choice}")
 

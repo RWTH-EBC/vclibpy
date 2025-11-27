@@ -23,7 +23,7 @@ class FrostEvaporatorParameters(VariableContainer):
         frost_conductivity_correlation_choice: str,
 
         # Fan and Air Side Pressure Loss Parameters
-        hydraulic_fan_power: float,
+        # hydraulic_fan_power: float,
         pressure_loss_fit_factor: float,
 
         # Geometrie Parameters
@@ -48,7 +48,7 @@ class FrostEvaporatorParameters(VariableContainer):
 
         tube_length = fin_pitch * (fin_amount-1)
         tube_amount = tube_layers * tubes_per_layer
-        total_tube_length = fin_length * tube_layers * tubes_per_layer
+        total_tube_length = tube_length * tube_layers * tubes_per_layer
         fin_segment_amount = fin_amount * tube_amount
         fin_segment_height = fin_height / tubes_per_layer
         fin_segment_length = fin_length / tube_layers
@@ -63,7 +63,7 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("frost_thickness_correlation_choice", frost_thickness_correlation_choice, "-", "Choice of correlation for frost thickness")
         self.set("frost_conductivity_correlation_choice", frost_conductivity_correlation_choice, "-", "Choice of correlation for frost thermal conductivity")
 
-        self.set("hydraulic_fan_power", hydraulic_fan_power, "W", "Hydraulic power of the fan used for air-side calculations")
+        # self.set("hydraulic_fan_power", hydraulic_fan_power, "W", "Hydraulic power of the fan used for air-side calculations")
         self.set("pressure_loss_fit_factor", pressure_loss_fit_factor, "-", "Fit factor for air-side pressure loss calculations")
         self.set("ambient_pressure", 101325.0, "Pa", "Ambient pressure for air-side calculations")
 
@@ -100,10 +100,10 @@ class FrostEvaporatorParameters(VariableContainer):
 
 class AirInputs(VariableContainer):
     """Holds all external inputs for the air-side."""
-    def __init__(self, T_in: float, p_in: float, W_in: float):
+    def __init__(self, T_in: float, p_in: float, R_in: float):
         super().__init__()
         self.set("T_in",  T_in, "K", "Inlet air temperature")
-        self.set("W_in",  W_in, "kg/kg", "Inlet air absolute humidity")
+        self.set("R_in",  R_in, "1", "Inlet air relative humidity")
 
 class RefrigerantInputs(VariableContainer):
     """Holds all external inputs for the refrigerant-side."""
@@ -220,11 +220,12 @@ class FrostState(VariableContainer):
     def __init__(self):
         super().__init__()
         self.set("density", 100.0, "kg/m^3", "Frost density")
-        self.set("thickness", 0.0, "m", "Frost layer thickness")
+        self.set("thickness", 1e-6, "m", "Frost layer thickness")
         self.set("k_frost", 0.0, "W/m/K", "Frost thermal conductivity")
         self.set("space_between_frost", 0.0, "m", "Space between frost layers")
         self.set("tube_diameter_w_frost", 0.0, "m", "Tube outer diameter including frost")
         self.set("flow_area_air", 0.0, "m^2", "Free flow area for air through the evaporator")
+        self.set("mass", 0.0, "kg", "Total mass of the accumulated frost")
 
 class AirState(VariableContainer):
     """Holds all variables calculated by the air subprogram."""
@@ -236,6 +237,7 @@ class AirState(VariableContainer):
         self.set("W_out", 0.0, "kg/kg", "Outlet air absolute humidity")
 
         self.set("p_in",  101325.0, "Pa", "Inlet air pressure")
+        self.set("W_in", 0.0, "kg/kg", "Inlet air absolute humidity")
 
         # Average Air Properties (Inlet and Outlet)
         self.set("pressure_avg", 101325.0, "Pa", "Average air pressure")
@@ -245,9 +247,12 @@ class AirState(VariableContainer):
         self.set("thermal_conductivity_avg", 0.025, "W/m/K", "Average thermal conductivity")
         self.set("prandtl_avg", 0.71, "-", "Average Prandtl number")
         self.set("lewis_avg", 0.85, "-", "Average Lewis number")
-        self.set("rho_w_avg", 0.0 , "kg/m^3", "Average water vapor density")
+        # self.set("rho_w_avg", 0.0 , "kg/m^3", "Average water vapor density")
+        self.set("rho_w_in", 0.0 , "kg/m^3", "Water vapor density at inlet")
+        self.set("rho_w_out", 0.0 , "kg/m^3", "Water vapor density at inlet")
     
         self.set("rho_w_frost_sat", 0.0 , "kg/m^3", "Saturation water vapor density at frost surface temperature")
+        self.set("W_frost_sat", 0.0, "kg/kg, Frost Surface saturated air absolute humidity")
 
         # Calculated Air Properties
         self.set("reynolds", 0.0, "-", "Air-side Reynolds number")
@@ -262,6 +267,7 @@ class AirState(VariableContainer):
         self.set("h_in", 0.0, "J/kg", "Inlet air enthalpy per dry air kg")
         self.set("h_out", 0.0, "J/kg", "Outlet air enthalpy per dry air kg")
         self.set("h_ice", 0.0, "J/kg", "Enthalpy of ice formed from frost growth")
+        self.set("T_dew_point", 0.0, "Dew Point Temperature of the inlet air")
 
 
         
@@ -283,11 +289,11 @@ class HeatMassTransferState(VariableContainer):
         self.set("A_effective", 0.0, "m^2", "Effective heat transfer area")
         self.set("A_frost_surface", 0.0, "m^2", "Frost surface area for frost flux")
         self.set("R_downstream", 0.0, "K/W", "Thermal resistance between frost and refrigerant")
-        self.set("delta_T_log", 0.0, "K", "Logarithmic mean temperature difference")
         self.set("T_frost_surface", 0.0, "K", "Frost surface temperature")
         self.set("Q_dot_total", 0.0, "W", "Total heat transfer rate (sensible + latent)")
         self.set("Q_dot_sens", 0.0, "W", "Sensible heat transfer rate")
         self.set("m_dot_frost_flux", 0.0, "kg/s/m^2", "Mass flux rate of frost growth")
+        self.set("m_dot_frost_total", 0.0, "kg/s", "Mass flow rate of frost growth")
         self.set("eta_fin", 0.0, "-", "Fin efficiency")
         
 class ThermodynamicsState(VariableContainer):
