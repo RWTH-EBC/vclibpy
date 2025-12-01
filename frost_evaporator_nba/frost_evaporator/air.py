@@ -6,6 +6,7 @@ from .datamodels_nba import (
 import numpy as np
 import CoolProp.CoolProp as CP_HumidAir
 from scipy.optimize import brentq
+from scipy.interpolate import interp1d
 
 class AirModel:
     """
@@ -22,6 +23,31 @@ class AirModel:
             parameters: The (read-only) parameters object.
         """
         self.params = parameters
+
+        flow_data = np.array([
+            0.0, 24.591265397536393, 39.50727883538634, 46.96528555431131, 50.190369540873455,
+            52.40761478163493, 55.02799552071668, 58.0515117581187, 61.679731243001115,
+            65.30795072788354, 68.93617021276596, 81.43337066069428, 105.21836506159013,
+            118.11870100783874, 127.39081746920492, 136.46136618141097, 145.73348264277715,
+            155.20716685330348, 164.88241881298993, 174.55767077267637
+        ])
+
+        pressure_data = np.array([
+            61.15112994350283, 58.13559322033898, 54.971751412429384, 51.7090395480226, 48.44632768361582,
+            45.183615819209045, 42.01977401129944, 38.75706214689266, 35.494350282485875,
+            32.33050847457627, 29.06779661016949, 25.805084745762713, 22.641242937853107,
+            19.37853107344633, 16.11581920903955, 13.05084745762712, 9.689265536723164,
+            6.52542372881356, 3.26271186440678, 0.09887005649717515
+        ])
+
+        self.min_f = flow_data[0]
+        self.max_f = flow_data[-1]
+
+        # Create the interpolation object (X=Flow, Y=Pressure)
+        self.interpolator = interp1d(flow_data, pressure_data, kind='cubic', fill_value="extrapolate")
+
+        self.plottet = False
+        
 
     def update_properties(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
         """
@@ -49,22 +75,21 @@ class AirModel:
             W_out=state.air.W_out
         )
 
-        # Calculate water vapor density at frost surface (saturated)
-        rho_w_frost_sat, W_frost_sat = self._get_water_vapor_density(
+        # Calculate water vapor density at frost surface and base (saturated)
+        rho_w_frost_surface_sat, W_frost_surface_sat = self._get_water_vapor_density(
             T=state.hmt.T_frost_surface, 
             p=pressure_avg, 
-            R=1.0  # R=1.0 for fully saturated air
+            R=1.0  # for fully saturated air
+        )
+
+        rho_w_frost_base_sat, W_frost_base_sat = self._get_water_vapor_density(
+            T=state.hmt.T_frost_base, 
+            p=pressure_avg, 
+            R=1.0  # fully saturated air
         )
 
         space_between_frost = state.frost.space_between_frost
         flow_area_air = state.frost.flow_area_air
-
-
-        pressure_loss_coeff = self._calculate_pressure_loss_coefficient_haaf(
-            reynolds=state.air.reynolds,
-            space_between_frost=space_between_frost,
-            fin_length=self.params.fin_length
-        )
 
         velocity, delta_p = self._calculate_velocity_and_pressure_drop(
             flow_area_air=flow_area_air,
@@ -72,7 +97,7 @@ class AirModel:
             K=self.params.pressure_loss_fit_factor,
             dyn_viscosity=dyn_viscosity_avg,
             space_between_frost=space_between_frost,
-            fin_length=self.params.fin_length
+            fin_spacing=self.params.fin_spacing
         )
 
         p_in = self.params.ambient_pressure + delta_p
@@ -89,7 +114,7 @@ class AirModel:
             Re_Dh=reynolds, 
             Pr=prandtl_avg, 
             Dh=characteristic_length, 
-            L=self.params.fin_length
+            L=self.params.fin_length,
         )
 
         h_conv = self._calculate_heat_transfer_coefficient(
@@ -137,8 +162,11 @@ class AirModel:
         state.air.set("lewis_avg", lewis_avg)
         state.air.set('rho_w_in', rho_w_in)
         state.air.set('rho_w_out', rho_w_out)
-        state.air.set("rho_w_frost_sat", rho_w_frost_sat)
-        state.air.set("W_frost_sat", W_frost_sat)
+        state.air.set("rho_w_frost_surface_sat", rho_w_frost_surface_sat)
+        state.air.set("W_frost_surface_sat", W_frost_surface_sat)
+        state.air.set("rho_w_frost_base_sat", rho_w_frost_base_sat)
+        state.air.set("W_frost_base_sat", W_frost_base_sat)
+
 
         state.air.set("reynolds", reynolds)
         state.air.set("nusselt", nusselt)
@@ -146,7 +174,6 @@ class AirModel:
         state.air.set("betta", betta)
         state.air.set("velocity", velocity)
         state.air.set("p_in", p_in)
-        state.air.set("pressure_loss_coeff", pressure_loss_coeff)
         state.air.set("m_dot_humid", m_dot_humid)
         state.air.set("m_dot_dry", m_dot_dry)
 
@@ -204,8 +231,8 @@ class AirModel:
 
     def _calculate_air_averages(self, T_in:float, p_in:float, W_in:float, T_out:float, p_out:float, W_out:float):
         # Get all properties for inlet and outlet in two compact calls
-        density_in,  mu_in,  cp_in,  k_in,  prandtl_in,  lewis_in,  rho_w_in,  h_in  = self._get_air_properties(T_in,  p_in,  W_in)   # <-- h_in added
-        density_out, mu_out, cp_out, k_out, prandtl_out, lewis_out, rho_w_out, h_out = self._get_air_properties(T_out, p_out, W_out)  # <-- h_out added
+        density_in,  mu_in,  cp_in,  k_in,  prandtl_in,  lewis_in,  rho_w_in,  h_in  = self._get_air_properties(T_in,  p_in,  W_in)
+        density_out, mu_out, cp_out, k_out, prandtl_out, lewis_out, rho_w_out, h_out = self._get_air_properties(T_out, p_out, W_out)
 
         # Calculate averages
         pressure_avg = (p_in + p_out) / 2
@@ -262,44 +289,14 @@ class AirModel:
         rho_w = W_calc / Vda         
         return rho_w, W_calc
 
-
-    def _calculate_pressure_loss_coefficient_haaf(self, reynolds: float, space_between_frost: float, fin_length: float) -> float:
-        """
-        Calculates the pressure loss coefficient (ζ) based on the Haaf correlation (Klingebiel Diss. Eq. 4.3).
-        
-        NOTE: The original source (Eq. 4.3) contains a dimensional inconsistency: (d_ae / rho_L).
-        This implementation assumes a typo and uses the dimensionally consistent form (d_ae / L),
-        where L is the fin length, which is standard practice for such correlations.
-        """
-        # ... (checks) ...
-
-        if fin_length <= 0:
-            print("Error: Fin length must be positive.")
-            return 0.0
-
-        length_ratio = space_between_frost / fin_length
-        
-        return 10.5 * (reynolds ** (-1.0/3.0)) * (length_ratio ** 0.6)
-
-
     
     def _calculate_velocity_and_pressure_drop(self, flow_area_air: float, density: float, K: float,dyn_viscosity: float,
-                                              space_between_frost: float, fin_length: float) -> tuple[float, float]:
+                                              space_between_frost: float, fin_spacing: float) -> tuple[float, float]:
         """
         Calculates velocity by finding the intersection of:
         1. System Curve (Haaf correlation)
-        2. Fan Curve (Hard-coded Polynomial)
+        2. Fan Curve (Interpolation)
         """
-
-        # --- HARD CODED FAN CURVE COEFFICIENTS ---
-        # Format: dp = c0 + c1*V_dot + c2*V_dot^2
-        # Example: Small Axial Fan (approx 300mm)
-        # c0 (Static Pressure at 0 flow): 150 Pa
-        # Max Volume Flow: approx 2000 m3/h (~0.55 m3/s) -> dp=0
-        
-        FAN_C0 = 68.0  
-        FAN_C1 = 0.0
-        FAN_C2 = -30500.0 
 
         # ----------------------------------------
 
@@ -308,34 +305,32 @@ class AirModel:
             Returns (Fan_Pressure - System_Pressure).
             We want to find u where this is 0.
             """
-            if u_guess <= 1e-3:
-                return FAN_C0 # Positive pressure difference at 0 flow
             
             # A. Calculate System Resistance (Physics)
             # We must update Re and Zeta at every guess step for accuracy
-            re = (density * u_guess * (2*space_between_frost)) / dyn_viscosity
+            Re = (density * u_guess * (2*space_between_frost)) / dyn_viscosity
             
             zeta = self._calculate_pressure_loss_coefficient_haaf(
-                reynolds=re, 
+                reynolds=Re, 
                 space_between_frost=space_between_frost, 
-                fin_length=fin_length
+                fin_spacing=fin_spacing
             )
             
             dp_system = K * zeta * 0.5 * density * (u_guess**2)
 
             # B. Calculate Fan Pressure (Polynomial)
-            v_dot = flow_area_air * u_guess  # Volume flow [m3/s]
-            dp_fan = FAN_C0 + (FAN_C1 * v_dot) + (FAN_C2 * (v_dot**2))
+            V_dot = flow_area_air * u_guess * 3600  # Volume flow [m3/h]
 
-            # prevent negative fan pressure (backflow)
-            dp_fan = max(0.0, dp_fan)
+            dp_fan = self._get_pressure_from_flow(V_dot)
+
 
             return dp_fan - dp_system
 
         # --- SOLVER ---
         # Look for a solution between 0.01 m/s and 20.0 m/s
         try:
-            velocity = brentq(objective_function, 0.001, 20.0, xtol=1e-7)
+            max_velocity = (174.55 / 3600) / flow_area_air
+            velocity = brentq(objective_function, 0.001, max_velocity, xtol=1e-7)
         except ValueError:
             # If no intersection found (e.g., frost is fully blocked), flow is 0
             velocity = 0.0
@@ -345,12 +340,42 @@ class AirModel:
         # (We use the system curve definition for the final reported Delta P)
         if velocity > 0:
             re_final = (density * velocity * (2*space_between_frost)) / dyn_viscosity
-            zeta_final = self._calculate_pressure_loss_coefficient_haaf(re_final, space_between_frost, fin_length)
+            zeta_final = self._calculate_pressure_loss_coefficient_haaf(re_final, space_between_frost, fin_spacing)
             delta_p = K * zeta_final * 0.5 * density * (velocity**2)
         else:
-            delta_p = FAN_C0 # Static pressure of dead-headed fan
+            delta_p = self._get_pressure_from_flow(0) # Static pressure of dead-headed fan
 
         return velocity, delta_p
+    
+    def _get_pressure_from_flow(self, flow_val: float) -> float:
+        """
+        Returns Static Pressure (Pa) for a given Volume Flow (m^3/h).
+        """
+        # Check for out of bounds
+        if flow_val < self.min_f or flow_val > self.max_f:
+            print(f"--> WARNING: Flow input {flow_val:.2f} is outside valid range "
+                f"({self.min_f:.2f} - {self.max_f:.2f}). Extrapolating...")
+            
+        # Calculate value
+        return float(self.interpolator(flow_val))
+    
+
+    def _calculate_pressure_loss_coefficient_haaf(self, reynolds: float, space_between_frost: float, fin_spacing: float) -> float:
+        """
+        Calculates the pressure loss coefficient (ζ) based on the Haaf correlation (Klingebiel Diss. Eq. 4.3).
+        
+        NOTE: The original source (Eq. 4.3) contains a dimensional inconsistency: (d_ae / rho_L).
+        This implementation assumes a typo and uses the dimensionally consistent form (d_ae / L),
+        where L is the fin length, which is standard practice for such correlations.
+        """
+
+        if fin_spacing <= 0:
+            print("Error: Fin length must be positive.")
+            return 0.0
+
+        length_ratio = space_between_frost / fin_spacing
+        
+        return 10.5 * (reynolds ** (-1.0/3.0)) * (length_ratio ** 0.6)
 
 
     def _calculate_reynolds_number(self, density: float, velocity: float, characteristic_length: float, dyn_viscosity: float):

@@ -58,6 +58,7 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("time_step", time_step, "s", "Simulation time step for evaporator model")
 
         self.set("gravity", gravity, "m/s^2", "Gravitational acceleration")
+        self.set("water_freezing_point", 273.15, "K", "The freezing point temperature of water.")
 
         self.set("frost_density_correlation_choice", frost_density_correlation_choice, "-", "Choice of correlation for frost density")
         self.set("frost_thickness_correlation_choice", frost_thickness_correlation_choice, "-", "Choice of correlation for frost thickness")
@@ -68,6 +69,7 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("ambient_pressure", 101325.0, "Pa", "Ambient pressure for air-side calculations")
 
         self.set("fin_pitch", fin_pitch, "m", "Spacing between fins (from center to center)")
+        self.set("fin_spacing", fin_pitch - fin_thickness, "m", "Distance between fin surfaces")
         self.set("fin_height", fin_height, "m", "Height of each fin")
         self.set("fin_length", fin_length, "m", "Length of each fin")
         self.set("fin_thickness", fin_thickness, "m", "Thickness of each fin")
@@ -87,6 +89,8 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("fin_segment_height", fin_segment_height, "m", "Height of each fin segment")
         self.set("fin_segment_length", fin_segment_length, "m", "Length of each fin segment")
 
+        self.set("ice_density", 918, "kg/m^3", "Density of solid ice (for porosity calculation)")
+        self.set("diffussivity_w_vapor_in_air", 2.12e-5, "m^2/s", "diffusivity of water vapor in air")
         
 
         self.set("alpha_0", alpha_0, "W/(m^2*K)", "Coefficient for two-phase htc (VDI Wärmeatlas H2 Tab.1)")
@@ -251,8 +255,10 @@ class AirState(VariableContainer):
         self.set("rho_w_in", 0.0 , "kg/m^3", "Water vapor density at inlet")
         self.set("rho_w_out", 0.0 , "kg/m^3", "Water vapor density at inlet")
     
-        self.set("rho_w_frost_sat", 0.0 , "kg/m^3", "Saturation water vapor density at frost surface temperature")
-        self.set("W_frost_sat", 0.0, "kg/kg, Frost Surface saturated air absolute humidity")
+        self.set("rho_w_frost_surface_sat", 0.0 , "kg/m^3", "Saturation water vapor density at frost surface temperature")
+        self.set("W_frost_surface_sat", 0.0, "kg/kg, Frost Surface saturated air absolute humidity")
+        self.set("rho_w_frost_base_sat", 0.0 , "kg/m^3", "Saturation water vapor density at frost base temperature")
+        self.set("W_frost_base_sat", 0.0, "kg/kg, Frost Base saturated air absolute humidity")
 
         # Calculated Air Properties
         self.set("reynolds", 0.0, "-", "Air-side Reynolds number")
@@ -290,9 +296,12 @@ class HeatMassTransferState(VariableContainer):
         self.set("A_frost_surface", 0.0, "m^2", "Frost surface area for frost flux")
         self.set("R_downstream", 0.0, "K/W", "Thermal resistance between frost and refrigerant")
         self.set("T_frost_surface", 0.0, "K", "Frost surface temperature")
+        self.set("T_frost_base", 0.0, "K", "Frost Base temperature")
         self.set("Q_dot_total", 0.0, "W", "Total heat transfer rate (sensible + latent)")
         self.set("Q_dot_sens", 0.0, "W", "Sensible heat transfer rate")
-        self.set("m_dot_frost_flux", 0.0, "kg/s/m^2", "Mass flux rate of frost growth")
+        self.set("m_dot_thickening_flux", 0.0, "kg/s/m^2", "Mass flux rate of frost growth")
+        self.set("m_dot_densification", 0.0, "kg/s", "Mass flow rate of frost densification")
+        self.set("m_dot_thickening", 0.0, "kg/s", "Mass flow rate of frost thickening")
         self.set("m_dot_frost_total", 0.0, "kg/s", "Mass flow rate of frost growth")
         self.set("eta_fin", 0.0, "-", "Fin efficiency")
         
