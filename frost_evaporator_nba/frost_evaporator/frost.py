@@ -23,7 +23,7 @@ class FrostModel:
 
     def update_properties(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
         """
-        Calculates and updates k_frost based on the state.
+        Calculates and updates the frost model.
         
         This IS safe to call inside an iterative loop, as it just recalculates
         properties based on the latest guessed values (like T_frost_surface).

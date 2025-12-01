@@ -25,180 +25,213 @@ class HeatMassTransferModel:
         
         self.R_tube = self._calculate_thermal_resistance_tube()
 
-    
+
     def update_properties(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
         """
-        Calculates and updates ...
+        Calculates and updates the heat-mass-transfer model.
         
         This IS safe to call inside an iterative loop, as it just recalculates
         properties based on the latest guessed values.
         """
 
-        # Calculate effective area (with fin efficiency) for total thermal resistance
+        # ================= Get State Values =================
+        # Air Properties
+        m_dot_air = state.air.m_dot_humid
+        heat_capacity_air = state.air.heat_capacity_avg
+        density_air = state.air.density_avg
+        betta_air = state.air.betta
+        h_conv_air = state.air.h_conv
+        T_air_in = inputs.air.T_in
+        
+        # Vapor Properties
+        rho_w_in = state.air.rho_w_in
+        rho_w_surf = state.air.rho_w_frost_surface_sat
+        rho_w_base = state.air.rho_w_frost_base_sat
+
+        # Frost/Refrigerant Properties
+        T_frost_surface = state.hmt.T_frost_surface
+        T_refrigerant_avg = 0.5 * (state.refrigerant.T_in + state.refrigerant.T_out)
+        frost_thickness = state.frost.thickness
+        frost_density = state.frost.density
+        k_frost = state.frost.k_frost
+
+
+        # ================= Calculate New Values =================
+        
+        # Geometry and Resistances
         A_effective, eta_fin = self._calculate_effective_area(
-            h_conv_air=state.air.h_conv,
-            frost_thickness = state.frost.thickness,
-            k_frost=state.frost.k_frost
+            h_conv_air=h_conv_air,
+            frost_thickness=frost_thickness,
+            k_frost=k_frost
+        )
+
+        A_frost_surface = self._calculate_frost_surface_area(
+            tube_diameter_w_frost=state.frost.tube_diameter_w_frost,
+            space_between_frost=state.frost.space_between_frost
         )
 
         R_air = self._calculate_resistance_air(
-            h_conv_air=state.air.h_conv,
+            h_conv_air=h_conv_air, 
             A_effective=A_effective
         )
 
         R_frost = self._calculate_resistance_frost(
-            frost_thickness=state.frost.thickness,
-            k_frost=state.frost.k_frost,
+            frost_thickness=frost_thickness,
+            k_frost=k_frost,
             A_effective=A_effective
         )
 
         # R_refrigerant = self._calculate_thermal_resistance_refrigerant(
         #     h_conv_refrigerant = state.refrigerant.h_conv
         # )
-
-        # Combine the "downstream" resistances (everything AFTER the frost surface)
-        # TODO change back to original form when refrigerant is reactivated!!!
-        R_downstream = R_frost # + self.R_tube + R_refrigerant
+        
+        R_downstream = R_frost # + self.R_tube + R_refrigerant (TODO: Add back)
 
 
-        T_refrigerant_avg = 0.5 * (state.refrigerant.T_in + state.refrigerant.T_out)
+        # Heat Transfer (Sensible)
+        Q_dot_sens = self._calculate_heat_transfer_sensible(
+            m_dot_air=m_dot_air,
+            heat_capacity_air=heat_capacity_air,
+            R_air=R_air,
+            T_air_in=T_air_in,
+            T_frost_surface=T_frost_surface
+        )
 
-        T_frost_surface = state.hmt.T_frost_surface
+
+        # Mass Transfer (Latent)
+        m_dot_frost_total = self._calculate_mass_transfer_total(
+            m_dot_air=m_dot_air,
+            density_air=density_air,
+            betta_air=betta_air,
+            A_effective=A_effective,
+            rho_w_in=rho_w_in,
+            rho_w_surf=rho_w_surf
+        )
 
 
+        # Mass Split (Densification vs Thickening)
+        m_dot_dens, m_dot_thick, m_dot_thick_flux = self._calculate_mass_flow_split(
+            frost_thickness=frost_thickness,
+            frost_density=frost_density,
+            m_dot_total=m_dot_frost_total,
+            rho_w_surf=rho_w_surf,
+            rho_w_base=rho_w_base,
+            A_frost_surface=A_frost_surface
+        )
 
-        # --- 1. HEAT TRANSFER (Standard epsilon-NTU) ---
-        # Get Air Stream Capacity Rate (C_air)
-        m_dot_air = state.air.m_dot_humid 
-        cp_air = state.air.heat_capacity_avg       
-        C_air = m_dot_air * cp_air
 
-        # Calculate NTU (Number of Transfer Units) on the air side
+        # Energy Balance & Temperatures
+        Q_dot_total, T_surface_new, T_base_new = self._calculate_energy_balance_and_temps(
+            m_dot_frost_total=m_dot_frost_total,
+            Q_dot_sens=Q_dot_sens,
+            T_frost_surface_prev=T_frost_surface,
+            T_refrigerant_avg=T_refrigerant_avg,
+            R_downstream=R_downstream,
+            R_frost=R_frost
+        )
+
+
+        # ================= Write new values to state =================
+        state.hmt.set("m_dot_densification", m_dot_dens)
+        state.hmt.set("m_dot_thickening", m_dot_thick)
+        state.hmt.set("m_dot_thickening_flux", m_dot_thick_flux)
+        state.hmt.set("m_dot_frost_total", m_dot_frost_total)
+        
+        state.hmt.set("Q_dot_total", Q_dot_total)
+        state.hmt.set("Q_dot_sens", Q_dot_sens)
+        
+        state.hmt.set("T_frost_surface", T_surface_new)
+        state.hmt.set("T_frost_base", T_base_new)
+        
+        state.hmt.set("A_effective", A_effective)
+        state.hmt.set("A_frost_surface", A_frost_surface)
+        state.hmt.set("eta_fin", eta_fin)
+        state.hmt.set("R_downstream", R_downstream)
+        
+
+    def _calculate_heat_transfer_sensible(self, m_dot_air, heat_capacity_air, R_air, T_air_in, T_frost_surface):
+        """Calculates Sensible Heat Transfer using Epsilon-NTU method."""
+        # Capacity Rate
+        C_air = m_dot_air * heat_capacity_air
+
+        # NTU
         UA_air = 1.0 / R_air
         NTU = UA_air / C_air
 
-        # Calculate Effectiveness (epsilon) - surface at constant temperature
+        # Effectiveness (surface at constant temp)
         epsilon = 1.0 - math.exp(-NTU)
 
-        # Calculate Maximum Possible Sensible Heat
-        Q_max_sens = C_air * (inputs.air.T_in - T_frost_surface)
-
-        # Calculate Actual Sensible Heat
+        # Heat Transfer
+        Q_max_sens = C_air * (T_air_in - T_frost_surface)
         Q_dot_sens = epsilon * Q_max_sens
-
-
-
-        # --- 2. MASS TRANSFER (Modified epsilon-NTU) ---
         
-        # Calculate Volume Flow Rate [m^3/s]
-        # We need this because betta is usually in [m/s] and applies to volume concentration
-        # m_dot [kg/s] / rho [kg/m^3] = V_dot [m^3/s]
-        rho_air_avg = state.air.density_avg
-        V_dot_air = m_dot_air / rho_air_avg
+        return Q_dot_sens
 
-        # Calculate NTU_mass
-        # Analogous to UA / C_min. 
-        # Here: (Mass Transfer Coeff * Area) / Volume Flow
-        betta = state.air.betta
-        NTU_mass = (betta * A_effective) / V_dot_air # Using the effective Area because fin efficiency affects this
+    def _calculate_mass_transfer_total(self, m_dot_air, density_air, betta_air, A_effective, rho_w_in, rho_w_surf):
+        """Calculates Total Mass Transfer using Modified Epsilon-NTU."""
+        # Volume Flow Rate [m^3/s]
+        V_dot_air = m_dot_air / density_air
 
-        # Calculate epsilon_mass
+        # NTU Mass
+        # (Mass Transfer Coeff * Area) / Volume Flow
+        NTU_mass = (betta_air * A_effective) / V_dot_air
+
+        # Effectiveness Mass
         epsilon_mass = 1.0 - math.exp(-NTU_mass)
 
-        # D. Calculate Mass Transfer
-        # Driving force: Density difference (Inlet Air vs Surface Saturation)
-        rho_w_in = state.air.rho_w_in       # Vapor density at INLET
-        rho_w_surf = state.air.rho_w_frost_surface_sat # Vapor density at SURFACE (saturation)
-        
-        # Max possible mass transfer (if air reached surface saturation perfectly)
-        # kg/s = V_dot [m3/s] * delta_rho [kg/m3]
+        # Mass Transfer
         m_dot_frost_max = V_dot_air * (rho_w_in - rho_w_surf)
-        
-        # Actual mass transfer
         m_dot_frost_total = epsilon_mass * m_dot_frost_max
-
-        # Calculate total geometric frost surface area (no fin efficiency) for T_frost_surface
-        A_frost_surface = self._calculate_frost_surface_area(
-            tube_diameter_w_frost=state.frost.tube_diameter_w_frost,
-            space_between_frost=state.frost.space_between_frost
-        )
         
+        return m_dot_frost_total
 
-        # --- 3. TOTAL ENERGY ---
-        h_sublimation = self._calculate_enthalpy_sublimation(T_frost_surface=T_frost_surface)
+    def _calculate_energy_balance_and_temps(self, m_dot_frost_total, Q_dot_sens, T_frost_surface_prev, T_refrigerant_avg, R_downstream, R_frost):
+        """Calculates Latent Heat, Total Energy, and updates Surface/Base Temps."""
+        
+        # 1. Calculate Total Energy
+        h_sublimation = self._calculate_enthalpy_sublimation(T_frost_surface=T_frost_surface_prev)
         Q_dot_lat = m_dot_frost_total * h_sublimation
         Q_dot_total = Q_dot_sens + Q_dot_lat
 
+        # 2. Calculate Temperatures
+        T_surface_new_raw = T_refrigerant_avg + (Q_dot_total * R_downstream)
+        T_base_new = T_surface_new_raw - (Q_dot_total * R_frost)
 
-        # Calculate required T_frost_surface to push Q_total through downstream resistance
-        T_frost_surface_new = T_refrigerant_avg + (Q_dot_total * R_downstream)
-        T_frost_base_new = T_frost_surface_new - (Q_dot_total * R_frost)
-
-        # alpha is your relaxation factor (e.g., 0.2 to 0.5)
+        # 3. Apply Relaxation
         alpha = 0.2
-        T_frost_surface_update = (alpha * T_frost_surface_new) + ((1 - alpha) * T_frost_surface)
+        T_surface_final = (alpha * T_surface_new_raw) + ((1 - alpha) * T_frost_surface_prev)
 
+        return Q_dot_total, T_surface_final, T_base_new
 
-        # --- 4. MASS FLOW SPLIT (Densification vs. Thickening) ---
-
-        frost_thickness = state.frost.thickness
+    def _calculate_mass_flow_split(self, frost_thickness, frost_density, m_dot_total, rho_w_surf, rho_w_base, A_frost_surface):
+        """Determines how much mass flow contributes to densification vs thickening."""
         
-        if frost_thickness > 1e-6:
-            # Calculate Porosity (Epsilon)
-            porosity = 1.0 - (state.frost.density / self.params.ice_density)
-            porosity = max(0.0, min(1.0, porosity))
+        if frost_thickness <= 1e-6:
+            # Layer too thin for internal diffusion
+            return 0.0, m_dot_total, (m_dot_total / A_frost_surface)
 
-            # Calculate Effective Diffusivity (D_eff) inside the frost
-            # Simple model: D_eff = D_AB * porosity
-            D_AB = self.params.diffussivity_w_vapor_in_air
-            D_eff = D_AB * porosity
+        # 1. Porosity and Diffusivity
+        porosity = 1.0 - (frost_density / self.params.ice_density)
+        porosity = max(0.0, min(1.0, porosity))
+        
+        D_AB = self.params.diffussivity_w_vapor_in_air
+        D_eff = D_AB * porosity
 
-            # Calculate Vapor Density Gradient (d_rho_v / dx)
-            rho_surf = state.air.rho_w_frost_surface_sat
-            rho_base = state.air.rho_w_frost_base_sat
-            gradient_rho = (rho_surf - rho_base) / frost_thickness
+        # 2. Densification Flux (Fick's Law)
+        gradient_rho = (rho_w_surf - rho_w_base) / frost_thickness
+        m_dot_densification_flux = D_eff * gradient_rho
+        m_dot_densification = m_dot_densification_flux * A_frost_surface
 
-            # Calculate Densification Flux [kg / (m^2 * s)]
-            # Fick's Law: j = D_eff * gradient
-            m_dot_densification_flux = D_eff * gradient_rho
+        # 3. Clamping
+        m_dot_densification = max(0.0, m_dot_densification)
+        if m_dot_densification > m_dot_total:
+            m_dot_densification = m_dot_total
 
-            # E. Convert to Total Mass Flow [kg/s]
-            m_dot_densification = m_dot_densification_flux * A_frost_surface
-
-            # Safety Clamp
-            m_dot_densification = max(0.0, m_dot_densification)
-            
-            if m_dot_densification > m_dot_frost_total:
-                # If physics predicts extremely high diffusion (e.g. very thin layer), 
-                # we cap it at the total available mass.
-                m_dot_densification = m_dot_frost_total
-
-        else:
-            # Layer is too thin to support internal diffusion
-            m_dot_densification = 0.0
-
-        # Calculate Thickening Mass Flow
-        m_dot_thickening = m_dot_frost_total - m_dot_densification
+        # 4. Thickening
+        m_dot_thickening = m_dot_total - m_dot_densification
         m_dot_thickening_flux = m_dot_thickening / A_frost_surface
 
-
-
-        state.hmt.set("m_dot_densification", m_dot_densification)
-        state.hmt.set("m_dot_thickening", m_dot_thickening)
-        state.hmt.set("m_dot_thickening_flux", m_dot_thickening_flux)
-
-        state.hmt.set("A_effective", A_effective)
-        state.hmt.set("A_frost_surface", A_frost_surface)
-        state.hmt.set("T_frost_base", T_frost_base_new)
-        state.hmt.set("R_downstream", R_downstream)
-        state.hmt.set("T_frost_surface", T_frost_surface_update)
-        state.hmt.set("Q_dot_total", Q_dot_total)
-        state.hmt.set("Q_dot_sens", Q_dot_sens)
-        state.hmt.set("m_dot_frost_total", m_dot_frost_total)
-        state.hmt.set("eta_fin", eta_fin)
-        
-
-
+        return m_dot_densification, m_dot_thickening, m_dot_thickening_flux
 
 
     def _calculate_heat_transfer_rate(self, delta_T_log: float, R_total: float) -> float:

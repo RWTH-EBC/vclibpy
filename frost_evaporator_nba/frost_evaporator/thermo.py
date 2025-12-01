@@ -25,12 +25,26 @@ class ThermoModel:
 
     def update_properties(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
         """
-        Calculates and updates ...
+        Calculates and updates the thermodynamics model.
         
         This IS safe to call inside an iterative loop, as it just recalculates
         properties based on the latest guessed values.
         """
 
+        # ================= Get State Values =================
+        Q_dot_total = state.hmt.Q_dot_total
+        m_dot_frost_total = state.hmt.m_dot_frost_total
+
+        W_in = state.air.W_in
+        m_dot_dry_air = state.air.m_dot_dry
+        h_in_air = state.air.h_in
+        h_ice = state.air.h_ice
+
+        T_in_air = inputs.air.T_in
+        p_out_air = self.params.ambient_pressure
+
+
+        # ================= Calculate new Values =================
         # h_refrigerant_out = self._calculate_refrigerant_outlet_enthalpy(
         #     Q_dot_total=state.hmt.Q_dot_total,
         #     m_dot_refrigerant=inputs.refrigerant.m_dot,
@@ -38,24 +52,24 @@ class ThermoModel:
         # )
 
         W_out_air = self._calculate_outlet_humidity_ratio(
-            W_in=state.air.W_in,
-            m_dot_dry_air=state.air.m_dot_dry,
-            m_dot_frost_total=state.hmt.m_dot_frost_total,
+            W_in=W_in,
+            m_dot_dry_air=m_dot_dry_air,
+            m_dot_frost_total=m_dot_frost_total,
         )
 
         T_out_air = self._calculate_air_outlet_temperature(
-            Q_dot_total=state.hmt.Q_dot_total,
-            m_dot_dry_air=state.air.m_dot_dry,
-            h_in_air=state.air.h_in,
-            m_dot_frost_total=state.hmt.m_dot_frost_total,
-            h_ice=state.air.h_ice,
-            p_out_air=self.params.ambient_pressure,
+            Q_dot_total=Q_dot_total,
+            m_dot_dry_air=m_dot_dry_air,
+            h_in_air=h_in_air,
+            m_dot_frost_total=m_dot_frost_total,
+            h_ice=h_ice,
+            p_out_air=p_out_air,
             W_out_air=W_out_air,
-            T_in_air=inputs.air.T_in
+            T_in_air=T_in_air
         )
 
 
-
+        # ================= Write new values to state =================
         # state.refrigerant.set("h_out", h_refrigerant_out)
         state.air.set("W_out", W_out_air)
         state.air.set("T_out", T_out_air)
