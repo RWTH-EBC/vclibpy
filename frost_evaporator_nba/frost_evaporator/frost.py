@@ -33,7 +33,10 @@ class FrostModel:
         current_avg_density = state.frost.density
 
         # ================= Calculate new Values =================
-        new_k_frost = self._calculate_k_frost(average_density=current_avg_density)
+        new_k_frost_raw = self._calculate_k_frost(average_density=current_avg_density)
+
+        new_k_frost = new_k_frost_raw * self.params.correction_factor_k_frost
+
 
         # ================= Write new values to state =================
         state.frost.set("k_frost", new_k_frost)
@@ -61,10 +64,12 @@ class FrostModel:
         
         
         # ================= Calculate new Values =================
-        new_density_surface = self._calculate_surface_density(
+        new_density_surface_raw = self._calculate_surface_density(
             T_frost_surface = T_frost_surface, 
             T_dew_point = T_dew_point
         )
+
+        new_density_surface = new_density_surface_raw * self.params.correction_factor_surface_density
 
         new_avg_density, new_frost_mass = self._calculate_average_density_and_frost_mass(
             m_dot_thickening = m_dot_thickening,
@@ -141,7 +146,9 @@ class FrostModel:
             T_dew_C = T_dew_point - 273.15
             
             # Eq. 9
-            return a * np.exp(b * T_f_C + c * T_dew_C)   
+            return a * np.exp(b * T_f_C + c * T_dew_C)
+        
+ 
         
         else:
             raise ValueError(f"Unknown frost density correlation: {self.params.frost_density_correlation_choice}")
@@ -211,6 +218,9 @@ class FrostModel:
         """
         if self.params.frost_conductivity_correlation_choice == "A":
             return 1.202e-3 * average_density ** 0.963
+        elif self.params.frost_conductivity_correlation_choice == "da_silva_paper":  
+            return 0.132 + (3.13e-4 * average_density) + (1.6e-7 * average_density**2)
+
         else:
             raise ValueError(f"Unknown frost conductivity correlation: {self.params.frost_conductivity_correlation_choice}")
 

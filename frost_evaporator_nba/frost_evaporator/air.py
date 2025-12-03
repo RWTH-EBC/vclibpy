@@ -77,20 +77,21 @@ class AirModel:
         
         space_between_frost = state.frost.space_between_frost
         flow_area_air = state.frost.flow_area_air
-        frost_thickness = state.frost.thickness
 
         # Parameters
         p_ambient = self.params.ambient_pressure
-        tube_outer_diameter = self.params.tube_outer_diameter
-        fin_thickness = self.params.fin_thickness
+
         fin_spacing = self.params.fin_spacing
-        pressure_loss_fit_factor = self.params.pressure_loss_fit_factor
-        tube_layers = self.params.tube_layers
-        fin_pitch = self.params.fin_pitch
-        
-        # Geometry
-        P_t = self.P_t
-        P_l = self.P_l
+        correction_factor_pressure_loss = self.params.correction_factor_pressure_loss
+
+
+        # frost_thickness = state.frost.thickness
+        # tube_outer_diameter = self.params.tube_outer_diameter
+        # fin_thickness = self.params.fin_thickness
+        # tube_layers = self.params.tube_layers
+        # fin_pitch = self.params.fin_pitch
+        # P_t = self.P_t
+        # P_l = self.P_l
 
 
         # ================= Calculate new Values =================
@@ -130,7 +131,7 @@ class AirModel:
         velocity, delta_p = self._calculate_velocity_and_pressure_drop(
             flow_area_air=flow_area_air,
             density=density_avg,
-            K=pressure_loss_fit_factor,
+            K=correction_factor_pressure_loss,
             dyn_viscosity=dyn_viscosity_avg,
             space_between_frost=space_between_frost,
             fin_spacing=fin_spacing
@@ -154,12 +155,15 @@ class AirModel:
             D_h=D_h
         )
         
-        h_conv = self._calculate_heat_transfer_coefficient(
+        h_conv_raw = self._calculate_heat_transfer_coefficient(
             nusselt=nusselt, 
             thermal_conductivity=thermal_conductivity_avg, 
             characteristic_length=D_h
         )
         
+        h_conv = h_conv_raw * self.params.correction_factor_h_conv_air
+        # h_conv=30
+
         # Mass Transfer Coefficient
         betta = self._calculate_mass_transfer_coefficient(
             h_conv=h_conv,

@@ -147,6 +147,10 @@ class HeatMassTransferModel:
         state.hmt.set("A_frost_surface", A_frost_surface)
         state.hmt.set("eta_fin", eta_fin)
         state.hmt.set("R_downstream", R_downstream)
+        # state.hmt.set("R_refrigerant", R_refrigerant)
+        state.hmt.set("R_tube", self.R_tube)
+        state.hmt.set("R_frost", R_frost)
+        state.hmt.set("R_air", R_air)
         
 
     def _calculate_heat_transfer_sensible(self, m_dot_air, heat_capacity_air, R_air, T_air_in, T_frost_surface):
@@ -297,7 +301,10 @@ class HeatMassTransferModel:
 
 
         # Calculate fin efficiency
-        eta_fin= self._calculate_fin_efficiency(h_effective)
+        eta_fin_raw = self._calculate_fin_efficiency(h_effective)
+
+        eta_fin = eta_fin_raw * self.params.correction_factor_eta_fin
+
 
         # Calculate area of one fin and one tube segment
         A_one_tube_segment = np.pi * self.params.tube_outer_diameter * (self.params.fin_pitch - self.params.fin_thickness)

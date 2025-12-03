@@ -4,7 +4,7 @@ from .datamodels_nba import (
     FrostEvaporatorState,
 )
 from vclibpy.media import RefProp
-import numpy as np
+import math
 import os
 from functools import lru_cache
 
@@ -51,7 +51,7 @@ class RefrigerantModel:
 
     def update_properties(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
         """
-        Calculates and updates density and k_frost based on the state.
+        Calculates and updates the refrigerant model.
         
         This IS safe to call inside an iterative loop, as it just recalculates
         properties based on the latest guessed values.
@@ -103,22 +103,20 @@ class RefrigerantModel:
         # --- Define Average State ---
         p_avg = p_eva
         h_avg = (h_in + h_out) / 2
-        
+
         # --- ROUNDING INPUTS FOR CACHE HIT RATE ---
         p_avg = round(p_avg, 0) # Pressure to nearest Pa
         h_avg = round(h_avg, 1) # Enthalpy to nearest 0.1 J/kg
 
 
-        refrigerant_props = {}     
-        
-        refrigerant_props['pressure_avg'] = p_avg
-        refrigerant_props['enthalpy_avg'] = h_avg
-        
+        refrigerant_props = {'pressure_avg': p_avg, 
+                             'enthalpy_avg': h_avg}     
+
         # --- Calculate Properties at Average State (P_avg, h_avg) ---
         avg_state = self.RP.calc_state("PH", p_avg, h_avg)
         avg_trans_prop = self.RP.calc_transport_properties(avg_state)
-        
-    
+
+
         refrigerant_props['quality_avg'] = avg_state.q
         refrigerant_props['density_avg'] = avg_state.d
         refrigerant_props['dyn_viscosity_avg'] = avg_trans_prop.dyn_vis
@@ -128,7 +126,7 @@ class RefrigerantModel:
 
         # --- Calculate Saturated Phase Properties (at P_avg) ---
         # These are needed for two-phase correlations (e.g., X_tt)
-        
+
         # Saturated Liquid (Q=0)
         liq_state = self.RP.calc_state("PQ", p_avg, 0)
         liq_trans_prop = self.RP.calc_transport_properties(liq_state)
@@ -140,7 +138,7 @@ class RefrigerantModel:
         refrigerant_props['kin_viscosity_liquid'] = liq_trans_prop.kin_vis
         refrigerant_props['thermal_conductivity_liquid'] = liq_trans_prop.lam
         refrigerant_props['prandtl_liquid'] = liq_trans_prop.Pr
-        
+
         # Saturated Vapor (Q=1)
         vap_state = self.RP.calc_state("PQ", p_avg, 1)
         vap_trans_prop = self.RP.calc_transport_properties(vap_state)
@@ -158,7 +156,7 @@ class RefrigerantModel:
         # --- Calculate Inlet and Outlet States (at P_avg) ---
         in_state = self.RP.calc_state("PH", p_avg, h_in)
         out_state = self.RP.calc_state("PH", p_avg, h_out)
-        
+
         refrigerant_props['temperature_in'] = in_state.T
         refrigerant_props['temperature_out'] = out_state.T
 
@@ -180,7 +178,7 @@ class RefrigerantModel:
         
         # Get common geometric parameters
         d_h = self.params.tube_inner_diameter 
-        A_c = (np.pi * d_h**2) / 4.0  
+        A_c = (math.pi * d_h**2) / 4.0  
         G = m_dot / A_c               # Mass flux [kg/m^2/s]
 
         # Dispatch based on flow regime
@@ -240,9 +238,9 @@ class RefrigerantModel:
         if Pr < 0.5 or Pr > 2000:
             raise ValueError(f"Prandtl number ({Pr}) out of range [0.5, 2000] for Gnielinski correlation.")
 
-        zeta = (0.79 * np.log(Re) - 1.64)**(-2.0)
+        zeta = (0.79 * math.log(Re) - 1.64)**(-2.0)
         numerator = (zeta / 8.0) * (Re - 1000) * Pr
-        denominator = 1.0 + 12.7 * np.sqrt(zeta / 8.0) * (Pr**(2.0/3.0) - 1.0)
+        denominator = 1.0 + 12.7 * math.sqrt(zeta / 8.0) * (Pr**(2.0/3.0) - 1.0)
         
         if denominator <= 1e-6: # Check for zero or negative denominator
             # Fallback to Dittus-Boelter (Eq 4.26)
@@ -282,7 +280,7 @@ class RefrigerantModel:
             # Use Chen (1966) correlation
             L_tube = self.params.tube_length
 
-            A_surface = np.pi * d_h * L_tube  # Wetted surface area [m^2]
+            A_surface = math.pi * d_h * L_tube  # Wetted surface area [m^2]
             Q_dot = m_dot * (h_out - h_in)   # Total heat transfer [W]
             q_dot = Q_dot / A_surface         # Heat flux [W/m^2]
 
