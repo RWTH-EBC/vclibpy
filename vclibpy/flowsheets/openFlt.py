@@ -102,7 +102,7 @@ class openFlt(BaseCycle):
         self.compressor_low.state_inlet = self.evaporator.state_outlet
 
         if self.vi_pressure_fac is None:
-            step_p_vi = 100000
+            step_p_vi = (p_2 - p_1)/10
             p_vi = p_1
         else:
             step_p_vi = 0

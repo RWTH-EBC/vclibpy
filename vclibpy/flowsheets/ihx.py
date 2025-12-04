@@ -145,7 +145,7 @@ class IHX(BaseCycle, abc.ABC):
         success = True
 
         p_ihx_next = self.condenser.state_outlet.p
-        step_p_ihx = 1000
+        step_p_ihx = (self.condenser.state_outlet.p - self.evaporator.state_outlet.p)/10
 
         while True:
             if isinstance(max_num_iterations, (int, float)):
