@@ -142,7 +142,7 @@ class Molinaroli_2017_Compressor(Compressor):
         # Calculate state 3 first to get s3 for cache key
         self.state_c_3 = self.med_prop.calc_state("PH", p_suc, h3)
         s3 = self.state_c_3.s
-        rho3 = self.state_C_3.d
+        rho3 = self.state_c_3.d
 
         cache_key = self._get_cache_key(p_suc, h1, p_suc, h3, p4, s3)
 
@@ -546,14 +546,14 @@ class Molinaroli_2017_Compressor(Compressor):
         n_abs = self.get_n_absolute(inputs.n)
         f = n_abs
 
-        if (self.state_3 is None or self.state_4 is None or
-                self.state_3.d is None or self.state_4.h is None or self.state_3.h is None):
+        if (self.state_c_3 is None or self.state_c_4 is None or
+                self.state_c_3.d is None or self.state_c_4.h is None or self.state_c_3.h is None):
             return 0.0
 
-        rho3 = self.state_3.d
+        rho3 = self.state_c_3.d
         m_dot_3 = rho3 * self.parameters["V_IC"] * f
-        h4 = self.state_4.h
-        h3 = self.state_3.h
+        h4 = self.state_c_4.h
+        h3 = self.state_c_3.h
         W_dot_int = m_dot_3 * (h4 - h3)
 
         if W_dot_int <= 0:
@@ -659,4 +659,21 @@ class Molinaroli_2017_Compressor(Compressor):
                 print(f"Warning in overall isentropic efficiency calculation: {e}")
             return 0.7
 
-        
+    def calc_state_outlet(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState):
+        """
+        Calculate the output state based on the high pressure level and the provided inputs.
+        The state is automatically set as the outlet state of this component.
+
+        Args:
+            p_outlet (float): High pressure value.
+            inputs (Inputs): Inputs for calculation.
+            fs_state (FlowsheetState): Flowsheet state.
+        """
+
+        if self.state_outlet is not None:
+            return
+        else:
+            self.simulate_operating_point(inputs=inputs, p_outlet=p_outlet, fs_state=fs_state)
+
+
+
