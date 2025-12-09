@@ -1153,94 +1153,94 @@ class Molinaroli_2017_Compressor(Compressor):
             return 0.7
 
 
-if __name__ == "__main__":
-    print("  COMPRESSOR MODEL TEST")
-    print("=" * 60)
+#if __name__ == "__main__":
+#    print("  COMPRESSOR MODEL TEST")
+#    print("=" * 60)
 
-    try:
-        # 1. Create compressor instance
-        compressor = Molinaroli_2017_Compressor(N_max=50, V_h=0.0000161, refrigerant="R290")
-        print("✓ Compressor instance created")
+#    try:
+#        # 1. Create compressor instance
+#        compressor = Molinaroli_2017_Compressor(N_max=50, V_h=0.0000161, refrigerant="R290")
+#        print("✓ Compressor instance created")
 
-        # 2. Create test inputs
-        inputs = Inputs(
-            n=1,
-            T_eva_in=283.15,  # 5°C evaporation
-            dT_eva_superheating=10.0,
-            T_ambient=293.15,  # 20°C ambient
-            T_con_in=310.15,
-            m_flow_eva=0.1,
-            m_flow_con=0.1,
-            dT_con_subcooling=5.0
-        )
-        p_outlet = 1369299  # in Pa
+#        # 2. Create test inputs
+#        inputs = Inputs(
+#            n=1,
+#            T_eva_in=283.15,  # 5°C evaporation
+#            dT_eva_superheating=10.0,
+#            T_ambient=293.15,  # 20°C ambient
+#            T_con_in=310.15,
+#            m_flow_eva=0.1,
+#            m_flow_con=0.1,
+#            dT_con_subcooling=5.0
+#        )
+#        p_outlet = 1369299  # in Pa
 
-        print("✓ Test conditions:")
-        print(f"  - Evaporation: {inputs.T_eva_in - 273.15:.1f}°C")
-        print(f"  - Discharge: {p_outlet / 1000:.1f} kPa")
-        print(f"  - Speed: {inputs.n * 100}% of max")
+#        print("✓ Test conditions:")
+#        print(f"  - Evaporation: {inputs.T_eva_in - 273.15:.1f}°C")
+#        print(f"  - Discharge: {p_outlet / 1000:.1f} kPa")
+#        print(f"  - Speed: {inputs.n * 100}% of max")
 
-        # 3. Create flowsheet state for results
-        fs_state = FlowsheetState()
-
-        # 4. RUN THE FULL SIMULATION!
-        print("\n" + "=" * 60)
+#        # 3. Create flowsheet state for results
+#        fs_state = FlowsheetState()
+#
+##        # 4. RUN THE FULL SIMULATION!
+ #       print("\n" + "=" * 60)
         print("RUNNING COMPLETE COMPRESSOR SIMULATION")
-        print("=" * 60)
-
-        #start_time = time.time()
-        solution = compressor.simulate_operating_point(inputs, p_outlet, fs_state)
+ #       print("=" * 60)
+#
+ #       #start_time = time.time()
+ #       solution = compressor.simulate_operating_point(inputs, p_outlet, fs_state)
         #solve_time = time.time() - start_time
-
-        #print(f"\n  Solution time: {solve_time:.3f} seconds")
-        # Define operating range (manufacturer catalog range)
-        eta_mech = compressor.get_eta_mech(inputs)
-        print(f"Mechanical efficiency: {eta_mech:.3f}")
-
-        # 2. Test get_lambda_h
-        lambda_h = compressor.get_lambda_h(inputs)
-        print(f"Volumetric efficiency: {lambda_h:.3f}")
-
-        # Use the exact temperature ranges from the catalog data
-        T_evap_range = [-25, -20, -15, -10, -5, 0, 5, 10, 15]
+#
+ #       #print(f"\n  Solution time: {solve_time:.3f} seconds")
+ #       # Define operating range (manufacturer catalog range)
+ #       eta_mech = compressor.get_eta_mech(inputs)
+ #       print(f"Mechanical efficiency: {eta_mech:.3f}")
+#
+ #       # 2. Test get_lambda_h
+ #       lambda_h = compressor.get_lambda_h(inputs)
+ #       print(f"Volumetric efficiency: {lambda_h:.3f}")
+#
+ #       # Use the exact temperature ranges from the catalog data
+ #       T_evap_range = [-25, -20, -15, -10, -5, 0, 5, 10, 15]
         T_cond_range = [30, 35, 40, 45, 50, 55, 60]
-
-        results = compressor.run_operating_map(
-            T_evap_range=T_evap_range,
-            T_cond_range=T_cond_range,
-            n_speed=1.0
-        )
-
+#
+ #       results = compressor.run_operating_map(
+ #           T_evap_range=T_evap_range,
+ #           T_cond_range=T_cond_range,
+#            n_speed=1.0
+ #       )
+#
         # This will now generate:
-        # 1. Standard performance plots (mass flow & power vs T_evap)
-        # 2. Efficiency plots vs pressure ratio
-        # 3. Catalog comparison plots with detailed statistics
-        compressor.plot_operating_map(results, save_path="fixed_analysis.png")
-        # Export to CSV
-        compressor.export_results_to_csv(results, "compressor_results.csv")
-        # 5. Verify results
-        if compressor.W_dot_comp is not None and compressor.m_flow_suc > 0:
-            print("\nSIMULATION SUCCESSFUL!")
-            print(f" Key Results:")
-            print(f"   - Mass flow rate: {60 * 60 * compressor.m_flow_suc:.6f} kg/h")
-            print(f"   - Electrical power: {compressor.W_dot_comp:.2f} W")
-            print(f"   - Specific work: {compressor.W_dot_comp / compressor.m_flow_suc / 1000:.2f} kJ/kg")
+ #       # 1. Standard performance plots (mass flow & power vs T_evap)
+ #       # 2. Efficiency plots vs pressure ratio
+  #      # 3. Catalog comparison plots with detailed statistics
+  ##      compressor.plot_operating_map(results, save_path="fixed_analysis.png")
+   #     # Export to CSV
+  ##      compressor.export_results_to_csv(results, "compressor_results.csv")
+ #       # 5. Verify results
+  ##      if compressor.W_dot_comp is not None and compressor.m_flow_suc > 0:
+  ##          print("\nSIMULATION SUCCESSFUL!")
+   #         print(f" Key Results:")
+ # #          print(f"   - Mass flow rate: {60 * 60 * compressor.m_flow_suc:.6f} kg/h")
+  #          print(f"   - Electrical power: {compressor.W_dot_comp:.2f} W")
+  ##          print(f"   - Specific work: {compressor.W_dot_comp / compressor.m_flow_suc / 1000:.2f} kJ/kg")
+##
+  ##          # Calculate isentropic efficiency for reference
+ ##           h_suc = compressor.state_inlet.h
+  ##          s_suc = compressor.state_inlet.s
+  ##          state_dis_isen = compressor.med_prop.calc_state("PS", p_outlet, s_suc)
+  ##          h_dis_isen = state_dis_isen.h
+ # #          h_dis_actual = compressor.state_outlet.h
+  ##          eta_is = (h_dis_isen - h_suc) / (h_dis_actual - h_suc) if (h_dis_actual - h_suc) > 0 else 0
+  ##          print(f"   - Isentropic efficiency: {eta_is:.3f}")
+#
+ # #      else:
+  #          print("\n Simulation failed to produce valid results")
+##
+  ##  except Exception as e:
+ #       print(f"\n SIMULATION FAILED: {e}")
+  ##      import traceback
 
-            # Calculate isentropic efficiency for reference
-            h_suc = compressor.state_inlet.h
-            s_suc = compressor.state_inlet.s
-            state_dis_isen = compressor.med_prop.calc_state("PS", p_outlet, s_suc)
-            h_dis_isen = state_dis_isen.h
-            h_dis_actual = compressor.state_outlet.h
-            eta_is = (h_dis_isen - h_suc) / (h_dis_actual - h_suc) if (h_dis_actual - h_suc) > 0 else 0
-            print(f"   - Isentropic efficiency: {eta_is:.3f}")
-
-        else:
-            print("\n Simulation failed to produce valid results")
-
-    except Exception as e:
-        print(f"\n SIMULATION FAILED: {e}")
-        import traceback
-
-        traceback.print_exc()
+   #     traceback.print_exc()
 
