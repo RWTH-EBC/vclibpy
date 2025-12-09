@@ -15,32 +15,32 @@ class Molinaroli_2017_Compressor(Compressor):
     http://dx.doi.org/10.1016/j.ijrefrig.2017.04.015
 
     """
-    def __init__(self, N_max: float, V_h: float, refrigerant="R290"):
+    def __init__(self, N_max: float, V_h: float, parameters = {"Ua_suc_ref": 16.05,
+                                                               "Ua_dis_ref": 13.96,
+                                                               "Ua_amb": 0.36,
+                                                               "A_tot": 9.47e-9,
+                                                               "A_dis": 86.1e-9,
+                                                               "V_IC": 16.11e-6,
+                                                               "alpha_loss": 0.16,
+                                                               "W_dot_loss_ref": 83,
+                                                               "m_dot_ref": 0.0083,
+                                                               "f_ref": 50.0}):
         super().__init__(N_max=N_max, V_h=V_h)
 
-        self.refrigerant = refrigerant
-        self.med_prop = CoolProp(fluid_name=refrigerant)
+        #self.refrigerant = refrigerant
+        #self.med_prop = CoolProp(fluid_name=refrigerant)
 
         # Parameters for compressor 'B' from Molinaroli et. al(2017)
-        self.parameters = {
-            "Ua_suc_ref": 16.05,  # W/K
-            "Ua_dis_ref": 13.96,  # W/K
-            "Ua_amb": 0.36,  # W/K **(-1.25)
-            "A_tot": 9.47e-9,  # m^2
-            "A_dis": 86.1e-9,  # m^2
-            "V_IC": 16.11e-6,  # m^3
-            "alpha_loss": 0.16,  # -
-            "W_dot_loss_ref": 83,  # W
-            "m_dot_ref": 0.0083,  # kg/s
-            "f_ref": 50.0}  # Hz
+        self.parameters = parameters
+
 
         ##INITIALIZE VARIABLES##
         # Thermodynamic states
-        self.state_suc: ThermodynamicState = None
-        self.state_1: ThermodynamicState = None
-        self.state_3: ThermodynamicState = None
-        self.state_4: ThermodynamicState = None
-        self.state_5: ThermodynamicState = None
+        self.state_c_suc: ThermodynamicState = None
+        self.state_c_1: ThermodynamicState = None
+        self.state_c_3: ThermodynamicState = None
+        self.state_c_4: ThermodynamicState = None
+        self.state_c_5: ThermodynamicState = None
 
         # Unknown variables
         self.T_w = None
