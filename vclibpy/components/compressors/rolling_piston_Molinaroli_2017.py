@@ -334,7 +334,7 @@ class Molinaroli_2017_Compressor(Compressor):
         args: m_dot_suc: suction mass flow rate [kg/s], rho3: density at state 3 [kg/m^3], m_dot_tot: total leakage mass flow [kg/s], inputs: Inputs object
         returns: residual[2]
         """
-        n_abs = self.get_n_absolute(inputs.n)
+        n_abs = self.get_n_absolute(inputs.control.n)
         f = n_abs
 
         m_dot_3 = rho3 * self.parameters["V_IC"] * f
@@ -347,7 +347,7 @@ class Molinaroli_2017_Compressor(Compressor):
         args: m_dot_suc: suction mass flow rate [kg/s], h1: enthalpy after suction heat transfer [J/kg], h3: enthalpy after mixing [J/kg], h4: enthalpy after compression [J/kg], rho3: density at state 3 [kg/m^3], m_dot_tot: total leakage mass flow [kg/s], inputs: Inputs object
         returns: residual[3]
         """
-        n_abs = self.get_n_absolute(inputs.n)
+        n_abs = self.get_n_absolute(inputs.control.n)
         f = n_abs
 
         m_dot_3 = rho3 * self.parameters["V_IC"] * f
@@ -370,8 +370,8 @@ class Molinaroli_2017_Compressor(Compressor):
         returns: residual[4]
         """
         h_suc = self.state_inlet.h
-        T_amb = inputs.T_ambient
-        n_abs = self.get_n_absolute(inputs.n)
+        T_amb = getattr(inputs, "T_amb" ,  25+273.15)
+        n_abs = self.get_n_absolute(inputs.control.n)
         f = n_abs
 
         rho3 = self.state_c_3.d
@@ -487,7 +487,7 @@ class Molinaroli_2017_Compressor(Compressor):
         s3 = self.state_c_3.s
         self.state_c_4 = self.med_prop.calc_state("PS", p4, s3)
         h4 = self.state_c_4.h
-        n_abs = self.get_n_absolute(inputs.n)
+        n_abs = self.get_n_absolute(inputs.control.n)
         f = n_abs
 
         # Calculate discharge state
@@ -501,7 +501,7 @@ class Molinaroli_2017_Compressor(Compressor):
         W_dot_int = m_dot_3 * (h4 - h3)
 
         # Calculate powers and efficiencies
-        n_abs = self.get_n_absolute(inputs.n)
+        n_abs = self.get_n_absolute(inputs.control.n)
         W_dot_loss = (W_dot_int * self.parameters["alpha_loss"] +
                       self.parameters["W_dot_loss_ref"] * (n_abs / self.parameters["f_ref"]) ** 2)
         self.W_dot_comp = W_dot_int + W_dot_loss
@@ -543,7 +543,7 @@ class Molinaroli_2017_Compressor(Compressor):
             return 0.0
 
         # Calculate internal work
-        n_abs = self.get_n_absolute(inputs.n)
+        n_abs = self.get_n_absolute(inputs.control.n)
         f = n_abs
 
         if (self.state_c_3 is None or self.state_c_4 is None or
@@ -592,7 +592,7 @@ class Molinaroli_2017_Compressor(Compressor):
         rho_suc = self.state_inlet.d
 
         # Get rotational frequency
-        n_abs = self.get_n_absolute(inputs.n)
+        n_abs = self.get_n_absolute(inputs.control.n)
         f = n_abs
 
         # Theoretical mass flow (no losses)
