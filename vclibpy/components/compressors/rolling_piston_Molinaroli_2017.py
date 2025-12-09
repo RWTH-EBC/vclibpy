@@ -72,16 +72,11 @@ class Molinaroli_2017_Compressor(Compressor):
         " find initial guesses for the unknowns "
         "args: inputs: Inputs object with operating conditions, p_outlet: outlet pressure [Pa] "
         "returns: list of initial guesses for [m_dot_suc_0, T_w_0, h1_0, p4_0, h3_0] "
-        T_evap = inputs.T_eva_in
-        state_sat_vapor = self.med_prop.calc_state("TQ", T_evap, 1.0)
-        p_suc = state_sat_vapor.p
 
-        T_suc = T_evap + inputs.dT_eva_superheating
-        self.state_inlet = self.med_prop.calc_state("PT", p_suc, T_suc)
         h_suc = self.state_inlet.h
         s_suc = self.state_inlet.s
 
-        n_abs = self.get_n_absolute(inputs.n)
+        n_abs = self.get_n_absolute(inputs.control.n)
         f = n_abs
 
         p_dis = p_outlet
@@ -91,11 +86,11 @@ class Molinaroli_2017_Compressor(Compressor):
         rho_suc = self.state_inlet.d
         m_dot_suc_0 = rho_suc * self.parameters["V_IC"] * f
 
-        T_w_0 = (T_suc + T_dis_is) / 2
+        T_w_0 = (self.state_inlet.T + T_dis_is) / 2
 
         transport_suc = self.med_prop.calc_transport_properties(self.state_inlet)
         cp_suc = transport_suc.cp
-        h1_0 = h_suc + 0.5 * cp_suc * (T_w_0 - T_suc)
+        h1_0 = h_suc + 0.5 * cp_suc * (T_w_0 - self.state_inlet.T)
 
         p4_0 = 1.1 * p_dis
 
@@ -387,7 +382,9 @@ class Molinaroli_2017_Compressor(Compressor):
         h_dis, epsilon_dis = self._calculate_discharge_heat_transfer(m_dot_suc, T_w, h4, p_dis)
         Q_dot_dis = m_dot_suc * (h4 - h_dis)
 
-        Q_dot_amb = self.parameters["Ua_amb"] * (T_w - T_amb) ** (5 / 4)
+
+        Q_dot_amb = np.sign(T_w - T_amb) * self.parameters["Ua_amb"] * (abs(T_w - T_amb) ** 1.25)
+
 
         residual = W_dot_loss + Q_dot_dis - Q_dot_suc - Q_dot_amb
 
@@ -433,7 +430,7 @@ class Molinaroli_2017_Compressor(Compressor):
         # 2. Define bounds for physical realism
         bounds = [
             (1e-6, 1),  # m_dot_suc > 0
-            (inputs.T_eva_in, 550),  # T_w between suction and 127°C
+            (self.state_inlet.T, 400),  # T_w between suction and 127 °C
             (self.state_inlet.h, self.state_inlet.h + 100e6),  # h1 > h_suc
             (p_outlet * 1.001, p_outlet * 15),  # p4 > p_dis but not extreme
             (self.state_inlet.h, self.state_inlet.h + 200e6)  # h3 reasonable range
