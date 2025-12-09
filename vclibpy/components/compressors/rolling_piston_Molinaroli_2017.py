@@ -1,12 +1,9 @@
 from vclibpy.components.compressors.compressor import Compressor
 from vclibpy.media import ThermodynamicState
-from vclibpy.media.cool_prop import CoolProp
+#from vclibpy.media.cool_prop import CoolProp
 from vclibpy.datamodels import Inputs, FlowsheetState
 import numpy as np
 #import time
-
-from vclibpy.components.compressors.compressor import Compressor
-from vclibpy.datamodels import Inputs
 
 ENABLE_TIMING = True
 
