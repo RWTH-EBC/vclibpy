@@ -55,6 +55,9 @@ class ExpansionValve(TwoPortComponent, abc.ABC):
         """
         self.state_outlet = self.med_prop.calc_state("PH", p_outlet, self.state_inlet.h)
 
+    def calc_inlet(self, p_inlet: float):
+        self.state_inlet = self.med_prop.calc_state("PH", p_inlet, self.state_outlet.h)
+
     @abc.abstractmethod
     def calc_outlet_pressure_at_m_flow_and_opening(self, m_flow, opening):
         """

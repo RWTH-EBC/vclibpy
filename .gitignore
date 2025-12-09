@@ -28,3 +28,5 @@ venv
 .pytest_cache
 htmlcov
 .coverage
+
+Deneme.py

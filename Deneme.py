@@ -1,5 +1,5 @@
 # # Example for a heat pump where you can select the flowsheet
-from vclibpy.flowsheets import StandardCycle, VaporInjectionPhaseSeparator, VaporInjectionEconomizer, InternalHeatExchangerCycle, IHX, VaporInjectionEconomizerDownstream, VaporInjectionEconomizerUpstream
+from vclibpy.flowsheets import StandardCycle, VaporInjectionPhaseSeparator, VaporInjectionEconomizer, InternalHeatExchangerCycle, IHX
 from vclibpy.components.heat_exchangers import moving_boundary_ntu, heat_transfer,moving_boundary_lmtd
 from vclibpy.components.heat_exchangers.economizer import VaporInjectionEconomizerNTU
 from vclibpy.components.heat_exchangers.ihx_ntu import IHX_NTU
@@ -109,7 +109,7 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
     A_valve = common_params['A_valve']
     V_h_ratio = common_params.get('V_h_ratio', 1)  # default, if not specified
 
-    if flowsheet_type in ["VaporInjectionPhaseSeparator", "VaporInjectionEconomizerUpstream", "VaporInjectionEconomizerDownstream"]:
+    if flowsheet_type in ["VaporInjectionPhaseSeparator", "VaporInjectionEconomizer"]:
         V_h = common_params['compressor_params']['V_h']
         V_h_low, V_h_high = calculate_compressor_volumes(V_h, V_h_ratio)
 
@@ -170,39 +170,6 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
         )
     elif flowsheet_type == "VaporInjectionEconomizer":
         return VaporInjectionEconomizer(
-            evaporator=common_params['evaporator'],
-            condenser=common_params['condenser'],
-            fluid=common_params['fluid'],
-            economizer=common_params['economizer'], # args-difference to VaporInjectionPhaseSeparator
-            high_pressure_compressor=high_pressure_compressor,
-            low_pressure_compressor=low_pressure_compressor,
-            high_pressure_valve=high_pressure_valve,
-            low_pressure_valve=low_pressure_valve
-        )
-    elif flowsheet_type == "VaporInjectionEconomizerDownstream":
-        return VaporInjectionEconomizerDownstream(
-            evaporator=common_params['evaporator'],
-            condenser=common_params['condenser'],
-            fluid=common_params['fluid'],
-            economizer=common_params['economizer'], # args-difference to VaporInjectionPhaseSeparator
-            high_pressure_compressor=high_pressure_compressor,
-            low_pressure_compressor=low_pressure_compressor,
-            high_pressure_valve=high_pressure_valve,
-            low_pressure_valve=low_pressure_valve
-        )
-    elif flowsheet_type == "VaporInjectionEconomizerUpstream":
-        return VaporInjectionEconomizerUpstream(
-            evaporator=common_params['evaporator'],
-            condenser=common_params['condenser'],
-            fluid=common_params['fluid'],
-            economizer=common_params['economizer'], # args-difference to VaporInjectionPhaseSeparator
-            high_pressure_compressor=high_pressure_compressor,
-            low_pressure_compressor=low_pressure_compressor,
-            high_pressure_valve=high_pressure_valve,
-            low_pressure_valve=low_pressure_valve
-        )
-    elif flowsheet_type == "VaporInjectionEconomizerDownstream":
-        return VaporInjectionEconomizerDownstream(
             evaporator=common_params['evaporator'],
             condenser=common_params['condenser'],
             fluid=common_params['fluid'],
@@ -280,7 +247,7 @@ def main():
         # secondary_heat_transfer=None,
 
     )
-
+    compressor_type = "TenCoefficientCompressor"
     # 3. define common parameters for the flowsheet
     common_params = {
         'evaporator': evaporator,
@@ -298,7 +265,7 @@ def main():
             # ConstantEffectivenessCompressor
             # RotaryCompressor
             # TenCoefficientCompressor
-        'compressor_type': "ConstantEffectivenessCompressor",
+        'compressor_type': compressor_type,
         'compressor_params': {
             # General parameters
             'N_max': 120, # Maximal rotations per second of the compressor.
@@ -327,32 +294,27 @@ def main():
         # VaporInjectionPhaseSeparator
         # InternalHeatExchanger TODO: Implementation improvement (valves)
         # DirectInjection       TODO: Implementation pending
-
-    flowsheet_type = "d"
-    if flowsheet_type == "d":
-        flowsheet_type = "VaporInjectionEconomizerDownstream"
-    elif flowsheet_type == "u":
-        flowsheet_type = "VaporInjectionEconomizerUpstream"
-
+    flowsheet_type = "VaporInjectionPhaseSeparator"
     # 5. create flowsheet object
     flowsheet = create_flowsheet(flowsheet_type, common_params)
 
+
     # 6. generate performance map (Study settings)
-    base_output_dir = r"C:\Users\mertc\Desktop\7.Semester\Bachelorarbeit\Python gitkraken\Output"
+    base_output_dir = r"C:\Users\mertc\Desktop\7.Semester\Bachelorarbeit\Python gitkraken\Output\Je_nach_Kompressortypen"
 
-    flowsheet_output_dir = os.path.join(base_output_dir, flowsheet_type)
+    # flowsheet_output_dir = os.path.join(base_output_dir, f"{compressor_type}_{flowsheet_type}")
 
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp =datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
-    run_save_path = os.path.join(flowsheet_output_dir, f"{flowsheet_type}_{timestamp}")
+    run_save_path = os.path.join(base_output_dir, f"{compressor_type}_{flowsheet_type}_{timestamp}")
 
     os.makedirs(run_save_path, exist_ok=True)
     print(f"Results will be saved in: {run_save_path}")
 
-    T_eva_in = [T + 273.15 for T in [-20]] #[-20, -15, -10, -5, 0, 5, 10]]# inlet/outlet temperature depends on use_condenser_inlet setting
-    T_con = [T + 273.15 for T in [75]] #[75, 70, 65, 60, 55, 50, 45]] # inlet/outlet temperature depends on use_condenser_inlet setting
+    T_eva_in = [-20 + 273.15, 12 + 273.15]
+    T_con = [35 + 273.15, 75 + 273.15]                # inlet/outlet temperature depends on use_condenser_inlet setting
     n = [0.3]
-    k_vapor_injection = [0.1]
+    k_vapor_injection = [1]
 
     utils.full_factorial_map_generation(
         flowsheet=flowsheet,
@@ -363,7 +325,7 @@ def main():
         use_condenser_inlet=False,
         use_multiprocessing=False,
         save_plots=True,
-        m_flow_con=0.4,  # 0.4 aus TIL
+        m_flow_con=0.4, # 0.4 aus TIL
         m_flow_eva=0.5,  # 0.5 aus TIL
         dT_eva_superheating=5,
         dT_con_subcooling=3,

@@ -12,7 +12,7 @@ from vclibpy.media import ThermodynamicState
 logger = logging.getLogger(__name__)
 
 
-class BaseVaporInjection(BaseCycle, abc.ABC):
+class   BaseVaporInjection(BaseCycle, abc.ABC):
     """
     Partial cycle with vapor injection, using
     two separated compressors and expansion valves.
@@ -50,11 +50,7 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
             self.low_pressure_valve,
         ]
 
-    def get_hp_valve_inlet_state(self):
-        return self.condenser.state_outlet
-
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
-        print("calc_states prozess in class BaseVaporInjection")
         k_vapor_injection_var = inputs.control.get("k_vapor_injection")
 
         # Extract the numerical value. If the variable is not present, use a default.
@@ -65,7 +61,7 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
             k_vapor_injection = 1.0
 
         p_vapor_injection = k_vapor_injection * np.sqrt(p_1 * p_2) # TODO: are there other ways to set the mid pressure level?
-        print(f"p2 value: {p_2}\n p1 value: {p_1}")
+
         # Condenser outlet
         self.set_condenser_outlet_based_on_subcooling(p_con=p_2, inputs=inputs)
         # High pressure EV
@@ -81,26 +77,14 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
         m_flow_low = self.low_pressure_compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
         self.evaporator.m_flow = self.low_pressure_compressor.m_flow
 
-
-        print("Before Injection prozess def calc_states in class BaseVaporInjection")
-
-
         # Injection component:
         x_vapor_injection, h_vapor_injection, state_low_ev_inlet = self.calc_injection()
-
-
-
-
 
         # Low pressure EV
         self.low_pressure_valve.state_inlet = state_low_ev_inlet
         self.low_pressure_valve.calc_outlet(p_outlet=p_1)
         # Evaporator
         self.evaporator.state_inlet = self.low_pressure_valve.state_outlet
-
-
-        print("After Injection prozess def calc_states in class BaseVaporInjection")
-
 
         # Ideal Mixing of state_5 and state_1_VI:
         h_1_VI_mixed = (
@@ -123,20 +107,9 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
         percent_deviation = (m_flow_low - m_flow_low_should) / m_flow_low_should * 100
         logger.debug("Deviation of mass flow rates is %s percent", percent_deviation)
 
-
-        print(f"Set States Prozess")
-        print(f"def calc_states high_pressure_compressor_m_flow: {self.high_pressure_compressor.m_flow}")
-
-
-
-
         # Set states
         self.condenser.m_flow = self.high_pressure_compressor.m_flow
         self.condenser.state_inlet = self.high_pressure_compressor.state_outlet
-
-
-        print(f"before fs_state.set ")
-
 
         fs_state.set(
             name="T_1", value=self.evaporator.state_outlet.T,
@@ -162,7 +135,11 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
             name="p_eva", value=p_1,
             unit="Pa", description="Evaporation pressure"
         )
-        print(f"calcstates last sentence")
+
+    def get_hp_valve_inlet_state(self):
+        """Return the inlet state for the high pressure valve."""
+        return self.condenser.state_outlet
+
     def calc_injection(self) -> (float, float, ThermodynamicState):
         """
         Calculate the injection component, e.g. phase separator
@@ -221,4 +198,3 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
             self.high_pressure_valve.state_inlet,                               # state 3
             self.high_pressure_valve.state_outlet,                              # state 5
         ]
-
