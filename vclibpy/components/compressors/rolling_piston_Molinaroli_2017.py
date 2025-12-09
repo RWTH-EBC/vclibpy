@@ -3,12 +3,21 @@ from vclibpy.media import ThermodynamicState
 from vclibpy.media.cool_prop import CoolProp
 from vclibpy.datamodels import Inputs, FlowsheetState
 import numpy as np
-import time
+#import time
+
+from vclibpy.components.compressors.compressor import Compressor
+from vclibpy.datamodels import Inputs
 
 ENABLE_TIMING = True
 
 
-class HRP(Compressor):
+class Molinaroli_2017_Compressor(Compressor):
+    """
+    Model from:
+    Molinaroli et. al. (2017), A semi-empirical model for hermetic rolling piston compressors
+    http://dx.doi.org/10.1016/j.ijrefrig.2017.04.015
+
+    """
     def __init__(self, N_max: float, V_h: float, refrigerant="R290"):
         super().__init__(N_max=N_max, V_h=V_h)
 
@@ -932,9 +941,9 @@ class HRP(Compressor):
                     self._clear_cache()
 
                     # Solve for this operating point
-                    start_time = time.time()
+                    #start_time = time.time()
                     solution = self.simulate_operating_point(inputs, p_discharge, fs_state)
-                    solve_time = time.time() - start_time
+                    #solve_time = time.time() - start_time
 
                     if self.W_dot_comp is not None and self.m_flow_suc > 0:
                         # Calculate ALL efficiencies
@@ -957,7 +966,7 @@ class HRP(Compressor):
                             'eta_mech': eta_mech,
                             'eta_is_overall': eta_is_overall,
                             'lambda_h': lambda_h,
-                            'solve_time': solve_time,
+                            #'solve_time': solve_time,
                             'success': True,
                             'T_discharge_C': self.state_outlet.T - 273.15,
                             'T_wall_C': self.T_w - 273.15
@@ -1151,7 +1160,7 @@ if __name__ == "__main__":
 
     try:
         # 1. Create compressor instance
-        compressor = HRP(N_max=50, V_h=0.0000161, refrigerant="R290")
+        compressor = Molinaroli_2017_Compressor(N_max=50, V_h=0.0000161, refrigerant="R290")
         print("✓ Compressor instance created")
 
         # 2. Create test inputs
@@ -1180,11 +1189,11 @@ if __name__ == "__main__":
         print("RUNNING COMPLETE COMPRESSOR SIMULATION")
         print("=" * 60)
 
-        start_time = time.time()
+        #start_time = time.time()
         solution = compressor.simulate_operating_point(inputs, p_outlet, fs_state)
-        solve_time = time.time() - start_time
+        #solve_time = time.time() - start_time
 
-        print(f"\n  Solution time: {solve_time:.3f} seconds")
+        #print(f"\n  Solution time: {solve_time:.3f} seconds")
         # Define operating range (manufacturer catalog range)
         eta_mech = compressor.get_eta_mech(inputs)
         print(f"Mechanical efficiency: {eta_mech:.3f}")
