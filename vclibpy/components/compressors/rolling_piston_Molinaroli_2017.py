@@ -449,7 +449,7 @@ class Molinaroli_2017_Compressor(Compressor):
             method='trf',
             ftol=1e-8,
             xtol=1e-8,
-            max_nfev=1000
+            max_nfev=20000
         )
 
         # 4. Check convergence
@@ -501,21 +501,24 @@ class Molinaroli_2017_Compressor(Compressor):
         n_abs = self.get_n_absolute(inputs.control.n)
         W_dot_loss = (W_dot_int * self.parameters["alpha_loss"] +
                       self.parameters["W_dot_loss_ref"] * (n_abs / self.parameters["f_ref"]) ** 2)
-        self.W_dot_comp = W_dot_int + W_dot_loss
+        self.P_el = W_dot_int + W_dot_loss
 
         # Store results
-        self.m_flow_suc = m_dot_suc
+        self.m_flow = m_dot_suc
         self.T_w = T_w
 
         # Populate flowsheet state
-        fs_state.set("m_flow", m_dot_suc, "kg/s", "Refrigerant mass flow rate")
-        fs_state.set("P_el", self.W_dot_comp, "W", "Electrical power input")
+        fs_state.set("m_flow", self.m_flow, "kg/s", "Refrigerant mass flow rate")
+        fs_state.set("P_el", self.P_el, "W", "Electrical power input")
         fs_state.set("T_wall", T_w, "K", "Wall temperature")
         fs_state.set("pc4", p4, "Pa", "Internal discharge pressure")
         fs_state.set("hc1", h1, "J/kg", "Enthalpy after suction heat transfer")
         fs_state.set("hc3", h3, "J/kg", "Enthalpy after mixing")
         fs_state.set("hc4", h4, "J/kg", "Enthalpy after compression")
         fs_state.set("T_dis", self.state_c_5.T, "K", "Discharge temperature")
+        fs_state.set("p_2", self.state_outlet.p, "Pa", "Outlet pressure")
+        fs_state.set("p_1", self.state_inlet.p, "Pa", "Inlet Pressure")
+        fs_state.set("T_1", self.state_inlet.T, "K", "Inlet Temperature")
 
 #
 
@@ -581,8 +584,8 @@ class Molinaroli_2017_Compressor(Compressor):
         Returns:
             float: Volumetric efficiency.
         """
-        if (self.m_flow_suc is None or self.state_inlet is None or
-                self.state_inlet.d is None or self.m_flow_suc <= 0):
+        if (self.m_flow is None or self.state_inlet is None or
+                self.state_inlet.d is None or self.m_flow <= 0):
             return 0.0
 
         # Get suction density
@@ -599,21 +602,19 @@ class Molinaroli_2017_Compressor(Compressor):
             return 0.0
 
         # Volumetric efficiency = actual flow / theoretical flow
-        lambda_h = self.m_flow_suc / m_dot_theoretical
+        lambda_h = self.m_flow / m_dot_theoretical
 
         # Ensure reasonable bounds (typically 0.6-0.95 for compressors)
         return max(0.5, min(0.98, lambda_h))
 
-    def get_eta_isentropic_overall(self, p_outlet: float, inputs: Inputs) -> float:
+    def get_eta_isentropic(self, p_outlet: float, inputs: Inputs, fs_state: FlowsheetState) -> float:
         """
         Overall isentropic efficiency from suction (state_inlet) to final discharge (state_outlet):
 
             η_is_overall = (h_dis_is - h_suc) / (h_dis_actual - h_suc)
         """
-        if (self.state_inlet is None or self.state_outlet is None or
-                self.state_inlet.s is None or self.state_inlet.h is None or
-                self.state_outlet.h is None):
-            return 0.0
+        if (self.state_inlet.T != fs_state.T_1 or p_outlet != fs_state.p_2 or self.state_inlet.p != fs_state.p_1):
+            self.simulate_operating_point(inputs=inputs, p_outlet=p_outlet, fs_state=fs_state)
 
         try:
             # Suction enthalpy and entropy
@@ -667,10 +668,37 @@ class Molinaroli_2017_Compressor(Compressor):
             fs_state (FlowsheetState): Flowsheet state.
         """
 
-        if self.state_outlet is not None:
-            return
-        else:
+        self.simulate_operating_point(inputs=inputs, p_outlet=p_outlet, fs_state=fs_state)
+
+    def calc_m_flow(self, p_outlet, inputs: Inputs, fs_state: FlowsheetState) -> float:
+        """
+        Calculate the refrigerant mass flow rate.
+
+        Args:
+            inputs (Inputs): Inputs for the calculation.
+            fs_state (FlowsheetState): Flowsheet state.
+
+        Returns:
+            float: Refrigerant mass flow rate.
+        """
+        if (self.state_inlet.T != fs_state.T_1 or p_outlet != fs_state.p_2 or self.state_inlet.p != fs_state.p_1):
             self.simulate_operating_point(inputs=inputs, p_outlet=p_outlet, fs_state=fs_state)
 
+        return self.m_flow
 
+    def calc_electrical_power(self, p_outlet, inputs: Inputs, fs_state: FlowsheetState) -> float:
+        """
+        Calculate the electrical power consumed by the compressor based on an adiabatic energy balance.
 
+        Args:
+            inputs (Inputs): Inputs for the calculation.
+            fs_state (FlowsheetState): Flowsheet state.
+
+        Returns:
+            float: Electrical power consumed.
+        """
+        if (self.state_inlet.T != fs_state.T_1 or p_outlet != fs_state.p_2 or self.state_inlet.p != fs_state.p_1):
+            self.simulate_operating_point(inputs=inputs, p_outlet=p_outlet, fs_state=fs_state)
+
+        return self.P_el
+#todo: add calc mass flow, add calc electrical power
