@@ -4,7 +4,8 @@ from vclibpy.components.heat_exchangers import moving_boundary_ntu, heat_transfe
 from vclibpy.components.heat_exchangers.economizer import VaporInjectionEconomizerNTU
 from vclibpy.components.heat_exchangers.ihx_ntu import IHX_NTU
 from vclibpy.components.expansion_valves import Bernoulli
-from vclibpy.components.compressors import ConstantEffectivenessCompressor,RotaryCompressor, TenCoefficientCompressor
+from vclibpy.components.compressors import ConstantEffectivenessCompressor, RotaryCompressor, TenCoefficientCompressor, \
+    ScrollCompressorWinandy, PiCorrelationCompressor, MolinaroliCorrelationCompressor
 from vclibpy import utils
 import os
 import datetime
@@ -64,6 +65,8 @@ def create_compressor(compressor_type, compressor_params):
         compressor_type (str): The type of compressor to create
         ("RotaryCompressor", "ConstantEffectivenessCompressor", "TenCoefficientCompressor").
         compressor_params (dict): A dictionary of parameters for the compressor.
+            Optional keys:
+            - refrigerant: "Propane" | "Propylene" (if None → Default in model)
 
     Returns:
         object: An instance of the specified compressor type.
@@ -88,6 +91,23 @@ def create_compressor(compressor_type, compressor_params):
             datasheet=compressor_params['datasheet'],
             parameter_names=compressor_params['parameter_names'],
             sheet_name=compressor_params['sheet_name']
+        )
+    elif compressor_type == "ScrollCompressorWinandy":
+        return ScrollCompressorWinandy(
+            N_max=compressor_params['N_max'],
+            V_h=compressor_params['V_h'],
+            v_ratio=compressor_params['v_ratio'],
+        )
+    elif compressor_type == "PiCorrelationCompressor":
+        return PiCorrelationCompressor(
+            N_max=compressor_params['N_max'],
+            V_h=compressor_params['V_h'],
+        )
+    elif compressor_type == "MolinaroliCorrelationCompressor":
+        return MolinaroliCorrelationCompressor(
+            N_max=compressor_params['N_max'],
+            V_h=compressor_params['V_h'],
+            refrigerant=compressor_params.get('refrigerant') # "Propane" | "Propylene" | None
         )
     else:
         raise ValueError("ERROR when selecting compressor. Unsupported compressor selected.")
@@ -192,7 +212,7 @@ def main():
     condenser = create_heat_exchanger(
         model=hx_model,
         hx_type="condenser",
-        A=3,
+        A=18,
         secondary_medium="water",
         flow_type="counter",
         ratio_outer_to_inner_area=1,
@@ -206,7 +226,7 @@ def main():
     evaporator = create_heat_exchanger(
         model=hx_model,
         hx_type="evaporator",
-        A=20,
+        A=120,
         secondary_medium="air",
         flow_type="counter",
         ratio_outer_to_inner_area=1,
@@ -220,7 +240,7 @@ def main():
     economizer = create_heat_exchanger(
         model=hx_model,
         hx_type="economizer",
-        A=0.2,
+        A=1.2,
         flow_type="counter",
         ratio_outer_to_inner_area=1,
         gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=200),
@@ -252,7 +272,7 @@ def main():
     common_params = {
         'evaporator': evaporator,
         'condenser': condenser,
-        'fluid': "Propane",  # Refrigerant selection
+        'fluid': "Propane",  # Refrigerant selection (e.g. "Propane", "Propylene", "R1243zf", "R152a")
         'economizer': economizer,
         'ihx': ihx,
         'A_valve': 0.1,  # TODO: Maybe implement a distinction between high- and low-pressure valve?
@@ -265,15 +285,18 @@ def main():
             # ConstantEffectivenessCompressor
             # RotaryCompressor
             # TenCoefficientCompressor
-        'compressor_type': "ConstantEffectivenessCompressor",
+            # ScrollCompressorWinandy
+            # PiCorrelationCompressor
+            # MolinaroliCorrelationCompressor
+        'compressor_type': "MolinaroliCorrelationCompressor",
         'compressor_params': {
             # General parameters
             'N_max': 120, # Maximal rotations per second of the compressor.
-            'V_h': 30e-6, # Volume of the compressor in m^3.
+            'V_h': 42.05e-6, # Volume of the compressor in m^3.
             # ConstantEffectivenessCompressor parameters
             'eta_isentropic': 0.7, # Constant isentropic efficiency of the compressor.
             'lambda_h': 0.9, # Constant volumetric efficiency.
-            'eta_mech': 0.8,  # Constant mechanical efficiency of the compressor.
+            'eta_mech': 1,  # Constant mechanical efficiency of the compressor.
             # TenCoefficientCompressor parameters
             'datasheet': "path/to/your/datasheet.csv", # Path of the datasheet file for ten-coefficient compressor.
             'parameter_names': { # Dictionary to match internal parameter names (keys) to the names used in the table values.
@@ -284,9 +307,13 @@ def main():
                 "lambda_h": "Volumentric Efficiency(-)",
                 "eta_mech": "Mechanical Efficiency(-)"
             },
-            'sheet_name': "Sheet1" # Name of the sheet in the datasheet.
+            'sheet_name': "Sheet1", # Name of the sheet in the datasheet.
+            # ScrollCompressorWinandy parameters
+            'v_ratio': 2.45, # Built-in volume ratio of the compressor.
         }
     }
+    # Set refrigerant for compressor if MolinaroliCorrelationCompressor is selected
+    common_params['compressor_params'].setdefault('refrigerant', common_params['fluid'])
 
     # 4. choose flowsheet from:
         # StandardCycle
@@ -294,7 +321,7 @@ def main():
         # VaporInjectionPhaseSeparator
         # InternalHeatExchanger TODO: Implementation improvement (valves)
         # DirectInjection       TODO: Implementation pending
-    flowsheet_type = "VaporInjectionPhaseSeparator"
+    flowsheet_type = "VaporInjectionEconomizer"
 
     # 5. create flowsheet object
     flowsheet = create_flowsheet(flowsheet_type, common_params)
@@ -312,8 +339,8 @@ def main():
     os.makedirs(run_save_path, exist_ok=True)
     print(f"Results will be saved in: {run_save_path}")
 
-    T_eva_in = [-20 + 273.15, 12 + 273.15]
-    T_con = [35 + 273.15, 75 + 273.15]                # inlet/outlet temperature depends on use_condenser_inlet setting
+    T_eva_in = [-20 + 273.15, -10 + 273.15, 0 + 273.15]
+    T_con = [35 + 273.15, 45 + 273.15, 55 + 273.15, 65 + 273.15, 75 + 273.15]         # inlet/outlet temperature depends on use_condenser_inlet setting
     n = [1]
     k_vapor_injection = [1]
 
@@ -326,8 +353,8 @@ def main():
         use_condenser_inlet=False,
         use_multiprocessing=False,
         save_plots=True,
-        m_flow_con=0.4, # 0.4 aus TIL
-        m_flow_eva=0.5,  # 0.5 aus TIL
+        m_flow_con=0.5, # 0.4 aus TIL         0.5 aus Auslegung für Propan bei A-20W75
+        m_flow_eva=1,  # 0.5 aus TIL        1 aus Auslegung für Propan bei A-20W75
         dT_eva_superheating=5,
         dT_con_subcooling=3,
         k_vapor_injection=k_vapor_injection,

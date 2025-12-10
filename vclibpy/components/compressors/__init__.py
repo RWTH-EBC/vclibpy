@@ -2,3 +2,6 @@ from .compressor import Compressor
 from .rotary import RotaryCompressor
 from .ten_coefficient import TenCoefficientCompressor, DataSheetCompressor
 from .constant_effectivness import ConstantEffectivenessCompressor
+from .scroll_winandy import ScrollCompressorWinandy
+from .pi_correlation import PiCorrelationCompressor
+from .molinaroli_crispy_fit_correlation import MolinaroliCorrelationCompressor

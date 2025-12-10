@@ -106,7 +106,7 @@ class VaporInjectionEconomizer(BaseVaporInjection):
             m_flow_vapor_injection = (x_vi/(1-x_vi)) * self.evaporator.m_flow
             Q_flow_goal = dh_ihe_goal * m_flow_vapor_injection
 
-            self.economizer.m_flow = x_eva * m_flow_evaporator
+            self.economizer.m_flow = m_flow_evaporator
             self.economizer.m_flow_secondary = m_flow_vapor_injection
 
             # This dT_max is always valid, as the primary inlet is cooled
@@ -137,7 +137,7 @@ class VaporInjectionEconomizer(BaseVaporInjection):
                 _x_vi_step /= 10
 
         # Solve Energy Balance
-        h_7 = self.economizer.state_inlet.h - dh_ihe_goal * self.economizer.m_flow
+        h_7 = self.economizer.state_inlet.h - dh_ihe_goal * (self.economizer.m_flow_secondary)/(self.economizer.m_flow)
         state_7_ihx = self.med_prop.calc_state("PH", self.economizer.state_inlet.p, h_7)
         self.economizer.state_outlet = state_7_ihx
         return x_vi, self.economizer.state_two_phase_outlet.h, state_7_ihx
