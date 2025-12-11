@@ -114,9 +114,9 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
         self.low_pressure_valve.m_flow = self.evaporator.m_flow
 
         # -----------------------------------------------------------
-        #  Economizer secondary outlet (state 6)
+        #  Economizer cold outlet (state 6)
         # -----------------------------------------------------------
-        # Define the economizer secondary-side outlet as saturated vapor
+        # Define the economizer cold-side outlet as saturated vapor
         # at the intermediate (injection) pressure:
         #
         #   • mode: "PQ" ⇒ pressure + vapor quality
@@ -124,9 +124,9 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
         #
         # This state represents the vapor that will be injected into the
         # compression process via the vapor-injection port.
-        self.economizer.state_two_phase_outlet = self.med_prop.calc_state("PQ", p_vapor_injection, 1)
+        self.economizer.state_cold_outlet = self.med_prop.calc_state("PQ", p_vapor_injection, 1)
 
-        print(f"Before Injection prozess def calc_states in class VaporInjectionEconomizerDownstream")
+        # print(f"Before injection process def calc_states in class VaporInjectionEconomizerDownstream")
 
         # -----------------------------------------------------------
         # Vapor-injection subsystem
@@ -134,39 +134,35 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
         # Compute the injection-related quantities:
         #   • x_vapor_injection   → mass fraction of injected vapor (dimensionless)
         #   • h_vapor_injection   → enthalpy of the injected vapor
-        #   • state_economizer_outlet → primary-side outlet of the economizer (state 7)
+        #   • state_economizer_outlet → hot-side outlet of the economizer (state 7)
         #
         # This function internally performs the economizer energy balance,
         # the quality search on the secondary side, and enforces h7 constraints.
         x_vapor_injection, h_vapor_injection, state_economizer_outlet = self.calc_injection()
 
-        print(f"after Injection prozess def calc_states in class VaporInjectionEconomizerDownstream")
+        # print(f"after injection process def calc_states in class VaporInjectionEconomizerDownstream")
 
         # -----------------------------------------------------------
-        # Economizer: primary-side outlet assignment
+        # Economizer: hot-side outlet assignment
         # -----------------------------------------------------------
-        # The economizer primary outlet (state 7) is the upstream condition
+        # The economizer hot outlet (state 7) is the upstream condition
         # feeding both expansion valves (LP and HP). It is returned from
         # calc_injection() after satisfying the subcooling split and matching
         # the enthalpy constraints (h7 consistency)
         self.economizer.state_outlet = state_economizer_outlet
 
-        print(f"state_economizer_outlet: {state_economizer_outlet}")
-        print(f"economizer.state_outlet: {self.economizer.state_outlet}")
-        print(f"after setting economizer.state_outlet def calc_states in class VaporInjectionEconomizerDownstream")
+        # print(f"state_economizer_outlet: {state_economizer_outlet}")
+        # print(f"economizer.state_outlet: {self.economizer.state_outlet}")
+        # print(f"after setting economizer.state_outlet def calc_states in class VaporInjectionEconomizerDownstream")
 
         # -----------------------------------------------------------
         # Expansion valves (LP and HP) – inlet assignment
         # -----------------------------------------------------------
-        # Both expansion valves take the economizer primary outlet (state 7)
+        # Both expansion valves take the economizer hot outlet (state 7)
         # as their inlet condition:
         #
         #   • LP-valve  → expands down to evaporator pressure p_1
         #   • HP-valve  → expands down to injection/intermediate pressure p_vapor_injection
-        #
-        # These two throttling processes generate:
-        #   • A two-phase mixture for the evaporator (LP path)
-        #   • A two-phase mixture that vaporizes inside the economizer (HP path)
         self.low_pressure_valve.state_inlet = state_economizer_outlet
         self.high_pressure_valve.state_inlet = state_economizer_outlet
 
@@ -179,20 +175,19 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
         # The HP expansion produces a low-quality two-phase mixture that
         # evaporates inside the economizer, generating saturated or superheated
         # vapor for injection into the compressor.
-        print(f"high_pressure_valve.state_inlet: {self.high_pressure_valve.state_inlet}")
-        print(f"economizer.state_two_phase_inlet before HP valve calc_outlet: {self.economizer.state_two_phase_inlet}")
+        # print(f"high_pressure_valve.state_inlet: {self.high_pressure_valve.state_inlet}")
+        # print(f"economizer.state_cold_inlet before HP valve calc_outlet: {self.economizer.state_cold_inlet}")
         self.high_pressure_valve.calc_outlet(p_outlet=p_vapor_injection)
-        print(f"high_pressure_valve.state_outlet after calc_outlet: {self.high_pressure_valve.state_outlet}")
+        # print(f"high_pressure_valve.state_outlet after calc_outlet: {self.high_pressure_valve.state_outlet}")
         # Feed the economizer with the secondary-side inlet (state 5)
-        self.economizer.state_two_phase_inlet = self.high_pressure_valve.state_outlet
-        print(f"economizer.state_two_phase_inlet after HP valve calc_outlet: {self.economizer.state_two_phase_inlet}")
+        self.economizer.state_cold_inlet = self.high_pressure_valve.state_outlet
+        # print(f"economizer.state_cold_inlet after HP valve calc_outlet: {self.economizer.state_cold_inlet}")
 
         # -----------------------------------------------------------
         # Low-pressure expansion valve (LP valve → evaporator line)
         # -----------------------------------------------------------
         # Isenthalpic throttling from condensation level (state 7) to the
-        # evaporator pressure p_1. This generates a two-phase mixture that
-        # enters the evaporator (state 4).
+        # evaporator pressure p_1.(state 4).
         self.low_pressure_valve.calc_outlet(p_outlet=p_1)
 
         # Assign the evaporator inlet state (state 4)
@@ -238,7 +233,7 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
         self.high_pressure_compressor.calc_state_outlet(
             p_outlet=p_2, inputs=inputs, fs_state=fs_state
         )
-        # Assign HP compressor discharge as the inlet to the condenser (state 2 → state 3)
+        # Assign HP compressor discharge as the inlet to the condenser (state 2)
         self.condenser.state_inlet = self.high_pressure_compressor.state_outlet
 
         # -----------------------------------------------------------
@@ -307,28 +302,28 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
     def calc_injection(self):
 
 
-        # Step size for quality (Q) at economizer two-phase inlet (state 5)
-        _Q_economizer_twophase_inlet_step = 0.1
-        _min_step_Q_economizer_twophase_inlet_step = 0.0000000001
-        Q_economizer_twophase_inlet_next = _min_step_Q_economizer_twophase_inlet_step
-        print(f"calc_injection başı _Q_economizer_twophase_inlet_step: {_Q_economizer_twophase_inlet_step}")
+        # Step size for quality (q) at economizer two-phase inlet (state 5)
+        _q_economizer_cold_inlet_step = 0.1
+        _min_step_q_economizer_cold_inlet_step = 0.0000000001
+        q_economizer_cold_inlet_next = _min_step_q_economizer_cold_inlet_step
+        # print(f"calc_injection başı _q_economizer_cold_inlet_step: {_q_economizer_cold_inlet_step}")
 
-        # Initial guess for two-phase inlet (state 5) at the injection pressure
-        self.economizer.state_two_phase_inlet = self.med_prop.calc_state("PQ", self.economizer.state_two_phase_outlet.p, Q_economizer_twophase_inlet_next)
-        print(f"initial economizer.state_two_phase_inlet: {self.economizer.state_two_phase_inlet}")
+        # Initial guess for cold inlet (state 5) at the injection pressure
+        self.economizer.state_cold_inlet = self.med_prop.calc_state("PQ", self.economizer.state_cold_outlet.p, q_economizer_cold_inlet_next)
+        # print(f"initial economizer.state_cold_inlet: {self.economizer.state_cold_inlet}")
 
         # Initial guess for primary-side outlet (state 7): set equal to condenser outlet
         # self.economizer.state_outlet = self.economizer.state_inlet     # initial guess
         print(f"initial economizer.state_outlet:          {self.economizer.state_outlet}")
 
         t = 0
-        # Outer loop: iterate over quality Q at secondary inlet (state 5)
+        # Outer loop: iterate over quality q at secondary inlet (state 5)
         while True:
             t += 1
             print(f"Outer loop iteration: {t}")
 
-            if _Q_economizer_twophase_inlet_step < _min_step_Q_economizer_twophase_inlet_step:
-                print(f"Breaking outer loop")
+            if _q_economizer_cold_inlet_step < _min_step_q_economizer_cold_inlet_step:
+                print(f"Breaking outer loop, minimal stepsize reached")
                 break
 
             # Step control for vapor injection mass fraction x_vi
@@ -336,47 +331,47 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
             _min_step_x_vi = 0.00000001
             x_vi_next = _min_step_x_vi  # Don't start from zero
 
-            # Fix current Q guess for this outer iteration
-            Q_economizer_twophase_inlet = Q_economizer_twophase_inlet_next
-            print(f"Q_economizer_twophase_inlet: {Q_economizer_twophase_inlet}")
-            # Update state 5 = (p_injection, Q_guess)
-            self.economizer.state_two_phase_inlet = self.med_prop.calc_state("PQ", self.economizer.state_two_phase_outlet.p, Q_economizer_twophase_inlet)
-            print(f"after calculate state economizer.state_two_phase_inlet: {self.economizer.state_two_phase_inlet}")
+            # Fix current q guess for this outer iteration
+            q_economizer_cold_inlet = q_economizer_cold_inlet_next
+            print(f"q_economizer_cold_inlet: {q_economizer_cold_inlet}")
+            # Update state 5 = (p_injection, q_guess)
+            self.economizer.state_cold_inlet = self.med_prop.calc_state("PQ", self.economizer.state_cold_outlet.p, q_economizer_cold_inlet)
+            print(f"after calculate state economizer.state_cold_inlet: {self.economizer.state_cold_inlet}")
             # Base mass flow on evaporator (LP side)
             m_flow_evaporator = self.evaporator.m_flow
 
-            # Enthalpy lift across two-phase side of economizer (state 5 → 6)
+            # Enthalpy lift across cold side of economizer (state 5 → 6)
             dh_ihe_goal = (
-                    self.economizer.state_two_phase_outlet.h -
-                    self.economizer.state_two_phase_inlet.h
+                    self.economizer.state_cold_outlet.h -
+                    self.economizer.state_cold_inlet.h
             )
 
-            # Transport properties on primary side (liquid)
+            # Transport properties on hot side (liquid)
             tra_properties_liquid = self.med_prop.calc_transport_properties(
                 self.economizer.state_inlet
             )
-            alpha_liquid = self.economizer.calc_alpha_liquid(tra_properties_liquid)
+            alpha_liquid = self.economizer.calc_alpha_liquid(tra_properties_liquid) # implemented? or is fixed value taken? self.economizer.[...heattransfer coefficient]
 
-            # Mean transport properties on secondary (two-phase) side
+            # Mean transport properties on cold side
             tra_properties_two_phase = self.med_prop.calc_mean_transport_properties(
-                self.economizer.state_two_phase_inlet,
-                self.economizer.state_two_phase_outlet
+                self.economizer.state_cold_inlet,
+                self.economizer.state_cold_outlet
             )
-            alpha_two_phase = self.economizer.calc_alpha_liquid(tra_properties_two_phase)
+            alpha_two_phase = self.economizer.calc_alpha_liquid(tra_properties_two_phase) # why liquid?
 
             # ---------------------------------------------------------------
-            # Effective cp on secondary side (used in NTU method)
+            # Effective cp on cold side (used in NTU method)
             # ---------------------------------------------------------------
-            dT_secondary = (
-                    self.economizer.state_two_phase_outlet.T -
-                    self.economizer.state_two_phase_inlet.T
+            dT_cold = (
+                    self.economizer.state_cold_outlet.T -
+                    self.economizer.state_cold_inlet.T
             )
-            if dT_secondary == 0:
-                cp_4 = np.inf
+            if dT_cold == 0:
+                cp_5_6 = np.inf
             else:
-                cp_4 = dh_ihe_goal / dT_secondary
-            self.economizer.set_secondary_cp(cp=cp_4)
-            primary_cp = tra_properties_liquid.cp
+                cp_5_6 = dh_ihe_goal / dT_cold
+            self.economizer.set_secondary_cp(cp=cp_5_6)
+            cp_3_7 = tra_properties_liquid.cp
 
             # -----------------------------------------------------------
             # Inner loop: iterate vapor-injection fraction x_vi
@@ -390,15 +385,15 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
                 # Mass-flow definitions for the upstream configuration
                 m_flow_evaporator = self.evaporator.m_flow   #if you get h7<h5 at the beginning of iteration, then try to increase m_flow_evaporator here, for example 0.3
                 m_flow_vapor_injection = (x_vi / (1-x_vi)) * m_flow_evaporator #vorsichtttttttttttt
-                m_flow_sum = m_flow_evaporator + m_flow_vapor_injection
+                m_flow_condenser = m_flow_evaporator + m_flow_vapor_injection
 
-                # Target heat transfer on economizer secondary side
+                # Target heat transfer on economizer cold side
                 Q_flow_goal = dh_ihe_goal * m_flow_vapor_injection
 
                 print(f"dh_ihe_goal: {dh_ihe_goal} and m_flow_vapor_injection: {m_flow_vapor_injection} and Q_flow_goal: {Q_flow_goal}")
 
                 # Assign primary & secondary mass flows
-                self.economizer.m_flow = m_flow_sum
+                self.economizer.m_flow = m_flow_condenser
                 self.economizer.m_flow_secondary = m_flow_vapor_injection
 
                 # NTU heat-exchanger model
@@ -407,12 +402,12 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
                     k=k,
                     dT_max=(
                             self.economizer.state_inlet.T -
-                            self.economizer.state_two_phase_inlet.T  # Frage!
+                            self.economizer.state_cold_inlet.T
                     ),
                     A=self.economizer.A,
                     flow_type=self.economizer.flow_type,
-                    m_flow_primary_cp=self.economizer.m_flow * primary_cp,
-                    m_flow_secondary_cp=self.economizer.m_flow_secondary_cp
+                    m_flow_primary_cp=self.economizer.m_flow * cp_3_7,
+                    m_flow_secondary_cp=self.economizer.m_flow_secondary * cp_5_6
                 )
 
                 # print(f"Inner loop calc_injection x_vi: {x_vi}, Q_flow: {Q_flow}, Q_flow_goal: {Q_flow_goal}")
@@ -420,7 +415,7 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
                 # print(f"m_flow_secondary: {m_flow_vapor_injection}")
                 # print(f"self.evaporator.m_flow: {self.evaporator.m_flow}")
 
-                # Adjust x_vi until Q_flow ≈ Q_flow_goal
+                # Adjust x_vi until Q_flow (hot) ≈ Q_flow_goal (cold)
                 if Q_flow > Q_flow_goal:
                     # Increase injection fraction
                     if abs(x_vi) >= 0.9 or x_vi < 0 :
@@ -442,38 +437,38 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
             # Update economizer primary outlet (state 7)
             # Enthalpy balance: h7 = h3 - x_vi * (h6 - h5)
             # -----------------------------------------------------------
-            h_7 = self.economizer.state_inlet.h - x_vi  * (self.economizer.state_two_phase_outlet.h - self.economizer.state_two_phase_inlet.h)
+            h_7 = self.economizer.state_inlet.h - x_vi  * (self.economizer.state_cold_outlet.h - self.economizer.state_cold_inlet.h)
             self.economizer.state_outlet = self.med_prop.calc_state("PH", self.condenser.state_outlet.p, h_7)
-            print(f"deneme")
+            print(f"Step-results:")
             print(f"x_vi: {x_vi}")
-            print(f"Difference  Q Wärme: {Q_flow - Q_flow_goal}")
+            print(f"Difference  Q_flow: {Q_flow - Q_flow_goal}")
             print(f"economizer.state_outlet.h: {self.economizer.state_outlet.h}")
-            print(f"economizer.state_two_phase_inlet.h: {self.economizer.state_two_phase_inlet.h}")
-            print(f"Difference h7-h5: {self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h}")
+            print(f"economizer.state_cold_inlet.h: {self.economizer.state_cold_inlet.h}")
+            print(f"Difference h7-h5: {self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h}")
 
             T_iteration = False
-            if self.economizer.state_outlet.h < self.economizer.state_two_phase_inlet.h and t == 1:
+            if self.economizer.state_outlet.h < self.economizer.state_cold_inlet.h and t == 1:
                 print(f" if h7 < h5 at first iteration, go to T iteration")
                 T_iteration = True
 
 #T iteration start here
             if T_iteration == True :
                 print(f" h7 < h5 Block, than h5 must be decreased, so Q = -1, calc methode f(p_inj, T")
-                # self.economizer.state_two_phase_inlet.q = None
+                # self.economizer.state_cold_inlet.q = None
                 _T_economizer_two_phase_inlet_step = 0.1
                 _min_step_T_economizer_two_phase_inlet_step  = 0.0001
-                T_initall_guess = self.economizer.state_two_phase_inlet.T - _min_step_T_economizer_two_phase_inlet_step
-                print(f"economizer.state_two_phase_inlet: {self.economizer.state_two_phase_inlet}")
+                T_initall_guess = self.economizer.state_cold_inlet.T - _min_step_T_economizer_two_phase_inlet_step
+                print(f"economizer.state_cold_inlet: {self.economizer.state_cold_inlet}")
                 print(f"Initial T_economizer_two_phase_inlet in h7<h5 block: {T_initall_guess}")
                 T_economizer_two_phase_inlet_next = T_initall_guess
-                self.economizer.state_two_phase_inlet = self.med_prop.calc_state("PT", self.economizer.state_two_phase_outlet.p, T_economizer_two_phase_inlet_next)
-                print(f"initial economizer.state_two_phase_inlet in h7<h5 block: {T_economizer_two_phase_inlet_next}")
-                print(f"economizer.state_two_phase_inlet after T-1 : {self.economizer.state_two_phase_inlet}")
+                self.economizer.state_cold_inlet = self.med_prop.calc_state("PT", self.economizer.state_cold_outlet.p, T_economizer_two_phase_inlet_next)
+                print(f"initial economizer.state_cold_inlet in h7<h5 block: {T_economizer_two_phase_inlet_next}")
+                print(f"economizer.state_cold_inlet after T-1 : {self.economizer.state_cold_inlet}")
                 t_T_5 = 0
                 while True:
                     t_T_5 +=1
                     print(f"h7 < h5 while loop iteration: {t_T_5}")
-                    # if _Q_economizer_twophase_inlet_step < _min_step_Q_economizer_twophase_inlet_step:
+                    # if _Q_economizer_cold_inlet_step < _min_step_Q_economizer_cold_inlet_step:
                     #     print(f"Breaking outer loop")
                     #     break
 
@@ -484,16 +479,16 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
 
                     T_economizer_two_phase_inlet = T_economizer_two_phase_inlet_next
                     print(f"T_economizer_two_phase_inlet: {T_economizer_two_phase_inlet}")
-                    self.economizer.state_two_phase_inlet = self.med_prop.calc_state("PT", self.economizer.state_two_phase_outlet.p, T_economizer_two_phase_inlet)
-                    print(f"after calculate state economizer.state_two_phase_inlet in h7<h5 block: {self.economizer.state_two_phase_inlet}")
+                    self.economizer.state_cold_inlet = self.med_prop.calc_state("PT", self.economizer.state_cold_outlet.p, T_economizer_two_phase_inlet)
+                    print(f"after calculate state economizer.state_cold_inlet in h7<h5 block: {self.economizer.state_cold_inlet}")
                     # Base mass flow on evaporator (LP side)
                     m_flow_evaporator = self.evaporator.m_flow
                     print(f"m_flow_evaporator in h7<h5 block: {m_flow_evaporator}")
 
                     # Enthalpy lift across two-phase side of economizer (state 5 → 6)
                     dh_ihe_goal = (
-                            self.economizer.state_two_phase_outlet.h -
-                            self.economizer.state_two_phase_inlet.h
+                            self.economizer.state_cold_outlet.h -
+                            self.economizer.state_cold_inlet.h
                     )
 
                     # Transport properties on primary side (liquid)
@@ -504,24 +499,24 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
 
                     # Mean transport properties on secondary (two-phase) side
                     tra_properties_two_phase = self.med_prop.calc_mean_transport_properties(
-                        self.economizer.state_two_phase_inlet,
-                        self.economizer.state_two_phase_outlet
+                        self.economizer.state_cold_inlet,
+                        self.economizer.state_cold_outlet
                     )
                     alpha_two_phase = self.economizer.calc_alpha_liquid(tra_properties_two_phase)
 
                     # ---------------------------------------------------------------
                     # Effective cp on secondary side (used in NTU method)
                     # ---------------------------------------------------------------
-                    dT_secondary = (
-                            self.economizer.state_two_phase_outlet.T -
-                            self.economizer.state_two_phase_inlet.T
+                    dT_cold = (
+                            self.economizer.state_cold_outlet.T -
+                            self.economizer.state_cold_inlet.T
                     )
-                    if dT_secondary == 0:
-                        cp_4 = np.inf
+                    if dT_cold == 0:
+                        cp_5_6 = np.inf
                     else:
-                        cp_4 = dh_ihe_goal / dT_secondary
-                    self.economizer.set_secondary_cp(cp=cp_4)
-                    primary_cp = tra_properties_liquid.cp
+                        cp_5_6 = dh_ihe_goal / dT_cold
+                    self.economizer.set_secondary_cp(cp=cp_5_6)
+                    cp_3_7 = tra_properties_liquid.cp
 
                     # -----------------------------------------------------------
                     # Inner loop: iterate vapor-injection fraction x_vi
@@ -535,14 +530,14 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
                         # Mass-flow definitions for the upstream configuration
                         m_flow_evaporator = self.evaporator.m_flow  # if you get h7<h5 at the beginning of iteration, then try to increase m_flow_evaporator here, for example 0.3
                         m_flow_vapor_injection = (x_vi / (1 - x_vi)) * m_flow_evaporator  # vorsichtttttttttttt
-                        m_flow_sum = m_flow_evaporator + m_flow_vapor_injection
+                        m_flow_condenser = m_flow_evaporator + m_flow_vapor_injection
 
                         # Target heat transfer on economizer secondary side
                         Q_flow_goal = dh_ihe_goal * m_flow_vapor_injection
                         print(f"dh_ihe_goal: {dh_ihe_goal} and m_flow_vapor_injection: {m_flow_vapor_injection} and Q_flow_goal: {Q_flow_goal}")
 
                         # Assign primary & secondary mass flows
-                        self.economizer.m_flow = m_flow_sum
+                        self.economizer.m_flow = m_flow_condenser
                         self.economizer.m_flow_secondary = m_flow_vapor_injection
 
                         # NTU heat-exchanger model
@@ -551,11 +546,11 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
                             k=k,
                             dT_max=(
                                     self.economizer.state_inlet.T -
-                                    self.economizer.state_two_phase_inlet.T  # Frage!
+                                    self.economizer.state_cold_inlet.T  # Frage!
                             ),
                             A=self.economizer.A,
                             flow_type=self.economizer.flow_type,
-                            m_flow_primary_cp=self.economizer.m_flow * primary_cp,
+                            m_flow_cp_3_7=self.economizer.m_flow * cp_3_7,
                             m_flow_secondary_cp=self.economizer.m_flow_secondary_cp #epsilon * Cmin * dTmax   m_inj* cp5
                         )
                         print(f"Q_flow: {Q_flow}")
@@ -581,51 +576,51 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
                             _x_vi_step /= 10
 
 
-                    h_7 = self.economizer.state_inlet.h - x_vi * (self.economizer.state_two_phase_outlet.h - self.economizer.state_two_phase_inlet.h)
+                    h_7 = self.economizer.state_inlet.h - x_vi * (self.economizer.state_cold_outlet.h - self.economizer.state_cold_inlet.h)
                     self.economizer.state_outlet = self.med_prop.calc_state("PH", self.condenser.state_outlet.p, h_7)
                     print(f"T iteration x_inj")
                     print(f"x_vi: {x_vi}")
                     print(f" Q_flow: {Q_flow}, Q_flow_goal: {Q_flow_goal}")
                     print(f"Difference Q Wärme: {Q_flow - Q_flow_goal}")
                     print(f"economizer.state_inlet.h: {self.economizer.state_inlet.h}")
-                    print(f"economizer.state_two_phase_outlet.h: {self.economizer.state_two_phase_outlet.h}")
+                    print(f"economizer.state_cold_outlet.h: {self.economizer.state_cold_outlet.h}")
                     print(f"economizer.state_outlet.h: {self.economizer.state_outlet.h}")
-                    print(f"economizer.state_two_phase_inlet.h: {self.economizer.state_two_phase_inlet.h}")
-                    print(f"Difference h7-h5: {self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h}")
+                    print(f"economizer.state_cold_inlet.h: {self.economizer.state_cold_inlet.h}")
+                    print(f"Difference h7-h5: {self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h}")
 
-                    if (self.economizer.state_two_phase_inlet.h - self.economizer.state_outlet.h) >  0.001:
+                    if (self.economizer.state_cold_inlet.h - self.economizer.state_outlet.h) >  0.001:
                         # If Tstep becomes too small → stop
                         if _T_economizer_two_phase_inlet_step <= _min_step_T_economizer_two_phase_inlet_step:
                             print(f" minstep limit reached in T block")
                             print(f" returning...")
-                            print(f"_T_economizer_twophase_inlet_step: {_T_economizer_two_phase_inlet_step}")
-                            print(f"T_economizer_twophase_inlet_next: {T_economizer_two_phase_inlet_next}")
+                            print(f"_T_economizer_cold_inlet_step: {_T_economizer_two_phase_inlet_step}")
+                            print(f"T_economizer_cold_inlet_next: {T_economizer_two_phase_inlet_next}")
                             print(
-                                f"_min_step_Q_economizer_twophase_inlet_step: {_min_step_T_economizer_two_phase_inlet_step}")
+                                f"_min_step_Q_economizer_cold_inlet_step: {_min_step_T_economizer_two_phase_inlet_step}")
                             print(f"economizer.state_outlet.h: {self.economizer.state_outlet.h}")
-                            print(f"economizer.state_two_phase_inlet.h: {self.economizer.state_two_phase_inlet.h}")
+                            print(f"economizer.state_cold_inlet.h: {self.economizer.state_cold_inlet.h}")
                             print(f" returning...")
-                            return x_vi, self.economizer.state_two_phase_outlet.h, self.economizer.state_outlet
+                            return x_vi, self.economizer.state_cold_outlet.h, self.economizer.state_outlet
 
                         # decrease T guess
                         T_economizer_two_phase_inlet_next = T_economizer_two_phase_inlet - _T_economizer_two_phase_inlet_step
-                        print(f"T iterationu T_economizer_twophase_inlet_next: {T_economizer_two_phase_inlet_next}")
+                        print(f"T iterationu T_economizer_cold_inlet_next: {T_economizer_two_phase_inlet_next}")
                         print(f"deneme2 T block")
                     else:
-                        # Close enough → refine Q step
+                        # Close enough → refine q step
                         print(f"else block {_T_economizer_two_phase_inlet_step} in T block")
-                        print(f"Difference h7-h5: {self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h}")
+                        print(f"Difference h7-h5: {self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h}")
                         T_economizer_two_phase_inlet_next = T_economizer_two_phase_inlet + _T_economizer_two_phase_inlet_step * 0.9
                         _T_economizer_two_phase_inlet_step /= 10
 
                         # Stop if tolerance satisfied
-                        if abs(self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h) <= 0.001:
+                        if abs(self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h) <= 0.001:
                             print(f"Breaking T block loop with h7>h5 condition met")
                             print(f"economizer.state_outlet.h: {self.economizer.state_outlet.h}")
-                            print(f"economizer.state_two_phase_inlet.h: {self.economizer.state_two_phase_inlet.h}")
-                            print(f"Difference h7-h5: {self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h}")
+                            print(f"economizer.state_cold_inlet.h: {self.economizer.state_cold_inlet.h}")
+                            print(f"Difference h7-h5: {self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h}")
                             print(f" returning...")
-                            return x_vi, self.economizer.state_two_phase_outlet.h, self.economizer.state_outlet
+                            return x_vi, self.economizer.state_cold_outlet.h, self.economizer.state_outlet
             # -----------------------------------------------------------
             # -----------------------------------------------------------
 
@@ -635,93 +630,92 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
 
             # -----------------------------------------------------------
             # Check whether h7 matches h5 within tolerance.
-            # If not, adjust the quality Q at state 5 (outer loop).
+            # If not, adjust the quality q at state 5 (outer loop).
             # -----------------------------------------------------------
-            if self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h > 0.001:
-                # If Q-step becomes too small → stop
-                if _Q_economizer_twophase_inlet_step <= _min_step_Q_economizer_twophase_inlet_step:
-                    print(f"_Q_economizer_twophase_inlet_step: {_Q_economizer_twophase_inlet_step}")
-                    print(f"Q_economizer_twophase_inlet_next: {Q_economizer_twophase_inlet_next}")
-                    print(f"_min_step_Q_economizer_twophase_inlet_step: {_min_step_Q_economizer_twophase_inlet_step}")
+            if self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h > 0.001:
+                # If q-step becomes too small → stop
+                if _q_economizer_cold_inlet_step <= _min_step_q_economizer_cold_inlet_step:
+                    print(f"_q_economizer_cold_inlet_step: {_q_economizer_cold_inlet_step}")
+                    print(f"q_economizer_cold_inlet_next: {q_economizer_cold_inlet_next}")
+                    print(f"_min_step_q_economizer_cold_inlet_step: {_min_step_q_economizer_cold_inlet_step}")
                     print(f"economizer.state_outlet.h: {self.economizer.state_outlet.h}")
-                    print(f"economizer.state_two_phase_inlet.h: {self.economizer.state_two_phase_inlet.h}")
+                    print(f"economizer.state_cold_inlet.h: {self.economizer.state_cold_inlet.h}")
                     break
 
-                # Increase Q guess
-                Q_economizer_twophase_inlet_next = Q_economizer_twophase_inlet + _Q_economizer_twophase_inlet_step
-                print(f"before deneme2 Q_economizer_twophase_inlet_next: {Q_economizer_twophase_inlet_next}")
+                # Increase q guess
+                q_economizer_cold_inlet_next = q_economizer_cold_inlet + _q_economizer_cold_inlet_step
+                print(f"before deneme2 q_economizer_cold_inlet_next: {q_economizer_cold_inlet_next}")
                 print(f"deneme2")
-            # elif (self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h) <0: #sıkıntı şu direkt burada başlıyor ve Qstepi çok düşürüyor sonra minstepsınırını aşıyor break atıyor
-            #     #while self.economizer.state_outlet.h <! self.economizer.state_two_phase_inlet.h:  x_vi azalt
+            # elif (self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h) <0: #sıkıntı şu direkt burada başlıyor ve Qstepi çok düşürüyor sonra minstepsınırını aşıyor break atıyor
+            #     #while self.economizer.state_outlet.h <! self.economizer.state_cold_inlet.h:  x_vi azalt
             #
             #     print(f"economizer.state_outlet: {self.economizer.state_outlet}")
-            #     print(f"economizer.state_two_phase_inlet: {self.economizer.state_two_phase_inlet}")
-            #     print(f"Q_economizer_twophase_inlet_next: {Q_economizer_twophase_inlet_next}")
-            #     Q_economizer_twophase_inlet_next = Q_economizer_twophase_inlet - _Q_economizer_twophase_inlet_step * 0.9
-            #     _Q_economizer_twophase_inlet_step /= 10
+            #     print(f"economizer.state_cold_inlet: {self.economizer.state_cold_inlet}")
+            #     print(f"Q_economizer_cold_inlet_next: {Q_economizer_cold_inlet_next}")
+            #     Q_economizer_cold_inlet_next = Q_economizer_cold_inlet - _Q_economizer_cold_inlet_step * 0.9
+            #     _Q_economizer_cold_inlet_step /= 10
             #     print(f"economizer.state_outlet.h: {self.economizer.state_outlet.h}")
-            #     print(f"economizer.state_two_phase_inlet.h: {self.economizer.state_two_phase_inlet.h}")
-            #     print(f"fark: {self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h}")
-            #     print(f"_Q_economizer_twophase_inlet_step düzeltme sonrası: {_Q_economizer_twophase_inlet_step}")
-            #     print(f"Düzeltme sonrası Q_economizer_twophase_inlet_next: {Q_economizer_twophase_inlet_next}")
+            #     print(f"economizer.state_cold_inlet.h: {self.economizer.state_cold_inlet.h}")
+            #     print(f"fark: {self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h}")
+            #     print(f"_Q_economizer_cold_inlet_step düzeltme sonrası: {_Q_economizer_cold_inlet_step}")
+            #     print(f"Düzeltme sonrası Q_economizer_cold_inlet_next: {Q_economizer_cold_inlet_next}")
 
 
 
             else:
-                # Close enough → refine Q step
-                print(f"else block {_Q_economizer_twophase_inlet_step}")
-                print(f"Difference: {self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h}")
-                Q_economizer_twophase_inlet_next = Q_economizer_twophase_inlet - _Q_economizer_twophase_inlet_step * 0.9
-                _Q_economizer_twophase_inlet_step /= 10
-
+                # Close enough → refine q step
+                print(f"else block {_q_economizer_cold_inlet_step}")
+                print(f"Difference: {self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h}")
+                q_economizer_cold_inlet_next = q_economizer_cold_inlet - _q_economizer_cold_inlet_step * 0.9
+                _q_economizer_cold_inlet_step /= 10
                 # Stop if tolerance satisfied
-                if abs(self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h) <= 0.001:
-                    print(f"Q_economizer_twophase_inlet_next: {Q_economizer_twophase_inlet_next}")
+                if abs(self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h) <= 0.001:
+                    print(f"q_economizer_cold_inlet_next: {q_economizer_cold_inlet_next}")
                     print(f"economizer.state_outlet.h: {self.economizer.state_outlet.h}")
-                    print(f"economizer.state_two_phase_inlet.h: {self.economizer.state_two_phase_inlet.h}")
-                    print(f"Difference: {self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h}")
+                    print(f"economizer.state_cold_inlet.h: {self.economizer.state_cold_inlet.h}")
+                    print(f"Difference: {self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h}")
                     break
-                if Q_economizer_twophase_inlet_next < 0:
-                    print("Q < 0 hatası, sıfıra sabitliyorum1")
-                    Q_economizer_twophase_inlet_next = Q_economizer_twophase_inlet + _Q_economizer_twophase_inlet_step
+                if q_economizer_cold_inlet_next < 0:
+                    print("q < 0 hatası, sıfıra sabitliyorum1")
+                    q_economizer_cold_inlet_next = q_economizer_cold_inlet + _q_economizer_cold_inlet_step
 
         print(
-            f"break check? Difference: {self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h}")
+            f"break check? Difference: {self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h}")
         print(f"before return: ")
         print(f"self.economizer.state_outlet:          {self.economizer.state_outlet},")
-        print(f"self.economizer.state_two_phase.inlet: {self.economizer.state_two_phase_inlet} ")
+        print(f"self.economizer.state_two_phase.inlet: {self.economizer.state_cold_inlet} ")
         print(f"now returning...")
 
             # Final return values:
             #   x_vi → optimal vapor injection fraction
             #   h6   → enthalpy of injected vapor
             #   state7 → economizer primary outlet
-        return x_vi, self.economizer.state_two_phase_outlet.h, self.economizer.state_outlet
+        return x_vi, self.economizer.state_cold_outlet.h, self.economizer.state_outlet
 
 
 
             # # Safety: ensure
             # # h7 >= h5
-            # elif (self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h) < -100:  # sıkıntı şu direkt burada başlıyor ve Qstepi çok düşürüyor sonra minstepsınırını aşıyor break atıyor
+            # elif (self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h) < -100:  # sıkıntı şu direkt burada başlıyor ve Qstepi çok düşürüyor sonra minstepsınırını aşıyor break atıyor
             #     print(f" elif <-100 bloğu çalıştı")
             #     print(f"economizer.state_outlet: {self.economizer.state_outlet}")
-            #     print(f"economizer.state_two_phase_inlet: {self.economizer.state_two_phase_inlet}")
-            #     print(f"Q_economizer_twophase_inlet_next: {Q_economizer_twophase_inlet_next}")
-            #     Q_economizer_twophase_inlet_next = Q_economizer_twophase_inlet - _Q_economizer_twophase_inlet_step * 0.9
-            #     _Q_economizer_twophase_inlet_step /= 10
+            #     print(f"economizer.state_cold_inlet: {self.economizer.state_cold_inlet}")
+            #     print(f"Q_economizer_cold_inlet_next: {Q_economizer_cold_inlet_next}")
+            #     Q_economizer_cold_inlet_next = Q_economizer_cold_inlet - _Q_economizer_cold_inlet_step * 0.9
+            #     _Q_economizer_cold_inlet_step /= 10
             #     print(f"economizer.state_outlet.h: {self.economizer.state_outlet.h}")
-            #     print(f"economizer.state_two_phase_inlet.h: {self.economizer.state_two_phase_inlet.h}")
-            #     print(f"fark: {self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h}")
-            #     print(f"_Q_economizer_twophase_inlet_step düzeltme sonrası: {_Q_economizer_twophase_inlet_step}")
-            #     print(f"Düzeltme sonrası Q_economizer_twophase_inlet_next: {Q_economizer_twophase_inlet_next}")
-            #     if Q_economizer_twophase_inlet_next < 0:
-            #         print(f"Q_economizer_twophase_inlet_next: {Q_economizer_twophase_inlet_next}")
+            #     print(f"economizer.state_cold_inlet.h: {self.economizer.state_cold_inlet.h}")
+            #     print(f"fark: {self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h}")
+            #     print(f"_Q_economizer_cold_inlet_step düzeltme sonrası: {_Q_economizer_cold_inlet_step}")
+            #     print(f"Düzeltme sonrası Q_economizer_cold_inlet_next: {Q_economizer_cold_inlet_next}")
+            #     if Q_economizer_cold_inlet_next < 0:
+            #         print(f"Q_economizer_cold_inlet_next: {Q_economizer_cold_inlet_next}")
             #         print(f"economizer.state_outlet.h: {self.economizer.state_outlet.h}")
-            #         print(f"economizer.state_two_phase_inlet.h: {self.economizer.state_two_phase_inlet.h}")
-            #         print(f"fark: {self.economizer.state_outlet.h - self.economizer.state_two_phase_inlet.h}")
-            #         print(f"Q_economizer_twophase_inlet_next: {Q_economizer_twophase_inlet_next}")
+            #         print(f"economizer.state_cold_inlet.h: {self.economizer.state_cold_inlet.h}")
+            #         print(f"fark: {self.economizer.state_outlet.h - self.economizer.state_cold_inlet.h}")
+            #         print(f"Q_economizer_cold_inlet_next: {Q_economizer_cold_inlet_next}")
             #         print("Q < 0 hatası, sıfıra sabitliyorum2")
-            #         Q_economizer_twophase_inlet_next = 0
+            #         Q_economizer_cold_inlet_next = 0
 
     def get_states_in_order_for_plotting(self):
         """
@@ -745,8 +739,8 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
         # ---------------------------------------------------------
         # 3. ECONOMIZER SECONDARY (5 → 6)  *** <-- senin istediğin yer burası
         # ---------------------------------------------------------
-        print(f"[5] economizer_twophase_inlet: {self.economizer.state_two_phase_inlet}")
-        print(f"[6] economizer_twophase_outlet (injected vapor): {self.economizer.state_two_phase_outlet}")
+        print(f"[5] economizer_cold_inlet: {self.economizer.state_cold_inlet}")
+        print(f"[6] economizer_cold_outlet (injected vapor): {self.economizer.state_cold_outlet}")
 
         # ---------------------------------------------------------
         # 4. SPLITTER (state 7 → LP EV + HP EV)
@@ -810,12 +804,12 @@ class VaporInjectionEconomizerDownstream(VaporInjectionEconomizer):
             self.economizer.state_outlet, # state 5
             self.high_pressure_valve.state_inlet,             # state 7
             self.high_pressure_valve.state_outlet,     # state 7 (path to HP EV)
-            self.economizer.state_two_phase_inlet,    # state 5
-            self.economizer.state_two_phase_outlet,   # state 6
+            self.economizer.state_cold_inlet,    # state 5
+            self.economizer.state_cold_outlet,   # state 6
             self.high_pressure_compressor.state_inlet,
             # Go back to the condenser outlet
-            self.economizer.state_two_phase_outlet,  # state 6
-            self.economizer.state_two_phase_inlet,  # state 5
+            self.economizer.state_cold_outlet,  # state 6
+            self.economizer.state_cold_inlet,  # state 5
             # self.high_pressure_valve.state_outlet,  # state 5
             # self.high_pressure_valve.state_inlet,  # state 3
             # self.economizer.state_inlet,  # state 3

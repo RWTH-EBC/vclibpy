@@ -37,19 +37,19 @@ class VaporInjectionEconomizerNTU(ExternalHeatExchanger):
             **kwargs)
 
     @property
-    def state_two_phase_inlet(self) -> ThermodynamicState:
+    def state_cold_inlet(self) -> ThermodynamicState:
         return self._state_two_phase_inlet
 
-    @state_two_phase_inlet.setter
-    def state_two_phase_inlet(self, state_inlet: ThermodynamicState):
+    @state_cold_inlet.setter
+    def state_cold_inlet(self, state_inlet: ThermodynamicState):
         self._state_two_phase_inlet = state_inlet
 
     @property
-    def state_two_phase_outlet(self) -> ThermodynamicState:
+    def state_cold_outlet(self) -> ThermodynamicState:
         return self._state_two_phase_outlet
 
-    @state_two_phase_outlet.setter
-    def state_two_phase_outlet(self, state_outlet: ThermodynamicState):
+    @state_cold_outlet.setter
+    def state_cold_outlet(self, state_outlet: ThermodynamicState):
         self._state_two_phase_outlet = state_outlet
 
     def calc(self, inputs, fs_state) -> (float, float):
