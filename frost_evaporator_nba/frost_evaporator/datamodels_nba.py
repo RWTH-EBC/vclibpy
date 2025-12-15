@@ -23,6 +23,7 @@ class FrostEvaporatorParameters(VariableContainer):
         frost_conductivity_correlation_choice: str,
         nusselt_correlation_choice: str,
         pressure_drop_correlation_choice: str,
+        h_conv_air_correlation_choice: str,
 
         # Correction Factors
         correction_factor_h_conv_air: float,
@@ -58,8 +59,6 @@ class FrostEvaporatorParameters(VariableContainer):
         longitudinal_tube_pitch = fin_length / tube_layers
         transverse_tube_pitch = fin_height / tubes_per_layer
 
-
-
         self.set("time_step", time_step, "s", "Simulation time step for evaporator model")
         self.set("gravity", gravity, "m/s^2", "Gravitational acceleration")
         self.set("water_freezing_point", 273.15, "K", "The freezing point temperature of water.")
@@ -74,6 +73,7 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("frost_conductivity_correlation_choice", frost_conductivity_correlation_choice, "-", "Choice of correlation for frost thermal conductivity")
         self.set("nusselt_correlation_choice", nusselt_correlation_choice, "-", "Choice of correlation for air-side Nusselt number")
         self.set("pressure_drop_correlation_choice", pressure_drop_correlation_choice, "-", "Choice of correlation for air-side pressure drop")
+        self.set("h_conv_air_correlation_choice", h_conv_air_correlation_choice, "-", "Choice of correlation for air-side convective heat transfer coefficient")
 
         self.set("correction_factor_h_conv_air", correction_factor_h_conv_air, "-", "Correction factor to scale h_conv of air")
         self.set("correction_factor_betta_air", correction_factor_betta_air, "-", "Correction factor to scale betta of air")

@@ -101,10 +101,7 @@ class ThermoModel:
         # Calculate the outlet humidity ratio
         W_out = W_in - delta_W
 
-        if W_out < 0:
-            return 0.0
-        
-        return W_out
+        return 0.0 if W_out < 0 else W_out
 
     def _calculate_air_outlet_temperature(self, Q_dot_total: float, m_dot_dry_air: float, h_in_air: float, 
                                           m_dot_frost_total: float, h_ice: float, p_out_air: float, 

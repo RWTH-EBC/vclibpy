@@ -18,11 +18,12 @@ from .datamodels_nba import (
 )
 
 # Import all model classes from their respective files
-from .frost import FrostModel
-from .air import AirModel 
-from .refrigerant import RefrigerantModel 
-from .heat_mass_transfer import HeatMassTransferModel
-from .thermo import ThermoModel
+from .frost_model import FrostModel
+from .air_model import AirModel 
+from .fan_system_model import FanSystemModel 
+from .refrigerant_model import RefrigerantModel 
+from .hmt_model import HeatMassTransferModel
+from .thermo_model import ThermoModel
 
 
 
@@ -47,6 +48,7 @@ __all__ = [
     # Model Classes
     "FrostModel",
     "AirModel",
+    "FanSystemModel",
     "RefrigerantModel",
     "HeatMassTransferModel",
     "ThermoModel",
