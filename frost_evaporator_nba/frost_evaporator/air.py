@@ -5,15 +5,13 @@ from .datamodels_nba import (
 )
 import numpy as np
 import warnings
+import math
 import CoolProp.CoolProp as CP_HumidAir
 from scipy.optimize import brentq
 from scipy.interpolate import interp1d
 
 class AirModel:
-    """
-    # TODO Docstring
-    """
-    
+
     def __init__(self, 
                  parameters: FrostEvaporatorParameters, 
                  ):
@@ -24,10 +22,6 @@ class AirModel:
             parameters: The (read-only) parameters object.
         """
         self.params = parameters
-
-        # Wang parameters setup (transverse and longitudinal tube pitch)
-        self.P_t = self.params.fin_height / self.params.tubes_per_layer
-        self.P_l = self.params.fin_length / self.params.tube_layers
 
         # Wang parameters validity check
         self._check_wang_validity()
@@ -54,193 +48,73 @@ class AirModel:
 
 
 
-    def update_properties(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
+    ####################################################################################
+    # Calculate Fan-System Interaction for Air Flow
+    ####################################################################################
+
+    def solve_fan_system_equilibrium(self, states: list[FrostEvaporatorState], global_inputs: FrostEvaporatorInputs):
         """
-        Calculates and updates the air model.
+        Solves the Hydraulic Circuit: Fan Curve vs System Resistance.
         
-        This IS safe to call inside an iterative loop, as it just recalculates
-        properties based on the latest guessed values.
+        Calculates the GLOBAL Mass Flow Rate that satisfies the pressure balance.
+        Then calculates and sets the local Velocity for each layer based on that mass flow
+        and the local density/frost blockage.
         """
-
-        # ================= Get State Values =================
-        # Inputs
-        T_in = inputs.air.T_in
-        R_in = inputs.air.R_in
-
-        # State (Current Guesses)
-        p_in_current = state.air.p_in
-        T_out = state.air.T_out
-        W_out = state.air.W_out
         
-        T_frost_surface = state.hmt.T_frost_surface
-        T_frost_base = state.hmt.T_frost_base
+        # Calculate Air Density at Fan Inlet
+        T_in = global_inputs.air.T_in
+        p_in = global_inputs.air.p_in
+        W_in = global_inputs.air.W_in
+        density_inlet = 1.0 / CP_HumidAir.HAPropsSI('V', 'T', T_in, 'P', p_in, 'W', W_in)
+
+        # --- Solve ---
+        max_m_dot = (self.max_f / 3600.0) * density_inlet
         
-        space_between_frost = state.frost.space_between_frost
-        flow_area_air = state.frost.flow_area_air
-
-        # Parameters
-        p_ambient = self.params.ambient_pressure
-
-        fin_spacing = self.params.fin_spacing
-        correction_factor_pressure_loss = self.params.correction_factor_pressure_loss
-
-
-        # frost_thickness = state.frost.thickness
-        # tube_outer_diameter = self.params.tube_outer_diameter
-        # fin_thickness = self.params.fin_thickness
-        # tube_layers = self.params.tube_layers
-        # fin_pitch = self.params.fin_pitch
-        # P_t = self.P_t
-        # P_l = self.P_l
+        try:
+            m_dot_solved = brentq(
+                f    = self._calculate_hydraulic_residual, 
+                a    = 1e-4, 
+                b    = max_m_dot,  
+                args = (states, density_inlet),
+                xtol = 1e-6)
+        except ValueError:
+            # If choked or out of range, default to 0 or min
+            m_dot_solved = 0.0
+            print("Warning: Fan solver failed to converge. Flow set to 0.")
 
 
-        # ================= Calculate new Values =================
+        # --- Apply Results to States ---
+        v_dot_fan_m3h = (m_dot_solved / density_inlet) * 3600.0
+        total_pressure_drop_fan = self._get_pressure_from_flow(v_dot_fan_m3h)
+
+        # Initialize running pressure with global inlet pressure
+        current_static_pressure = global_inputs.air.p_in
         
-        # Inlet Humidity Ratio (W_in)
-        W_in = CP_HumidAir.HAPropsSI(
-            'W', 
-            'T', T_in, 
-            'P', p_ambient, 
-            'R', R_in
-        )
+        for state in states:
+            density_local = state.air.density_avg
 
-        # Average Air Properties
-        pressure_avg, density_avg, dyn_viscosity_avg, heat_capacity_avg, thermal_conductivity_avg, prandtl_avg, lewis_avg, rho_w_in, rho_w_out, h_in, h_out = self._calculate_air_averages(
-            T_in=T_in,
-            p_in=p_in_current,
-            W_in=W_in,
-            T_out=T_out,
-            p_out=p_ambient,
-            W_out=W_out
-        )
+            # Re-calculate exact dP and Velocity for this layer using solved mass flow
+            dp_layer, v_local = self._calculate_layer_dp(
+                state         = state, 
+                m_dot         = m_dot_solved, 
+                density_local = density_local
+            )
 
-        # Water Vapor Densities (at surface and base)
-        rho_w_frost_surface_sat, W_frost_surface_sat = self._get_water_vapor_density(
-            T=T_frost_surface, 
-            p=pressure_avg, 
-            R=1.0  # Saturated
-        )
-        
-        rho_w_frost_base_sat, W_frost_base_sat = self._get_water_vapor_density(
-            T=T_frost_base, 
-            p=pressure_avg, 
-            R=1.0  # Saturated
-        )
+            state.air.set("velocity", v_local)
+            state.air.set("m_dot_humid", m_dot_solved)
+            state.air.set("p_out", current_static_pressure - dp_layer)
+            state.air.set("pressure_drop", dp_layer)
+            state.air.set("total_system_pressure_drop", total_pressure_drop_fan)
 
-        # Velocity and Pressure Drop
-        velocity, delta_p = self._calculate_velocity_and_pressure_drop(
-            flow_area_air=flow_area_air,
-            density=density_avg,
-            K=correction_factor_pressure_loss,
-            dyn_viscosity=dyn_viscosity_avg,
-            space_between_frost=space_between_frost,
-            fin_spacing=fin_spacing
-        )
-
-        new_p_in = p_ambient + delta_p
-
-        # Calculate h_conv
-        D_h = 2 * space_between_frost 
-
-        Re_Dh = self._calculate_reynolds_number(
-            density=density_avg, 
-            velocity=velocity, 
-            characteristic_length=D_h, 
-            dyn_viscosity=dyn_viscosity_avg
-        )
-
-        nusselt = self._calculate_nusselt(
-            Re_Dh=Re_Dh, 
-            Pr=prandtl_avg,
-            D_h=D_h
-        )
-        
-        h_conv_raw = self._calculate_heat_transfer_coefficient(
-            nusselt=nusselt, 
-            thermal_conductivity=thermal_conductivity_avg, 
-            characteristic_length=D_h
-        )
-        
-        h_conv = h_conv_raw * self.params.correction_factor_h_conv_air
-        # h_conv=30
-
-        # Mass Transfer Coefficient
-        betta = self._calculate_mass_transfer_coefficient(
-            h_conv=h_conv,
-            density=density_avg,
-            heat_capacity=heat_capacity_avg,
-            lewis_number=lewis_avg
-        )
-
-        # Mass Flows
-        m_dot_humid = self._calculate_humid_mass_flow(
-            density=density_avg,
-            flow_area_air=flow_area_air,
-            velocity=velocity
-        )
-
-        m_dot_dry = self._calculate_dry_mass_flow(
-            m_dot_humid=m_dot_humid,
-            W_in=W_in,
-            W_out=W_out
-        )
-
-        # Enthalpy of Ice & Dew Point
-        h_ice = self._get_ice_enthalpy(
-            T=T_frost_surface
-        )
-
-        T_dew_point = self._get_inlet_dew_point(
-            p_in=p_in_current,
-            W_in=W_in,
-            T_in=T_in
-        )
-
-
-        # ================= Write new values to state =================
-        # Air Properties
-        state.air.set("pressure_avg", pressure_avg)
-        state.air.set("density_avg", density_avg)
-        state.air.set("dyn_viscosity_avg", dyn_viscosity_avg)
-        state.air.set("heat_capacity_avg", heat_capacity_avg)
-        state.air.set("thermal_conductivity_avg", thermal_conductivity_avg)
-        state.air.set("prandtl_avg", prandtl_avg)
-        state.air.set("lewis_avg", lewis_avg)
-        
-        # Humid Air / Water Vapor
-        state.air.set('rho_w_in', rho_w_in)
-        state.air.set('rho_w_out', rho_w_out)
-        state.air.set("rho_w_frost_surface_sat", rho_w_frost_surface_sat)
-        state.air.set("W_frost_surface_sat", W_frost_surface_sat)
-        state.air.set("rho_w_frost_base_sat", rho_w_frost_base_sat)
-        state.air.set("W_frost_base_sat", W_frost_base_sat)
-
-        # Flow & Heat Transfer
-        state.air.set("reynolds", Re_Dh)
-        # state.air.set("nusselt", 0.0)
-        state.air.set("h_conv", h_conv)
-        state.air.set("betta", betta)
-        state.air.set("velocity", velocity)
-        state.air.set("p_in", new_p_in)
-        
-        # Mass Flow
-        state.air.set("m_dot_humid", m_dot_humid)
-        state.air.set("m_dot_dry", m_dot_dry)
-
-        # Enthalpies
-        state.air.set("h_in", h_in)
-        state.air.set("h_out", h_out)
-        state.air.set("h_ice", h_ice)
-
-        # Inlet Conditions
-        state.air.set("T_dew_point", T_dew_point)
-        state.air.set("W_in", W_in)
-
+            # Decrement pressure for the next layer (Outlet of n is Inlet of n+1)
+            current_static_pressure -= dp_layer
 
 
     ####################################################################################
-    # Helper Functions
+    # Helpers for Air Flow
     ####################################################################################
+
+    
 
     def _check_wang_validity(self) -> None:
         """
@@ -267,8 +141,8 @@ class AirModel:
         tube_rows = self.params.tube_layers
         tube_outer_diameter_mm = self.params.tube_outer_diameter * m_to_mm
         fin_pitch_mm = self.params.fin_pitch * m_to_mm
-        transverse_pitch_mm = self.P_t * m_to_mm
-        longitudinal_pitch_mm = self.P_l * m_to_mm
+        transverse_pitch_mm = self.params.transverse_tube_pitch * m_to_mm
+        longitudinal_pitch_mm = self.params.longitudinal_tube_pitch * m_to_mm
 
         # Define validation limits: (current_value, min_limit, max_limit)
         checks = {
@@ -286,70 +160,324 @@ class AirModel:
                     f"the valid range [{min_v} - {max_v}]. Results may be inaccurate."
                 )
 
-
-    def _get_inlet_dew_point(self, p_in: float, W_in: float, T_in: float) -> float:
+    def _calculate_hydraulic_residual(self, m_dot_guess: float, states: list[FrostEvaporatorState], density_inlet: float)-> float:
         """
-        Calculates the dew point temperature of the inlet air using CoolProp.
-
-        Args:
-            p_in: The absolute pressure of the inlet air [Pa].
-            W_in: The humidity ratio (specific humidity) [kg_water/kg_dry_air].
-            T_in: The dry bulb temperature of the inlet air [K].
-
-        Returns:
-            The dew point temperature [K].
+        Residual = Fan_Pressure(V_dot) - Sum(Layer_Pressure_Drops)
         """
-        return CP_HumidAir.HAPropsSI('Tdp', 'P', p_in, 'W', W_in, 'T', T_in)
-
-
-
-    def _get_air_properties(self, T: float, p: float, W: float) -> tuple[float, float, float, float, float, float, float, float]:
-        """
-        Calculates multiple thermophysical properties of moist air for a single state.
-
-        Args:
-            temperature: The dry bulb temperature [K].
-            pressure: The absolute pressure [Pa].
-            humidity_ratio: The humidity ratio (specific humidity) [kg_water/kg_dry_air].
-
-        Returns:
-            A tuple containing the following properties in order:
-            0. Density [kg/m^3]
-            1. Dynamic Viscosity [Pa*s]
-            2. Specific Heat Capacity [J/kg*K]
-            3. Thermal Conductivity [W/m*K]
-            4. Prandtl Number [-]
-            5. Lewis Number [-]
-            6. Water Vapor Density [kg/m^3]
-            7. Specific Enthalpy [J/kg_dry_air]
-        """
-        # Define property keys for CoolProp
-        # Vha: Vol. per humid air, mu: Viscosity, cp_ha: Heat Cap., k: Conductivity, Hha: Specific Enthalpy per humid air basis
-        prop_keys = ['Vha', 'mu', 'cp_ha', 'k', 'Enthalpy'] 
+        # A. Calculate Fan Pressure Available
+        v_dot_fan_m3h = (m_dot_guess / density_inlet) * 3600.0
+        dp_fan = self._get_pressure_from_flow(v_dot_fan_m3h)
         
-        props = {key: CP_HumidAir.HAPropsSI(key, 'T', T, 'P', p, 'W', W)for key in prop_keys}
-
-        # Derived properties
-        density = 1.0 / props['Vha']
-        prandtl_number = (props['cp_ha'] * props['mu']) / props['k']
+        # B. Calculate System Pressure Drop (Sum of all layers)
+        dp_system_total = 0.0
         
-        # Lewis Number approximation (CoolProp lacks diffusivity for humid air)
-        lewis_number = 0.85
-
-        # Calculate water vapor density (utilizing internal helper)
-        water_vapor_density, _ = self._get_water_vapor_density(T=T, p=p, W=W)
-
-        return (
-            density,
-            props['mu'],
-            props['cp_ha'],
-            props['k'],
-            prandtl_number,
-            lewis_number,
-            water_vapor_density,
-            props['Enthalpy']
-        )
+        for state in states:                
+            dp_layer, _ = self._calculate_layer_dp(
+                state         = state, 
+                m_dot         = m_dot_guess,
+                density_local = state.air.density_avg
+            )
+            dp_system_total += dp_layer
+            
+        return dp_fan - dp_system_total
     
+
+    def _get_pressure_from_flow(self, flow_val: float) -> float:
+        """
+        Returns Static Pressure for a given Volume Flow.
+
+        Args:
+            flow_val: The volume flow rate [m^3/h].
+
+        Returns:
+            The static pressure [Pa].
+        """
+        # Check for out of bounds
+        if flow_val < self.min_f or flow_val > self.max_f:
+            print(
+                f"--> WARNING: Flow input {flow_val:.2f} is outside valid range "
+                f"({self.min_f:.2f} - {self.max_f:.2f}). Extrapolating..."
+            )
+
+        return float(self.interpolator(flow_val))
+
+
+    def _calculate_layer_dp(self, state: list[FrostEvaporatorState], m_dot: float, density_local: float) -> tuple[float, float]:
+        """Helper to calculate dP for a single layer to avoid code duplication"""
+        # Calculate Local Velocity
+        v_loc = m_dot / (state.air.density_avg * state.frost.flow_area_air)
+
+        # Pressure Drop Calculation 
+        if self.params.pressure_drop_correlation_choice == "Wang":
+            hydraulic_diameter = 4 * (state.frost.flow_area_air * self.params.fin_length) / state.frost.A_frost_surface
+
+            dp_raw = self._calculate_system_resistance_wang(
+                velocity=v_loc, 
+                density=state.air.density_avg, 
+                dyn_viscosity=state.air.dyn_viscosity_avg, 
+                longitudinal_tube_pitch=self.params.longitudinal_tube_pitch, 
+                transverse_tube_pitch=self.params.transverse_tube_pitch, 
+                fin_pitch=self.params.fin_pitch, 
+                collar_diameter_w_frost=self.params.tube_outer_diameter + 2 * self.params.fin_thickness + 2 * state.frost.thickness, 
+                tube_layers=self.params.tube_layers,
+                flow_length=self.params.fin_length,
+                hydraulic_diameter=hydraulic_diameter,
+            )
+        
+        elif self.params.pressure_drop_correlation_choice == "Haaf":
+            dp_raw = self._calculate_system_resistance_haaf(
+                velocity                = v_loc, 
+                density                 = state.air.density_avg, 
+                dyn_viscosity           = state.air.dyn_viscosity_avg, 
+                space_between_frost     = state.frost.space_between_frost, 
+                longitudinal_tube_pitch = self.params.longitudinal_tube_pitch
+            )
+        
+        else:
+            raise ValueError(f"Unknown pressure drop correlation choice: {self.params.pressure_drop_correlation_choice}")
+
+        return self.params.correction_factor_pressure_loss * dp_raw, v_loc
+
+
+
+
+    def _calculate_system_resistance_wang(self, velocity: float, density: float, dyn_viscosity: float, longitudinal_tube_pitch: float, 
+                                               transverse_tube_pitch: float, fin_pitch: float, collar_diameter_w_frost: float, tube_layers: int,
+                                               flow_length: float,hydraulic_diameter: float) -> float:
+        """
+        Calculates Pressure Drop using Wang et al. (2000) Friction Factor.
+        """
+        if velocity <= 1e-5:
+            return 0.0
+
+        # 1. Reynolds (based on Collar Diameter Dc, NOT Hydraulic Diameter)
+        reynolds_dc = (density * velocity * collar_diameter_w_frost) / dyn_viscosity
+        
+        # Clamp Re to prevent log errors
+        reynolds_dc = max(reynolds_dc, 10.0)
+        ln_re = math.log(reynolds_dc)
+        
+        Pl = longitudinal_tube_pitch
+        Pt = transverse_tube_pitch
+        Fp = fin_pitch
+        Dc = collar_diameter_w_frost
+        N = float(tube_layers)
+
+        # 2. Coefficients (Eq 13, 14, 15)
+        F1 = -0.764 + (0.739 * (Pt / Pl)) + (0.177 * (Fp / Dc)) - (0.00758 / N)
+        F2 = -15.689 + (64.021 / ln_re)
+        F3 = 1.696 - (15.695 / ln_re)
+
+        # 3. Fanning Friction Factor (Eq 12)
+        f = 0.0267 * (reynolds_dc ** F1) * ((Pt / Pl) ** F2) * ((Fp / Dc) ** F3)
+
+        # 4. Calculate Pressure Drop (Fanning Equation)
+        # Note: If you have Area Ratio (A_tot / A_min), use: f * (A_tot/A_min) * dynamic_pressure
+        # Here we use the Hydraulic Diameter equivalent: 4 * f * (L/Dh) * dynamic_pressure
+        
+        dynamic_pressure = 0.5 * density * (velocity ** 2)
+        
+        # The factor 4 comes from conversion of Fanning f to Darcy-Weisbach context in non-circular ducts
+        friction_term = 4.0 * f * (flow_length / hydraulic_diameter)
+        
+        return friction_term * dynamic_pressure
+
+
+
+
+
+    
+    def _calculate_system_resistance_haaf(self, velocity: float, density: float, dyn_viscosity: float, space_between_frost: float, longitudinal_tube_pitch: float) -> float:
+        """
+        Calculates the system pressure drop (resistance) based on Haaf correlation.
+        
+        Args:
+            velocity: Air velocity [m/s].
+            density: Air density [kg/m^3].
+            dyn_viscosity: Dynamic viscosity [Pa·s].
+            space_between_frost: Effective space between frost layers [m].
+            longitudinal_tube_pitch: Space between pipes in flow direction [m].
+
+        Returns:
+            Pressure drop of the system [Pa].
+        """
+        if velocity <= 0:
+            return 0.0
+
+        reynolds = (density * velocity * (2 * space_between_frost)) / dyn_viscosity
+
+        zeta = self._calculate_pressure_loss_coefficient_haaf(
+            reynolds=reynolds,
+            space_between_frost=space_between_frost,
+            longitudinal_tube_pitch=longitudinal_tube_pitch
+        )
+
+        # Bernoulli / Darcy-Weisbach formulation
+        return zeta * 0.5 * density * (velocity ** 2)
+    
+
+
+    def _calculate_pressure_loss_coefficient_haaf(self,reynolds: float,space_between_frost: float,longitudinal_tube_pitch: float) -> float:
+        """
+        Calculates the pressure loss coefficient (zeta) based on the Haaf correlation.
+
+        Args:
+            reynolds: The Reynolds number [-].
+            space_between_frost: The effective space between frost layers [m].
+            longitudinal_tube_pitch: The distance two tubes in air flow direction [m].
+
+        Returns:
+            The pressure loss coefficient [-].
+
+        Raises:
+            ValueError: If fin_spacing is less than or equal to zero.
+        """
+
+        length_ratio = space_between_frost / longitudinal_tube_pitch
+
+        return 10.5 * (reynolds ** (-1.0 / 3.0)) * (length_ratio ** 0.6)
+
+
+
+
+
+    ####################################################################################
+    # Update Properties
+    ####################################################################################
+
+    def update_properties(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
+        """
+        Calculates and updates the air model.
+        
+        This IS safe to call inside an iterative loop, as it just recalculates
+        properties based on the latest guessed values.
+        """
+
+        # ================= Calculate new Values =================
+
+        # --- Average Air Properties ---
+        pressure_avg, density_avg, dyn_viscosity_avg, heat_capacity_avg, thermal_conductivity_avg, prandtl_avg, lewis_avg, rho_w_in, rho_w_out, h_in, h_out, R_in, R_out = self._calculate_air_averages(
+            T_in  = inputs.air.T_in,
+            p_in  = inputs.air.p_in,
+            W_in  = inputs.air.W_in,
+            T_out = state.air.T_out,
+            p_out = state.air.p_out,
+            W_out = state.air.W_out
+        )
+
+        # --- Water Vapor Densities (at surface and base) ---
+        rho_w_frost_surface_sat, W_frost_surface_sat = self._get_water_vapor_density(
+            T = state.hmt.T_frost_surface, 
+            p = pressure_avg, 
+            R = 1.0  # Saturated
+        )
+        
+        rho_w_frost_base_sat, W_frost_base_sat = self._get_water_vapor_density(
+            T = state.hmt.T_frost_base, 
+            p = pressure_avg, 
+            R = 1.0  # Saturated
+        )
+
+        # --- Geometry / Reynolds Number ---
+        D_h     = 2 * state.frost.space_between_frost 
+        D_c_eff = self.params.tube_outer_diameter + 2 * self.params.fin_thickness + 2 * state.frost.thickness
+
+        Re_Dc = self._calculate_reynolds_number(
+            density               = density_avg, 
+            velocity              = state.air.velocity, 
+            characteristic_length = D_c_eff, 
+            dyn_viscosity         = dyn_viscosity_avg
+        )
+
+        # --- Heat Transfer Coefficient ---
+        h_conv_raw = self._calculate_h_conv_wang(
+            Re_Dc             = Re_Dc,
+            N                 = self.params.tube_layers,
+            F_p               = self.params.fin_pitch,
+            D_c               = D_c_eff,
+            D_h               = D_h,
+            P_t               = self.params.transverse_tube_pitch,
+            P_l               = self.params.longitudinal_tube_pitch,
+            density_avg       = density_avg,
+            velocity          = state.air.velocity,
+            heat_capacity_avg = heat_capacity_avg,
+            prandtl_avg       = prandtl_avg
+        )
+
+        h_conv = h_conv_raw * self.params.correction_factor_h_conv_air
+
+        # --- Mass Transfer Coefficient ---
+        betta_raw = self._calculate_mass_transfer_coefficient(
+            h_conv        = h_conv,
+            density       = density_avg,
+            heat_capacity = heat_capacity_avg,
+            lewis_number  = lewis_avg
+        )
+
+        betta = betta_raw * self.params.correction_factor_betta_air
+
+        # --- Mass Flows ---
+        m_dot_humid, m_dot_dry = self._calculate_mass_flows(
+            density       = density_avg, 
+            flow_area_air = state.frost.flow_area_air, 
+            velocity      = state.air.velocity, 
+            W_in          = inputs.air.W_in, 
+            W_out         = state.air.W_out
+        )
+
+        # --- Enthalpy of Ice & Dew Point ---
+        h_ice = self._get_ice_enthalpy(
+            T = state.hmt.T_frost_surface
+        )
+
+        T_dew_point = self._get_inlet_dew_point(
+            p_in = inputs.air.p_in,
+            W_in = inputs.air.W_in,
+            T_in = inputs.air.T_in
+        )
+
+
+        # ================= Write new values to state =================
+        # Air Properties
+        state.air.set("pressure_avg", pressure_avg)
+        state.air.set("density_avg", density_avg)
+        state.air.set("dyn_viscosity_avg", dyn_viscosity_avg)
+        state.air.set("heat_capacity_avg", heat_capacity_avg)
+        state.air.set("thermal_conductivity_avg", thermal_conductivity_avg)
+        state.air.set("prandtl_avg", prandtl_avg)
+        state.air.set("lewis_avg", lewis_avg)
+        
+        # Humid Air / Water Vapor
+        state.air.set('rho_w_in', rho_w_in)
+        state.air.set('rho_w_out', rho_w_out)
+        state.air.set("rho_w_frost_surface_sat", rho_w_frost_surface_sat)
+        state.air.set("W_frost_surface_sat", W_frost_surface_sat)
+        state.air.set("rho_w_frost_base_sat", rho_w_frost_base_sat)
+        state.air.set("W_frost_base_sat", W_frost_base_sat)
+        state.air.set("T_dew_point", T_dew_point)
+        state.air.set("R_in", R_in)
+        state.air.set("R_out", R_out)
+
+        # Flow & Heat Transfer
+        # state.air.set("reynolds", 0.0)
+        # state.air.set("nusselt", 0.0)
+        state.air.set("h_conv", h_conv)
+        state.air.set("betta", betta)
+        
+        # Mass Flow
+        state.air.set("m_dot_humid", m_dot_humid)
+        state.air.set("m_dot_dry", m_dot_dry)
+
+        # Enthalpies
+        state.air.set("h_in", h_in)
+        state.air.set("h_out", h_out)
+        state.air.set("h_ice", h_ice)
+
+
+    ####################################################################################
+    # Helper Functions
+    ####################################################################################
+
 
     def _calculate_air_averages(self, T_in: float, p_in: float, W_in: float, T_out: float, p_out: float, W_out: float
                                 ) -> tuple[float, float, float, float, float, float, float, float, float, float, float]:
@@ -379,10 +507,10 @@ class AirModel:
             10. Outlet Specific Enthalpy [J/kg]
         """
         # Unpack properties for inlet state
-        (rho_in, mu_in, cp_in, k_in, pr_in, le_in, rho_w_in, h_in) = self._get_air_properties(T_in, p_in, W_in)
+        (rho_in, mu_in, cp_in, k_in, pr_in, le_in, rho_w_in, h_in, R_in) = self._get_air_properties(T_in, p_in, W_in)
 
         # Unpack properties for outlet state
-        (rho_out, mu_out, cp_out, k_out, pr_out, le_out, rho_w_out, h_out) = self._get_air_properties(T_out, p_out, W_out)
+        (rho_out, mu_out, cp_out, k_out, pr_out, le_out, rho_w_out, h_out, R_out) = self._get_air_properties(T_out, p_out, W_out)
 
         # Calculate arithmetic averages
         pressure_avg = (p_in + p_out) / 2.0
@@ -393,18 +521,55 @@ class AirModel:
         prandtl_avg = (pr_in + pr_out) / 2.0
         lewis_avg = (le_in + le_out) / 2.0
 
+        return (pressure_avg, density_avg, viscosity_avg, heat_capacity_avg, conductivity_avg, prandtl_avg, lewis_avg,
+                rho_w_in, rho_w_out, h_in, h_out, R_in, R_out)
+
+    def _get_air_properties(self, T: float, p: float, W: float) -> tuple[float, float, float, float, float, float, float, float]:
+        """
+        Calculates multiple thermophysical properties of moist air for a single state.
+
+        Args:
+            temperature: The dry bulb temperature [K].
+            pressure: The absolute pressure [Pa].
+            humidity_ratio: The humidity ratio (specific humidity) [kg_water/kg_dry_air].
+
+        Returns:
+            A tuple containing the following properties in order:
+            0. Density [kg/m^3]
+            1. Dynamic Viscosity [Pa*s]
+            2. Specific Heat Capacity [J/kg*K]
+            3. Thermal Conductivity [W/m*K]
+            4. Prandtl Number [-]
+            5. Lewis Number [-]
+            6. Water Vapor Density [kg/m^3]
+            7. Specific Enthalpy [J/kg_dry_air]
+        """
+        # Define property keys for CoolProp
+        # Vha: Vol. per humid air, mu: Viscosity, cp_ha: Heat Cap., k: Conductivity, Hha: Specific Enthalpy per humid air basis
+        prop_keys = ['Vha', 'mu', 'cp_ha', 'k', 'Enthalpy', 'R'] 
+        
+        props = {key: CP_HumidAir.HAPropsSI(key, 'T', T, 'P', p, 'W', W)for key in prop_keys}
+
+        # Derived properties
+        density = 1.0 / props['Vha']
+        prandtl_number = (props['cp_ha'] * props['mu']) / props['k']
+        
+        # Lewis Number approximation (CoolProp lacks diffusivity for humid air)
+        lewis_number = 0.85
+
+        # Calculate water vapor density (utilizing internal helper)
+        water_vapor_density, _ = self._get_water_vapor_density(T=T, p=p, W=W)
+
         return (
-            pressure_avg,
-            density_avg,
-            viscosity_avg,
-            heat_capacity_avg,
-            conductivity_avg,
-            prandtl_avg,
-            lewis_avg,
-            rho_w_in,
-            rho_w_out,
-            h_in,
-            h_out
+            density,
+            props['mu'],
+            props['cp_ha'],
+            props['k'],
+            prandtl_number,
+            lewis_number,
+            water_vapor_density,
+            props['Enthalpy'],
+            props['R']
         )
     
 
@@ -443,128 +608,6 @@ class AirModel:
         rho_w = W_calc / Vda         
         return rho_w, W_calc
 
-    
-    def _calculate_velocity_and_pressure_drop(self,flow_area_air: float,density: float,K: float,dyn_viscosity: float,space_between_frost: float,fin_spacing: float) -> tuple[float, float]:
-        """
-        Calculates velocity by finding the intersection of the System Curve and Fan Curve.
-
-        This method solves for the operating point where the Fan Pressure equals
-        the System Pressure (Haaf correlation).
-
-        Args:
-            flow_area_air: The cross-sectional flow area of the air [m^2].
-            density: The density of the air [kg/m^3].
-            K: The geometric resistance coefficient [-].
-            dyn_viscosity: The dynamic viscosity of the air [Pa·s].
-            space_between_frost: The effective space between frost layers [m].
-            fin_spacing: The base spacing between fins [m].
-
-        Returns:
-            A tuple containing:
-                - velocity: The calculated air velocity [m/s].
-                - delta_p: The pressure drop at the operating point [Pa].
-        """
-
-        def _objective_function(u_guess: float) -> float:
-            """
-            Calculates the residual (Fan_Pressure - System_Pressure).
-            We want to find u_guess where this returns 0.
-            """
-            # A. Calculate System Resistance (Physics)
-            reynolds = (density * u_guess * (2 * space_between_frost)) / dyn_viscosity
-
-            zeta = self._calculate_pressure_loss_coefficient_haaf(
-                reynolds=reynolds,
-                space_between_frost=space_between_frost,
-                fin_spacing=fin_spacing
-            )
-
-            dp_system = K * zeta * 0.5 * density * (u_guess ** 2)
-
-            # B. Calculate Fan Pressure (Polynomial/Interpolation)
-            # Convert velocity [m/s] to volume flow [m^3/h]
-            v_dot = flow_area_air * u_guess * 3600.0
-            dp_fan = self._get_pressure_from_flow(v_dot)
-
-            return dp_fan - dp_system
-
-        # --- SOLVER ---
-        # Look for a solution between 0.001 m/s and max capacity.
-        try:
-            # Max volume flow assumed 174.55 m^3/h converted to m/s
-            max_velocity = (174.55 / 3600.0) / flow_area_air
-            
-            velocity = brentq(
-                _objective_function,
-                0.001,
-                max_velocity,
-                xtol=1e-7
-            )
-        except ValueError:
-            # If no intersection found (e.g., frost is fully blocked), flow is 0
-            velocity = 0.0
-
-        # --- FINAL PRESSURE DROP ---
-        # Use the found velocity to calculate the actual Delta P
-        if velocity > 0:
-            re_final = (density * velocity * (2 * space_between_frost)) / dyn_viscosity
-            
-            zeta_final = self._calculate_pressure_loss_coefficient_haaf(
-                re_final,
-                space_between_frost,
-                fin_spacing
-            )
-            
-            delta_p = K * zeta_final * 0.5 * density * (velocity ** 2)
-        else:
-            # Static pressure of dead-headed fan (0 flow)
-            delta_p = self._get_pressure_from_flow(0.0)
-
-        return velocity, delta_p
-    
-    
-    def _get_pressure_from_flow(self, flow_val: float) -> float:
-        """
-        Returns Static Pressure for a given Volume Flow.
-
-        Args:
-            flow_val: The volume flow rate [m^3/h].
-
-        Returns:
-            The static pressure [Pa].
-        """
-        # Check for out of bounds
-        if flow_val < self.min_f or flow_val > self.max_f:
-            print(
-                f"--> WARNING: Flow input {flow_val:.2f} is outside valid range "
-                f"({self.min_f:.2f} - {self.max_f:.2f}). Extrapolating..."
-            )
-
-        return float(self.interpolator(flow_val))
-    
-
-    def _calculate_pressure_loss_coefficient_haaf(self,reynolds: float,space_between_frost: float,fin_spacing: float) -> float:
-        """
-        Calculates the pressure loss coefficient (zeta) based on the Haaf correlation.
-
-        Args:
-            reynolds: The Reynolds number [-].
-            space_between_frost: The effective space between frost layers [m].
-            fin_spacing: The distance between fins (fin length L) [m].
-
-        Returns:
-            The pressure loss coefficient [-].
-
-        Raises:
-            ValueError: If fin_spacing is less than or equal to zero.
-        """
-        if fin_spacing <= 0:
-            raise ValueError(f"Fin spacing must be positive. Received: {fin_spacing}")
-
-        length_ratio = space_between_frost / fin_spacing
-
-        return 10.5 * (reynolds ** (-1.0 / 3.0)) * (length_ratio ** 0.6)
-
 
     def _calculate_reynolds_number(self, density: float, velocity: float, characteristic_length: float, dyn_viscosity: float) -> float:
         """
@@ -579,6 +622,55 @@ class AirModel:
         Returns:
             The Reynolds number [dimensionless].        """
         return (density * velocity * characteristic_length) / dyn_viscosity
+
+
+
+    def _calculate_h_conv_wang(self, Re_Dc: float, N: int, F_p: float, D_c: float, D_h: float, P_t: float, P_l: float,
+                                    density_avg: float, velocity: float, heat_capacity_avg: float, prandtl_avg: float) -> float:
+        """
+        Calculates Colburn j-factor using Wang et al. (2000) correlations.
+
+        Args:
+            Re_Dc: Reynolds number based on Collar Diameter [dimensionless].
+            N: Number of tube rows (tube_layers) [count].
+            F_p: Fin Pitch (center-to-center) [m].
+            D_c: Collar diameter (Tube OD + 2*fin_thickness + 2*frost_thickness) [m].
+            D_h: Hydraulic diameter [m].
+            P_t: Transverse tube pitch [m].
+            P_l: Longitudinal tube pitch [m].
+            density_avg: Average air density [kg/m^3].
+            velocity: Air velocity [m/s].
+            heat_capacity_avg: Average air specific heat capacity [J/(kg*K)].
+            prandtl_avg: Average air Prandtl number [dimensionless].
+
+        Returns:
+            h_conv: The convective heat transfer coefficient [W/(m^2*K)].
+        """
+        import numpy as np
+
+        # Safety clamps for Logarithms to prevent domain errors
+        Re_Dc = max(Re_Dc, 10.0)
+        ln_Re = np.log(Re_Dc)
+
+        # --- Heat Transfer (j-factor) ---
+        if N == 1:
+            P1 = 1.9 - 0.23 * ln_Re
+            P2 = -0.236 + 0.126 * ln_Re
+            
+            j = (0.108 * (Re_Dc**-0.29) * ((P_t / P_l)**P1) * ((F_p / D_c)**-1.084) * ((F_p / D_h)**-0.786) * ((F_p / P_t)**P2))
+        else:
+            # P3 = -0.361 - (0.042 * N / ln_Re) + 0.158 * np.log(N * (F_p / D_c)**0.41)
+            # P4 = -1.224 - (0.076 * ((P_l / D_h)**1.42) / ln_Re)
+            # P5 = -0.083 + (0.058 * N / ln_Re)
+            # P6 = -5.735 + 1.21 * np.log(Re_Dc / N)
+
+            # j = (0.086 * (Re_Dc**P3) * (N**P4) * ((F_p / D_c)**P5) * ((F_p / D_h)**P6) * ((F_p / P_t)**-0.93))
+            print("ERRORRRRRR")
+        
+
+        h_conv = (j * density_avg * velocity * heat_capacity_avg) / (prandtl_avg ** (2/3))
+        return h_conv
+
 
 
     def _calculate_mass_transfer_coefficient(self, h_conv: float, density: float, heat_capacity: float, lewis_number: float) -> float:
@@ -604,20 +696,21 @@ class AirModel:
         return (h_conv / denominator) * (lewis_number ** (-2.0 / 3.0))
 
 
-    def _calculate_humid_mass_flow(self, 
-                                   density: float, 
-                                   flow_area_air: float, 
-                                   velocity: float) -> float:
+    def _calculate_mass_flows(self, density: float, flow_area_air: float, velocity: float, W_in: float, W_out: float) -> tuple[float, float]:
         """
-        Calculates the humid air mass flow rate based on the continuity equation.
+        Calculates both humid and dry air mass flow rates.
 
         Args:
             density: The humid air density [kg/m^3].
             flow_area_air: The effective flow cross-sectional area [m^2].
             velocity: The air velocity [m/s].
+            W_in: Humidity ratio at inlet [kg_w/kg_da].
+            W_out: Humidity ratio at outlet [kg_w/kg_da].
 
         Returns:
-            The humid air mass flow rate [kg/s].
+            A tuple containing:
+            1. Humid air mass flow rate [kg/s]
+            2. Dry air mass flow rate [kg/s]
 
         Raises:
             ValueError: If density, area, or velocity are negative.
@@ -625,23 +718,16 @@ class AirModel:
         if density < 0 or flow_area_air < 0 or velocity < 0:
             raise ValueError(f"Inputs must be non-negative: rho={density}, area={flow_area_air}, vel={velocity}.")
 
-        return density * flow_area_air * velocity
-
+        # Calculate humid mass flow
+        m_dot_humid = density * flow_area_air * velocity
         
-    def _calculate_dry_mass_flow(self, m_dot_humid: float, W_in: float, W_out: float) -> float:
-        """
-        Calculates the dry air mass flow rate from the humid mass flow rate.
-
-        Args:
-            m_dot_humid: The humid air mass flow rate [kg/s].
-            W_in: Humidity ratio at inlet [kg_w/kg_da].
-            W_out: Humidity ratio at outlet [kg_w/kg_da].
-
-        Returns:
-            The dry air mass flow rate [kg/s].
-        """
+        # Calculate average humidity ratio
         W_avg = (W_in + W_out) / 2.0
-        return m_dot_humid / (1.0 + W_avg)
+        
+        # Calculate dry mass flow
+        m_dot_dry = m_dot_humid / (1.0 + W_avg)
+
+        return m_dot_humid, m_dot_dry
 
 
     def _get_ice_enthalpy(self, T: float) -> float:
@@ -670,18 +756,55 @@ class AirModel:
         return h_fusion_ref + (cp_ice * T_celsius)
     
 
-    def _calculate_nusselt(self, Re_Dh: float, Pr: float, D_h:float) -> float:
-        # Jonas Diss (4.1)
-        return 0.31 * (Re_Dh**(5/8)) * (Pr**(1/3)) * ((D_h / self.P_l)**(1/3))
-    
+    def _get_inlet_dew_point(self, p_in: float, W_in: float, T_in: float) -> float:
+        """
+        Calculates the dew point temperature of the inlet air using CoolProp.
+
+        Args:
+            p_in: The absolute pressure of the inlet air [Pa].
+            W_in: The humidity ratio (specific humidity) [kg_water/kg_dry_air].
+            T_in: The dry bulb temperature of the inlet air [K].
+
+        Returns:
+            The dew point temperature [K].
+        """
+        return CP_HumidAir.HAPropsSI('Tdp', 'P', p_in, 'W', W_in, 'T', T_in)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # def _calculate_nusselt(self, Re_Dh: float, Pr: float, D_h:float) -> float:
+    #     # Jonas Diss (4.1)
+    #     return 0.31 * (Re_Dh**(5/8)) * (Pr**(1/3)) * ((D_h / self.P_l)**(1/3))
 
     
-
-    def _calculate_heat_transfer_coefficient(self, nusselt: float, thermal_conductivity: float, characteristic_length: float):
-        """Calculates the convective heat transfer coefficient (h = Nu * k / L)."""
-        if characteristic_length == 0:
-            return 0.0
-        return (nusselt * thermal_conductivity) / characteristic_length
 
     # Backup of VDI Nusselt stuff
 
@@ -773,72 +896,37 @@ class AirModel:
 
 
 
+        # # Calculate h_conv
+        # D_h = 2 * space_between_frost 
 
-    # def _calculate_wang_correlations(self, Re_Dc: float, N: int, F_p: float, D_c: float, D_h: float, P_t: float, P_l: float) -> float:
-    #     """
-    #     Calculates Colburn j-factor using Wang et al. (2000) correlations.
+        # Re_Dh = self._calculate_reynolds_number(
+        #     density=density_avg, 
+        #     velocity=velocity, 
+        #     characteristic_length=D_h, 
+        #     dyn_viscosity=dyn_viscosity_avg
+        # )
 
-    #     Args:
-    #         Re_Dc: Reynolds number based on Collar Diameter [dimensionless].
-    #         N: Number of tube rows (tube_layers) [count].
-    #         F_p: Fin Pitch (center-to-center) [m].
-    #         D_c: Collar diameter (Tube OD + 2*fin_thickness + 2*frost_thickness) [m].
-    #         D_h: Hydraulic diameter [m].
-    #         P_t: Transverse tube pitch [m].
-    #         P_l: Longitudinal tube pitch [m].
+        # nusselt = self._calculate_nusselt(
+        #     Re_Dh=Re_Dh, 
+        #     Pr=prandtl_avg,
+        #     D_h=D_h
+        # )
+        
+        # h_conv_raw = self._calculate_heat_transfer_coefficient(
+        #     nusselt=nusselt, 
+        #     thermal_conductivity=thermal_conductivity_avg, 
+        #     characteristic_length=D_h
+        # )
 
-    #     Returns:
-    #         The Colburn j-factor [dimensionless].
-    #     """
-    #     import numpy as np
+        
 
-    #     # Safety clamps for Logarithms to prevent domain errors
-    #     Re_Dc = max(Re_Dc, 10.0)
-    #     ln_Re = np.log(Re_Dc)
-
-    #     N=1
-
-    #     # --- Heat Transfer (j-factor) ---
-    #     if N == 1:
-    #         P1 = 1.9 - 0.23 * ln_Re
-    #         P2 = -0.236 + 0.126 * ln_Re
-            
-    #         j = (0.108 * (Re_Dc**-0.29) * ((P_t / P_l)**P1) * ((F_p / D_c)**-1.084) * ((F_p / D_h)**-0.786) * ((F_p / P_t)**P2))
-    #     else:
-    #         P3 = -0.361 - (0.042 * N / ln_Re) + 0.158 * np.log(N * (F_p / D_c)**0.41)
-    #         P4 = -1.224 - (0.076 * ((P_l / D_h)**1.42) / ln_Re)
-    #         P5 = -0.083 + (0.058 * N / ln_Re)
-    #         P6 = -5.735 + 1.21 * np.log(Re_Dc / N)
-
-    #         j = (0.086 * (Re_Dc**P3) * (N**P4) * ((F_p / D_c)**P5) * ((F_p / D_h)**P6) * ((F_p / P_t)**-0.93))
-
-    #     return j
+    # def _calculate_heat_transfer_coefficient(self, nusselt: float, thermal_conductivity: float, characteristic_length: float):
+    #     """Calculates the convective heat transfer coefficient (h = Nu * k / L)."""
+    #     if characteristic_length == 0:
+    #         return 0.0
+    #     return (nusselt * thermal_conductivity) / characteristic_length
 
 
 
-# HOW TO USE IT:
 
-    
-# # Geometry / Reynolds Number
-# D_h = 2 * space_between_frost 
-# D_c_eff = tube_outer_diameter + 2 * fin_thickness + 2 * frost_thickness
 
-# Re_Dc = self._calculate_reynolds_number(
-#     density=density_avg, 
-#     velocity=velocity, 
-#     characteristic_length=D_c_eff, 
-#     dyn_viscosity=dyn_viscosity_avg
-# )
-
-# # Heat Transfer Coefficients (Wang correlations)
-# j_factor = self._calculate_wang_correlations(
-#     Re_Dc=Re_Dc,
-#     N=tube_layers,
-#     F_p=fin_pitch,
-#     D_c=D_c_eff,
-#     D_h=D_h,
-#     P_t=P_t,
-#     P_l=P_l
-# )
-
-# h_conv = (j_factor * density_avg * velocity * heat_capacity_avg) / (prandtl_avg ** (2/3))

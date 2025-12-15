@@ -12,19 +12,25 @@ class FrostEvaporatorParameters(VariableContainer):
     def __init__(
         self,
 
-        # Time
+        # General Parameters
         time_step: float,
-
         gravity: float,
+        alpha_0: float,
 
         # Correlations Choices
         frost_density_correlation_choice: str,
         frost_thickness_correlation_choice: str,
         frost_conductivity_correlation_choice: str,
+        nusselt_correlation_choice: str,
+        pressure_drop_correlation_choice: str,
 
-        # Fan and Air Side Pressure Loss Parameters
-        # hydraulic_fan_power: float,
-        pressure_loss_fit_factor: float,
+        # Correction Factors
+        correction_factor_h_conv_air: float,
+        correction_factor_betta_air: float,
+        correction_factor_surface_density: float,
+        correction_factor_eta_fin: float,
+        correction_factor_k_frost: float,
+        correction_factor_pressure_loss: float,
 
         # Geometrie Parameters
         fin_pitch: float,
@@ -39,9 +45,6 @@ class FrostEvaporatorParameters(VariableContainer):
         tubes_per_layer: int,
         tube_thermal_conductivity: float,
 
-        alpha_0: float,
-
-
 
     ):
         super().__init__()
@@ -52,21 +55,32 @@ class FrostEvaporatorParameters(VariableContainer):
         fin_segment_amount = fin_amount * tube_amount
         fin_segment_height = fin_height / tubes_per_layer
         fin_segment_length = fin_length / tube_layers
+        longitudinal_tube_pitch = fin_length / tube_layers
+        transverse_tube_pitch = fin_height / tubes_per_layer
 
 
 
         self.set("time_step", time_step, "s", "Simulation time step for evaporator model")
-
         self.set("gravity", gravity, "m/s^2", "Gravitational acceleration")
         self.set("water_freezing_point", 273.15, "K", "The freezing point temperature of water.")
+        self.set("ambient_pressure", 101325.0, "Pa", "Ambient pressure for air-side calculations")
+        self.set("ice_density", 918, "kg/m^3", "Density of solid ice (for porosity calculation)")
+        self.set("diffusivity_w_vapor_in_air", 2.12e-5, "m^2/s", "diffusivity of water vapor in air")
+        self.set("alpha_0", alpha_0, "W/(m^2*K)", "Coefficient for two-phase htc (VDI Wärmeatlas H2 Tab.1)")
+        self.set("q_dot_0", 20000, "W/m^2", "Normalized heat flux for propane two-phase htc (VDI Wärmeatlas H2 Tab.1)")
 
         self.set("frost_density_correlation_choice", frost_density_correlation_choice, "-", "Choice of correlation for frost density")
         self.set("frost_thickness_correlation_choice", frost_thickness_correlation_choice, "-", "Choice of correlation for frost thickness")
         self.set("frost_conductivity_correlation_choice", frost_conductivity_correlation_choice, "-", "Choice of correlation for frost thermal conductivity")
+        self.set("nusselt_correlation_choice", nusselt_correlation_choice, "-", "Choice of correlation for air-side Nusselt number")
+        self.set("pressure_drop_correlation_choice", pressure_drop_correlation_choice, "-", "Choice of correlation for air-side pressure drop")
 
-        # self.set("hydraulic_fan_power", hydraulic_fan_power, "W", "Hydraulic power of the fan used for air-side calculations")
-        self.set("pressure_loss_fit_factor", pressure_loss_fit_factor, "-", "Fit factor for air-side pressure loss calculations")
-        self.set("ambient_pressure", 101325.0, "Pa", "Ambient pressure for air-side calculations")
+        self.set("correction_factor_h_conv_air", correction_factor_h_conv_air, "-", "Correction factor to scale h_conv of air")
+        self.set("correction_factor_betta_air", correction_factor_betta_air, "-", "Correction factor to scale betta of air")
+        self.set("correction_factor_surface_density", correction_factor_surface_density, "-", "Correction factor to scale the frost surface density")
+        self.set("correction_factor_eta_fin", correction_factor_eta_fin, "-", "Correction factor to scale the fin efficiency")
+        self.set("correction_factor_k_frost", correction_factor_k_frost, "-", "Correction factor to scale the frost heat transfer")
+        self.set("correction_factor_pressure_loss", correction_factor_pressure_loss, "-", "Correction factor to scale the air-side pressure loss")
 
         self.set("fin_pitch", fin_pitch, "m", "Spacing between fins (from center to center)")
         self.set("fin_spacing", fin_pitch - fin_thickness, "m", "Distance between fin surfaces")
@@ -83,18 +97,15 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("tubes_per_layer", tubes_per_layer, "-", "Number of tubes per layer (for air flow calculations)")	
         self.set("tube_amount", tube_amount, "-", "Total number of tubes in the evaporator")
         self.set("total_tube_length", total_tube_length, "m", "Total length of all tubes in the evaporator")
+        self.set("longitudinal_tube_pitch", longitudinal_tube_pitch, "m", "Longitudinal pitch between tube centers")
+        self.set("transverse_tube_pitch", transverse_tube_pitch, "m", "Transverse pitch between tube centers")
         self.set("tube_thermal_conductivity", tube_thermal_conductivity, "W/m/K", "Thermal conductivity of tube material")
 
         self.set("fin_segment_amount", fin_segment_amount, "-", "Total number of fin-tube segments in the evaporator")
         self.set("fin_segment_height", fin_segment_height, "m", "Height of each fin segment")
         self.set("fin_segment_length", fin_segment_length, "m", "Length of each fin segment")
 
-        self.set("ice_density", 918, "kg/m^3", "Density of solid ice (for porosity calculation)")
-        self.set("diffussivity_w_vapor_in_air", 2.12e-5, "m^2/s", "diffusivity of water vapor in air")
-        
 
-        self.set("alpha_0", alpha_0, "W/(m^2*K)", "Coefficient for two-phase htc (VDI Wärmeatlas H2 Tab.1)")
-        self.set("q_dot_0", 20000, "W/m^2", "Normalized heat flux for propane two-phase htc (VDI Wärmeatlas H2 Tab.1)")
 
 
 
@@ -104,10 +115,11 @@ class FrostEvaporatorParameters(VariableContainer):
 
 class AirInputs(VariableContainer):
     """Holds all external inputs for the air-side."""
-    def __init__(self, T_in: float, p_in: float, R_in: float):
+    def __init__(self, T_in: float, p_in: float, W_in: float):
         super().__init__()
         self.set("T_in",  T_in, "K", "Inlet air temperature")
-        self.set("R_in",  R_in, "1", "Inlet air relative humidity")
+        self.set("W_in",  W_in, "kg/kg", "Inlet air absolute humidity")
+        self.set("p_in",  p_in, "Pa", "Inlet air pressure")
 
 class RefrigerantInputs(VariableContainer):
     """Holds all external inputs for the refrigerant-side."""
@@ -148,22 +160,6 @@ class FrostEvaporatorInputs(VariableContainer):
             for name, var in input_container.get_variables().items():
                 all_vars[f"{prefix}_{name}"] = var
         return all_vars
-
-    def convert_to_str_value_format(self, with_unit_and_description: bool) -> dict:
-        """
-        Overrides the base method to correctly log all nested variables.
-        """
-        all_vars = self.get_all_variables()
-        if with_unit_and_description:
-            return {f"{k} in {v.unit} ({v.description})": v.value 
-                    for k, v in all_vars.items() if v.value is not None}
-        return {k: v.value for k, v in all_vars.items() if v.value is not None}
-
-    def get_name(self):
-        """Overrides the base method for a unique name."""
-        all_vars = self.get_all_variables()
-        return ";".join([f"{k}={str(round(v.value, 3)).replace('.', '_')}" 
-                         for k, v in all_vars.items() if v.value is not None])
 
     def __str__(self):
         """
@@ -216,7 +212,7 @@ class FrostEvaporatorInputs(VariableContainer):
 
 
 ###################################################################################
-# Calculated Output Variables
+# Calculated State Variables
 ####################################################################################
 
 class FrostState(VariableContainer):
@@ -225,11 +221,14 @@ class FrostState(VariableContainer):
         super().__init__()
         self.set("density", 100.0, "kg/m^3", "Frost density")
         self.set("thickness", 1e-6, "m", "Frost layer thickness")
+
         self.set("k_frost", 0.0, "W/m/K", "Frost thermal conductivity")
+        self.set("mass", 0.0, "kg", "Total mass of the accumulated frost")
+
         self.set("space_between_frost", 0.0, "m", "Space between frost layers")
         self.set("tube_diameter_w_frost", 0.0, "m", "Tube outer diameter including frost")
         self.set("flow_area_air", 0.0, "m^2", "Free flow area for air through the evaporator")
-        self.set("mass", 0.0, "kg", "Total mass of the accumulated frost")
+        self.set("A_frost_surface", 0.0, "m^2", "Frost surface area for frost flux")
 
 class AirState(VariableContainer):
     """Holds all variables calculated by the air subprogram."""
@@ -239,9 +238,7 @@ class AirState(VariableContainer):
         # Output Air Definition
         self.set("T_out", 273.15, "K", "Outlet air temperature")
         self.set("W_out", 0.0, "kg/kg", "Outlet air absolute humidity")
-
-        self.set("p_in",  101325.0, "Pa", "Inlet air pressure")
-        self.set("W_in", 0.0, "kg/kg", "Inlet air absolute humidity")
+        self.set("p_out",  101325.0, "Pa", "Outlet air pressure")
 
         # Average Air Properties (Inlet and Outlet)
         self.set("pressure_avg", 101325.0, "Pa", "Average air pressure")
@@ -275,6 +272,13 @@ class AirState(VariableContainer):
         self.set("h_ice", 0.0, "J/kg", "Enthalpy of ice formed from frost growth")
         self.set("T_dew_point", 0.0, "Dew Point Temperature of the inlet air")
 
+        self.set("R_in", 0, "-", "Relative Humidity of Inlet air")
+        self.set("R_out", 0, "-", "Relative Humidity of Outlet air")
+
+        self.set("pressure_drop", 0.0, "Pa", "Air-side pressure drop through the current layer")
+
+        self.set("total_system_pressure_drop", 0.0, "Pa", "Total air-side pressure loss through the FULL evaporator (ALL LAYERS)")
+
 
         
 class RefrigerantState(VariableContainer):
@@ -293,8 +297,11 @@ class HeatMassTransferState(VariableContainer):
     def __init__(self):
         super().__init__()
         self.set("A_effective", 0.0, "m^2", "Effective heat transfer area")
-        self.set("A_frost_surface", 0.0, "m^2", "Frost surface area for frost flux")
         self.set("R_downstream", 0.0, "K/W", "Thermal resistance between frost and refrigerant")
+        self.set("R_refrigerant", 0.0, "K/W", "Thermal resistance of refrigerant")
+        self.set("R_R_tube", 0.0, "K/W", "Thermal resistance of R_tube")
+        self.set("R_frost", 0.0, "K/W", "Thermal resistance of frost")
+        self.set("R_air", 0.0, "K/W", "Thermal resistance of air")
         self.set("T_frost_surface", 0.0, "K", "Frost surface temperature")
         self.set("T_frost_base", 0.0, "K", "Frost Base temperature")
         self.set("Q_dot_total", 0.0, "W", "Total heat transfer rate (sensible + latent)")
@@ -309,11 +316,7 @@ class ThermodynamicsState(VariableContainer):
     """Holds overall thermodynamic properties and wall temperatures."""
     def __init__(self):
         super().__init__()
-        # self.set("T_wall_avg", 270.15, "K", "Average external wall temperature")
-        # self.set("Q_total", 0.0, "W", "Total heat transfer to refrigerant")
-        # ...
 
-# TODO, I HAVE NOT PLAN WHAT THIS DOES
 class FrostEvaporatorState(VariableContainer):
     """
     Acts as the main container for all sub-states of the
@@ -323,8 +326,6 @@ class FrostEvaporatorState(VariableContainer):
     and write to their dedicated state objects (e.g., state.air, state.frost).
     """
     def __init__(self):
-        # We still call super() to get the base functionality like .copy()
-        # but we won't add variables directly to this top-level object.
         super().__init__() 
         
         # --- Compose the state from its sub-states ---
@@ -336,8 +337,6 @@ class FrostEvaporatorState(VariableContainer):
 
         # List of sub-states for easier iteration
         self._sub_states = [self.frost, self.air, self.refrigerant, self.hmt, self.thermo]
-
-    # --- IMPORTANT: Override logging methods ---
     
     def get_all_variables(self) -> dict:
         """
@@ -351,22 +350,6 @@ class FrostEvaporatorState(VariableContainer):
             for name, var in state_container.get_variables().items():
                 all_vars[f"{prefix}_{name}"] = var
         return all_vars
-
-    def convert_to_str_value_format(self, with_unit_and_description: bool) -> dict:
-        """
-        Overrides the base method to correctly log all nested variables.
-        """
-        all_vars = self.get_all_variables()
-        if with_unit_and_description:
-            return {f"{k} in {v.unit} ({v.description})": v.value 
-                    for k, v in all_vars.items() if v.value is not None}
-        return {k: v.value for k, v in all_vars.items() if v.value is not None}
-
-    def get_name(self):
-        """Overrides the base method for a unique name."""
-        all_vars = self.get_all_variables()
-        return ";".join([f"{k}={str(round(v.value, 3)).replace('.', '_')}" 
-                         for k, v in all_vars.items() if v.value is not None])
     
     def __str__(self):
         """

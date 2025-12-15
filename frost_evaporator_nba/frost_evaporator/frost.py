@@ -6,9 +6,6 @@ from .datamodels_nba import (
 import numpy as np
 
 class FrostModel:
-    """
-    Calculates the density, thickness, and thermal conductivity of the frost layer.
-    """
     
     def __init__(self, 
                  parameters: FrostEvaporatorParameters, 
@@ -30,16 +27,11 @@ class FrostModel:
         """
         
         # ================= Get State Values =================
-        current_avg_density = state.frost.density
 
         # ================= Calculate new Values =================
-        new_k_frost_raw = self._calculate_k_frost(average_density=current_avg_density)
-
-        new_k_frost = new_k_frost_raw * self.params.correction_factor_k_frost
-
-
+        
         # ================= Write new values to state =================
-        state.frost.set("k_frost", new_k_frost)
+        
 
 
     def step_forward(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
@@ -48,70 +40,93 @@ class FrostModel:
         the average density based on mass/volume conservation.
         """
 
-        # ================= Get State Values =================
+        # ================= Get Previous Values =================
         prev_thickness = state.frost.thickness
         prev_frost_mass = state.frost.mass
         prev_avg_density = state.frost.density
 
-        m_dot_thickening = state.hmt.m_dot_thickening
-        m_dot_densification = state.hmt.m_dot_densification
-        m_dot_thickening_flux = state.hmt.m_dot_thickening_flux
-        T_frost_surface = state.hmt.T_frost_surface
-        T_dew_point = state.air.T_dew_point
-        
-        if T_frost_surface > self.params.water_freezing_point:
+        if state.hmt.T_frost_surface > self.params.water_freezing_point:
             raise ValueError("Calculated frost surface temperature is above freezing point.")
         
         
         # ================= Calculate new Values =================
+
+        # --- New Surface- and Average-Density ---
         new_density_surface_raw = self._calculate_surface_density(
-            T_frost_surface = T_frost_surface, 
-            T_dew_point = T_dew_point
+            T_frost_surface                  = state.hmt.T_frost_surface, 
+            T_dew_point                      = state.air.T_dew_point,
+            frost_density_correlation_choice = self.params.frost_density_correlation_choice
         )
 
         new_density_surface = new_density_surface_raw * self.params.correction_factor_surface_density
 
         new_avg_density, new_frost_mass = self._calculate_average_density_and_frost_mass(
-            m_dot_thickening = m_dot_thickening,
-            m_dot_densification = m_dot_densification,
-            prev_frost_mass = prev_frost_mass,
-            prev_avg_density = prev_avg_density,
+            m_dot_thickening    = state.hmt.m_dot_thickening,
+            m_dot_densification = state.hmt.m_dot_densification,
+            prev_frost_mass     = prev_frost_mass,
+            prev_avg_density    = prev_avg_density,
             new_density_surface = new_density_surface,
+            time_step           = self.params.time_step
         )
+
+        # --- New Thermal Conductivity and Thickness ---
+        new_k_frost_raw = self._calculate_k_frost(
+            average_density                       = new_avg_density,
+            frost_conductivity_correlation_choice = self.params.frost_conductivity_correlation_choice
+        )
+
+        new_k_frost = new_k_frost_raw * self.params.correction_factor_k_frost
 
         new_thickness = self._calculate_thickness(
-            prev_thickness=prev_thickness,
-            m_dot_thickening_flux=m_dot_thickening_flux,
-            new_layer_density=new_density_surface 
+            prev_thickness                     = prev_thickness,
+            m_dot_thickening_flux              = state.hmt.m_dot_thickening_flux,
+            new_density_surface                = new_density_surface,
+            frost_thickness_correlation_choice = self.params.frost_thickness_correlation_choice,
+            time_step                          = self.params.time_step
         )
 
+
+        # --- New Geometric Properties ---
         new_tube_diameter_w_frost = self._calculate_tube_diameter_w_frost(
-            frost_thickness=new_thickness,
-            tube_outer_diameter=self.params.tube_outer_diameter
+            frost_thickness     = new_thickness,
+            tube_outer_diameter = self.params.tube_outer_diameter
         )
 
         new_space_between_frost = self._calculate_space_between_frost(
-            frost_thickness=new_thickness, 
-            fin_pitch=self.params.fin_pitch, 
-            fin_thickness=self.params.fin_thickness
+            frost_thickness = new_thickness, 
+            fin_pitch       = self.params.fin_pitch, 
+            fin_thickness   = self.params.fin_thickness
         )
 
         new_flow_area_air = self._calculate_flow_area_air(
-            space_between_frost=new_space_between_frost, 
-            fin_height=self.params.fin_height, 
-            fin_amount=self.params.fin_amount, 
-            tube_diameter_w_frost=new_tube_diameter_w_frost, 
-            tubes_per_layer=self.params.tubes_per_layer
+            space_between_frost   = new_space_between_frost, 
+            fin_height            = self.params.fin_height, 
+            fin_amount            = self.params.fin_amount, 
+            tube_diameter_w_frost = new_tube_diameter_w_frost, 
+            tubes_per_layer       = self.params.tubes_per_layer
+        )
+
+        new_A_frost_surface = self._calculate_frost_surface_area(
+            tube_diameter_w_frost = new_tube_diameter_w_frost,
+            space_between_frost = new_space_between_frost,
+            fin_segment_height = self.params.fin_segment_height,
+            fin_segment_length = self.params.fin_segment_length,
+            fin_segment_amount = self.params.fin_segment_amount
         )
 
 
         # ================= Write new values to state =================
         state.frost.set("density", new_avg_density)
         state.frost.set("thickness", new_thickness)
+
+        state.frost.set("mass", new_frost_mass)
+        state.frost.set("k_frost", new_k_frost)
+
         state.frost.set("tube_diameter_w_frost", new_tube_diameter_w_frost)
         state.frost.set("space_between_frost", new_space_between_frost)
         state.frost.set("flow_area_air", new_flow_area_air)
-        state.frost.set("mass", new_frost_mass)
+        state.frost.set("A_frost_surface", new_A_frost_surface)
+
 
 
 
@@ -120,22 +135,24 @@ class FrostModel:
     # Helper Functions
     ####################################################################################
 
-    def _calculate_surface_density(self, T_frost_surface: float, T_dew_point: float) -> float:
+    def _calculate_surface_density(self, T_frost_surface: float, T_dew_point: float, frost_density_correlation_choice: str) -> float:
+        # sourcery skip: inline-variable, switch
         """
         Calculates the new frost density at the surface.
 
         Args:
             T_frost_surface: The frost surface temperature at the start of the step [K].
             T_dew_point: The dew point temperature of the air [K].
+            frost_density_correlation_choice: The choice of correlation to use for frost density [-].
         Returns:
             The calculated new frost density [kg/m^3].
         Raises:
             ValueError: If the frost density correlation choice is unknown.
         """
-        if self.params.frost_density_correlation_choice == "jonas_diss":        
+        if frost_density_correlation_choice == "jonas_diss":        
             return 650 * np.exp(0.277 * (T_frost_surface - 273.15))
         
-        elif self.params.frost_density_correlation_choice == "da_silva_paper":  
+        elif frost_density_correlation_choice == "da_silva_paper":  
             # Coefficients from Section 4 "Results" of da Silva et al. (2011)
             a = 494.0
             b = 0.11
@@ -148,13 +165,11 @@ class FrostModel:
             # Eq. 9
             return a * np.exp(b * T_f_C + c * T_dew_C)
         
- 
-        
         else:
-            raise ValueError(f"Unknown frost density correlation: {self.params.frost_density_correlation_choice}")
-
+            raise ValueError(f"Unknown frost density correlation: {frost_density_correlation_choice}")
+        
     def _calculate_average_density_and_frost_mass(self, m_dot_thickening: float, m_dot_densification: float, prev_frost_mass: float, 
-                                                  prev_avg_density: float, new_density_surface: float) -> tuple[float, float]:
+                                                  prev_avg_density: float, new_density_surface: float, time_step: float) -> tuple[float, float]:
         """
         Calculates the new average density and total frost mass.
         Integrates mass flow rates over the time step. Note that densification 
@@ -166,18 +181,19 @@ class FrostModel:
             prev_frost_mass: Total frost mass from the previous step [kg].
             prev_avg_density: Average frost density from the previous step [kg/m^3].
             new_density_surface: Density of the newly deposited surface layer [kg/m^3].
+            time_step: The simulation time step [s].
         Returns:
             - new_avg_density: The updated average frost density [kg/m^3].
             - new_frost_mass: The updated total frost mass [kg].
         """
         # Integrate MASS (Total Mass increases by BOTH flows)
-        mass_added_total = (m_dot_thickening + m_dot_densification) * self.params.time_step
+        mass_added_total = (m_dot_thickening + m_dot_densification) * time_step
         new_frost_mass = prev_frost_mass + mass_added_total
         
         # Integrate VOLUME (Volume increases ONLY by thickening flow)
         # Densification mass enters existing pores, so it adds 0 volume.
         prev_vol = prev_frost_mass / prev_avg_density
-        vol_added = (m_dot_thickening * self.params.time_step) / new_density_surface 
+        vol_added = (m_dot_thickening * time_step) / new_density_surface 
         new_total_vol = prev_vol + vol_added
         
         # Calculate New Average Density
@@ -185,44 +201,48 @@ class FrostModel:
 
         return new_avg_density, new_frost_mass
 
-    def _calculate_thickness(self, prev_thickness: float, m_dot_thickening_flux: float, new_layer_density: float) -> float:
+    def _calculate_k_frost(self, average_density: float, frost_conductivity_correlation_choice: str) -> float:
+        """
+        Calculates the new thermal conductivity of the frost.
+
+        Args:
+            average_density: The average frost density [kg/m^3].
+            frost_conductivity_correlation_choice: The choice of correlation to use for frost conductivity [-].
+        Returns:
+            The calculated frost thermal conductivity [W/(m*K)].
+        Raises:
+            ValueError: If the frost conductivity correlation choice is unknown.
+        """
+        if frost_conductivity_correlation_choice == "A":
+            return 1.202e-3 * average_density ** 0.963
+        elif frost_conductivity_correlation_choice == "da_silva_paper":  
+            return 0.132 + (3.13e-4 * average_density) + (1.6e-7 * average_density**2)
+
+        else:
+            raise ValueError(f"Unknown frost conductivity correlation: {frost_conductivity_correlation_choice}")
+
+    def _calculate_thickness(self, prev_thickness: float, m_dot_thickening_flux: float, new_density_surface: float, 
+                            frost_thickness_correlation_choice: str, time_step: float) -> float:
         """
         Calculates the new frost thickness.
 
         Args:
             prev_thickness: Old thickness [m].
             m_dot_thickening_flux: Mass flux contributing specifically to thickness [kg/(m^2*s)].
-            new_layer_density: Density of the new layer [kg/m^3].
+            new_density_surface: Density of the new layer [kg/m^3].
+            frost_thickness_correlation_choice: The choice of correlation to use for frost thickness [-].
+            time_step: The simulation time step [s].
         Returns:
             The new total frost thickness [m].
         Raises:
             ValueError: If the frost thickness correlation choice is unknown.
         """
-        if self.params.frost_thickness_correlation_choice == "jonas_diss":
+        if frost_thickness_correlation_choice == "jonas_diss":
             # Euler forward step
-            delta_thickness = (m_dot_thickening_flux * self.params.time_step) / new_layer_density
+            delta_thickness = (m_dot_thickening_flux * time_step) / new_density_surface
             return prev_thickness + delta_thickness
         else:
-            raise ValueError(f"Unknown frost thickness correlation: {self.params.frost_thickness_correlation_choice}")
-
-    def _calculate_k_frost(self, average_density: float) -> float:
-        """
-        Calculates the new thermal conductivity of the frost.
-
-        Args:
-            average_density: The average frost density [kg/m^3].
-        Returns:
-            The calculated frost thermal conductivity [W/(m*K)].
-        Raises:
-            ValueError: If the frost conductivity correlation choice is unknown.
-        """
-        if self.params.frost_conductivity_correlation_choice == "A":
-            return 1.202e-3 * average_density ** 0.963
-        elif self.params.frost_conductivity_correlation_choice == "da_silva_paper":  
-            return 0.132 + (3.13e-4 * average_density) + (1.6e-7 * average_density**2)
-
-        else:
-            raise ValueError(f"Unknown frost conductivity correlation: {self.params.frost_conductivity_correlation_choice}")
+            raise ValueError(f"Unknown frost thickness correlation: {frost_thickness_correlation_choice}")
 
     def _calculate_tube_diameter_w_frost(self, frost_thickness: float, tube_outer_diameter: float) -> float:
         """
@@ -264,3 +284,24 @@ class FrostModel:
             The total air flow area [m^2].
         """
         return (fin_amount - 1) * (fin_height - tube_diameter_w_frost * tubes_per_layer) * space_between_frost
+    
+    def _calculate_frost_surface_area(self, tube_diameter_w_frost:float, space_between_frost:float, fin_segment_height:float, fin_segment_length:float, fin_segment_amount:int)-> float:
+        """
+        Calculates the total frost surface area on the finned tube evaporator (area used for heat transfer from air to frost surface).
+
+        Args:
+            tube_diameter_w_frost (float): The effective tube outer diameter including frost [m].
+            space_between_frost (float): The air flow channel width between frosted fins including frost [m].
+            fin_segment_height (float): The height of a single fin segment [m].
+            fin_segment_length (float): The length of a single fin segment [m].
+            fin_segment_amount (int): The total number of fin segments [-].
+
+        Returns:
+            float: The total frost surface area [m²].
+        """
+
+        # Calculate area of one fin and one tube segment
+        A_one_tube_segment_frost = np.pi * tube_diameter_w_frost * space_between_frost
+        A_one_fin_segment_frost  = 2 * ( (fin_segment_height * fin_segment_length) - (0.25 * np.pi * tube_diameter_w_frost**2) )
+
+        return fin_segment_amount * (A_one_tube_segment_frost + A_one_fin_segment_frost)
