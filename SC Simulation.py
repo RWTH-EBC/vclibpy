@@ -34,7 +34,7 @@ condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
 )
 
 evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
-    A=24, secondary_medium="air", flow_type="cross", ratio_outer_to_inner_area=24,
+    A=108, secondary_medium="air", flow_type="cross", ratio_outer_to_inner_area=105,
     two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=1000),
     gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1000),
     wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),

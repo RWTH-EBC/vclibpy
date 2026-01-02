@@ -12,9 +12,9 @@ import sys
 # 1. EINSTELLUNGEN
 # =============================================================================
 
-filename = "IHX_Propane_1x0.xlsx"
+filename = "IHX_Propane_VarFlowHum_ValveStudy.xlsx"
 FLUID = "Propane"
-OUTPUT_FOLDER = "Simulations_Diagramme_IHX_Test_Flaeche_EVA"
+OUTPUT_FOLDER = "IHX_Propane_VarFlowHum_ValveStudy"
 SUBFOLDER_VALID = "Gueltig"
 SUBFOLDER_INVALID = "Ungueltig"
 SUBFOLDER_SCATTER = "Scatter_Plots"
@@ -54,23 +54,27 @@ if not file_path.exists():
 
 print(f"Lade Daten aus: {file_path} ...")
 df_raw = pd.read_excel(file_path)
+
+# Whitespace entfernen, um Matching-Fehler zu vermeiden
 df_raw.columns = df_raw.columns.str.strip()
 
-# MAPPING DEFINIEREN
+# --- NEUES MAPPING BASIEREND AUF DEINEN SPALTEN ---
 col_map = {
-    # Allgemeine Infos
+    # Allgemeine Infos / Temperaturen Sekundärseite
     'T_eva_in in K (Evaporator Secondary side inlet temperature)': 'T_source_in_K',
     'T_con_in in K (Condenser Secondary side inlet temperature)': 'T_sink_in_K',
+
+    # Leistungsdaten
     'COP in - (Coefficient of Performance)': 'COP',
     'P_el in W (Power consumption)': 'P_el_W',
-    'n in Hz (Compressor speed)': 'n_Hz',
-    'dT_eva_superheating in K (Evaporator outlet superheat)': 'SH',
-
-    # --- NEUE PARAMETER FÜR PLOTS ---
-    'm_flow_ref in kg/s (Refrigerant mass flow rate)': 'm_flow_kg_s',
     'Q_con in W (Condenser refrigerant heat flow rate)': 'Q_con_W',
-    'y_EV in - (Expansion valve opening)': 'y_EV',
-    # --------------------------------
+
+    # Betriebsparameter
+    'n in Hz (None)': 'n_Hz',
+    'dT_eva_superheating in K (None)': 'SH',
+    'm_flow_ref in kg/s (Refrigerant mass flow rate)': 'm_flow_kg_s',
+    'opening in - (Opening High-Side EV)': 'y_EV',  # Valve Opening
+    'phi in - (None)': 'phi', # <--- NEU: Feuchte
 
     # Zustand 1
     'T_1 in K (Temperature in state 1)': 'T_1_K',
@@ -110,13 +114,19 @@ col_map = {
 
 # Spalten umbenennen
 df = df_raw.rename(columns=col_map)
+
+# Sicherheitscheck: Wurde COP gefunden?
+if 'COP' not in df.columns:
+    print("FEHLER: Konnte die Spalte 'COP' nicht mappen. Bitte Spaltennamen prüfen:")
+    print(df_raw.columns.tolist())
+    sys.exit()
+
 df = df.dropna(subset=['COP'])
 
-# Prüfen ob Mapping geklappt hat
+# Prüfen ob Mapping für Enthalpien geklappt hat
 required_h = ['h_1_Jkg', 'h_2_Jkg']
 if not all(col in df.columns for col in required_h):
-    print("FEHLER: Konnte die H_... Spalten nicht finden. Bitte Spaltennamen prüfen:")
-    print(df_raw.columns.tolist())
+    print("FEHLER: Konnte die H_... Spalten nicht finden. Mapping fehlgeschlagen.")
     sys.exit()
 
 print(f" -> {len(df)} Zeilen bereit.")
@@ -144,16 +154,20 @@ df['T_dis_C'] = df['T_2_K'] - 273.15
 df['P_el_kW'] = df['P_el_W'] / 1000
 df['n_rpm'] = df['n_Hz'] * 60
 
-# --- NEU: Q_con in kW umrechnen für Plots ---
+# --- Q_con in kW umrechnen für Plots ---
 if 'Q_con_W' in df.columns:
     df['Q_con_kW'] = df['Q_con_W'] / 1000.0
 else:
     df['Q_con_kW'] = 0.0
 
+# Falls 'phi' nicht existiert (z.B. alte Datei), mit 0 auffüllen
+if 'phi' not in df.columns:
+    df['phi'] = 0.0
+
 # 4. Limits Check
 df['p_con_check'] = df['p_3_bar']
 df['p_eva_check'] = df['p_7_bar']
-# Fallback falls p_3 fehlt (sollte bei IHX aber da sein)
+# Fallback falls p_3 fehlt
 if 'p_3_bar' not in df.columns and 'p_2_bar' in df.columns:
     df['p_con_check'] = df['p_2_bar']
 
@@ -168,16 +182,7 @@ def get_sat_temp(p_bar):
 df['T_sat_con'] = df['p_con_check'].apply(get_sat_temp)
 df['T_sat_eva'] = df['p_eva_check'].apply(get_sat_temp)
 
-if 'T_source_in_K' not in df.columns:
-    try:
-        # Fallback Suche nach Spalten
-        c = [x for x in df_raw.columns if "Eva" in x and "in" in x][0]
-        df['T_source_in_K'] = df_raw[c]
-        c = [x for x in df_raw.columns if "Con" in x and "in" in x][0]
-        df['T_sink_in_K'] = df_raw[c]
-    except:
-        pass
-
+# Quell- und Senkentemperaturen (Celius)
 df['Source_C'] = df['T_source_in_K'] - 273.15
 df['Sink_C'] = df['T_sink_in_K'] - 273.15
 df['Flow_C'] = df['Sink_C'] + TARGET_SPREAD
@@ -264,7 +269,10 @@ for idx, row in df.iterrows():
     path_dir = os.path.join(OUTPUT_FOLDER, status_dir, f"Vorlauf_{row['Flow_C']:.0f}C")
     os.makedirs(path_dir, exist_ok=True)
 
-    fname = f"BP_{idx:03d}_n{row['n_rpm']:.0f}_SH{row['SH']:.1f}.png"
+    # --- ANPASSUNG DATEINAME: Jetzt mit PHI und EV ---
+    phi_val = row.get('phi', 0)
+    y_ev_val = row.get('y_EV', 0)
+    fname = f"BP_{idx:03d}_n{row['n_rpm']:.0f}_SH{row['SH']:.1f}_PHI{phi_val:.2f}_EV{y_ev_val:.2f}.png"
 
     fig, ax = plt.subplots(figsize=(10, 7))
 
@@ -315,8 +323,10 @@ for idx, row in df.iterrows():
     ax.set_xlabel("Enthalpie [kJ/kg]")
     ax.set_ylabel("Druck [bar]")
 
+    # --- ANPASSUNG TITEL: Jetzt mit phi und EV ---
     t_str = (f"BP {idx:03d} | T_source: {row['Source_C']:.1f}°C | T_flow: {row['Flow_C']:.1f}°C\n"
-             f"n: {row['n_rpm']:.0f} rpm | SH: {row['SH']:.1f} K | {row['Status_Text']} | COP: {row['COP']:.2f}")
+             f"n: {row['n_rpm']:.0f} rpm | SH: {row['SH']:.1f} K | phi: {phi_val:.2f} | EV: {y_ev_val:.2f}\n"
+             f"{row['Status_Text']} | COP: {row['COP']:.2f}")
 
     ax.set_title(t_str, color='black' if row['Is_Valid'] else 'red', fontweight='bold', fontsize=10)
     ax.grid(True, which='major', alpha=0.3)
@@ -378,12 +388,13 @@ df_power = pd.DataFrame(summary_power)
 
 if not df_eco.empty and not df_power.empty:
 
-    # --- PLOT KONFIGURATION ---
+    # --- PLOT KONFIGURATION (Erweitert um phi) ---
     plot_configs = [
         {'data': df_eco, 'col': 'COP', 'label': 'COP [-]', 'title': 'Maximal möglicher COP (Eco-Mode)',
          'cmap': 'viridis', 'mask_negatives': True},
 
-        {'data': df_power, 'col': 'Q_con_kW', 'label': 'Heizleistung [kW]', 'title': 'Maximale Heizleistung (Power-Mode)',
+        {'data': df_power, 'col': 'Q_con_kW', 'label': 'Heizleistung [kW]',
+         'title': 'Maximale Heizleistung (Power-Mode)',
          'cmap': 'magma', 'mask_negatives': True},
         {'data': df_power, 'col': 'm_flow_kg_s', 'label': 'Massenstrom [kg/s]', 'title': 'Maximaler Massenstrom',
          'cmap': 'plasma', 'mask_negatives': True},
@@ -392,7 +403,11 @@ if not df_eco.empty and not df_power.empty:
          'cmap': 'inferno', 'mask_negatives': False},
 
         {'data': df_power, 'col': 'y_EV', 'label': 'Ventilöffnung [-]', 'title': 'Ventil bei maximaler Leistung',
-         'cmap': 'cividis', 'mask_negatives': True}
+         'cmap': 'cividis', 'mask_negatives': True},
+
+        # NEU: Feuchte
+        {'data': df_power, 'col': 'phi', 'label': 'Rel. Feuchte [-]', 'title': 'Feuchte bei maximaler Leistung',
+         'cmap': 'Blues', 'mask_negatives': False}
     ]
 
     for cfg in plot_configs:
