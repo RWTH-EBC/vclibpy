@@ -103,7 +103,7 @@ air_vol_flows = [0.6]#[0.5, 0.6, 0.7]  # m³/s
 
 # IHX Spezifisch: Variation der Ventilöffnung (Hochdruck-Seite)
 # 3 Stufen wie gewünscht
-hpev_openings = [0,5] #[0.5, 0.7, 1.0]
+hpev_openings = [0.5] #[0.5, 0.7, 1.0]
 
 logging.info(f"Generiere Input-Liste. Variation über:")
 logging.info(f" -> {len(df_betriebspunkte)} Zeilen (BP + Feuchte)")

@@ -96,38 +96,6 @@ class StandardCycle(BaseCycle):
             name="T_4", value=self.evaporator.state_inlet.T,
             unit="K", description="Refrigerant temperature at evaporator inlet"
         )
-        fs_state.set(
-            name="H_1", value=self.evaporator.state_outlet.h,
-            unit="J/K", description="Refrigerant enthalpy at evaporator outlet"
-        )
-        fs_state.set(
-            name="H_2", value=self.compressor.state_outlet.h,
-            unit="J/K", description="Compressor outlet enthalpy"
-        )
-        fs_state.set(
-            name="H_3", value=self.condenser.state_outlet.h, unit="J/K",
-            description="Refrigerant enthalpy at condenser outlet"
-        )
-        fs_state.set(
-            name="H_4", value=self.evaporator.state_inlet.h,
-            unit="J/K", description="Refrigerant enthalpy at evaporator inlet"
-        )
-        fs_state.set(
-            name="p_1", value=self.evaporator.state_outlet.p,
-            unit="Pa", description="Refrigerant pressure at evaporator outlet"
-        )
-        fs_state.set(
-            name="p_2", value=self.compressor.state_outlet.p,
-            unit="Pa", description="Compressor outlet pressure"
-        )
-        fs_state.set(
-            name="p_3", value=self.condenser.state_outlet.p, unit="Pa",
-            description="Refrigerant pressure at condenser outlet"
-        )
-        fs_state.set(
-            name="p_4", value=self.evaporator.state_inlet.p,
-            unit="Pa", description="Refrigerant pressure at evaporator inlet"
-        )
         fs_state.set(name="p_con", value=p_2, unit="Pa", description="Condensation pressure")
         fs_state.set(name="p_eva", value=p_1, unit="Pa", description="Evaporation pressure")
 
