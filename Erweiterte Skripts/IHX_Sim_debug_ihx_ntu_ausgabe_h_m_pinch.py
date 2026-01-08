@@ -21,7 +21,7 @@ from vclibpy.utils.automation import calc_multiple_states
 # =============================================================================
 
 # WICHTIG: Nutze die Datei aus dem neuen Generator (mit Spalte 'phi')
-excel_filename = 'betriebspunkte.xlsx'
+excel_filename = 'inputs_debug.xlsx'
 if not os.path.exists(excel_filename):
     raise FileNotFoundError(f"Datei '{excel_filename}' nicht gefunden.")
 
@@ -88,7 +88,7 @@ heat_pump = ihx.IHX(
     ihx=ihx_component
 )
 
-algorithm = Iteration(show_iteration=True, max_num_iterations=100)
+algorithm = FSolve()
 
 # =============================================================================
 # 3. ERSTELLEN DER EINGABE-LISTE
@@ -97,13 +97,13 @@ algorithm = Iteration(show_iteration=True, max_num_iterations=100)
 inputs_list = []
 
 # Iterations-Listen
-speeds_rel = [round(x, 1) for x in np.arange(0.3, 1.1, 0.1)]
-superheats = [5, 10, 15]
+speeds_rel = [0.4]#[round(x, 1) for x in np.arange(0.3, 1.1, 0.1)]
+superheats = [5]#[5, 10, 15]
 air_vol_flows = [0.6]#[0.5, 0.6, 0.7]  # m³/s
 
 # IHX Spezifisch: Variation der Ventilöffnung (Hochdruck-Seite)
 # 3 Stufen wie gewünscht
-hpev_openings = [0,5] #[0.5, 0.7, 1.0]
+hpev_openings = [0.5] #[0.5, 0.7, 1.0]
 
 logging.info(f"Generiere Input-Liste. Variation über:")
 logging.info(f" -> {len(df_betriebspunkte)} Zeilen (BP + Feuchte)")
@@ -171,7 +171,7 @@ logging.info(f"Fertig. {len(inputs_list)} Simulationen vorbereitet.")
 # =============================================================================
 
 save_directory = pathlib.Path(".")
-output_filename = "IHX_Propane_VarFlowHum_ValveStudy_noHumidity.xlsx"
+output_filename = "IHX_Propane_debug_ihx_ntu.xlsx"
 
 logging.info("Starte Simulation...")
 
@@ -188,8 +188,8 @@ try:
 
     # Datei umbenennen
     res_file = save_directory / "IHX_Propane.xlsx"  # Standardname bei diesem Flowsheet checken
-    if not res_file.exists():
-        res_file = save_directory / "results.xlsx"
+    #if not res_file.exists():
+        #res_file = save_directory / "results.xlsx"
 
     target_file = save_directory / output_filename
 

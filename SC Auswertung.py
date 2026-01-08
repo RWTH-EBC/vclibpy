@@ -16,7 +16,7 @@ filename = "Standard_propane.xlsx"
 FLUID = "Propane"
 
 # Output Ordner
-OUTPUT_FOLDER = "Simulations_Diagramme_SC_FINAL"
+OUTPUT_FOLDER = "Simulations_Diagramme_SC_V_L_hoch"
 SUBFOLDER_VALID = "Gueltig"
 SUBFOLDER_INVALID = "Ungueltig"
 SUBFOLDER_SCATTER = "Scatter_Plots_Test"

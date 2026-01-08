@@ -12,9 +12,9 @@ import sys
 # 1. EINSTELLUNGEN
 # =============================================================================
 
-filename = "IHX_Propane_VarFlowHum_ValveStudy.xlsx"
+filename = "IHX_Propane_debug_ihx_ntu.xlsx"
 FLUID = "Propane"
-OUTPUT_FOLDER = "IHX_Propane_VarFlowHum_ValveStudy"
+OUTPUT_FOLDER = "IHX_Propane_debug_ihx_ntu"
 SUBFOLDER_VALID = "Gueltig"
 SUBFOLDER_INVALID = "Ungueltig"
 SUBFOLDER_SCATTER = "Scatter_Plots"
