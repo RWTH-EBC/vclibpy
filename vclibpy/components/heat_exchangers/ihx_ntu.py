@@ -29,6 +29,27 @@ class IHX_NTU(InternalHeatExchanger):
         )
 
     def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
+        # ---------------------------------------------------------
+        # DEBUG START A: IST DER MASSENSTROM STABIL?
+        # ---------------------------------------------------------
+        T_high_in = self.state_inlet_high.T
+        # Wir holen uns auch den echten Eingangswert der Low-Side (vom Verdampfer kommend)
+        # Hinweis: state_outlet_low ist im Code oft der Startpunkt für Rückrechnungen,
+        # aber physikalisch kommt das Fluid vom 'inlet_low' (was wir hier meist nicht direkt als state haben,
+        # aber wir sehen es am Massenstrom und den Werten).
+
+        print(f"\n=== [DEBUG IHX START] ===")
+        print(f"Massenstrom High: {self.m_flow_high:.6f} kg/s")
+        print(f"Input High: {T_high_in:.2f}°C, {self.state_inlet_high.p / 1e5:.2f} bar")
+        print(f"Input Low (Ref Out): {self.state_outlet_low.T:.2f}°C, {self.state_outlet_low.p / 1e5:.2f} bar")
+
+        if self.m_flow_high < 0.001:  # Grenzwert z.B. 1 Gramm/Sekunde
+            print("!!! ALARM: Massenstrom ist immer noch fast NULL. Ventil-Fixierung prüfen! !!!")
+        else:
+            print(">>> Massenstrom ist im gesunden Bereich.")
+        # ---------------------------------------------------------
+        # DEBUG ENDE A
+        # ---------------------------------------------------------
         # First calculate the heat assuming q1 at inlet of lower side:
         state_low_q1 = self.med_prop.calc_state("PQ", self.state_outlet_low.p, 1)
         state_high_q0 = self.med_prop.calc_state("PQ", self.state_inlet_high.p, 0)
@@ -75,6 +96,28 @@ class IHX_NTU(InternalHeatExchanger):
             self.state_inlet_high.p,
             self.state_inlet_high.h - Q_ntu_first_regime / self.m_flow_high
         )
+
+        # ... (Original Code bis zur Berechnung von state_high_first_regime)
+
+        # ---------------------------------------------------------
+        # DEBUG START B: ZWISCHENSTAND NACH REGIME 1
+        # ---------------------------------------------------------
+        T_high_R1 = state_high_first_regime.T
+        T_low_sat = state_low_q1.T  # Sättigungstemperatur
+
+        print(f"--- Regime 1 Report ---")
+        print(f"Q übertragen: {Q_ntu_first_regime:.1f} W")
+        #print(f"High-Side Zustand nach R1: T={T_high_R1:.2f}°C, x={state_high_first_regime.x}") #.x ist nicht die richtige Systax
+        print(f"High-Side T nach R1: {T_high_R1:.2f} K ({T_high_R1 - 273.15:.2f}°C)")
+        print(f"Low-Side Saturation: {T_low_sat:.2f} K ({T_low_sat - 273.15:.2f}°C)")
+
+        # Check: Ist High-Side schon kälter als Low-Side Sättigung?
+        if T_high_R1 < T_low_sat:
+            print(f"!!! CROSSOVER in R1: High ({T_high_R1:.2f}) < Low Sat ({T_low_sat:.2f}) !!!")
+        # ---------------------------------------------------------
+        # DEBUG ENDE B
+        # ---------------------------------------------------------
+
         if Q_ntu_first_regime < Q_low_sh_to_q1:
             Q_low_first_to_second_regime = self.m_flow_low * (
                 state_low_first_regime.h - state_low_q1.h
@@ -113,6 +156,35 @@ class IHX_NTU(InternalHeatExchanger):
             state_high_first_regime.p,
             state_high_first_regime.h - Q_ntu_second_regime / self.m_flow_high
         )
+
+        # ---------------------------------------------------------
+        # DEBUG START C: ENDERGEBNIS REGIME 2
+        # ---------------------------------------------------------
+        T_high_R2 = state_high_second_regime.T
+        h_high_R2 = state_high_second_regime.h
+        T_low_sat = state_low_q1.T
+
+        print(f"--- Regime 2 Report ---")
+        print(f"Q übertragen: {Q_ntu_second_regime:.1f} W")
+        print(f"High-Side T nach R2: {T_high_R2:.2f} K ({T_high_R2-273.15:.2f}°C)")
+        print(f"High-Side h nach R2: {h_high_R2:.0f} J/kg")
+
+        pinch = T_high_R2 - T_low_sat
+        print(f"Pinch (Abstand HighOut - LowSat): {pinch:.2f} K")
+        if pinch < 0:
+            print(f"!!! CROSSOVER FEHLER !!! High-Side ist {abs(pinch):.2f} K KÄLTER als Low-Side Saturation.")
+
+        if T_high_R2 < T_low_sat:
+            print(f"!!! CROSSOVER FEHLER !!! High-Side ist {abs(pinch):.2f} K KÄLTER als Low-Side.")
+            print("Mögliche Ursachen: Zu viel Q abgezogen oder Enthalpie-Crash.")
+        else:
+            print(">>> Alles OK. Physik wurde eingehalten.")
+
+        print("=========================\n")
+        # ---------------------------------------------------------
+        # DEBUG ENDE C
+        # ---------------------------------------------------------
+
         if self.A - A_required_first_regime - A_required_second_regime < 0:
             raise ValueError("NTU calculation lead to area above 100 %")
         dT_max_third_regime = state_high_second_regime.T - state_low_q1.T
@@ -124,6 +196,39 @@ class IHX_NTU(InternalHeatExchanger):
             m_flow_secondary_cp=m_flow_secondary_cp,
             flow_type=self.flow_type
         )
+
+        # ... (nach der Berechnung von Q_ntu_third_regime)
+
+        # ---------------------------------------------------------
+        # DEBUG START D: REGIME 3 (DER CRASH REPORT)
+        # ---------------------------------------------------------
+        print(f"--- Regime 3 Report ---")
+        # Zeig mir, was hier berechnet wurde
+        print(f"Q übertragen (R3): {Q_ntu_third_regime:.1f} W")
+        print(f"Rest-Fläche für R3: {A_required_third_regime:.4f} m²")
+
+        # Welches dT treibt Regime 3 an?
+        dT_R3_max = state_high_second_regime.T - state_low_q1.T
+        print(f"Treibendes dT (HighIn - LowSat): {dT_R3_max:.2f} K")
+
+        # Gesamtsumme
+        Q_total = Q_ntu_first_regime + Q_ntu_second_regime + Q_ntu_third_regime
+        print(f"=== GESAMT Q: {Q_total:.1f} W ===")
+
+        # Manuelle Berechnung des Endzustands (High Side)
+        h_out_high_check = self.state_inlet_high.h - Q_total / self.m_flow_high
+        print(f"Enthalpie High-Out (berechnet): {h_out_high_check:.0f} J/kg")
+
+        try:
+            # Versuch Rückrechnung auf Temperatur
+            state_check = self.med_prop.calc_state("PH", self.state_inlet_high.p, h_out_high_check)
+            print(f"-> Resultierende Temperatur T5: {state_check.T:.2f} K ({state_check.T - 273.15:.2f}°C)")
+        except:
+            print("-> Resultierende Temperatur: CRASH (Enthalpie zu niedrig für Stoffdaten)")
+
+        print("-----------------------------------------------------------")
+        # ---------------------------------------------------------
+
         self.set_missing_states(Q=Q_ntu_first_regime + Q_ntu_second_regime + Q_ntu_third_regime)
         return None, None  # Irrelevant for this heat exchanger for now.
 
