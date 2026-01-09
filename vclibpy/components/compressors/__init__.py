@@ -2,3 +2,5 @@ from .compressor import Compressor
 from .rotary import RotaryCompressor
 from .ten_coefficient import TenCoefficientCompressor, DataSheetCompressor
 from .constant_effectivness import ConstantEffectivenessCompressor
+from .rolling_piston_Molinaroli_2017 import Molinaroli_2017_Compressor
+from .rolling_piston_Molinaroli_2017_modified import Molinaroli_2017_Compressor_Modified
