@@ -21,7 +21,7 @@ from vclibpy.utils.automation import calc_multiple_states
 # =============================================================================
 
 # WICHTIG: Nutze die Datei aus dem neuen Generator (mit Spalte 'phi')
-excel_filename = 'inputs_debug.xlsx'
+excel_filename = 'betriebspunke_inputs_debug_-40.xlsx'
 if not os.path.exists(excel_filename):
     raise FileNotFoundError(f"Datei '{excel_filename}' nicht gefunden.")
 
