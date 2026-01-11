@@ -156,41 +156,46 @@ class IHX_NTU(InternalHeatExchanger):
 
 
         # SAFETY CHECK: Crossover Prevention
-        # Wir summieren alles auf und prüfen gegen das physikalische Limit.
-        # ---------------------------------------------------------
-        # SAFETY CHECK: Crossover Prevention (KORRIGIERT)
-        # ---------------------------------------------------------
-        Q_total = Q_ntu_first_regime + Q_ntu_second_regime + Q_ntu_third_regime
 
-        # KORREKTUR: Wir nehmen die Sättigungstemperatur (state_low_q1.T) als Limit.
-        # Grund: state_outlet_low ist der Austritt (warm). Wir dürfen aber bis zur
-        # Verdampfungstemperatur (kalt) runterkühlen.
+        # 1. Das physikalische Limit bestimmen (Sättigungstemperatur der Low-Side)
+        dT_min_pinch = 0.5
         T_limit_cold = state_low_q1.T
+        T_target_high_out = T_limit_cold + dT_min_pinch
 
-        # Nur prüfen, wenn wir kühlen (High > Low Limit)
-        if T_limit_cold < self.state_inlet_high.T:
+        # Nur eingreifen, wenn wir kühlen und T_limit überhaupt unterschritten werden könnte
+        if T_target_high_out < self.state_inlet_high.T:
             try:
-                # Berechne Enthalpie der High-Side, wenn sie auf Sättigungstemp abkühlen würde
+                # Berechne die Enthalpie, die High-Side hätte, wenn sie auf T_limit abkühlt
+                # (bei konstantem Druck p_high)
                 state_limit_high = self.med_prop.calc_state("PT", self.state_inlet_high.p, T_limit_cold)
 
-                # Maximale Enthalpiedifferenz (High_In -> Sättigungsgrenze)
-                dh_max_phys = self.state_inlet_high.h - state_limit_high.h
+                # Maximale Enthalpiedifferenz für den GESAMTEN Tauscher
+                dh_max_total_phys = self.state_inlet_high.h - state_limit_high.h
 
-                # Maximaler Wärmestrom (99.9% Limit)
-                Q_max_phys = self.m_flow_high * dh_max_phys * 0.999
+                # Maximaler Wärmestrom (mit 0,1 % Puffer)
+                Q_max_total_allowed = self.m_flow_high * dh_max_total_phys * 0.999
 
-                if Q_total > Q_max_phys:
-                    # Skalierung (wie gehabt)
-                    factor = Q_max_phys / Q_total
-                    Q_ntu_first_regime *= factor
-                    Q_ntu_second_regime *= factor
-                    Q_ntu_third_regime *= factor
-                    Q_total = Q_max_phys
+                # 2. Prüfen: Wie viel haben R1 und R2 schon verbraucht?
+                Q_already_used = Q_ntu_first_regime + Q_ntu_second_regime
+
+                # 3. Budget für Regime 3 berechnen
+                Q_budget_for_R3 = Q_max_total_allowed - Q_already_used
+
+                # Fallunterscheidung:
+                if Q_budget_for_R3 < 0:
+                    Q_ntu_third_regime = 0
+
+                elif Q_ntu_third_regime > Q_budget_for_R3:
+                    Q_ntu_third_regime = Q_budget_for_R3
+
+                else:
+                    pass
+
             except Exception:
                 pass
 
+        Q_total = Q_ntu_first_regime + Q_ntu_second_regime + Q_ntu_third_regime
 
-        # Finales Setzen der Zustände
 
         self.set_missing_states(Q=Q_total)
         return None, None
