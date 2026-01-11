@@ -30,7 +30,7 @@ class IHX_NTU(InternalHeatExchanger):
 
     def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
         # 1. Vorbereitung und Grenzen bestimmen
-        # -------------------------------------
+
         # Low-Side Referenz (Taupunkt / Sättigung Dampf)
         state_low_q1 = self.med_prop.calc_state("PQ", self.state_outlet_low.p, 1)
         # High-Side Referenz (Siedepunkt / Sättigung Flüssigkeit)
@@ -46,9 +46,9 @@ class IHX_NTU(InternalHeatExchanger):
         Q_high_tp_to_q0 = self.m_flow_high * max(0, dh_max_high)
         Q_low_sh_to_q1 = self.m_flow_low * dh_max_low
 
-        # ---------------------------------------------------------
+
         # REGIME 1: Kondensation (High) vs. Gas (Low)
-        # ---------------------------------------------------------
+
         m_flow_primary_cp = (
                                     (self.state_outlet_low.h - state_low_q1.h) /
                                     (self.state_outlet_low.T - state_low_q1.T)
@@ -85,9 +85,9 @@ class IHX_NTU(InternalHeatExchanger):
             self.state_inlet_high.h - Q_ntu_first_regime / self.m_flow_high
         )
 
-        # ---------------------------------------------------------
+
         # REGIME 2: Unterkühlung (High) vs. Gas (Low)
-        # ---------------------------------------------------------
+
         # Bestimmen der Grenzen für Regime 2
         if Q_ntu_first_regime < Q_low_sh_to_q1:
             Q_low_first_to_second_regime = self.m_flow_low * (
@@ -133,9 +133,9 @@ class IHX_NTU(InternalHeatExchanger):
             state_high_first_regime.h - Q_ntu_second_regime / self.m_flow_high
         )
 
-        # ---------------------------------------------------------
+
         # REGIME 3: Unterkühlung (High) vs. Nassdampf/Sättigung (Low)
-        # ---------------------------------------------------------
+
         if self.A - A_required_first_regime - A_required_second_regime < 0:
             # Sollte durch calc_Q_with_available_area abgefangen sein,
             # aber sicherheitshalber keine Fläche mehr nutzen.
@@ -154,41 +154,44 @@ class IHX_NTU(InternalHeatExchanger):
             flow_type=self.flow_type
         )
 
-        # ---------------------------------------------------------
+
         # SAFETY CHECK: Crossover Prevention
-        # ---------------------------------------------------------
         # Wir summieren alles auf und prüfen gegen das physikalische Limit.
+        # ---------------------------------------------------------
+        # SAFETY CHECK: Crossover Prevention (KORRIGIERT)
+        # ---------------------------------------------------------
         Q_total = Q_ntu_first_regime + Q_ntu_second_regime + Q_ntu_third_regime
 
-        # Das Limit ist erreicht, wenn T_high_out == T_low_in (state_outlet_low.T)
-        T_limit_cold = self.state_outlet_low.T
+        # KORREKTUR: Wir nehmen die Sättigungstemperatur (state_low_q1.T) als Limit.
+        # Grund: state_outlet_low ist der Austritt (warm). Wir dürfen aber bis zur
+        # Verdampfungstemperatur (kalt) runterkühlen.
+        T_limit_cold = state_low_q1.T
 
-        # Nur prüfen, wenn wir kühlen (High > Low)
+        # Nur prüfen, wenn wir kühlen (High > Low Limit)
         if T_limit_cold < self.state_inlet_high.T:
             try:
-                # Berechne hypothetische Enthalpie bei T_limit
+                # Berechne Enthalpie der High-Side, wenn sie auf Sättigungstemp abkühlen würde
                 state_limit_high = self.med_prop.calc_state("PT", self.state_inlet_high.p, T_limit_cold)
 
-                # Maximale Enthalpiedifferenz
+                # Maximale Enthalpiedifferenz (High_In -> Sättigungsgrenze)
                 dh_max_phys = self.state_inlet_high.h - state_limit_high.h
 
-                # Maximaler Wärmestrom (mit 0.1% Sicherheitsabstand zur Vermeidung numerischer Fehler)
+                # Maximaler Wärmestrom (99.9% Limit)
                 Q_max_phys = self.m_flow_high * dh_max_phys * 0.999
 
                 if Q_total > Q_max_phys:
-                    # Skaliere die Wärmeströme proportional herunter
+                    # Skalierung (wie gehabt)
                     factor = Q_max_phys / Q_total
                     Q_ntu_first_regime *= factor
                     Q_ntu_second_regime *= factor
                     Q_ntu_third_regime *= factor
                     Q_total = Q_max_phys
             except Exception:
-                # Fallback: Wenn Stoffdatenberechnung fehlschlägt, akzeptieren wir das Risiko
                 pass
 
-        # ---------------------------------------------------------
+
         # Finales Setzen der Zustände
-        # ---------------------------------------------------------
+
         self.set_missing_states(Q=Q_total)
         return None, None
 
