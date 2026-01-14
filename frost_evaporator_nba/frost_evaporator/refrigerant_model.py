@@ -31,9 +31,6 @@ propane_RP = RefProp(
 
 
 class RefrigerantModel:
-    """
-    # TODO Docstring
-    """
     
     def __init__(self, 
                  parameters: FrostEvaporatorParameters, 

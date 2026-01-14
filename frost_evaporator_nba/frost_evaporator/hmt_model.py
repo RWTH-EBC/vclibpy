@@ -95,7 +95,7 @@ class HeatMassTransferModel:
         )
 
         # --- Mass Split (Densification vs Thickening) ---
-        m_dot_dens, m_dot_thick, m_dot_thick_flux = self._calculate_mass_flow_split(
+        m_dot_dens, m_dot_thick, m_dot_thick_flux = self._calculate_mass_flow_split_Fick(
             frost_thickness = state.frost.thickness,
             frost_density   = state.frost.density,
             m_dot_total     = m_dot_frost_total,
@@ -443,10 +443,11 @@ class HeatMassTransferModel:
         return m_dot_frost_total, Q_dot_sens
         
 
-    def _calculate_mass_flow_split(self, frost_thickness: float, frost_density: float, m_dot_total: float, 
+    def _calculate_mass_flow_split_Fick(self, frost_thickness: float, frost_density: float, m_dot_total: float, 
                                    rho_w_surf: float, rho_w_base: float, A_frost_surface: float) -> tuple[float, float, float]:
         """
         Determines how much mass flow contributes to densification vs thickening.
+        This Function is based on Fick's Law of Diffusion.
 
         Args:
             frost_thickness: Current frost thickness [m].

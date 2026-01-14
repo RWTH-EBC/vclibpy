@@ -57,7 +57,8 @@ class AirModel:
 
         # --- Geometry Definition ---
         # Hydraulic Diameter (for VDI / Jonas Diss)
-        D_h = 2 * state.frost.space_between_frost
+        # D_h = 2 * state.frost.space_between_frost
+        D_h = 4 * state.frost.flow_area_air * self.params.fin_length / state.frost.A_frost_surface
         
         # Collar Diameter (Effective diameter for Wang)
         D_c_eff = self.params.tube_outer_diameter + 2 * self.params.fin_thickness + 2 * state.frost.thickness
@@ -226,7 +227,7 @@ class AirModel:
         prandtl_number = (props['cp_ha'] * props['mu']) / props['k']
         
         # Lewis Number approximation (CoolProp lacks diffusivity for humid air)
-        lewis_number = 0.85
+        lewis_number = 0.9
 
         # Calculate water vapor density (utilizing internal helper)
         water_vapor_density, _ = self._get_water_vapor_density(T=T, p=p, W=W)
