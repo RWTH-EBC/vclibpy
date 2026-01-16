@@ -12,9 +12,9 @@ import sys
 # 1. EINSTELLUNGEN
 # =============================================================================
 
-filename = "IHX_Propane_test_weekly.xlsx"
+filename = "IHX_Propane_test_cp.xlsx"
 FLUID = "Propane"
-OUTPUT_FOLDER = "IHX_Propane_test_weekly"
+OUTPUT_FOLDER = "IHX_Propane_test_cp"
 SUBFOLDER_VALID = "Gueltig"
 SUBFOLDER_INVALID = "Ungueltig"
 SUBFOLDER_SCATTER = "Scatter_Plots"

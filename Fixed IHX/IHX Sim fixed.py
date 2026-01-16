@@ -21,7 +21,7 @@ from vclibpy.utils.automation import calc_multiple_states
 # =============================================================================
 
 # WICHTIG: Nutze die Datei aus dem neuen Generator (mit Spalte 'phi')
-excel_filename = 'betriebspunkte_final_grid.xlsx'
+excel_filename = 'betriebspunkte_final_weniger.xlsx'
 if not os.path.exists(excel_filename):
     raise FileNotFoundError(f"Datei '{excel_filename}' nicht gefunden.")
 
@@ -165,7 +165,7 @@ logging.info(f"Fertig. {len(inputs_list)} Simulationen vorbereitet.")
 # =============================================================================
 
 save_directory = pathlib.Path(".")
-output_filename = "IHX_Propane_test_weekly.xlsx"
+output_filename = "IHX_Propane_test_cp.xlsx"
 
 logging.info("Starte Simulation...")
 
