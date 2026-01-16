@@ -31,7 +31,7 @@ class IHX_NTU(InternalHeatExchanger):
     def calc(self, inputs: Inputs, fs_state: FlowsheetState) -> (float, float):
         # 1. Vorbereitung und Grenzen bestimmen
 
-        # Low-Side Referenz (Taupunkt / Sättigung Dampf)
+        # Low-Side & High-Side Referenz (Taupunkt / Sättigung Dampf)
         state_low_q1 = self.med_prop.calc_state("PQ", self.state_outlet_low.p, 1)
         # High-Side Referenz (Siedepunkt / Sättigung Flüssigkeit)
         state_high_q0 = self.med_prop.calc_state("PQ", self.state_inlet_high.p, 0)
@@ -47,7 +47,7 @@ class IHX_NTU(InternalHeatExchanger):
         Q_low_sh_to_q1 = self.m_flow_low * dh_max_low
 
 
-        # REGIME 1: Kondensation (High) vs. Gas (Low)
+        # REGIME 1: Zweiphasig (High) - Einphasig (Low)
 
         m_flow_primary_cp = (
                                     (self.state_outlet_low.h - state_low_q1.h) /
@@ -68,7 +68,7 @@ class IHX_NTU(InternalHeatExchanger):
             m_flow_secondary_cp=m_flow_secondary_cp
         )
 
-        # Wenn Fläche nicht mal für R1 reicht, aufhören
+        # Falls WÜ-Fläche zu klein
         if Q_ntu_first_regime < Q_first_regime:
             self.set_missing_states(Q_ntu_first_regime)
             return
@@ -88,20 +88,25 @@ class IHX_NTU(InternalHeatExchanger):
 
         # REGIME 2: Unterkühlung (High) vs. Gas (Low)
 
-        # Bestimmen der Grenzen für Regime 2
+        # Check Low-Side
         if Q_ntu_first_regime < Q_low_sh_to_q1:
+            # noch überhitzt
             Q_low_first_to_second_regime = self.m_flow_low * (
                     state_low_first_regime.h - state_low_q1.h
             )
         else:
+            # schon an Taulinie
             Q_low_first_to_second_regime = np.inf
             m_flow_primary_cp = np.inf
 
+        # Check High-Side
         if Q_ntu_first_regime < Q_high_tp_to_q0:
+            # noch zweiphasig
             Q_high_first_to_second_regime = self.m_flow_high * (
                     self.state_inlet_high.h - state_high_q0.h
             )
         else:
+            # schon an Siedelinie
             Q_high_first_to_second_regime = np.inf
             # cp Berechnung für Flüssigkeit (näherungsweise über 5K Differenz)
             state_artificial = self.med_prop.calc_state(
@@ -134,11 +139,10 @@ class IHX_NTU(InternalHeatExchanger):
         )
 
 
-        # REGIME 3: Unterkühlung (High) vs. Nassdampf/Sättigung (Low)
+        # REGIME 3: Einphasig (High) vs. Zweiphasig (Low)
 
         if self.A - A_required_first_regime - A_required_second_regime < 0:
-            # Sollte durch calc_Q_with_available_area abgefangen sein,
-            # aber sicherheitshalber keine Fläche mehr nutzen.
+            # Um Abstürze zu verhindern, setzen wir es auf 0, falls numerische Fehler
             A_regime_3 = 0
         else:
             A_regime_3 = self.A - A_required_first_regime - A_required_second_regime
@@ -154,15 +158,29 @@ class IHX_NTU(InternalHeatExchanger):
             flow_type=self.flow_type
         )
 
+        # PROBLEM:
+        # In Regime 3 kann es bei sehr großen Flächenverhältnissen
+        # oder geringen Massenströmen dazu kommen, dass der
+        # NTU-Algorithmus ein Q berechnet, das physikalisch unmöglich ist.
+        # Dies führt zu einem "Temperature Crossover", bei dem die
+        # Austrittstemperatur der High-Side (T5) rechnerisch tiefer fällt
+        # als die Eintrittstemperatur der Low-Side (T7).
+        #
+        # LÖSUNG:
+        # Wir berechnen das thermodynamische Limit für den gesamten Wärmeübertrager
+        # (Maximal mögliche Abkühlung bis zur Sättigungstemperatur der Gegenseite)
+        # und begrenzen den Wärmestrom in Regime 3 exakt auf das verbleibende Budget.
 
         # SAFETY CHECK: Crossover Prevention
 
-        # 1. Das physikalische Limit bestimmen (Sättigungstemperatur der Low-Side)
+        # 1. Verdampfungstemperatur bestimmen
+        # Pinch können wir auch erhöhen
+        # wir setzten die min.-Temp. für das highside KM gleich der Verdampfungstemp. + Pinch
         dT_min_pinch = 0.5
         T_limit_cold = state_low_q1.T
         T_target_high_out = T_limit_cold + dT_min_pinch
 
-        # Nur eingreifen, wenn wir kühlen und T_limit überhaupt unterschritten werden könnte
+        # Nur falls T_limit überhaupt unterschritten werden könnte
         if T_target_high_out < self.state_inlet_high.T:
             try:
                 # Berechne die Enthalpie, die High-Side hätte, wenn sie auf T_limit abkühlt
@@ -183,9 +201,12 @@ class IHX_NTU(InternalHeatExchanger):
 
                 # Fallunterscheidung:
                 if Q_budget_for_R3 < 0:
+                    # Fall A: R1 und R2 haben das Limit bereits ausgeschöpft.
                     Q_ntu_third_regime = 0
 
                 elif Q_ntu_third_regime > Q_budget_for_R3:
+                    # Fall B (Temperatur-Crossover)
+                    # limitieren hier, sodass T_target_high_out eingehalten wird
                     Q_ntu_third_regime = Q_budget_for_R3
 
                 else:
