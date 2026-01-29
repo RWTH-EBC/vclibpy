@@ -51,8 +51,8 @@ class Molinaroli_2017_Compressor(Compressor):
         self.W_dot_comp = None
 
         # Cache for expensive calculations
-        self._cached_transport4 = None
-        self._cached_gamma4 = None
+      ###  self._cached_transport4 = None
+      ###  self._cached_gamma4 = None
         self._cached_m_dot_tot = None
 
         # State caching for repeated solver calls
@@ -67,6 +67,12 @@ class Molinaroli_2017_Compressor(Compressor):
 
         # Cache for discharge valve calculations
         self._cached_discharge_valve = {}
+
+        # --- Debug tracking (disabled by default) ---
+        self.debug_enabled = False
+        self._gamma4_min = None
+        self._gamma4_max = None
+        self._gamma4_n = 0
 
     def _get_initial_guesses(self, inputs, p_outlet):
         " find initial guesses for the unknowns "
@@ -104,6 +110,11 @@ class Molinaroli_2017_Compressor(Compressor):
         self._last_x = None
         self._cache_hits = 0
         self._cache_misses = 0
+
+        # Reset debug stats per operating point
+        self._gamma4_min = None
+        self._gamma4_max = None
+        self._gamma4_n = 0
 
     def _get_cache_key(self, p_suc, h1, p_suc_3, h3, p4, s3):
         """Create a cache key for state calculations"""
@@ -167,21 +178,8 @@ class Molinaroli_2017_Compressor(Compressor):
             self.state_c_4 = self.med_prop.calc_state("PS", p4, s3)
             h4 = self.state_c_4.h
 
-            # Calculate transport properties for state_4 ONCE
-            if (self._cached_transport4 is None or
-                    self._cached_gamma4 is None or
-                    abs(self.state_c_4.p - p4) > 1000):
-
-                transport4 = self.med_prop.calc_transport_properties(self.state_c_4)
-                cp4 = transport4.cp
-                cv4 = transport4.cv
-                gamma4 = cp4 / cv4
-
-                self._cached_transport4 = transport4
-                self._cached_gamma4 = gamma4
-            else:
-                transport4 = self._cached_transport4
-                gamma4 = self._cached_gamma4
+            transport4 = self.med_prop.calc_transport_properties(self.state_c_4)
+            gamma4 = transport4.cp / transport4.cv
 
             # Calculate leakage flow ONCE
             m_dot_tot = self._calculate_leakage_flow(p4, h4, s3, p_suc, gamma4)
@@ -203,6 +201,17 @@ class Molinaroli_2017_Compressor(Compressor):
                 del self._state_cache[first_key]
 
         self._last_x = x.copy()
+
+        # --- DEBUG: track gamma4 range during solver calls ---
+        if self.debug_enabled:
+            if self._gamma4_min is None:
+                self._gamma4_min = gamma4
+                self._gamma4_max = gamma4
+            else:
+                self._gamma4_min = min(self._gamma4_min, gamma4)
+                self._gamma4_max = max(self._gamma4_max, gamma4)
+            self._gamma4_n += 1
+
 
         # ---------------------------------------------
         # 2. Calculate Residuals (using cached or new values)
@@ -701,4 +710,16 @@ class Molinaroli_2017_Compressor(Compressor):
             self.simulate_operating_point(inputs=inputs, p_outlet=p_outlet, fs_state=fs_state)
 
         return self.P_el
+
+    def get_debug_report(self) -> str:
+        if not self.debug_enabled or self._gamma4_n == 0:
+            return "Debug disabled (or no solver calls recorded)."
+
+        return (
+            f"Molinaroli2017 Debug Report\n"
+            f"  gamma4 range: {self._gamma4_min:.6f} .. {self._gamma4_max:.6f}  (N={self._gamma4_n})\n"
+            f"  state_cache: hits={self._cache_hits}, misses={self._cache_misses}, size={len(self._state_cache)}\n"
+            f"  discharge_valve_cache size={len(self._cached_discharge_valve)}"
+        )
+
 #todo: add calc mass flow, add calc electrical power
