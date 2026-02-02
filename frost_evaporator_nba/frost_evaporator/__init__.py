@@ -24,6 +24,7 @@ from .fan_system_model import FanSystemModel
 from .refrigerant_model import RefrigerantModel 
 from .hmt_model import HeatMassTransferModel
 from .thermo_model import ThermoModel
+from .simulation_workflow import MultiExperimentAnalyzer ,FrostEvaporatorSimulation, SimulationVisualizer
 
 
 
@@ -52,4 +53,9 @@ __all__ = [
     "RefrigerantModel",
     "HeatMassTransferModel",
     "ThermoModel",
+
+    # Simulation Workflow
+    "MultiExperimentAnalyzer",
+    "FrostEvaporatorSimulation"
+    "SimulationVisualizer"
 ]

@@ -52,20 +52,15 @@ class HeatMassTransferModel:
             A_effective     = A_effective
         )
 
-        # R_refrigerant = self._calculate_thermal_resistance_refrigerant(
-        #     h_conv_refrigerant = state.refrigerant.h_conv
-        # )
-        
-        R_downstream = R_frost # + self.R_tube + R_refrigerant (TODO: Add back)
+        # Total Thermal Resistance on the Air+Frost+Tube side (excluding refrigerant)
+        R_ext_total = R_air + R_frost + self.R_tube
 
-
-        # --- Heat Transfer ---
-        Q_dot_sens = self._calculate_heat_transfer_sensible(
-            m_dot_air         = state.air.m_dot_humid,
-            heat_capacity_air = state.air.heat_capacity_avg,
-            R_air             = R_air,
-            T_air_in          = inputs.air.T_in,
-            T_frost_surface   = state.hmt.T_frost_surface
+        # Calculate sensible Heat (splittet into 2phase and superheated zones)
+        Q_dot_sens = self._calculate_zonal_sensible_heat(
+            state = state,
+            inputs = inputs,
+            R_ext_total = R_ext_total,
+            A_effective = A_effective
         )
 
         # --- Mass Transfer ---
@@ -105,16 +100,13 @@ class HeatMassTransferModel:
         )
 
         # --- Energy Balance & Temperatures ---
-        T_refrigerant_avg = 0.5 * (state.refrigerant.T_in + state.refrigerant.T_out)
-        
-        Q_dot_total, T_surface_new, T_base_new = self._calculate_energy_balance_and_temps(
-            m_dot_frost_total    = m_dot_frost_total,
-            Q_dot_sens           = Q_dot_sens,
-            T_refrigerant_avg    = T_refrigerant_avg,
-            R_downstream         = R_downstream,
-            R_frost              = R_frost,
-            h_sublimation        = h_sublimation
-        )
+        Q_dot_lat = m_dot_frost_total * h_sublimation
+        Q_dot_total = Q_dot_sens + Q_dot_lat
+
+        T_air_avg = 0.5 * (inputs.air.T_in + state.air.T_out)
+        T_surface_new = T_air_avg - (Q_dot_sens * R_air)
+        T_base_new = T_surface_new - (Q_dot_total * R_frost)
+
 
 
         # ================= Write new values to state =================
@@ -131,8 +123,6 @@ class HeatMassTransferModel:
         
         state.hmt.set("A_effective", A_effective)
         state.hmt.set("eta_fin", eta_fin)
-        state.hmt.set("R_downstream", R_downstream)
-        # state.hmt.set("R_refrigerant", R_refrigerant)
         state.hmt.set("R_tube", self.R_tube)
         state.hmt.set("R_frost", R_frost)
         state.hmt.set("R_air", R_air)
@@ -144,6 +134,101 @@ class HeatMassTransferModel:
     ####################################################################################
     # Helper Functions
     ####################################################################################
+
+
+    def _calculate_zonal_sensible_heat(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs, R_ext_total: float, A_effective: float) -> float:
+        """
+        Calculates the total sensible heat transfer by splitting the coil into 
+        Two-Phase and Superheated zones.
+        """
+        # 1. Retrieve Zonal Data
+        portion_2ph = state.refrigerant.portion_two_phase
+        portion_sh  = state.refrigerant.portion_superheated
+        
+        h_conv_2ph = state.refrigerant.h_conv_two_phase
+        h_conv_sh  = state.refrigerant.h_conv_superheated
+
+        T_2ph_in = state.refrigerant.T_two_phase_in
+        T_sh_in  = state.refrigerant.T_superheated_in
+        
+        T_air_in = inputs.air.T_in
+
+        
+        # Mass Flows
+        m_dot_air_total = state.air.m_dot_humid
+        cp_air = state.air.heat_capacity_avg
+        m_dot_ref = inputs.refrigerant.m_dot
+        cp_ref_sh = state.refrigerant.heat_capacity_avg_superheated
+        
+
+        Q_2ph = 0.0
+        Q_sh = 0.0
+
+        A_inner_total = np.pi * self.params.tube_inner_diameter * self.params.total_tube_length
+
+        # --- ZONE 1: Two-Phase (Evaporation) ---
+        if portion_2ph > 1e-6:
+            """ Assuming Evaporation at Constant Temperature """
+
+            # Refrigerant Resistance in this zone (We scale the global tube inner area by the portion)
+            R_ref_2ph = 1.0 / (h_conv_2ph * A_inner_total * portion_2ph)
+            
+            # External Resistance (Air+Frost+Tube) scales inversely with Area fraction
+            R_ext_2ph = R_ext_total / portion_2ph
+            
+            # Total R for Zone 1
+            R_2ph = R_ext_2ph + R_ref_2ph
+            
+            # Air Capacity Rate for this zone
+            C_air_2ph = m_dot_air_total * portion_2ph * cp_air
+            
+            # Effectiveness (C_min/C_max = 0 because T_ref is constant)
+            NTU_2ph = 1.0 / (R_2ph * C_air_2ph)
+            epsilon_2ph = 1.0 - math.exp(-NTU_2ph)
+            
+            # Heat Transfer
+            Q_2ph = epsilon_2ph * C_air_2ph * (T_air_in - T_2ph_in)
+
+
+        # --- ZONE 2: Superheated (Gas) ---
+        if portion_sh > 1e-6:
+            """ Crossflow with one tube row from VDI-Wärmeatlas C1 """
+
+
+            # Refrigerant Resistance in this zone (We scale the global tube inner area by the portion)
+            R_ref_sh = 1.0 / (h_conv_sh * A_inner_total * portion_sh)
+
+            # External Resistance (Air+Frost+Tube) scales inversely with Area fraction
+            R_ext_sh = R_ext_total / portion_sh
+
+            # Total R for Zone 2
+            R_sh = R_ext_sh + R_ref_sh
+            
+            # Capacity Rates for this zone          
+            C_ref_sh = m_dot_ref * cp_ref_sh
+            C_air_sh = m_dot_air_total * portion_sh * cp_air
+            C_min = min(C_ref_sh, C_air_sh)
+            C_max = max(C_ref_sh, C_air_sh)
+            C_r = C_min / C_max
+
+            # Effectiveness
+
+            
+            NTU_sh = 1 / (R_sh * C_min)
+            
+            # Cross-Flow Epsilon (Both fluids Unmixed) - Standard for Finned Tubes
+            exponent_inner = -C_r * (NTU_sh**0.78)
+            term_inner = math.exp(exponent_inner) - 1.0
+            exponent_outer = (NTU_sh**0.22 / C_r) * term_inner
+            epsilon_sh = 1.0 - math.exp(exponent_outer)
+
+            # Heat Transfer
+            Q_sh = epsilon_sh * C_min * (T_air_in - T_sh_in)
+
+        return Q_2ph + Q_sh
+
+
+
     def _calculate_effective_area(self, h_conv_air: float, frost_thickness: float, k_frost: float) -> tuple[float, float]:
         """
         Calculates the effective heat transfer area of the finned tube.
@@ -310,37 +395,6 @@ class HeatMassTransferModel:
         
         return 1 / (h_conv_refrigerant * np.pi * self.params.tube_inner_diameter * self.params.total_tube_length)
 
-
-    def _calculate_heat_transfer_sensible(self, m_dot_air: float, heat_capacity_air: float, R_air: float, T_air_in: float, T_frost_surface: float) -> float:
-        """
-        Calculates Sensible Heat Transfer using the Epsilon-NTU method.
-
-        Args:
-            m_dot_air: Mass flow rate of humid air [kg/s].
-            heat_capacity_air: Specific heat capacity of air [J/kgK].
-            R_air: Thermal resistance of the air side [K/W].
-            T_air_in: Inlet air temperature [K].
-            T_frost_surface: Frost surface temperature [K].
-
-        Returns:
-            The sensible heat transfer rate [W].
-        """       
-        # Capacity Rate
-        C_air = m_dot_air * heat_capacity_air
-
-        # NTU
-        UA_air = 1.0 / R_air
-        NTU = UA_air / C_air
-
-        # Effectiveness (surface at constant temp)
-        epsilon = 1.0 - math.exp(-NTU)
-
-        # Heat Transfer
-        Q_max_sens = C_air * (T_air_in - T_frost_surface)
-        Q_dot_sens = epsilon * Q_max_sens
-        
-        return Q_dot_sens
-
     def _calculate_mass_transfer_total(self, m_dot_air: float, density_air: float, betta_air: float, 
                                        A_effective: float, rho_w_in: float, rho_w_surf: float) -> float:
         """
@@ -370,6 +424,9 @@ class HeatMassTransferModel:
         # Mass Transfer
         m_dot_frost_max = V_dot_air * (rho_w_in - rho_w_surf)
         m_dot_frost_total = epsilon_mass * m_dot_frost_max
+
+        # Clamp Negative Mass Transfer to 0 
+        m_dot_frost_total = max(0.0, m_dot_frost_total)
         
         return m_dot_frost_total
 
@@ -462,58 +519,33 @@ class HeatMassTransferModel:
             - m_dot_thickening: Mass flow rate for thickening [kg/s].
             - m_dot_thickening_flux: Mass flux for thickening [kg/(m^2s)].
         """        
-        if frost_thickness <= 1e-6:
-            # Layer too thin for internal diffusion
-            return 0.0, m_dot_total, (m_dot_total / A_frost_surface)
 
-        # Porosity and Diffusivity
-        porosity = 1.0 - (frost_density / self.params.ice_density)
-        porosity = max(0.0, min(1.0, porosity))
+        # Check for zero total mass flow
+        if m_dot_total > 0.0:
+            if frost_thickness <= 1e-6:
+                # Layer too thin for internal diffusion
+                return 0.0, m_dot_total, (m_dot_total / A_frost_surface)
 
-        D_AB = self.params.diffusivity_w_vapor_in_air
-        D_eff = D_AB * porosity
+            # Porosity and Diffusivity
+            porosity = 1.0 - (frost_density / self.params.ice_density)
+            porosity = max(0.0, min(1.0, porosity))
 
-        # Densification Flux (Fick's Law)
-        gradient_rho = (rho_w_surf - rho_w_base) / frost_thickness
-        m_dot_densification_flux = D_eff * gradient_rho
-        m_dot_densification = m_dot_densification_flux * A_frost_surface
+            D_AB = self.params.diffusivity_w_vapor_in_air
+            D_eff = D_AB * porosity
 
-        # Clamping
-        m_dot_densification = max(0.0, m_dot_densification)
-        m_dot_densification = min(m_dot_densification, m_dot_total)
-        
-        # Thickening
-        m_dot_thickening = m_dot_total - m_dot_densification
-        m_dot_thickening_flux = m_dot_thickening / A_frost_surface
+            # Densification Flux (Fick's Law)
+            gradient_rho = (rho_w_surf - rho_w_base) / frost_thickness
+            m_dot_densification_flux = D_eff * gradient_rho
+            m_dot_densification = m_dot_densification_flux * A_frost_surface
 
-        return m_dot_densification, m_dot_thickening, m_dot_thickening_flux
+            # Clamping
+            m_dot_densification = max(0.0, m_dot_densification)
+            m_dot_densification = min(m_dot_densification, m_dot_total)
+            
+            # Thickening
+            m_dot_thickening = m_dot_total - m_dot_densification
+            m_dot_thickening_flux = m_dot_thickening / A_frost_surface
 
-
-    def _calculate_energy_balance_and_temps(self, m_dot_frost_total: float, Q_dot_sens: float, T_refrigerant_avg: float, 
-                                            R_downstream: float, R_frost: float, h_sublimation: float) -> tuple[float, float, float]:
-        """
-        Calculates Latent Heat, Total Energy, and updates Surface/Base Temperatures.
-
-        Args:
-            m_dot_frost_total: Total frost mass accumulation rate [kg/s].
-            Q_dot_sens: Sensible heat transfer rate [W].
-            T_refrigerant_avg: Average refrigerant temperature [K].
-            R_downstream: Thermal resistance downstream of the frost surface [K/W].
-            R_frost: Thermal resistance of the frost layer [K/W].
-            h_sublimation: Enthalpy of sublimation [J/kg].
-
-        Returns:
-            - Q_dot_total: Total heat transfer rate [W].
-            - T_surface_new: New frost surface temperature [K].
-            - T_base_new: New frost base temperature [K].
-        """
-        
-        # Calculate Total Energy
-        Q_dot_lat = m_dot_frost_total * h_sublimation
-        Q_dot_total = Q_dot_sens + Q_dot_lat
-
-        # Calculate Temperatures
-        T_surface_new = T_refrigerant_avg + (Q_dot_total * R_downstream)
-        T_base_new = T_surface_new - (Q_dot_total * R_frost)
-
-        return Q_dot_total, T_surface_new, T_base_new
+            return m_dot_densification, m_dot_thickening, m_dot_thickening_flux
+        else:
+            return 0.0, 0.0, 0.0

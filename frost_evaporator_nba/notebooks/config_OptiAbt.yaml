@@ -1,0 +1,48 @@
+# config.yaml
+general:
+  time_step: 480.0
+  gravity: 9.81
+  alpha_0: 4200.0
+
+correlations:
+  frost_density: "da_silva_paper"
+  frost_thickness: "jonas_diss"
+  frost_conductivity: "da_silva_paper"
+  pressure_drop: "Haaf"
+  h_conv_air: "Wang"
+  fan_selection: "OptiAbt"
+
+correction_factors:
+  h_conv_air: 1.2
+  surface_density: 0.75
+  k_frost: 1.0
+  betta_air: 1.3
+  eta_fin: 1.0
+  pressure_loss: 1.7
+
+geometry:
+  # Discretization / Model Splits
+  # These control how the global geometry is sliced for the model
+  register_amount: 8.0 
+  layer_amount: 6
+
+  # Number of Fans of the Evaporator Unit
+  fan_amount: 2
+  
+  # Global Physical Dimensions (The Real Machine)
+  total_fin_height: 1.2    # [m] Total height before splitting by registers
+  total_fin_length: 0.15   # [m] Total length before splitting by layers
+  
+  # Detailed Geometry
+  fin_pitch: 0.007
+  fin_thickness: 0.0002
+  fin_amount: 71
+  fin_thermal_conductivity: 200.0
+  
+  tube_outer_diameter: 0.012
+  tube_inner_diameter: 0.0114
+  tube_thermal_conductivity: 400.0
+  
+  # Tube Layout (Global counts)
+  total_tube_layers: 6
+  total_tubes_per_layer: 24

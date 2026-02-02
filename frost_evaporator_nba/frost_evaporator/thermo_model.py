@@ -30,11 +30,11 @@ class ThermoModel:
 
 
         # ================= Calculate new Values =================
-        # h_refrigerant_out = self._calculate_refrigerant_outlet_enthalpy(
-        #     Q_dot_total=state.hmt.Q_dot_total,
-        #     m_dot_refrigerant=inputs.refrigerant.m_dot,
-        #     h_in_refrigerant=inputs.refrigerant.h_in,
-        # )
+        h_refrigerant_out = self._calculate_refrigerant_outlet_enthalpy(
+            Q_dot_total=state.hmt.Q_dot_total,
+            m_dot_refrigerant=inputs.refrigerant.m_dot,
+            h_in_refrigerant=inputs.refrigerant.h_in,
+        )
 
         W_out_air = self._calculate_outlet_humidity_ratio(
             W_in              = inputs.air.W_in,
@@ -55,7 +55,7 @@ class ThermoModel:
 
 
         # ================= Write new values to state =================
-        # state.refrigerant.set("h_out", h_refrigerant_out)
+        state.refrigerant.set("h_out", h_refrigerant_out)
         state.air.set("W_out", W_out_air)
         state.air.set("T_out", T_out_air)
 
@@ -128,10 +128,6 @@ class ThermoModel:
         """
         # Calculate outlet enthalpy [J/kg_dry_air]
         h_out_air = h_in_air - (Q_dot_total + m_dot_frost_total * h_ice) / m_dot_dry_air
-
-        # Safety Check: Enthalpy should not drop to unrealistic levels
-        if h_out_air < -100000: 
-            raise ValueError(f"Calculated Air outlet Enthalpy too small: {h_out_air}")
 
         try:
             T_out_air = CP_HumidAir.HAPropsSI('T', 'H', h_out_air, 'P', p_out_air, 'W', W_out_air)

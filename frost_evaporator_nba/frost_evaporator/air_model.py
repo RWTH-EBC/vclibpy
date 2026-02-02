@@ -33,7 +33,7 @@ class AirModel:
 
         # --- Average Air Properties ---
         (pressure_avg, density_avg, dyn_viscosity_avg, heat_capacity_avg, thermal_conductivity_avg, 
-         prandtl_avg, lewis_avg, rho_w_in, rho_w_out, h_in, h_out, R_in, R_out) = self._calculate_air_averages(
+         prandtl_avg, lewis_avg, rho_w_in, rho_w_out, h_in, h_out, R_in, R_out, T_avg, W_avg, p_avg) = self._calculate_air_averages(
             T_in  = inputs.air.T_in,
             p_in  = inputs.air.p_in,
             W_in  = inputs.air.W_in,
@@ -64,7 +64,7 @@ class AirModel:
         D_c_eff = self.params.tube_outer_diameter + 2 * self.params.fin_thickness + 2 * state.frost.thickness
 
         # --- Heat Transfer Coefficient Calculation ---
-        h_conv_raw = self.calculate_h_conv(
+        h_conv_raw, reynolds = self.calculate_h_conv(
             velocity                 = state.air.velocity,
             density_avg              = density_avg,
             dyn_viscosity_avg        = dyn_viscosity_avg,
@@ -75,7 +75,11 @@ class AirModel:
             D_h                      = D_h
         )
 
-        h_conv = h_conv_raw * self.params.correction_factor_h_conv_air
+        # Roughness Correction for the Convective Heat Transfer Coefficient
+        h_conv_corr = h_conv_raw * (state.air.roughness_multiplier ** 0.7)
+        
+        # Multiply with manual correction factor
+        h_conv = h_conv_corr * self.params.correction_factor_h_conv_air
 
         # --- Mass Transfer Coefficient ---
         betta_raw = self._calculate_mass_transfer_coefficient(
@@ -118,6 +122,11 @@ class AirModel:
         state.air.set("thermal_conductivity_avg", thermal_conductivity_avg)
         state.air.set("prandtl_avg", prandtl_avg)
         state.air.set("lewis_avg", lewis_avg)
+        state.air.set("reynolds", reynolds)
+
+        state.air.set("T_avg", T_avg)
+        state.air.set("W_avg", W_avg)
+        state.air.set("p_avg", p_avg)
 
         # --- Humid Air / Water Vapor ---
         state.air.set('rho_w_in', rho_w_in)
@@ -150,7 +159,7 @@ class AirModel:
     ####################################################################################
 
     def _calculate_air_averages(self, T_in: float, p_in: float, W_in: float, T_out: float, p_out: float, W_out: float
-                                ) -> tuple[float, float, float, float, float, float, float, float, float, float, float]:
+                                ) -> tuple[float, float, float, float, float, float, float, float, float, float, float, float, float, float]:
         """
         Calculates average air properties between inlet and outlet states.
 
@@ -191,9 +200,12 @@ class AirModel:
         conductivity_avg = (k_in + k_out) / 2.0
         prandtl_avg = (pr_in + pr_out) / 2.0
         lewis_avg = (le_in + le_out) / 2.0
+        T_avg = (T_in + T_out) / 2.0
+        W_avg = (W_in + W_out) / 2.0
+        p_avg = (p_in + p_out) / 2.0
 
         return (pressure_avg, density_avg, viscosity_avg, heat_capacity_avg, conductivity_avg, prandtl_avg, lewis_avg,
-                rho_w_in, rho_w_out, h_in, h_out, R_in, R_out)
+                rho_w_in, rho_w_out, h_in, h_out, R_in, R_out, T_avg, W_avg, p_avg)
     
 
     def _get_air_properties(self, T: float, p: float, W: float) -> tuple:
@@ -278,7 +290,7 @@ class AirModel:
 
     def calculate_h_conv(self, velocity: float, density_avg: float, dyn_viscosity_avg: float, 
                          heat_capacity_avg: float, thermal_conductivity_avg: float, prandtl_avg: float, 
-                         D_c: float, D_h: float) -> float:
+                         D_c: float, D_h: float) -> tuple[float, float]:
         # sourcery skip: inline-variable, switch
         """
         Calculates h_conv based on the correlation selected in self.params.h_conv_air_correlation_choice.
@@ -292,66 +304,76 @@ class AirModel:
 
         if choice == "Wang":
             # Wang uses Reynolds based on Collar Diameter (D_c)
-            Re_Dc = self._calculate_reynolds_number(
-                density               = density_avg, 
-                velocity              = velocity, 
-                characteristic_length = D_c, 
-                dyn_viscosity         = dyn_viscosity_avg
-            )
+            Re = self._calculate_reynolds_number(
+                            density               = density_avg, 
+                            velocity              = velocity, 
+                            characteristic_length = D_c, 
+                            dyn_viscosity         = dyn_viscosity_avg
+                        )
 
-            return self._calculate_h_conv_wang(
-                Re_Dc             = Re_Dc,
-                N                 = self.params.tube_layers,
-                F_p               = self.params.fin_pitch,
-                D_c               = D_c,
-                D_h               = D_h,
-                P_t               = self.params.transverse_tube_pitch,
-                P_l               = self.params.longitudinal_tube_pitch,
-                density_avg       = density_avg,
-                velocity          = velocity,
-                heat_capacity_avg = heat_capacity_avg,
-                prandtl_avg       = prandtl_avg
-            )
-
+            h_conv =  self._calculate_h_conv_wang(
+                            Re_Dc             = Re,
+                            N                 = self.params.tube_layers,
+                            F_p               = self.params.fin_pitch,
+                            D_c               = D_c,
+                            D_h               = D_h,
+                            P_t               = self.params.transverse_tube_pitch,
+                            P_l               = self.params.longitudinal_tube_pitch,
+                            density_avg       = density_avg,
+                            velocity          = velocity,
+                            heat_capacity_avg = heat_capacity_avg,
+                            prandtl_avg       = prandtl_avg
+                        )
+            
         elif choice == "Jonas Diss":
             # Jonas Diss uses Reynolds based on Hydraulic Diameter (D_h)
-            Re_Dh = self._calculate_reynolds_number(
-                density               = density_avg, 
-                velocity              = velocity, 
-                characteristic_length = D_h, 
-                dyn_viscosity         = dyn_viscosity_avg
-            )
+            Re = self._calculate_reynolds_number(
+                            density               = density_avg, 
+                            velocity              = velocity, 
+                            characteristic_length = D_h, 
+                            dyn_viscosity         = dyn_viscosity_avg
+                        )
             
-            nu = self._calculate_nusselt_jonas(Re_Dh=Re_Dh, Pr=prandtl_avg, D_h=D_h)
+            nu = self._calculate_nusselt_jonas(
+                            Re_Dh=Re, 
+                            Pr=prandtl_avg, 
+                            D_h=D_h
+                        )
             
-            return self._calculate_h_conv_from_nusselt(
-                nusselt               = nu, 
-                thermal_conductivity  = thermal_conductivity_avg, 
-                characteristic_length = D_h
-            )
-
+            h_conv = self._calculate_h_conv_from_nusselt(
+                            nusselt               = nu, 
+                            thermal_conductivity  = thermal_conductivity_avg, 
+                            characteristic_length = D_h
+                        )
+            
         elif choice == "VDI":
             # VDI uses Reynolds based on Hydraulic Diameter (D_h) and Flow Length (L)
-            Re_Dh = self._calculate_reynolds_number(
-                density               = density_avg, 
-                velocity              = velocity, 
-                characteristic_length = D_h, 
-                dyn_viscosity         = dyn_viscosity_avg
-            )
+            Re = self._calculate_reynolds_number(
+                            density               = density_avg, 
+                            velocity              = velocity, 
+                            characteristic_length = D_h, 
+                            dyn_viscosity         = dyn_viscosity_avg
+                        )
 
             # Assuming Flow Length L is the depth of the tube bank
             L = self.params.tube_layers * self.params.fin_segment_length
             
-            nu = self._calculate_nusselt_vdi(Re_Dh=Re_Dh, Pr=prandtl_avg, Dh=D_h, L=L)
+            nu = self._calculate_nusselt_vdi(
+                            Re_Dh=Re, 
+                            Pr=prandtl_avg, 
+                            Dh=D_h, L=L
+                        )
 
-            return self._calculate_h_conv_from_nusselt(
-                nusselt               = nu, 
-                thermal_conductivity  = thermal_conductivity_avg, 
-                characteristic_length = D_h
+            h_conv =  self._calculate_h_conv_from_nusselt(
+                            nusselt               = nu, 
+                            thermal_conductivity  = thermal_conductivity_avg, 
+                            characteristic_length = D_h
             )
 
         else:
             raise ValueError(f"Unknown h_conv correlation choice: '{choice}'. Valid options: 'Wang', 'Jonas Diss', 'VDI'.")
+        
+        return h_conv, Re
 
     def _calculate_reynolds_number(self, density: float, velocity: float, characteristic_length: float, dyn_viscosity: float) -> float:
         """
@@ -409,6 +431,7 @@ class AirModel:
             raise NotImplementedError("Wang et al. (2000) j-factor for N>1 is not implemented yet.")
 
         h_conv = (j * density_avg * velocity * heat_capacity_avg) / (prandtl_avg ** (2/3))
+        h_conv = max(1.0, h_conv) # Prevent unphysical low values
         return h_conv
     
 
@@ -562,10 +585,6 @@ class AirModel:
             The specific enthalpy of ice [J/kg].
         """
         T_celsius = T - 273.15
-
-        # Robustness check for physical validity
-        if T_celsius > 0.1:
-            warnings.warn(f"Temperature ({T} K) is above freezing point for ice enthalpy calculation.", RuntimeWarning)
 
         # Constants derived from ASHRAE Fundamentals (SI Units)
         # Reference: Liquid water at 0.01°C = 0 J/kg.

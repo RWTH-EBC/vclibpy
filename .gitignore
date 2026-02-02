@@ -28,3 +28,8 @@ venv
 .pytest_cache
 htmlcov
 .coverage
+frost_evaporator_nba/notebooks/med_prop_R134a_REFPRP64.dll
+frost_evaporator_nba/notebooks/med_prop_Propane_REFPRP64.dll
+.vscode/ltex.hiddenFalsePositives.de-DE.txt
+.vscode/ltex.dictionary.de-DE.txt
+.gitignore
