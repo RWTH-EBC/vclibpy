@@ -12,9 +12,9 @@ import sys
 # 1. EINSTELLUNGEN
 # =============================================================================
 
-filename = "IHX_Propane_test_cp.xlsx"
+filename = "IHX_Propane_Auslegung.xlsx"
 FLUID = "Propane"
-OUTPUT_FOLDER = "IHX_Propane_test_cp"
+OUTPUT_FOLDER = "IHX_Propane_Auslegung"
 SUBFOLDER_VALID = "Gueltig"
 SUBFOLDER_INVALID = "Ungueltig"
 SUBFOLDER_SCATTER = "Scatter_Plots"
@@ -123,7 +123,7 @@ if 'COP' not in df.columns:
 
 df = df.dropna(subset=['COP'])
 
-# Prüfen ob Mapping für Enthalpien geklappt hat
+# Prüfen, ob Mapping für Enthalpien geklappt hat
 required_h = ['h_1_Jkg', 'h_2_Jkg']
 if not all(col in df.columns for col in required_h):
     print("FEHLER: Konnte die H_... Spalten nicht finden. Mapping fehlgeschlagen.")
@@ -159,10 +159,6 @@ if 'Q_con_W' in df.columns:
     df['Q_con_kW'] = df['Q_con_W'] / 1000.0
 else:
     df['Q_con_kW'] = 0.0
-
-# Falls 'phi' nicht existiert (z.B. alte Datei), mit 0 auffüllen
-if 'phi' not in df.columns:
-    df['phi'] = 0.0
 
 # 4. Limits Check
 df['p_con_check'] = df['p_3_bar']

@@ -297,5 +297,11 @@ class MovingBoundaryNTUEvaporator(ExternalHeatExchanger):
                      description="Area for superheat heat exchange in evaporator")
         fs_state.set(name="A_eva_lat", value=A_lat, unit="m2",
                      description="Area for latent heat exchange in evaporator")
+        fs_state.set(
+            name='T_eva_out',
+            value=T_out,
+            unit='K',
+            description='Evaporator Secondary side outlet temperature'
+        )
 
         return error, min(dT_min_out, dT_min_in)

@@ -12,11 +12,11 @@ import sys
 # 1. KONFIGURATION
 # =============================================================================
 
-filename = "SC_Propane_test_weekly.xlsx"
+filename = "SC_Propane_Auslegung.xlsx"
 FLUID = "Propane"
 
 # Output Ordner
-OUTPUT_FOLDER = "SC_Propane_test_weekly"
+OUTPUT_FOLDER = "SC_Propane_Auslegung"
 SUBFOLDER_VALID = "Gueltig"
 SUBFOLDER_INVALID = "Ungueltig"
 SUBFOLDER_SCATTER = "Scatter_Plots_Test"

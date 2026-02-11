@@ -21,7 +21,7 @@ from vclibpy.utils.automation import calc_multiple_states
 # =============================================================================
 
 # WICHTIG: Nutze die Datei aus dem neuen Generator (mit Spalte 'phi')
-excel_filename = 'betriebspunkte_final_weniger.xlsx'
+excel_filename = 'betriebspunkte_final_bivalent_seriell.xlsx'
 if not os.path.exists(excel_filename):
     raise FileNotFoundError(f"Datei '{excel_filename}' nicht gefunden.")
 
@@ -34,31 +34,31 @@ df_betriebspunkte = pd.read_excel(excel_filename)
 condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
     A=2.2,
     secondary_medium="water", flow_type="counter", ratio_outer_to_inner_area=1,
-    two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=5000),
-    gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
-    wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=15, thickness=0.4e-3),
-    liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
-    secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000)
+    two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3500),
+    gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=500),
+    wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=400, thickness=1e-3),
+    liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=2000), # Kupfer
+    secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=4000)
 )
 
 # Verdampfer (108 m² Außenfläche, Ratio 105 -> ~1m² Innen)
 evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
-    A=108.0,
+    A=43.50,
     secondary_medium="air", flow_type="cross",
     ratio_outer_to_inner_area=105,
-    two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=1000),
-    gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1000),
-    wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=1e-3),
-    liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
-    secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=50)
+    two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000),
+    gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=400),
+    wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=400, thickness=1e-3), # Kupfer
+    liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=2000),
+    secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=64)
 )
 
 ihx_component = ihx_ntu.IHX_NTU(
     A=0.15,
-    alpha_low_side=1000,
+    alpha_low_side=500,
     alpha_high_side=2000,
     dT_pinch_min=0.5,
-    wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=15, thickness=1e-3)
+    wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=400, thickness=1e-3) # Kupfer
 )
 
 expansion_valve_high = Bernoulli(A=0.000002)
@@ -82,7 +82,7 @@ heat_pump = ihx.IHX(
     ihx=ihx_component
 )
 
-algorithm = FSolve()
+algorithm = Iteration()
 
 # =============================================================================
 # 3. ERSTELLEN DER EINGABE-LISTE
@@ -96,7 +96,6 @@ superheats = [5, 10, 15]
 air_vol_flows = [1.4]#[1.3,1.4,1.5]  # m³/s
 
 # IHX Spezifisch: Variation der Ventilöffnung (Hochdruck-Seite)
-# 3 Stufen wie gewünscht
 hpev_openings = [1.0] #[0.5, 0.7, 1.0]
 
 logging.info(f"Generiere Input-Liste. Variation über:")
@@ -106,15 +105,11 @@ logging.info(f" -> {len(hpev_openings)} Ventilöffnungen (HPEV)")
 
 for index, row in df_betriebspunkte.iterrows():
     T_amb_K = row['T_ambient'] + 273.15
-    #current_phi = row['phi']  # Feuchte aus Excel
 
-    # Schleife: Luftvolumenstrom
     for v_flow in air_vol_flows:
         # Dichte berechnen für Massenstrom
         rho_air = 101325 / (287 * T_amb_K)
         m_flow_air_calc = v_flow * rho_air
-
-        # Schleife: Ventilöffnung (IHX Control)
         for valve_pos in hpev_openings:
             for sh in superheats:
                 for n_rel in speeds_rel:
@@ -134,16 +129,14 @@ for index, row in df_betriebspunkte.iterrows():
                     control_inputs.set(name="n", value=n_rel, unit="Hz")
                     control_inputs.set(name="T_ambient", value=T_amb_K, unit="K")
 
-                    # Feuchte & Volumenstrom (Referenz)
-                    #control_inputs.set(name="phi", value=current_phi, unit="-")
+                    #Volumenstrom (Referenz)
                     control_inputs.set(name="V_flow_air", value=v_flow, unit="m3/s")
 
                     # LPEV Regelung (Überhitzung)
                     control_inputs.set(name="dT_eva_superheating", value=sh, unit="K")
                     control_inputs.set(name="dT_con_subcooling", value=0, unit="K")
 
-                    # HPEV Regelung (Feste Öffnung)
-                    # WICHTIG: KEIN Subcooling vorgeben, da Ventilposition fix ist!
+                    # HPEV Regelung
                     control_inputs.set(
                         name="opening",
                         value=valve_pos,
@@ -165,7 +158,7 @@ logging.info(f"Fertig. {len(inputs_list)} Simulationen vorbereitet.")
 # =============================================================================
 
 save_directory = pathlib.Path(".")
-output_filename = "IHX_Propane_test_cp.xlsx"
+output_filename = "IHX_Propane_Auslegung.xlsx"
 
 logging.info("Starte Simulation...")
 
@@ -175,15 +168,13 @@ try:
         flowsheet=heat_pump,
         inputs=inputs_list,
         algorithm=algorithm,
-        use_multiprocessing=False,  # Stabil lassen
+        use_multiprocessing=False,  # Stabil lassen oder True um schneller zu rechnen
         raise_errors=False,
         with_unit_and_description=True
     )
 
     # Datei umbenennen
     res_file = save_directory / "IHX_Propane.xlsx"  # Standardname bei diesem Flowsheet checken
-    #if not res_file.exists():
-        #res_file = save_directory / "results.xlsx"
 
     target_file = save_directory / output_filename
 

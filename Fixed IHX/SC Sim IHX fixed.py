@@ -23,7 +23,7 @@ from vclibpy.utils.automation import calc_multiple_states
 
 # WICHTIG: Stelle sicher, dass dies die NEUE Excel-Datei aus dem Generator ist,
 # die die Spalte "phi" enthält!
-excel_filename = 'betriebspunkte_final_weniger.xlsx'
+excel_filename = 'betriebspunkte_final_bivalent_seriell.xlsx'
 if not os.path.exists(excel_filename):
     raise FileNotFoundError(f"Datei {excel_filename} nicht gefunden!")
 
@@ -49,7 +49,7 @@ condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
 
 # Verdampfer
 evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
-    A=108, secondary_medium="air", flow_type="cross", ratio_outer_to_inner_area=105,
+    A=43.50, secondary_medium="air", flow_type="cross", ratio_outer_to_inner_area=105,
     two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=1000),
     gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1000),
     wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
@@ -57,7 +57,7 @@ evaporator = moving_boundary_ntu.MovingBoundaryNTUEvaporator(
     secondary_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=50)
 )
 
-expansion_valve = Bernoulli(A=0.00001)
+expansion_valve = Bernoulli(A=0.000002)
 
 compressor = ConstantEffectivenessCompressor(
     N_max=110,
@@ -169,7 +169,7 @@ logging.info(f"Fertig. Insgesamt {len(inputs_list)} Simulationen vorbereitet")
 # =============================================================================
 
 save_directory = pathlib.Path(".")
-output_filename = "SC_Propane_test_weekly.xlsx"
+output_filename = "SC_Propane_Auslegung.xlsx"
 
 logging.info("Starte Simulation (calc_multiple_states)...")
 

@@ -132,7 +132,7 @@ class BaseCycle:
             Q=Q_con_outer, cp=self.condenser.cp_secondary
         )
         T_eva_in, T_eva_out, dT_eva, m_flow_eva = inputs.evaporator.get_all_inputs(
-            Q=Q_eva_outer, cp=self.evaporator.cp_secondary
+            Q=-Q_eva_outer, cp=self.evaporator.cp_secondary
         )
         # In case dT_con is used
         inputs.condenser.set("m_flow", m_flow_con)
