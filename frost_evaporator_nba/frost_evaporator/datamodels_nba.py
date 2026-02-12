@@ -21,6 +21,7 @@ class FrostEvaporatorParameters(VariableContainer):
         register_amount: int,
         layer_amount: int,
         fan_amount: int,
+        refrigerant: str,
 
         # Correlations Choices
         frost_density_correlation_choice: str,
@@ -32,9 +33,9 @@ class FrostEvaporatorParameters(VariableContainer):
 
         # Correction Factors
         correction_factor_h_conv_air: float,
+        correction_factor_h_conv_ref_2ph: float,
         correction_factor_betta_air: float,
         correction_factor_surface_density: float,
-        correction_factor_eta_fin: float,
         correction_factor_k_frost: float,
         correction_factor_pressure_loss: float,
 
@@ -74,6 +75,7 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("diffusivity_w_vapor_in_air", 2.12e-5, "m^2/s", "diffusivity of water vapor in air")
         self.set("alpha_0", alpha_0, "W/(m^2*K)", "Coefficient for two-phase htc (VDI Wärmeatlas H2 Tab.1)")
         self.set("q_dot_0", 20000, "W/m^2", "Normalized heat flux for propane two-phase htc (VDI Wärmeatlas H2 Tab.1)")
+        self.set("refrigerant", refrigerant, "-", "Type of refrigerant used in the evaporator")
 
         self.set("register_amount", register_amount, "-", "Number of registers in the evaporator")
         self.set("layer_amount", layer_amount, "-", "Number of layers in the evaporator")
@@ -87,9 +89,9 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("fan_selection", fan_selection, "-", "Fan selection for air-side pressure drop calculation")
 
         self.set("correction_factor_h_conv_air", correction_factor_h_conv_air, "-", "Correction factor to scale h_conv of air")
+        self.set("correction_factor_h_conv_ref_2ph", correction_factor_h_conv_ref_2ph, "-", "Scales HTC in the boiling zone")
         self.set("correction_factor_betta_air", correction_factor_betta_air, "-", "Correction factor to scale betta of air")
         self.set("correction_factor_surface_density", correction_factor_surface_density, "-", "Correction factor to scale the frost surface density")
-        self.set("correction_factor_eta_fin", correction_factor_eta_fin, "-", "Correction factor to scale the fin efficiency")
         self.set("correction_factor_k_frost", correction_factor_k_frost, "-", "Correction factor to scale the frost heat transfer")
         self.set("correction_factor_pressure_loss", correction_factor_pressure_loss, "-", "Correction factor to scale the air-side pressure loss")
 
@@ -152,29 +154,30 @@ class FrostEvaporatorParameters(VariableContainer):
 
         return cls(
             # General
-            time_step = gen['time_step'],
-            gravity   = gen['gravity'],
-            alpha_0   = gen['alpha_0'],
+            time_step   = gen['time_step'],
+            gravity     = gen['gravity'],
+            alpha_0     = gen['alpha_0'],
+            refrigerant = gen['refrigerant'],
 
             register_amount = register_amount,
             layer_amount    = layer_amount,
             fan_amount      = fan_amount,
 
             # Correlations
-            frost_density_correlation_choice      = corr['frost_density'],
-            frost_thickness_correlation_choice    = corr['frost_thickness'],
-            frost_conductivity_correlation_choice = corr['frost_conductivity'],
-            pressure_drop_correlation_choice      = corr['pressure_drop'],
-            h_conv_air_correlation_choice         = corr['h_conv_air'],
-            fan_selection                         = corr['fan_selection'],
+            frost_density_correlation_choice      = corr['frost_density_choice'],
+            frost_thickness_correlation_choice    = corr['frost_thickness_choice'],
+            frost_conductivity_correlation_choice = corr['frost_conductivity_choice'],
+            pressure_drop_correlation_choice      = corr['pressure_drop_choice'],
+            h_conv_air_correlation_choice         = corr['h_conv_air_choice'],
+            fan_selection                         = corr['fan_choice'],
 
             # Correction Factors
-            correction_factor_h_conv_air      = fact['h_conv_air'],
-            correction_factor_betta_air       = fact['betta_air'],
-            correction_factor_surface_density = fact['surface_density'],
-            correction_factor_eta_fin         = fact['eta_fin'],
-            correction_factor_k_frost         = fact['k_frost'],
-            correction_factor_pressure_loss   = fact['pressure_loss'],
+            correction_factor_h_conv_air         = fact['h_conv_air'],
+            correction_factor_h_conv_ref_2ph     = fact['h_conv_ref_2ph'],
+            correction_factor_betta_air          = fact['betta_air'],
+            correction_factor_surface_density    = fact['surface_density'],
+            correction_factor_k_frost            = fact['k_frost'],
+            correction_factor_pressure_loss      = fact['pressure_loss'],
 
             # Geometry (Calculated Model Segments)
             fin_height      = fin_height_model,
@@ -377,16 +380,18 @@ class RefrigerantState(VariableContainer):
     """Holds all variables calculated by the refrigerant subprogram."""
     def __init__(self):
         super().__init__()
-        self.set("h_out", 400_000.0, "J/kg", "Outlet refrigerant enthalpy")
+        self.set("h_out", 350_000.0, "J/kg", "Outlet refrigerant enthalpy")
         self.set("p_out", 0.0, "-", "Outlet refrigerant pressure")
-        self.set("T_out", 0.0, "K", "Outlet refrigerant temperature")
-        self.set("T_in", 0.0, "K", "Inlet refrigerant temperature")
+        self.set("T_out", 250.0, "K", "Outlet refrigerant temperature")
+        self.set("T_in", 250.0, "K", "Inlet refrigerant temperature")
 
         self.set("portion_two_phase", 0.0, "-", "Portion of refrigerant in two-phase state")
         self.set("portion_superheated", 0.0, "-", "Portion of refrigerant in superheated state")
 
-        self.set("h_conv_two_phase", 0.0, "W/m^2/K", "Two-phase convective heat transfer coefficient")
-        self.set("h_conv_superheated", 0.0, "W/m^2/K", "Superheated convective heat transfer coefficient")
+        self.set("h_sat_vap", 0.0, "J/kg", "Saturation vapor enthalpy at evaporator pressure")
+
+        self.set("h_conv_two_phase", 100.0, "W/m^2/K", "Two-phase convective heat transfer coefficient")
+        self.set("h_conv_superheated", 100.0, "W/m^2/K", "Superheated convective heat transfer coefficient")
 
         self.set("T_two_phase_in", 0.0, "K", "Inlet temperature of two-phase region")
         self.set("T_superheated_in", 0.0, "K", "Inlet temperature of superheated region")
@@ -415,7 +420,10 @@ class HeatMassTransferState(VariableContainer):
         self.set("m_dot_densification", 0.0, "kg/s", "Mass flow rate of frost densification")
         self.set("m_dot_thickening", 0.0, "kg/s", "Mass flow rate of frost thickening")
         self.set("m_dot_frost_total", 0.0, "kg/s", "Mass flow rate of frost growth")
-        self.set("eta_fin", 0.0, "-", "Fin efficiency")
+        self.set("eta_surface", 0.0, "-", "Efficiency of the full frost surface (averaged between pipe and fin surfaces)")
+
+        self.set("area_split_2phase", 1.0, "-", "Portion of effective area in two-phase region")
+        self.set("area_split_superheated", 0.0, "-", "Portion of effective area in superheated region")
         
 class ThermodynamicsState(VariableContainer):
     """Holds overall thermodynamic properties and wall temperatures."""

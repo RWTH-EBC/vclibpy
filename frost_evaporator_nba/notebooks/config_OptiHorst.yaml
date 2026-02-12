@@ -1,0 +1,49 @@
+general:
+  time_step: 200.0
+  gravity: 9.81
+  alpha_0: 4200.0
+  refrigerant: "R410a"
+
+correlations:
+  frost_density_choice: "D8"
+  frost_thickness_choice: "jonas_diss"
+  frost_conductivity_choice: "da_silva_paper"
+  pressure_drop_choice: "Wang"
+  h_conv_air_choice: "VDI"
+  fan_choice: "OptiHorst"
+
+# Previous Global Optimum
+correction_factors:
+  h_conv_air: 1.30
+  h_conv_ref_2ph: 0.90
+  betta_air: 0.65
+  surface_density: 1.30
+  k_frost: 1.40
+  pressure_loss: 0.80
+
+geometry:
+  # Discretization / Model Splits
+  # These control how the global geometry is sliced for the model
+  register_amount: 6.0   # Verified from spec sheet "Number of circuits: 6"
+  layer_amount: 2        # Verified from spec sheet "Rows: 2"
+
+  # Fan Configuration
+  fan_amount: 1          # Verified by unit height (624mm) and Vitocal 200-S form factor
+  
+  # Global Physical Dimensions (The Real Machine)
+  total_fin_height: 0.624    # [m] Total height before splitting by registers
+  total_fin_length: 0.050    # [m] Total length before splitting by layers
+  
+  # Detailed Geometry
+  fin_pitch: 0.00175
+  fin_thickness: 0.00012     # [m] Estimated (Standard Aluminum Fin)
+  fin_amount: 543            # Calculated (950mm width / 1.75mm pitch)
+  fin_thermal_conductivity: 200.0
+  
+  tube_outer_diameter: 0.012
+  tube_inner_diameter: 0.01136
+  tube_thermal_conductivity: 400.0 # Estimated (Standard Copper Tube)
+  
+  # Tube Layout (Global counts)
+  total_tube_layers: 2
+  total_tubes_per_layer: 24

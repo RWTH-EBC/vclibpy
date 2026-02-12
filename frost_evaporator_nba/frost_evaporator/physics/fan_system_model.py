@@ -1,4 +1,4 @@
-from .datamodels_nba import (
+from ..datamodels_nba import (
     FrostEvaporatorParameters, 
     FrostEvaporatorInputs, 
     FrostEvaporatorState,
@@ -28,60 +28,82 @@ class FanSystemModel:
         self._check_wang_validity()
 
         # --- Fan Setup ---
+        self.q_peak = 0.0
+        self.p_max = 0.0
         self.min_f = 0.0
         self.max_f = 0.0
-        self.fan_curve_func = None
+        self.fan_curve_poly = None
         
         # Read Fan Data once
         self.raw_fan_df = None 
         if self.params.fan_selection == "OptiAbt":
             self._load_optiabt_raw_data()
+        elif self.params.fan_selection == "OptiHorst":
+            self.load_optihorst_raw_data()
 
 
     def _load_optiabt_raw_data(self):
         """Loads the CSV data once during initialization."""
-        file_path = r"D:\mbc_nba\OptiAbt_Daten\Ventilatorkennlinie_Daten.csv"
+        file_path = r"D:\mbc_nba\OptiAbt_Daten\Ventilatorkennlinie_Daten_NB.csv"
         try:
             self.raw_fan_df = pd.read_csv(file_path, sep=';', decimal='.', skiprows=[1], encoding='latin1')
         except FileNotFoundError:
             raise FileNotFoundError(f"Could not find fan curve data at: {file_path}")
         except Exception as e:
             raise RuntimeError(f"Error loading OptiAbt fan data: {e}")
-    
+
+    def load_optihorst_raw_data(self):
+        """Loads the CSV data once during initialization."""
+        file_path = r"D:\mbc_nba\OptiHorst\Technische Informationen\Ventilatorkennlinie_Daten_NB.csv"
+        try:
+            self.raw_fan_df = pd.read_csv(file_path, sep=';', decimal='.', skiprows=[1], encoding='latin1')
+        except FileNotFoundError:
+            raise FileNotFoundError(f"Could not find fan curve data at: {file_path}")
+        except Exception as e:
+            raise RuntimeError(f"Error loading OptiHorst fan data: {e}")
+
 
     def _update_fan_curve(self, current_rpm: float):
         """
         Generates the fan curve polynomial for the CURRENT time step's RPM.
-        Applies Fan Affinity Laws: Q ~ n, P ~ n^2
+        Uses a standard quadratic fit (ax^2 + bx + c) but identifies the 
+        peak/stall point to prevent pressure drop-off at low flows.
         """
         if self.raw_fan_df is None:
             return
 
-        # Normalize data to current dynamic RPM using Fan Laws
-        # Note: The CSV contains data at various 'n'. We scale everything to 'current_rpm'.
-        # Q_target = Q_base * (n_target / n_base)
-        # P_target = P_base * (n_target / n_base)^2
-        
+        # Scale data to current RPM using Fan Affinity Laws
         ratio = current_rpm / self.raw_fan_df['n']
         q_norm = self.raw_fan_df['qV'] * ratio
         p_norm = self.raw_fan_df['p_fs'] * (ratio**2)
 
-        # Volumeflow scaled based on register amound and fan amount
+        # Scale volume flow for specific register/fan count
         q_scaled = q_norm * (self.params.fan_amount / self.params.register_amount)
 
-        # Polynomial Fit (2nd degree)
-        # This creates a function P(Q) which returns Pressure for a given Flow
         try:
-            coefficients = np.polyfit(q_scaled, p_norm, 2)
-            self.fan_curve_func = np.poly1d(coefficients)
+            # Standard Quadratic Fit: P = ax^2 + bx + c
+            coeffs = np.polyfit(q_scaled, p_norm, 2)
+            self.fan_curve_poly = np.poly1d(coeffs)
+            
+            # Find the Peak (Stall Point)
+            a, b, c = coeffs
+            # Only calculate peak if curve is concave down (a < 0)
+            if a < 0:
+                # Vertex of parabola: x = -b / (2a)
+                self.q_peak = -b / (2.0 * a)
+                self.p_max = self.fan_curve_poly(self.q_peak)
+            else:
+                self.q_peak = 0.0
+                self.p_max = c
 
-            # 4. Set limits based on the scaled data range for this specific RPM
-            self.min_f = q_scaled.min()
+            self.min_f = 0.0 
             self.max_f = q_scaled.max()
             
-        except np.linalg.LinAlgError:
-            # Fallback for very low RPM or bad data
-            self.fan_curve_func = lambda x: 0.0
+        except Exception:
+            # Fallback
+            self.fan_curve_poly = lambda x: 0.0
+            self.q_peak = 0.0
+            self.p_max = 0.0
             self.min_f = 0.0
             self.max_f = 0.0
 
@@ -238,14 +260,12 @@ class FanSystemModel:
         Returns:
             The static pressure [Pa].
         """
-        # Check for out of bounds
-        if flow_val < self.min_f*0.99 or flow_val > self.max_f*1.01:
-            print(
-                f"--> WARNING: Flow input {flow_val:.2f} is outside valid range "
-                f"({self.min_f:.2f} - {self.max_f:.2f}). Extrapolating..."
-            )
+        # Flat-Top Constraint: If flow is in stall region (left of peak), return Max Pressure
+        if flow_val < self.q_peak:
+            return float(self.p_max)
         
-        return float(self.fan_curve_func(flow_val))
+        # Standard curve evaluation
+        return float(self.fan_curve_poly(flow_val))
     
     def _calculate_layer_dp(self, state: FrostEvaporatorState, m_dot: float, density_local: float) -> tuple[float, float]:
         """
@@ -412,19 +432,21 @@ class FanSystemModel:
              f_turbulent = (1.0 / inv_sqrt_f)**2
 
         # --- Determine Regime & Interpolate ---
+        Re_laminar_limit = 300.0
+        Re_turbulent_limit = 2000.0
         
-        # Pure Laminar
-        if Re_Dh < 1000.0:
+        # Pure Laminar (Roughness has NO effect here in standard theory)
+        if Re_Dh < Re_laminar_limit:
             return f_laminar
             
-        # Pure Turbulent
-        elif Re_Dh > 4000.0:
+        # Pure Turbulent (Roughness has FULL effect here)
+        elif Re_Dh > Re_turbulent_limit:
             return f_turbulent
             
         # Transition Zone: Linearly blend between Laminar and Turbulent
         else:
-            # Alpha goes from 0.0 (at 1000) to 1.0 (at 4000)
-            alpha = (Re_Dh - 1000.0) / (4000.0 - 1000.0)
+            # Alpha goes from 0.0 to 1.0
+            alpha = (Re_Dh - Re_laminar_limit) / (Re_turbulent_limit - Re_laminar_limit)
             
             return (1.0 - alpha) * f_laminar + alpha * f_turbulent
 

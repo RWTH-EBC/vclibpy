@@ -1,4 +1,4 @@
-from .datamodels_nba import (
+from ..datamodels_nba import (
     FrostEvaporatorParameters, 
     FrostEvaporatorInputs, 
     FrostEvaporatorState,
@@ -132,8 +132,9 @@ class ThermoModel:
         try:
             T_out_air = CP_HumidAir.HAPropsSI('T', 'H', h_out_air, 'P', p_out_air, 'W', W_out_air)
         except ValueError:
-            # If CoolProp fails, we raise an error to stop the solver from using bad physics.
-            # (Alternatively, you can implement the linear approximation fallback here if strictly required)
-            raise ValueError(f"CoolProp failed to solve for T at H={h_out_air}, P={p_out_air}, W={W_out_air}")
+            raise ValueError(
+                f"CoolProp failed. Inputs: H={h_out_air}, P={p_out_air}, W={W_out_air}. "
+                f"Check components: h_in_air={h_in_air}, Q_dot_total={Q_dot_total}, m_dot_dry_air={m_dot_dry_air}"
+            )
             
         return T_out_air

@@ -1,4 +1,4 @@
-from .datamodels_nba import (
+from ..datamodels_nba import (
     FrostEvaporatorParameters, 
     FrostEvaporatorInputs, 
     FrostEvaporatorState,
@@ -76,19 +76,18 @@ class AirModel:
         )
 
         # Roughness Correction for the Convective Heat Transfer Coefficient
-        h_conv_corr = h_conv_raw * (state.air.roughness_multiplier ** 0.7)
-        
-        # Multiply with manual correction factor
-        h_conv = h_conv_corr * self.params.correction_factor_h_conv_air
+        h_conv_physical = h_conv_raw * (state.air.roughness_multiplier ** 0.7) #! CHECK
 
         # --- Mass Transfer Coefficient ---
         betta_raw = self._calculate_mass_transfer_coefficient(
-            h_conv        = h_conv,
+            h_conv        = h_conv_physical,
             density       = density_avg,
             heat_capacity = heat_capacity_avg,
             lewis_number  = lewis_avg
         )
 
+        # Multiply with manual correction factor
+        h_conv = h_conv_physical * self.params.correction_factor_h_conv_air
         betta = betta_raw * self.params.correction_factor_betta_air
 
         # --- Mass Flows ---
@@ -210,7 +209,7 @@ class AirModel:
 
     def _get_air_properties(self, T: float, p: float, W: float) -> tuple:
         """
-        Calculates multiple thermophysical properties of moist air for a single state.
+        Calculates thermophysical properties of moist air, handling Fog (W > W_sat) correctly.
 
         Args:
             T: The dry bulb temperature [K].
@@ -228,22 +227,44 @@ class AirModel:
             7. Specific Enthalpy [J/kg_dry_air]
             8. Relative Humidity [-]
         """
-        # Define property keys for CoolProp
-        # Vha: Vol. per humid air, mu: Viscosity, cp_ha: Heat Cap., k: Conductivity, Hha: Specific Enthalpy per humid air basis
-        prop_keys = ['Vha', 'mu', 'cp_ha', 'k', 'Enthalpy', 'R']
-        
-        props = {key: CP_HumidAir.HAPropsSI(key, 'T', T, 'P', p, 'W', W) for key in prop_keys}
 
-        # Derived properties
-        density = 1.0 / props['Vha']
+        # Calculate Saturation Humidity Ratio for current Air
+        W_sat = CP_HumidAir.HAPropsSI('W', 'T', T, 'P', p, 'R', 1.0)
+
+        # Separate phases: Gas cannot hold more than W_sat
+        W_gas = min(W, W_sat)           # The humidity actually dissolved in the air
+        W_liquid = max(0.0, W - W_sat)  # The excess humidity (fog)
+
+        # Calculate Gas Phase Properties
+        prop_keys = ['Vha', 'mu', 'cp_ha', 'k', 'Enthalpy']
+        props = {key: CP_HumidAir.HAPropsSI(key, 'T', T, 'P', p, 'W', W_gas) for key in prop_keys}
+
+        # Calculate Prandtl and Lewis numbers for the gas phase
         prandtl_number = (props['cp_ha'] * props['mu']) / props['k']
-        
-        # Lewis Number approximation (CoolProp lacks diffusivity for humid air)
         lewis_number = 0.9
 
-        # Calculate water vapor density (utilizing internal helper)
-        water_vapor_density, _ = self._get_water_vapor_density(T=T, p=p, W=W)
+        # Calculate air density and water vapor density
+        density = (1.0 + W) / props['Vha']
+        water_vapor_density, _ = self._get_water_vapor_density(T=T, p=p, W=W_gas)
 
+
+        # Handle Fog Corrections
+        if W_liquid > 0.0:           
+            # Get Liquid Water Properties at T (Sat liquid approximation)
+            h_liq = CP_HumidAir.PropsSI('H', 'T', T, 'Q', 0, 'Water')  # J/kg_water
+            cp_liq = CP_HumidAir.PropsSI('C', 'T', T, 'Q', 0, 'Water') # J/kg_water*K
+
+            # Correct the air enthalpy and specific heat capacity
+            props['Enthalpy'] += (W_liquid * h_liq)
+            props['cp_ha'] += (W_liquid * cp_liq)
+
+            # Set the air relative humidity (saturation)
+            rel_humidity = 1.0
+            
+        else:
+            # Calculate air relative humidity
+            rel_humidity = CP_HumidAir.HAPropsSI('R', 'T', T, 'P', p, 'W', W)
+        
         return (
             density,
             props['mu'],
@@ -253,7 +274,7 @@ class AirModel:
             lewis_number,
             water_vapor_density,
             props['Enthalpy'],
-            props['R']
+            rel_humidity
         )
     
 

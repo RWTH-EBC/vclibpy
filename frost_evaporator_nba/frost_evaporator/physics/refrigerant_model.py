@@ -1,4 +1,4 @@
-from .datamodels_nba import (
+from ..datamodels_nba import (
     FrostEvaporatorParameters, 
     FrostEvaporatorInputs, 
     FrostEvaporatorState,
@@ -29,6 +29,12 @@ propane_RP = RefProp(
 )
 R134a_RP = RefProp(
         fluid_name="R134a",
+        dll_path=REFPROP_DLL,
+        ref_prop_path=REFPROP_DIR
+)
+
+R410a_RP = RefProp(
+        fluid_name="R410A",
         dll_path=REFPROP_DLL,
         ref_prop_path=REFPROP_DIR
 )
@@ -68,6 +74,10 @@ class RefrigerantModel:
         p_eva = inputs.refrigerant.p_eva
         m_dot = inputs.refrigerant.m_dot
 
+        # --- Update State Object ---
+        # Global Inputs/Outputs
+        props_global = self.calculate_refrigerant_props(h_in, h_out, p_eva)
+
         # --- Determine Saturation Boundary (h'') ---
         # Calculate saturated vapor enthalpy at current pressure (Quality = 1)
         sat_vapor_state = self.RP.calc_state("PQ", p_eva, 1.0)
@@ -75,29 +85,25 @@ class RefrigerantModel:
         T_sat = sat_vapor_state.T
 
         # Initialize Variables
-        alpha_2ph = 0.0
-        alpha_sh = 0.0
-        T_in_2ph = 0.0
-        T_in_sh = 0.0
         portion_2ph = 0.0
         portion_sh = 0.0
-        cp_avg_sh = 0.0
+        h_conv_2ph = 100.0 
+        h_conv_sh  = 100.0 
+        cp_avg_sh  = 1000.0
+        
+        T_in_sh  = props_global['temperature_in']
+        T_in_2ph = props_global['temperature_in']
+
         
         # Case A: Entirely Superheated (h_in > h'')
         if h_in >= h_sat_vap:
             portion_sh = 1.0
-            
-            # Superheated Zone Calculation
-            alpha_sh, cp_avg_sh = self._compute_zone_htc(h_in, h_out, p_eva, m_dot)
-            T_in_sh = self.RP.calc_state("PH", p_eva, h_in).T
+            h_conv_sh, cp_avg_sh = self._compute_zone_htc(h_in, h_out, p_eva, m_dot)
 
         # Case B: Entirely Two-Phase (h_out <= h'')
         elif h_out <= h_sat_vap:
             portion_2ph = 1.0
-            
-            # Two-Phase Zone Calculation
-            alpha_2ph, _ = self._compute_zone_htc(h_in, h_out, p_eva, m_dot)
-            T_in_2ph = T_sat
+            h_conv_2ph, _ = self._compute_zone_htc(h_in, h_out, p_eva, m_dot)
 
         # Case C: Mixed / Transition (h_in < h'' < h_out)
         else:
@@ -111,17 +117,14 @@ class RefrigerantModel:
             portion_sh = delta_h_sh / total_enthalpy_diff
             
             # --- Two-Phase Zone (h_in -> h'') ---
-            alpha_2ph, _ = self._compute_zone_htc(h_in, h_sat_vap, p_eva, m_dot)
-            T_in_2ph = T_sat
+            h_conv_2ph, _ = self._compute_zone_htc(h_in, h_sat_vap, p_eva, m_dot)
             
             # --- Superheated Zone (h'' -> h_out) ---
-            alpha_sh, cp_avg_sh = self._compute_zone_htc(h_sat_vap, h_out, p_eva, m_dot)
+            h_conv_sh, cp_avg_sh = self._compute_zone_htc(h_sat_vap, h_out, p_eva, m_dot)
             T_in_sh = T_sat
 
 
-        # --- Update State Object ---
-        # Global Inputs/Outputs
-        props_global = self.calculate_refrigerant_props(h_in, h_out, p_eva)
+        
 
         state.refrigerant.set("T_in", props_global['temperature_in'])
         state.refrigerant.set("T_out", props_global['temperature_out'])
@@ -130,9 +133,11 @@ class RefrigerantModel:
         # Zonal Outputs
         state.refrigerant.set("portion_two_phase", portion_2ph)
         state.refrigerant.set("portion_superheated", portion_sh)
+
+        state.refrigerant.set("h_sat_vap", h_sat_vap)
         
-        state.refrigerant.set("h_conv_two_phase", alpha_2ph)
-        state.refrigerant.set("h_conv_superheated", alpha_sh)
+        state.refrigerant.set("h_conv_two_phase", h_conv_2ph)
+        state.refrigerant.set("h_conv_superheated", h_conv_sh)
         
         state.refrigerant.set("T_two_phase_in", T_in_2ph)
         state.refrigerant.set("T_superheated_in", T_in_sh)
@@ -158,15 +163,15 @@ class RefrigerantModel:
             p_eva=p_sys
         )
         
-        # Calculate alpha for this specific zone
-        alpha = self.calculate_heat_transfer_coefficient(
+        # Calculate h_conv for this specific zone
+        h_conv = self.calculate_heat_transfer_coefficient(
             refrigerant_props=zone_props,
             m_dot=m_dot,
             h_in=h_start,
             h_out=h_end
         )
     
-        return alpha, zone_props['heat_capacity_avg']
+        return h_conv, zone_props['heat_capacity_avg']
 
 
     def calculate_refrigerant_props(self, h_in: float, h_out: float, p_eva: float) -> dict:
@@ -272,16 +277,16 @@ class RefrigerantModel:
         G = m_dot / A_c               # Mass flux [kg/m^2/s]
 
         # Calculate Single-Phase HTC (Pure Vapor) - We need this for the anchor point
-        alpha_1ph = self._calculate_single_phase_htc(refrigerant_props, G, d_h)
+        h_conv_1ph = self._calculate_single_phase_htc(refrigerant_props, G, d_h)
 
         # Dispatch based on flow regime
         # Pure Liquid or Pure Vapor
         if quality <= 0.0 or quality >= 1.0:
-            return alpha_1ph
+            return h_conv_1ph
             
         # Two-Phase Evaporation
         else:
-            alpha_2ph_raw = self._calculate_two_phase_htc(refrigerant_props, G, d_h, m_dot, h_in, h_out)
+            h_conv_2ph_raw = self._calculate_two_phase_htc(refrigerant_props, G, d_h, m_dot, h_in, h_out)
             
             # Smooth Dryout Transition
             x_dryout_start = 0.85
@@ -289,10 +294,10 @@ class RefrigerantModel:
                 w = (quality - x_dryout_start) / (1.0 - x_dryout_start)
                 
                 # Linear Interpolation: (1-w)*Boiling + w*Vapor
-                alpha_effective = (1.0 - w) * alpha_2ph_raw + w * alpha_1ph
-                return alpha_effective
+                h_conv_effective = (1.0 - w) * h_conv_2ph_raw + w * h_conv_1ph
+                return h_conv_effective
             else:
-                return alpha_2ph_raw
+                return h_conv_2ph_raw
 
 
     def _calculate_single_phase_htc(self, props: dict, G: float, d_h: float) -> float:
@@ -339,7 +344,9 @@ class RefrigerantModel:
         # Calculate Turbulent Nu (Eq 4.24, 4.25)
         # Check Prandtl range validity
         if Pr < 0.5 or Pr > 2000:
-            raise ValueError(f"Prandtl number ({Pr}) out of range [0.5, 2000] for Gnielinski correlation.")
+            # raise ValueError(f"Prandtl number ({Pr}) out of range [0.5, 2000] for Gnielinski correlation.")
+            print("Warning: Prandtl number out of range for Gnielinski correlation. Returning laminar Nusselt number as fallback.")
+            return Nu_lam # Fallback to laminar value if Pr is out of range
 
         zeta = (0.79 * math.log(Re) - 1.64)**(-2.0)
         numerator = (zeta / 8.0) * (Re - 1000) * Pr
@@ -401,12 +408,12 @@ class RefrigerantModel:
         dyn_vis_l = props['dyn_viscosity_liquid']
         Pr_l = props['prandtl_liquid']
 
-        # Calculate alpha_K (Eq 4.40)
+        # Calculate h_conv_K (Eq 4.40)
         Re_l = G * (1.0 - q_avg) * d_h / dyn_vis_l
-        alpha_K = (lambda_l / d_h) * 0.023 * Re_l**0.8 * Pr_l**0.4
+        h_conv_K = (lambda_l / d_h) * 0.023 * Re_l**0.8 * Pr_l**0.4
         
-        # Calculate final alpha (Eq 4.39)        
-        return 3.9 * Fr**0.24 * (q_avg / (1.0 - q_avg))**0.64 * (rho_l / rho_g)**0.4 * alpha_K
+        # Calculate final h_conv (Eq 4.39)        
+        return 3.9 * Fr**0.24 * (q_avg / (1.0 - q_avg))**0.64 * (rho_l / rho_g)**0.4 * h_conv_K
 
 
     def _calculate_chen_htc(self, props: dict, G: float, d_h: float, q_dot: float) -> float:
@@ -427,10 +434,10 @@ class RefrigerantModel:
         dyn_vis_g = props['dyn_viscosity_vapor']
         Pr_l = props['prandtl_liquid']
         
-        # --- 2. Calculate Reference Liquid HTC (alpha_sp,l) ---
+        # --- 2. Calculate Reference Liquid HTC (h_conv_sp,l) ---
         Re_l = G * (1.0 - q_avg) * d_h / dyn_vis_l
         Nu_l = 0.023 * (Re_l**0.8) * (Pr_l**0.4)
-        alpha_K = (Nu_l * lambda_l) / d_h
+        h_conv_K = (Nu_l * lambda_l) / d_h
 
         # --- 3. Calculate Martinelli Parameter (X_tt) ---
 
@@ -448,20 +455,20 @@ class RefrigerantModel:
         Re_tp = Re_l * (F**1.25)
         S = 1.0 / (1.0 + 2.53e-6 * (Re_tp**1.17))
 
-        # --- 6. Calculate Boiling Component (alpha_nb) ---
-        alpha_B = self._calculate_bulk_boiling_htc(props, q_dot)
+        # --- 6. Calculate Boiling Component (h_conv_nb) ---
+        h_conv_B = self._calculate_bulk_boiling_htc(props, q_dot)
 
         # --- 7. Final Summation (Eq 1) ---
-        return (S * alpha_B) + (F * alpha_K)
+        return (S * h_conv_B) + (F * h_conv_K)
 
     def _calculate_bulk_boiling_htc(self, props: dict, q_dot: float) -> float:
         """
-        Implements Stephan (1988) correlation for alpha_B (Eq 4.45, 4.46).
+        Implements Stephan (1988) correlation for h_conv_B (Eq 4.45, 4.46).
         """
         # --- 1. Get properties ---
         p_red = props["pressure_avg"] / props['pressure_critical'] # p / p_critical
         
-        alpha_0 = self.params.alpha_0
+        h_conv_0 = self.params.h_conv_0
         q_dot_0 = self.params.q_dot_0
 
         # Calculate F_pred (Eq 4.46)
@@ -474,5 +481,5 @@ class RefrigerantModel:
             print("Warning: q_dot <= 0 in _calculate_bulk_boiling_htc, setting to small positive value to avoid invalid calculation.")
             q_dot = 1e-3
         
-        # Calculate alpha_B (Eq 4.45)
-        return alpha_0 * F_pred * (q_dot / q_dot_0)**n
+        # Calculate h_conv_B (Eq 4.45)
+        return h_conv_0 * F_pred * (q_dot / q_dot_0)**n

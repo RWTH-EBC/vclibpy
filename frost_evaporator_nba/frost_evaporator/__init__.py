@@ -1,52 +1,38 @@
-# Import all data classes from datamodels_nba.py
+# Import Data Classes (Still in datamodels_nba.py)
 from .datamodels_nba import (
-    # Parameters
     FrostEvaporatorParameters,
-    
-    # Inputs
     AirInputs,
     RefrigerantInputs,
     FrostEvaporatorInputs,
-    
-    # States
-    FrostState,
-    AirState,
-    RefrigerantState,
-    HeatMassTransferState,
-    ThermodynamicsState,
-    FrostEvaporatorState
+    FrostEvaporatorState,
 )
 
-# Import all model classes from their respective files
-from .frost_model import FrostModel
-from .air_model import AirModel 
-from .fan_system_model import FanSystemModel 
-from .refrigerant_model import RefrigerantModel 
-from .hmt_model import HeatMassTransferModel
-from .thermo_model import ThermoModel
-from .simulation_workflow import MultiExperimentAnalyzer ,FrostEvaporatorSimulation, SimulationVisualizer
+# Import Models from the 'physics' sub-package
+from .physics import (
+    FrostModel,
+    AirModel,
+    FanSystemModel,
+    RefrigerantModel,
+    HeatMassTransferModel,
+    ThermoModel
+)
 
+# Import Workflow Tools
+from .exp_data_processing import MultiExperimentAnalyzer
+from .simulation_core import FrostEvaporatorSimulation
+from .reporting import SimulationVisualizer
 
 
 # Defines what `from frost_evaporator import *` will import
 __all__ = [
-    # Parameters
+    # Parameters & Inputs
     "FrostEvaporatorParameters",
-
-    # Inputs
     "AirInputs",
     "RefrigerantInputs",
     "FrostEvaporatorInputs",
-
-    # States
-    "FrostState",
-    "AirState",
-    "RefrigerantState",
-    "HeatMassTransferState",
-    "ThermodynamicsState",
     "FrostEvaporatorState",
-    
-    # Model Classes
+
+    # Physics Models
     "FrostModel",
     "AirModel",
     "FanSystemModel",
@@ -54,8 +40,8 @@ __all__ = [
     "HeatMassTransferModel",
     "ThermoModel",
 
-    # Simulation Workflow
+    # Workflow / Simulation
     "MultiExperimentAnalyzer",
-    "FrostEvaporatorSimulation"
+    "FrostEvaporatorSimulation",
     "SimulationVisualizer"
 ]

@@ -1,4 +1,4 @@
-from .datamodels_nba import (
+from ..datamodels_nba import (
     FrostEvaporatorParameters, 
     FrostEvaporatorInputs, 
     FrostEvaporatorState,
@@ -45,20 +45,17 @@ class FrostModel:
         prev_frost_mass = state.frost.mass
         prev_avg_density = state.frost.density
 
-        if state.hmt.T_frost_surface > self.params.water_freezing_point:
-            print("Warning: Calculated frost surface temperature is above freezing point. No frost growth will be calculated.")
-
-
-        else: 
+        if state.hmt.T_frost_surface < self.params.water_freezing_point:
         
         
             # ================= Calculate new Values =================
 
             # --- New Surface- and Average-Density ---
             new_density_surface_raw = self._calculate_surface_density(
-                T_frost_surface                  = state.hmt.T_frost_surface, 
-                T_dew_point                      = state.air.T_dew_point,
-                frost_density_correlation_choice = self.params.frost_density_correlation_choice
+                T_frost_surface    = state.hmt.T_frost_surface, 
+                T_frost_base       = state.hmt.T_frost_base,
+                T_dew_point        = state.air.T_dew_point,
+                correlation_choice = self.params.frost_density_correlation_choice
             )
 
             new_density_surface = new_density_surface_raw * self.params.correction_factor_surface_density
@@ -139,44 +136,45 @@ class FrostModel:
     # Helper Functions
     ####################################################################################
 
-    def _calculate_surface_density(self, T_frost_surface: float, T_dew_point: float, frost_density_correlation_choice: str) -> float:
-        # sourcery skip: inline-variable, switch
+    def _calculate_surface_density(self, T_frost_surface: float, T_frost_base: float, T_dew_point: float, correlation_choice: str) -> float:
         """
         Calculates the new frost density at the surface.
 
         Args:
-            T_frost_surface: The frost surface temperature at the start of the step [K].
+            T_frost_surface: The frost surface temperature  [K].
+            T_frost_base: The frost base temperature at the base (wall temperature) [K].
             T_dew_point: The dew point temperature of the air [K].
-            frost_density_correlation_choice: The choice of correlation to use for frost density [-].
+            correlation_choice: The choice of correlation to use for frost density [-].
         Returns:
             The calculated new frost density [kg/m^3].
-        Raises:
-            ValueError: If the frost density correlation choice is unknown.
         """
-        if frost_density_correlation_choice == "jonas_diss":        
-            
-            # Temperatur in Celsius
-            T_s_C = T_frost_surface - 273.15
-            rho_calc = 650.0 * np.exp(0.277 * T_s_C)
-            
-            # Safety Clamping           
-            return max(80.0, min(900.0, rho_calc))
         
-        elif frost_density_correlation_choice == "da_silva_paper":  
+        # --- Convert to Celsius (Common for these correlations) ---
+        T_surface_C = T_frost_surface - 273.15
+        T_base_C = T_frost_base - 273.15  # Wall/Base temperature
+        T_dew_C = T_dew_point - 273.15
+
+        rho_calc = 100.0 # Default fallback
+
+        if correlation_choice == "D2" or correlation_choice == "jonas_diss":        
+            rho_calc = 650.0 * np.exp(0.277 * T_surface_C)
+            
+        elif correlation_choice == "D8":
+            # Using Surface Temp for T_f and Base Temp for T_w
+            rho_calc = 207.0 * np.exp(0.266 * T_surface_C - 0.0615 * T_base_C)
+
+        elif correlation_choice == "da_silva_paper":  
             # Coefficients from Section 4 "Results" of da Silva et al. (2011)
             a = 494.0
             b = 0.11
             c = -0.06
             
-            # Convert K to Celsius
-            T_s_C = T_frost_surface - 273.15
-            T_dew_C = T_dew_point - 273.15
+            # Eq. 9 in da Silva
+            rho_calc = a * np.exp(b * T_surface_C + c * T_dew_C)
 
-            # Eq. 9
-            return a * np.exp(b * T_s_C + c * T_dew_C)
-        
         else:
-            raise ValueError(f"Unknown frost density correlation: {frost_density_correlation_choice}")
+            raise ValueError(f"Unknown frost density correlation: {correlation_choice}")
+        return max(80.0, min(900.0, rho_calc))
         
     def _calculate_average_density_and_frost_mass(self, m_dot_thickening: float, m_dot_densification: float, prev_frost_mass: float, prev_avg_density: float, 
                                                   new_density_surface: float, prev_thickness: float, time_step: float) -> tuple[float, float]:
