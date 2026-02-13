@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 
 
 class OilProp(MedProp):
-    """Base class for all media property interfaces.
+    """
 
     Base class for Lubricant-Refrigerant-Mixtures
 
