@@ -52,12 +52,12 @@ class ThermodynamicState:
             h (float): Enthalpy at the state in J/kg.
             s (float): Entropy at the state in J/(kg * K).
             v (float): Specific volume at the state in m^3/kg.
-            q (float): Quality at the state (between 0 and 1).
+            q (float): Vapour quality at the state (between 0 and 1).
             d (float): Density at the state in kg/m^3.
 
         Notes:
-            If only v or d is provided, the other attribute will be calculated. If both are given and they are similar,
-            an error will be raised.
+            If only v or d is provided, the other attribute will be calculated. If both are given and they are not
+            equivalent, an error will be raised.
         """
         self.p = p
         self.T = T

@@ -1,16 +1,23 @@
 from .states import ThermodynamicState, TransportProperties
 from .media import get_two_phase_limits, MedProp
-from .cool_prop import CoolProp
+#from .cool_prop import CoolProp
 from .ref_prop import RefProp
+from .lubricant_media import OilProp
+from .oil_mix_prop import OilMixProp
+from .lubricant_fitting import LubricantFitting
+
 
 
 __all__ = ['ThermodynamicState',
            'TransportProperties',
            'MedProp',
-           'CoolProp',
-           'RefProp']
+           #'CoolProp',
+           'RefProp',
+           'OilProp',
+           'OilMixProp',
+           'LubricantFitting']
 
-USED_MED_PROP = (CoolProp, {})
+#USED_MED_PROP = (CoolProp, {})
 
 
 def set_global_media_properties(med_prop_class: object, **kwargs):
