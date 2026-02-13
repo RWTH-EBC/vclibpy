@@ -5,10 +5,10 @@ They may be used to see if the output is correct.
 """
 import abc
 
-from vclibpy.components.component import BaseComponent
+from vclibpy.components.component import TwoPortComponent
 
 
-class ExpansionValve(BaseComponent, abc.ABC):
+class ExpansionValve(TwoPortComponent, abc.ABC):
     """Base class for an expansion valve.
 
     Args:
@@ -54,3 +54,18 @@ class ExpansionValve(BaseComponent, abc.ABC):
             p_outlet (float): Outlet pressure level
         """
         self.state_outlet = self.med_prop.calc_state("PH", p_outlet, self.state_inlet.h)
+
+    @abc.abstractmethod
+    def calc_outlet_pressure_at_m_flow_and_opening(self, m_flow, opening):
+        """
+        Calculate the outlet pressure for the given mass flow rate and opening rate
+
+        Args:
+            m_flow (float): Mass flow rate in kg/s
+            opening (float): Opening of valve between 0 and 1
+            **kwargs: Possible keyword arguments for child classes
+
+        Returns:
+            float: Opening
+        """
+        raise NotImplementedError

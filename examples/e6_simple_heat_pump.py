@@ -1,6 +1,6 @@
 # # Example for a heat pump with a standard cycle
 
-def main():
+def main(use_condenser_inlet: bool = True):
     # Let's start the complete cycle simulation with the
     # most basic flowsheet, the standard-cycle. As all flowsheets
     # contain a condenser and an evaporator, we defined a common BaseCycle
@@ -52,7 +52,7 @@ def main():
     )
 
     # Now, we can plug everything into the flowsheet:
-    heat_pump = StandardCycle(
+    flowsheet = StandardCycle(
         evaporator=evaporator,
         condenser=condenser,
         fluid="Propane",
@@ -61,10 +61,12 @@ def main():
     )
     # As in the other example, we can specify save-paths,
     # solver settings and inputs to vary:
+    # Note that T_con can either be inlet or outlet, depending on the setting
+    # of `use_condenser_inlet`. Per default, we simulate the inlet, T_con_in
     save_path = r"D:\00_temp\simple_heat_pump"
-    T_eva_in_ar = [-10 + 273.15, 273.15, 10 + 273.15]
-    T_con_in_ar = [30 + 273.15, 50 + 273.15, 70 + 273.15]
-    n_ar = [0.3, 0.7, 1]
+    T_eva_in = [-10 + 273.15, 273.15, 10 + 273.15]
+    T_con = [30 + 273.15, 50 + 273.15, 70 + 273.15]
+    n = [0.3, 0.7, 1]
 
     # Now, we can generate the full-factorial performance map
     # using all inputs. The results will be stored under the
@@ -75,11 +77,12 @@ def main():
 
     from vclibpy import utils
     save_path_sdf, save_path_csv = utils.full_factorial_map_generation(
-        heat_pump=heat_pump,
+        flowsheet=flowsheet,
         save_path=save_path,
-        T_con_in_ar=T_con_in_ar,
-        T_eva_in_ar=T_eva_in_ar,
-        n_ar=n_ar,
+        T_con=T_con,
+        T_eva_in=T_eva_in,
+        n=n,
+        use_condenser_inlet=use_condenser_inlet,
         use_multiprocessing=False,
         save_plots=True,
         m_flow_con=0.2,
@@ -101,7 +104,7 @@ def main():
     import matplotlib.pyplot as plt
     x_name = "n in - (Relative compressor speed)"
     y_name = "COP in - (Coefficient of performance)"
-    plt.scatter(df[x_name], df[y_name])
+    plt.scatter(df[x_name], df[y_name], s=20)
     plt.ylabel(y_name)
     plt.xlabel(x_name)
     plt.show()
@@ -110,16 +113,17 @@ def main():
     # We can also use existing 3D-plotting scripts in vclibpy to analyze the
     # dependencies. For this, we need the .sdf file. In the sdf, the field names are without
     # the unit and description, as those are accessible in the file-format in other columns.
+    # Depending on whether we varied the inlet or outlet, we have to specify the correct name.
     from vclibpy.utils.plotting import plot_sdf_map
     plot_sdf_map(
         filepath_sdf=save_path_sdf,
         nd_data="COP",
         first_dimension="T_eva_in",
-        second_dimension="T_con_in",
+        second_dimension="T_con_in" if use_condenser_inlet else "T_con_out",
         fluids=["Propane"],
         flowsheets=["Standard"]
     )
 
 
 if __name__ == "__main__":
-    main()
+    main(use_condenser_inlet=False)

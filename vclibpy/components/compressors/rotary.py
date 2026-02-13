@@ -37,7 +37,7 @@ class RotaryCompressor(Compressor):
         """
         p_outlet = self.get_p_outlet()
         # If not constant value is given, eta_is is calculated based on the regression of Mirko Engelpracht
-        n = self.get_n_absolute(inputs.n)
+        n = self.get_n_absolute(inputs.control.n)
         T_1 = self.state_inlet.T
 
         a_1 = 0.80179
@@ -75,7 +75,7 @@ class RotaryCompressor(Compressor):
             float: Isentropic efficiency.
         """
         # If not constant value is given, eta_is is calculated based on the regression of Mirko Engelpracht
-        n = self.get_n_absolute(inputs.n)
+        n = self.get_n_absolute(inputs.control.n)
 
         a_1 = 0.5816
         a_2 = 0.002604
@@ -103,7 +103,7 @@ class RotaryCompressor(Compressor):
             float: Mechanical efficiency.
         """
         p_outlet = self.get_p_outlet()
-        n = self.get_n_absolute(inputs.n)
+        n = self.get_n_absolute(inputs.control.n)
         # If not constant value is given, eta_is is calculated based on the regression of Mirko Engelpracht
         a_00 = 0.2199
         a_10 = -0.0193

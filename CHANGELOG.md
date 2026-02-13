@@ -2,3 +2,15 @@
    - First implementation based on prior work
 - v0.1.1:
   - Move plot_cycle function
+- v0.2.0:
+  - Add LMTD MovingBoundary heat exchangers 
+  - Add VDI atlas methods for plate heat exchanger 
+  - Add scaling factor to TenCoefficientCompressor
+  - Add extrapolation option to TenCoefficientCompressor
+  - Improve warnings and parameters in TenCoefficientCompressor (eta_mech, T_sc)
+  - Add T_con_out as possible Input
+  - Automation is now with multiprocessing
+  - SDF saving is optional in automation
+  - Improve nominal design util
+  - Improve C10 regression generation, add .csv support for TenCoefficientCompressor
+  - Add Algorithm classes for calc_steady_state function
