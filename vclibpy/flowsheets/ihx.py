@@ -155,6 +155,7 @@ class IHX(BaseCycle):
             fs_state.set(name=f"T_{no+1}", value=state.T, unit="K", description=f"Temperature in state {no+1}")
             fs_state.set(name=f"H_{no + 1}", value=state.h, unit="J/kg", description=f"Enthalpy in state {no + 1}")
             fs_state.set(name=f"p_{no + 1}", value=state.p, unit="Pa", description=f"Pressure in state {no + 1}")
+            fs_state.set(name=f"rho_{no + 1}", value=state.d, unit="kg/m3", description=f"Density in state {no + 1}")
 
         fs_state.set(name="p_con", value=p_2 / 1e5, unit="bar", description="Condensation pressure")
         fs_state.set(name="p_eva", value=p_1 / 1e5, unit="bar", description="Evaporation pressure")
