@@ -57,7 +57,53 @@ class LubricantFitting(OilProp):
         self._two_phase_limits: dict = None
         self.refrigerant_prop = RefProp(fluid_name=fluid_name)
         if fluid_name == "propane":
-            if lub_name == "LPG 100":
+            if lub_name == "LPG 68": # Parameters for LPG 68
+                self.T_crit = 369.89  # K (for reduced temperature)
+                self.M_rfg = 43.01
+                self.M_oil = 400.0
+
+                # Parameters for calculation of saturation pressure
+                self.sat_p_a = 7.11
+                self.sat_p_b = -2.34
+                self.sat_p_c = -4.96
+                self.sat_p_d = -4.02
+                self.sat_p_e = -0.436
+                self.sat_p_f = 5.05
+
+                # parameters for calculation of dynamic viscosity
+                self.dyn_visc_a = 9.1741E+00
+                self.dyn_visc_b = -3.9327E+00
+                self.dyn_visc_c = 1.4495E-01
+                self.dyn_visc_d = -3.6884E-01
+                self.dyn_visc_e = -7.2671E-01
+                self.dyn_visc_f = 7.5201E-03
+                self.dyn_visc_g = 1.3094E+00
+                self.dyn_visc_h = 1.5980E+00
+                self.dyn_visc_i = -7.9215E-01
+
+                #Parameters for calculation of density
+                self.rho_a = 1.1736E+03
+                self.rho_b = -4.3812E-01
+                self.rho_c = -6.2498E-04
+                self.rho_d = 1.7379E+02
+                self.rho_e = -5.8711E+00
+                self.rho_f = 9.1282E-03
+                self.rho_g = 3.0804E+01
+                self.rho_h = 2.6090E+00
+                self.rho_i = -5.9097E-03
+
+                #parameters for calculation of kinematic viscosity
+                self.kin_visc_a = 1.3893E+01
+                self.kin_visc_b = -7.8106E+00
+                self.kin_visc_c = 9.4155E-01
+                self.kin_visc_d = -5.2681E-02
+                self.kin_visc_e = -1.6857E+00
+                self.kin_visc_f = 3.5412E-01
+                self.kin_visc_g = -4.0291E-02
+                self.kin_visc_h = -1.2629E-01
+                self.kin_visc_i = 2.0426E-01
+
+            elif lub_name == "LPG 100": # Parameters for LPG 100
                 self.T_crit = 369.89  # K (for reduced temperature)
                 self.M_rfg = 43.01
                 self.M_oil = 480.0
@@ -102,6 +148,12 @@ class LubricantFitting(OilProp):
                 self.kin_visc_g = -1.7803E+00
                 self.kin_visc_h = -2.3293E+00
                 self.kin_visc_i = 1.6092E+00
+            else:
+                available_lubricants = ["LPG 68", "LPG 100"]
+                assert lub_name in available_lubricants, f'Given lubricant {lub_name} is not in available phases'
+        else:
+            available_refrigerants = ["propane"]
+            assert fluid_name in available_refrigerants, f'Given lubricant {fluid_name} is not in available phases'
 
 
  
@@ -152,7 +204,7 @@ class LubricantFitting(OilProp):
             AssertionError: If the given mode is not within the available options.
         """
         if phase == "vapor":
-            state = self.refrigerant_prop.calc_state(mode=mode, var1= var1, var2=var2)
+            state = self.refrigerant_prop.calc_state(mode=mode, var1=var1, var2=var2)
 
             available_options = ['PD', 'PH', 'PQ', 'PS', 'PT',
                              'PU', 'TD', 'TH', 'TQ', 'TS',
