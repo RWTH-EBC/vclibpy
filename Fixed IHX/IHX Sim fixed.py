@@ -61,7 +61,7 @@ ihx_component = ihx_ntu.IHX_NTU(
     wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=400, thickness=1e-3) # Kupfer
 )
 
-expansion_valve_high = Bernoulli(A=0.000002)
+expansion_valve_high = Bernoulli(A=0.2)
 expansion_valve_low = Bernoulli(A=0.000002)
 
 compressor = ConstantEffectivenessCompressor(
