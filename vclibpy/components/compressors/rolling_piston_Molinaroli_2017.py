@@ -19,7 +19,7 @@ class Molinaroli_2017_Compressor(Compressor):
                                                                "Ua_dis_ref": 13.96,
                                                                "Ua_amb": 0.36,
                                                                "A_tot": 9.47e-9,
-                                                               "A_dis": 86.1e-9,
+                                                               "A_dis": 86.1e-6,
                                                                "V_IC": 16.11e-6,
                                                                "alpha_loss": 0.16,
                                                                "W_dot_loss_ref": 83,
@@ -451,14 +451,19 @@ class Molinaroli_2017_Compressor(Compressor):
         def residual_wrapper(x):
             return self._calculate_residuals(x, inputs, p_outlet)
 
+        # --- GA-friendly solver limits (can be overridden via inputs.*) ---
+        max_nfev = int(getattr(inputs, "lsq_max_nfev", 20000))
+        ftol = float(getattr(inputs, "lsq_ftol", 1e-8))
+        xtol = float(getattr(inputs, "lsq_xtol", 1e-8))
+
         result = least_squares(
             residual_wrapper,
             initial_guess,
             bounds=([b[0] for b in bounds], [b[1] for b in bounds]),
-            method='trf',
-            ftol=1e-8,
-            xtol=1e-8,
-            max_nfev=20000
+            method="trf",
+            ftol=ftol,
+            xtol=xtol,
+            max_nfev=max_nfev,
         )
 
         # 4. Check convergence
