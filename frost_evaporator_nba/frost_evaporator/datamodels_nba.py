@@ -25,7 +25,6 @@ class FrostEvaporatorParameters(VariableContainer):
 
         # Correlations Choices
         frost_density_correlation_choice: str,
-        frost_thickness_correlation_choice: str,
         frost_conductivity_correlation_choice: str,
         pressure_drop_correlation_choice: str,
         h_conv_air_correlation_choice: str,
@@ -38,6 +37,7 @@ class FrostEvaporatorParameters(VariableContainer):
         correction_factor_surface_density: float,
         correction_factor_k_frost: float,
         correction_factor_pressure_loss: float,
+        correction_factor_frost_diffusion: float,
 
         # Geometry Parameters
         fin_pitch: float,
@@ -54,19 +54,7 @@ class FrostEvaporatorParameters(VariableContainer):
     ):
         super().__init__()
 
-        # --- Internal Calculations ---
-        # These define the specific geometry of the simulated segment
-        tube_length = fin_pitch * (fin_amount - 1)
-        tube_amount = tube_layers * tubes_per_layer
-        total_tube_length = tube_length * tube_layers * tubes_per_layer
-        fin_segment_amount = fin_amount * tube_amount
-        fin_segment_height = fin_height / tubes_per_layer
-        fin_segment_length = fin_length / tube_layers
-        longitudinal_tube_pitch = fin_length / tube_layers
-        transverse_tube_pitch = fin_height / tubes_per_layer
-
-
-
+        # General
         self.set("time_step", time_step, "s", "Simulation time step for evaporator model")
         self.set("gravity", gravity, "m/s^2", "Gravitational acceleration")
         self.set("water_freezing_point", 273.15, "K", "The freezing point temperature of water.")
@@ -76,47 +64,86 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("alpha_0", alpha_0, "W/(m^2*K)", "Coefficient for two-phase htc (VDI Wärmeatlas H2 Tab.1)")
         self.set("q_dot_0", 20000, "W/m^2", "Normalized heat flux for propane two-phase htc (VDI Wärmeatlas H2 Tab.1)")
         self.set("refrigerant", refrigerant, "-", "Type of refrigerant used in the evaporator")
-
+        
+        # Structure
         self.set("register_amount", register_amount, "-", "Number of registers in the evaporator")
         self.set("layer_amount", layer_amount, "-", "Number of layers in the evaporator")
         self.set("fan_amount", fan_amount, "-", "Number of fans in the evaporator")
 
+        # Correlations
         self.set("frost_density_correlation_choice", frost_density_correlation_choice, "-", "Choice of correlation for frost density")
-        self.set("frost_thickness_correlation_choice", frost_thickness_correlation_choice, "-", "Choice of correlation for frost thickness")
         self.set("frost_conductivity_correlation_choice", frost_conductivity_correlation_choice, "-", "Choice of correlation for frost thermal conductivity")
         self.set("pressure_drop_correlation_choice", pressure_drop_correlation_choice, "-", "Choice of correlation for air-side pressure drop")
         self.set("h_conv_air_correlation_choice", h_conv_air_correlation_choice, "-", "Choice of correlation for air-side convective heat transfer coefficient")
         self.set("fan_selection", fan_selection, "-", "Fan selection for air-side pressure drop calculation")
 
+        # Correction Factors
         self.set("correction_factor_h_conv_air", correction_factor_h_conv_air, "-", "Correction factor to scale h_conv of air")
         self.set("correction_factor_h_conv_ref_2ph", correction_factor_h_conv_ref_2ph, "-", "Scales HTC in the boiling zone")
         self.set("correction_factor_betta_air", correction_factor_betta_air, "-", "Correction factor to scale betta of air")
         self.set("correction_factor_surface_density", correction_factor_surface_density, "-", "Correction factor to scale the frost surface density")
         self.set("correction_factor_k_frost", correction_factor_k_frost, "-", "Correction factor to scale the frost heat transfer")
         self.set("correction_factor_pressure_loss", correction_factor_pressure_loss, "-", "Correction factor to scale the air-side pressure loss")
+        self.set("correction_factor_frost_diffusion", correction_factor_frost_diffusion, "-", "Correction factor to scale the diffusivity (split of thickenig vs densifying)")
 
-        self.set("fin_pitch", fin_pitch, "m", "Spacing between fins (from center to center)")
-        self.set("fin_spacing", fin_pitch - fin_thickness, "m", "Distance between fin surfaces")
+        # Geometry Inputs (Basiswerte, die sich ändern können)
+        self.set("fin_pitch", fin_pitch, "m", "Spacing between fins (center to center)")
         self.set("fin_height", fin_height, "m", "Height of each fin")
         self.set("fin_length", fin_length, "m", "Length of each fin")
         self.set("fin_thickness", fin_thickness, "m", "Thickness of each fin")
         self.set("fin_amount", fin_amount, "-", "Total number of fins")
-        self.set("fin_thermal_conductivity", fin_thermal_conductivity, "W/m/K", "Thermal conductivity of fin material")
+        self.set("fin_thermal_conductivity", fin_thermal_conductivity, "W/m/K", "Thermal conductivity of fin")
 
         self.set("tube_outer_diameter", tube_outer_diameter, "m", "Outer diameter of tubes")
         self.set("tube_inner_diameter", tube_inner_diameter, "m", "Inner diameter of tubes")
-        self.set("tube_length", tube_length, "m", "Length of each tube (assumed equal to fin length)")
-        self.set("tube_layers", tube_layers, "-", "Number of tube layers in the evaporator")
-        self.set("tubes_per_layer", tubes_per_layer, "-", "Number of tubes per layer (for air flow calculations)")
-        self.set("tube_amount", tube_amount, "-", "Total number of tubes in the evaporator")
-        self.set("total_tube_length", total_tube_length, "m", "Total length of all tubes in the evaporator")
-        self.set("longitudinal_tube_pitch", longitudinal_tube_pitch, "m", "Longitudinal pitch between tube centers")
-        self.set("transverse_tube_pitch", transverse_tube_pitch, "m", "Transverse pitch between tube centers")
-        self.set("tube_thermal_conductivity", tube_thermal_conductivity, "W/m/K", "Thermal conductivity of tube material")
+        self.set("tube_layers", tube_layers, "-", "Number of tube layers")
+        self.set("tubes_per_layer", tubes_per_layer, "-", "Number of tubes per layer")
+        self.set("tube_thermal_conductivity", tube_thermal_conductivity, "W/m/K", "Thermal conductivity of tube")
 
-        self.set("fin_segment_amount", fin_segment_amount, "-", "Total number of fin-tube segments in the evaporator")
+        # Initial geometry calculation
+        self.recalculate_geometry()
+
+    def recalculate_geometry(self):
+        """
+        Calculates the geometric parameters based on new evaporator Setups. Has to be calle
+        if for example the pitch is changed.
+        """
+        # Read Input Parameters
+        fin_pitch = self.fin_pitch
+        fin_thickness = self.fin_thickness
+        fin_amount = self.fin_amount
+        fin_height = self.fin_height
+        fin_length = self.fin_length
+        tube_layers = self.tube_layers
+        tubes_per_layer = self.tubes_per_layer
+        
+        # Calculate dependent Parameters
+        fin_spacing = fin_pitch - fin_thickness
+        tube_length = fin_pitch * (fin_amount - 1)
+        tube_amount = tube_layers * tubes_per_layer
+        total_tube_length = tube_length * tube_layers * tubes_per_layer
+        
+        fin_segment_amount = fin_amount * tube_amount
+        
+        fin_segment_height = fin_height / tubes_per_layer
+        fin_segment_length = fin_length / tube_layers
+
+        transverse_tube_pitch = fin_height / tubes_per_layer
+        longitudinal_tube_pitch = fin_length / tube_layers
+
+
+        # Write dependend Parameters to dict
+        self.set("fin_spacing", fin_spacing, "m", "Distance between fin surfaces")
+        self.set("tube_length", tube_length, "m", "Length of each tube")
+        self.set("tube_amount", tube_amount, "-", "Total number of tubes")
+        self.set("total_tube_length", total_tube_length, "m", "Total length of all tubes")
+        
+        self.set("fin_segment_amount", fin_segment_amount, "-", "Total number of fin-tube segments")
         self.set("fin_segment_height", fin_segment_height, "m", "Height of each fin segment")
         self.set("fin_segment_length", fin_segment_length, "m", "Length of each fin segment")
+        
+        self.set("longitudinal_tube_pitch", longitudinal_tube_pitch, "m", "Longitudinal pitch")
+        self.set("transverse_tube_pitch", transverse_tube_pitch, "m", "Transverse pitch")
 
     @classmethod
     def from_yaml(cls, yaml_path: str):
@@ -165,7 +192,6 @@ class FrostEvaporatorParameters(VariableContainer):
 
             # Correlations
             frost_density_correlation_choice      = corr['frost_density_choice'],
-            frost_thickness_correlation_choice    = corr['frost_thickness_choice'],
             frost_conductivity_correlation_choice = corr['frost_conductivity_choice'],
             pressure_drop_correlation_choice      = corr['pressure_drop_choice'],
             h_conv_air_correlation_choice         = corr['h_conv_air_choice'],
@@ -178,6 +204,7 @@ class FrostEvaporatorParameters(VariableContainer):
             correction_factor_surface_density    = fact['surface_density'],
             correction_factor_k_frost            = fact['k_frost'],
             correction_factor_pressure_loss      = fact['pressure_loss'],
+            correction_factor_frost_diffusion    = fact['frost_diffusion'],
 
             # Geometry (Calculated Model Segments)
             fin_height      = fin_height_model,
@@ -317,6 +344,7 @@ class FrostState(VariableContainer):
 
         self.set("space_between_frost", 0.0, "m", "Space between frost layers")
         self.set("tube_diameter_w_frost", 0.0, "m", "Tube outer diameter including frost")
+        self.set("collar_diameter_w_frost", 0.0, "m", "Collar Diameter of the tube with frost")
         self.set("flow_area_air", 0.0, "m^2", "Free flow area for air through the evaporator")
         self.set("A_frost_surface", 0.0, "m^2", "Frost surface area for frost flux")
 
@@ -373,7 +401,9 @@ class AirState(VariableContainer):
         self.set("v_dot_fan_m3h_segment", 0.0, "m^3/h", "Volume flow rate through one segment")
 
         self.set("total_system_pressure_drop", 0.0, "Pa", "Total air-side pressure loss through the FULL evaporator (ALL LAYERS)")
-
+        self.set("total_fan_power", 0.0, "W", "Total power consumed by ALL fans to overcome the pressure drop")
+        self.set("total_m_dot_humid", 0.0, "kg/s", "Total humid air mass flow through the FULL evaporator (ALL REGISTERS)")
+        self.set("total_v_dot_fan_m3h", 0.0, "m^3/h", "Total volume flow rate through the FULL evaporator (ALL REGISTERS)")
 
         
 class RefrigerantState(VariableContainer):
@@ -416,7 +446,8 @@ class HeatMassTransferState(VariableContainer):
         self.set("T_frost_base", 268.0, "K", "Frost Base temperature")
         self.set("Q_dot_total", 0.0, "W", "Total heat transfer rate (sensible + latent)")
         self.set("Q_dot_sens", 0.0, "W", "Sensible heat transfer rate")
-        self.set("m_dot_thickening_flux", 0.0, "kg/s/m^2", "Mass flux rate of frost growth")
+        self.set("m_dot_thickening_flux", 0.0, "kg/s/m^2", "Mass flux rate of frost thickening")
+        self.set("m_dot_densification_flux", 0.0, "kg/s/m^2", "Mass flux rate of frost densification")
         self.set("m_dot_densification", 0.0, "kg/s", "Mass flow rate of frost densification")
         self.set("m_dot_thickening", 0.0, "kg/s", "Mass flow rate of frost thickening")
         self.set("m_dot_frost_total", 0.0, "kg/s", "Mass flow rate of frost growth")

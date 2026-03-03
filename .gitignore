@@ -33,3 +33,7 @@ frost_evaporator_nba/notebooks/med_prop_Propane_REFPRP64.dll
 .vscode/ltex.hiddenFalsePositives.de-DE.txt
 .vscode/ltex.dictionary.de-DE.txt
 .gitignore
+frost_evaporator_nba/notebooks/grand_simulation_results_2.pkl
+frost_evaporator_nba/notebooks/grand_simulation_results.pkl
+docs/jupyter_notebooks/med_prop_Propane_REFPRP64.dll
+docs/jupyter_notebooks/med_prop_R410A_REFPRP64.dll

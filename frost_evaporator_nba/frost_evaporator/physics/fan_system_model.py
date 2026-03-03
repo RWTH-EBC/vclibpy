@@ -4,12 +4,12 @@ from ..datamodels_nba import (
     FrostEvaporatorState,
 )
 import numpy as np
+import math
 import pandas as pd
 import warnings
 import math
 import CoolProp.CoolProp as CP_HumidAir
 from scipy.optimize import brentq
-from scipy.interpolate import interp1d
 
 class FanSystemModel:
 
@@ -28,11 +28,18 @@ class FanSystemModel:
         self._check_wang_validity()
 
         # --- Fan Setup ---
-        self.q_peak = 0.0
-        self.p_max = 0.0
+        # Pressure Curve Parameters
+        self.q_peak_pressure = 0.0
+        self.p_max_pressure = 0.0
+        self.fan_curve_poly = None
+        
+        # Power Curve Parameters
+        self.q_peak_power = 0.0
+        self.p_max_power = 0.0
+        self.fan_power_poly = None 
+
         self.min_f = 0.0
         self.max_f = 0.0
-        self.fan_curve_poly = None
         
         # Read Fan Data once
         self.raw_fan_df = None 
@@ -65,51 +72,72 @@ class FanSystemModel:
 
     def _update_fan_curve(self, current_rpm: float):
         """
-        Generates the fan curve polynomial for the CURRENT time step's RPM.
-        Uses a standard quadratic fit (ax^2 + bx + c) but identifies the 
-        peak/stall point to prevent pressure drop-off at low flows.
+        Generates the fan curve polynomials for the CURRENT time step's RPM.
+        
+        Pressure & Power Curve: Use quadratic fit with peak detection for stall (Clamped).
         """
         if self.raw_fan_df is None:
             return
 
         # Scale data to current RPM using Fan Affinity Laws
+        # Flow ~ n, Pressure ~ n^2, Power ~ n^3
         ratio = current_rpm / self.raw_fan_df['n']
-        q_norm = self.raw_fan_df['qV'] * ratio
-        p_norm = self.raw_fan_df['p_fs'] * (ratio**2)
+        
+        q_norm     = self.raw_fan_df['qV']   * (ratio**1)
+        p_norm     = self.raw_fan_df['p_fs'] * (ratio**2)
+        power_norm = self.raw_fan_df['P']    * (ratio**3)
 
         # Scale volume flow for specific register/fan count
         q_scaled = q_norm * (self.params.fan_amount / self.params.register_amount)
 
-        try:
-            # Standard Quadratic Fit: P = ax^2 + bx + c
-            coeffs = np.polyfit(q_scaled, p_norm, 2)
-            self.fan_curve_poly = np.poly1d(coeffs)
-            
-            # Find the Peak (Stall Point)
-            a, b, c = coeffs
-            # Only calculate peak if curve is concave down (a < 0)
-            if a < 0:
-                # Vertex of parabola: x = -b / (2a)
-                self.q_peak = -b / (2.0 * a)
-                self.p_max = self.fan_curve_poly(self.q_peak)
-            else:
-                self.q_peak = 0.0
-                self.p_max = c
+        # Scale total power for all fans in the system
+        p_power_total_scaled = power_norm * self.params.fan_amount
 
+        try:
+            # ================= Pressure Fit =================
+            coeffs_press = np.polyfit(q_scaled, p_norm, 2)
+            self.fan_curve_poly = np.poly1d(coeffs_press)
+            
+            # Find the Pressure Peak (Stall Point)
+            a, b, c = coeffs_press
+            if a < 0: # Concave down
+                self.q_peak_pressure = -b / (2.0 * a)
+                self.p_max_pressure = self.fan_curve_poly(self.q_peak_pressure)
+            else:
+                self.q_peak_pressure = 0.0
+                self.p_max_pressure = c
+
+            # ================= Power Fit =================
+            coeffs_power = np.polyfit(q_scaled, p_power_total_scaled, 2)
+            self.fan_power_poly = np.poly1d(coeffs_power)
+            
+            # Find the Power Peak (Stall Point)
+            ap, bp, cp = coeffs_power
+            if ap < 0: # Concave down
+                self.q_peak_power = -bp / (2.0 * ap)
+                self.p_max_power = self.fan_power_poly(self.q_peak_power)
+            else:
+                self.q_peak_power = 0.0
+                self.p_max_power = np.max(p_power_total_scaled)
+
+            # Limits
             self.min_f = 0.0 
             self.max_f = q_scaled.max()
-            
+
         except Exception:
             # Fallback
             self.fan_curve_poly = lambda x: 0.0
-            self.q_peak = 0.0
-            self.p_max = 0.0
+            self.fan_power_poly = lambda x: 0.0
+            self.q_peak_pressure = 0.0
+            self.p_max_pressure = 0.0
+            self.q_peak_power = 0.0
+            self.p_max_power = 0.0
             self.min_f = 0.0
             self.max_f = 0.0
 
     def solve_fan_system_equilibrium(self, states: list[FrostEvaporatorState], global_inputs: FrostEvaporatorInputs):
         """
-        Solves the Hydraulic Circuit: Fan Curve vs System Resistance. 
+        Solves the Hydraulic Circuit and calculates Power consumption.
         Calculates the GLOBAL Mass Flow Rate that satisfies the pressure balance.
         Then calculates and sets the local Velocity for each layer based on that mass flow
         and the local density/frost blockage.
@@ -152,6 +180,14 @@ class FanSystemModel:
         v_dot_fan_m3h = (m_dot_solved / density_inlet) * 3600.0
         total_pressure_drop_fan = self._get_pressure_from_flow(v_dot_fan_m3h)
 
+        # Calculate Fan Power (With Safety Clamp)
+        # If flow is to the left of the peak (stall region), use the Max Power (Clamped).
+        # Otherwise, use the polynomial fit.
+        if v_dot_fan_m3h < self.q_peak_power:
+             total_power_watts = float(self.p_max_power)
+        else:
+             total_power_watts = max(0.0, float(self.fan_power_poly(v_dot_fan_m3h)))
+
         # Initialize running pressure with global inlet pressure
         current_static_pressure = global_inputs.air.p_in
         
@@ -169,9 +205,13 @@ class FanSystemModel:
             state.air.set("m_dot_humid", m_dot_solved)
             state.air.set("p_out", current_static_pressure - dp_layer)
             state.air.set("pressure_drop", dp_layer)
-            state.air.set("total_system_pressure_drop", total_pressure_drop_fan)
             state.air.set("v_dot_fan_m3h_segment", v_dot_fan_m3h)
             state.air.set("roughness_multiplier", roughness_multiplier)
+
+            state.air.set("total_fan_power", total_power_watts)
+            state.air.set("total_system_pressure_drop", total_pressure_drop_fan)
+            state.air.set("total_m_dot_humid", m_dot_solved * self.params.register_amount)
+            state.air.set("total_v_dot_fan_m3h", v_dot_fan_m3h * self.params.register_amount)
 
             # Decrement pressure for the next layer (Outlet of n is Inlet of n+1)
             current_static_pressure -= dp_layer
@@ -261,8 +301,8 @@ class FanSystemModel:
             The static pressure [Pa].
         """
         # Flat-Top Constraint: If flow is in stall region (left of peak), return Max Pressure
-        if flow_val < self.q_peak:
-            return float(self.p_max)
+        if flow_val < self.q_peak_pressure:
+            return float(self.p_max_pressure)
         
         # Standard curve evaluation
         return float(self.fan_curve_poly(flow_val))
@@ -288,28 +328,13 @@ class FanSystemModel:
         # Pressure Drop Calculation 
         if self.params.pressure_drop_correlation_choice == "Wang":
             dp_raw = self._calculate_system_resistance_wang(
-                velocity                  = v_loc, 
-                density                   = density_local, 
-                dyn_viscosity             = state.air.dyn_viscosity_avg, 
-                longitudinal_tube_pitch   = self.params.longitudinal_tube_pitch, 
-                transverse_tube_pitch     = self.params.transverse_tube_pitch, 
-                fin_pitch                 = self.params.fin_pitch, 
-                collar_diameter_w_frost   = self.params.tube_outer_diameter + 2 * self.params.fin_thickness + 2 * state.frost.thickness, 
-                tube_layers               = self.params.tube_layers,
-                flow_length               = self.params.fin_length,
-                hydraulic_diameter        = hydraulic_diameter,
+                velocity                = v_loc, 
+                density                 = density_local, 
+                dyn_viscosity           = state.air.dyn_viscosity_avg, 
+                hydraulic_diameter      = hydraulic_diameter,
+                collar_diameter_w_frost = state.frost.collar_diameter_w_frost
             )
-        
-        elif self.params.pressure_drop_correlation_choice == "Haaf":
-            dp_raw = self._calculate_system_resistance_haaf(
-                velocity                  = v_loc, 
-                density                   = density_local, 
-                dyn_viscosity             = state.air.dyn_viscosity_avg, 
-                hydraulic_diameter        = hydraulic_diameter, 
-                longitudinal_tube_pitch   = self.params.longitudinal_tube_pitch,
-                Re_Dh                     = Re_Dh
-            )
-        
+
         else:
             raise ValueError(f"Unknown pressure drop correlation choice: {self.params.pressure_drop_correlation_choice}")
         
@@ -392,69 +417,30 @@ class FanSystemModel:
 
     def _calculate_friction_from_roughness(self, Re_Dh: float, Dh: float, ks: float) -> float:
         """
-        Calculates the Darcy friction factor using the Haaland Equation (1983).
-        https://doi.org/10.1115/1.3240948
-
-        Args:
-            Re_Dh: Reynolds number based on hydraulic diameter [-].
-            Dh: Hydraulic diameter [m].
-            ks: Equivalent sand-grain roughness [m].
-
-        Returns:
-            The Darcy friction factor [-].
-
-        Calculates the Darcy friction factor with a smooth transition between 
-        Laminar and Turbulent flow to prevent numerical spikes.
+        Calculates the Darcy friction factor using the Churchill (1977) correlation,
+        spanning all flow regimes continuously. Includes a theoretical laminar 
+        constriction penalty for macro-roughness (frost).
         
-        - Laminar (Re < 1000): f = 64/Re
-        - Transition (1000 <= Re <= 4000): Linear interpolation
-        - Turbulent (Re > 4000): Haaland Equation
+        Citation (Base Friction):
+            Churchill, S. W. (1977). Friction-factor equation spans all fluid-flow regimes. 
+            Chemical engineering, 84(24), 91-92.
         """
         
-        # --- Calculate Laminar Candidate ---
-        # Prevent division by zero
-        if Re_Dh <= 1e-5:
+        if Re_Dh <= 1e-5 or Dh <= 1e-9:
             return 0.0
-        f_laminar = 64.0 / Re_Dh
-
-        # --- Calculate Turbulent Candidate (Haaland) ---
-        # We calculate this even if Re is low, to use for interpolation
-        if Dh <= 1e-9:
-             f_turbulent = 0.0
-        else:
-             rel_roughness = ks / Dh
-             
-             # Haaland Equation terms
-             term_roughness = (rel_roughness / 3.7)**1.11
-             term_reynolds = 6.9 / Re_Dh
-             
-             inv_sqrt_f = -1.8 * math.log10(term_roughness + term_reynolds)
-             f_turbulent = (1.0 / inv_sqrt_f)**2
-
-        # --- Determine Regime & Interpolate ---
-        Re_laminar_limit = 300.0
-        Re_turbulent_limit = 2000.0
+            
+        # Cap relative roughness to prevent math domain errors
+        rel_roughness = min(ks / Dh, 0.99)  
         
-        # Pure Laminar (Roughness has NO effect here in standard theory)
-        if Re_Dh < Re_laminar_limit:
-            return f_laminar
-            
-        # Pure Turbulent (Roughness has FULL effect here)
-        elif Re_Dh > Re_turbulent_limit:
-            return f_turbulent
-            
-        # Transition Zone: Linearly blend between Laminar and Turbulent
-        else:
-            # Alpha goes from 0.0 to 1.0
-            alpha = (Re_Dh - Re_laminar_limit) / (Re_turbulent_limit - Re_laminar_limit)
-            
-            return (1.0 - alpha) * f_laminar + alpha * f_turbulent
+        # Churchill (1977) Equation
+        A = (-2.457 * math.log((7.0 / Re_Dh)**0.9 + 0.27 * rel_roughness))**16
+        B = (37_530.0 / Re_Dh)**16
+        
+        return 8.0 * ((8.0 / Re_Dh)**12 + 1.0 / (A + B)**1.5)**(1.0 / 12.0)
 
 
 
-    def _calculate_system_resistance_wang(self, velocity: float, density: float, dyn_viscosity: float, longitudinal_tube_pitch: float, 
-                                          transverse_tube_pitch: float, fin_pitch: float, collar_diameter_w_frost: float, tube_layers: int,
-                                          flow_length: float, hydraulic_diameter: float) -> float:
+    def _calculate_system_resistance_wang(self, velocity: float, density: float, dyn_viscosity: float, hydraulic_diameter: float, collar_diameter_w_frost: float) -> float:
         """
         Calculates Pressure Drop using Wang et al. (2000) Friction Factor.
         
@@ -462,32 +448,26 @@ class FanSystemModel:
             velocity: Air velocity [m/s].
             density: Air density [kg/m^3].
             dyn_viscosity: Dynamic viscosity of air [Pa*s].
-            longitudinal_tube_pitch: Distance between tubes in flow direction (Pl) [m].
-            transverse_tube_pitch: Distance between tubes perpendicular to flow (Pt) [m].
-            fin_pitch: Distance between fins (Fp) [m].
-            collar_diameter_w_frost: Effective collar diameter (Dc) [m].
-            tube_layers: Number of tube rows (N) [-].
-            flow_length: Length of the flow path [m].
             hydraulic_diameter: Hydraulic diameter of the flow channel [m].
+            collar_diameter_w_frost: Collar Diameter of the tube with frost [m].
         Returns:
             The calculated pressure drop [Pa].
         """
         if velocity <= 1e-5:
             return 0.0
-
-        # 1. Reynolds (based on Collar Diameter Dc, NOT Hydraulic Diameter)
-        reynolds_dc = (density * velocity * collar_diameter_w_frost) / dyn_viscosity
-        
-        # Clamp Re to prevent log errors
-        reynolds_dc = max(reynolds_dc, 10.0)
-        ln_re = math.log(reynolds_dc)
         
         # Map to Wang variables for readability
-        Pl = longitudinal_tube_pitch
-        Pt = transverse_tube_pitch
-        Fp = fin_pitch
+        Pl = self.params.longitudinal_tube_pitch
+        Pt = self.params.transverse_tube_pitch
+        Fp = self.params.fin_pitch
         Dc = collar_diameter_w_frost
-        N = float(tube_layers)
+        N = float(self.params.tube_layers)
+        
+        # 1. Reynolds (based on Collar Diameter Dc, NOT Hydraulic Diameter)
+        reynolds_dc = (density * velocity * Dc) / dyn_viscosity
+        
+        # Clamp Re to prevent log errors
+        ln_re = math.log(max(reynolds_dc, 10.0))
 
         # 2. Coefficients (Eq 13, 14, 15 from paper)
         F1 = -0.764 + (0.739 * (Pt / Pl)) + (0.177 * (Fp / Dc)) - (0.00758 / N)
@@ -501,45 +481,6 @@ class FanSystemModel:
         dynamic_pressure = 0.5 * density * (velocity ** 2)
         
         # The factor 4 converts Fanning f to Darcy-Weisbach context
-        friction_term = 4.0 * f * (flow_length / hydraulic_diameter)
+        friction_term = 4.0 * f * (self.params.fin_length / hydraulic_diameter)
         
         return friction_term * dynamic_pressure
-
-    
-    def _calculate_system_resistance_haaf(self, velocity: float, density: float, dyn_viscosity: float, hydraulic_diameter: float, longitudinal_tube_pitch: float, Re_Dh: float) -> float:
-        """
-        Calculates the system pressure drop based on the Haaf correlation.
-        
-        Args:
-            velocity: Air velocity [m/s].
-            density: Air density [kg/m^3].
-            dyn_viscosity: Dynamic viscosity [Pa·s].
-            hydraulic_diameter: Hydraulic diameter of the flow channel [m].
-            longitudinal_tube_pitch: Space between pipes in flow direction [m].
-            Re_Dh: Reynolds number based on hydraulic diameter [-].
-        Returns:
-            Pressure drop of the system [Pa].
-        """
-        zeta = self._calculate_pressure_loss_coefficient_haaf(
-            reynolds=Re_Dh,
-            hydraulic_diameter=hydraulic_diameter,
-            longitudinal_tube_pitch=longitudinal_tube_pitch
-        )
-
-        # Bernoulli / Darcy-Weisbach formulation
-        return zeta * 0.5 * density * (velocity ** 2)
-
-    def _calculate_pressure_loss_coefficient_haaf(self, reynolds: float, hydraulic_diameter: float, longitudinal_tube_pitch: float) -> float:
-        """
-        Calculates the pressure loss coefficient (zeta) based on the Haaf correlation.
-
-        Args:
-            reynolds: The Reynolds number [-].
-            hydraulic_diameter: Hydraulic diameter of the flow channel [m].
-            longitudinal_tube_pitch: The distance two tubes in air flow direction [m].
-        Returns:
-            The pressure loss coefficient (zeta) [-].
-        """
-        length_ratio = hydraulic_diameter / longitudinal_tube_pitch
-
-        return 10.5 * (reynolds ** (-1.0 / 3.0)) * (length_ratio ** 0.6)

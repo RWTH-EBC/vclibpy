@@ -4,22 +4,150 @@ general:
   alpha_0: 4200.0
   refrigerant: "R410a"
 
-correlations:
-  frost_density_choice: "D8"
-  frost_thickness_choice: "jonas_diss"
-  frost_conductivity_choice: "da_silva_paper"
-  pressure_drop_choice: "Wang"
-  h_conv_air_choice: "VDI"
-  fan_choice: "OptiHorst"
+# correlations:
+#   frost_density_choice: "D8"
+#   frost_conductivity_choice: "A"
+#   pressure_drop_choice: "Wang"
+#   h_conv_air_choice: "Wang"
+#   fan_choice: "OptiHorst"
+# correction_factors:
+#   h_conv_air: 1.3
+#   h_conv_ref_2ph: 0.75
+#   betta_air: 0.7
+#   surface_density: 1.3
+#   k_frost: 1.0
+#   pressure_loss: 0.7
 
-# Previous Global Optimum
+# correlations:
+#   frost_density_choice: "D8"
+#   frost_conductivity_choice: "da_silva_paper"
+#   pressure_drop_choice: "Wang"
+#   h_conv_air_choice: "Wang"
+#   fan_choice: "OptiHorst"
+# correction_factors:
+#   h_conv_air: 0.95
+#   h_conv_ref_2ph: 1.30
+#   betta_air: 0.25
+#   surface_density: 0.70
+#   k_frost: 1.25
+#   pressure_loss: 0.70
+
+
+# # Single Optimization
+# correlations:
+#   frost_density_choice: "D8"
+#   frost_conductivity_choice: "da_silva_paper"
+#   pressure_drop_choice: "Wang"
+#   h_conv_air_choice: "Wang"
+#   fan_choice: "OptiHorst"
+# correction_factors:
+#   h_conv_air: 1.85
+#   h_conv_ref_2ph: 0.70
+#   betta_air: 0.50
+#   surface_density: 0.90
+#   k_frost: 1.30
+#   pressure_loss: 0.70
+# Single Optimization
+
+# Optimization based on Experiment[25]
+# correlations:
+#   frost_density_choice: "D8"
+#   frost_conductivity_choice: "da_silva_paper"
+#   pressure_drop_choice: "Wang"
+#   h_conv_air_choice: "Jonas Diss"
+#   fan_choice: "OptiHorst"
+# correction_factors:
+#   h_conv_air: 1.00
+#   h_conv_ref_2ph: 1.20
+#   betta_air: 0.55
+#   surface_density: 1.30
+#   k_frost: 1.30
+#   pressure_loss: 0.70
+
+ 
+# Optimization based on Experiment[25 and -5 oder so]
+# correlations:
+#   frost_density_choice: "D8"
+#   frost_conductivity_choice: "A"
+#   pressure_drop_choice: "Wang"
+#   h_conv_air_choice: "Wang"
+#   fan_choice: "OptiHorst"
+# correction_factors:
+#   h_conv_air: 1.35
+#   h_conv_ref_2ph: 0.90
+#   betta_air: 0.70
+#   surface_density: 1.00
+#   k_frost: 1.30
+#   pressure_loss: 0.625
+#   frost_diffusion: 2.0
+
+# # Optimization all OptiHorst
+# correlations:
+#   frost_density_choice: "D8"
+#   frost_conductivity_choice: "A"
+#   pressure_drop_choice: "Wang"
+#   h_conv_air_choice: "Wang"
+#   fan_choice: "OptiHorst"
+# correction_factors:
+#   h_conv_air: 1.75
+#   h_conv_ref_2ph: 0.90
+#   betta_air: 0.50
+#   surface_density: 0.75
+#   k_frost: 1.30
+#   frost_diffusion: 1.70
+#   pressure_loss: 0.625
+
+
+# # Combined Optimization
+# correlations:
+#   frost_density_choice: "wang_2012" # "D8"
+#   frost_conductivity_choice: "A"
+#   pressure_drop_choice: "Wang"
+#   h_conv_air_choice: "Wang" # "Jonas Diss"
+#   fan_choice: "OptiHorst"
+# correction_factors:
+#   h_conv_air: 1.30
+#   h_conv_ref_2ph: 0.70
+#   betta_air: 0.50
+#   surface_density: 0.70
+#   k_frost: 1.30
+#   frost_diffusion: 2.00
+#   pressure_loss: 0.7
+
+
+# Combined Optimum: 2.0
+correlations:
+  frost_density_choice: "D8" # "D8"
+  frost_conductivity_choice: "lee_1997"
+  pressure_drop_choice: "Wang"
+  h_conv_air_choice: "Wang" # "Jonas Diss"
+  fan_choice: "OptiHorst"
 correction_factors:
   h_conv_air: 1.30
-  h_conv_ref_2ph: 0.90
-  betta_air: 0.65
-  surface_density: 1.30
-  k_frost: 1.40
-  pressure_loss: 0.80
+  h_conv_ref_2ph: 0.95
+  betta_air: 0.50
+  surface_density: 0.70
+  k_frost: 0.85
+  frost_diffusion: 1.30
+  pressure_loss: 0.7
+
+# # Coupled Optimization
+# correlations:
+#   frost_density_choice: "jonas_diss"
+#   frost_conductivity_choice: "A"
+#   pressure_drop_choice: "Wang"
+#   h_conv_air_choice: "Wang"
+#   fan_choice: "OptiHorst"
+# correction_factors:
+#   h_conv_air: 1.95
+#   h_conv_ref_2ph: 0.90
+#   betta_air: 0.50
+#   surface_density: 1.30
+#   k_frost: 0.70
+#   pressure_loss: 0.70
+
+
+  
 
 geometry:
   # Discretization / Model Splits

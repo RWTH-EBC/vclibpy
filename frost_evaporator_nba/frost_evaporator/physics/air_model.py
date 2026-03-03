@@ -56,8 +56,7 @@ class AirModel:
         )
 
         # --- Geometry Definition ---
-        # Hydraulic Diameter (for VDI / Jonas Diss)
-        # D_h = 2 * state.frost.space_between_frost
+        # Hydraulic Diameter (for VDI)
         D_h = 4 * state.frost.flow_area_air * self.params.fin_length / state.frost.A_frost_surface
         
         # Collar Diameter (Effective diameter for Wang)
@@ -76,7 +75,8 @@ class AirModel:
         )
 
         # Roughness Correction for the Convective Heat Transfer Coefficient
-        h_conv_physical = h_conv_raw * (state.air.roughness_multiplier ** 0.7) #! CHECK
+        # h_conv_physical = h_conv_raw * (state.air.roughness_multiplier ** 0.7) #! CHECK
+        h_conv_physical = h_conv_raw
 
         # --- Mass Transfer Coefficient ---
         betta_raw = self._calculate_mass_transfer_coefficient(
@@ -318,63 +318,27 @@ class AirModel:
         
         Supported Choices:
             - 'Wang'
-            - 'Jonas Diss'
             - 'VDI'
         """
         choice = self.params.h_conv_air_correlation_choice
 
         if choice == "Wang":
             # Wang uses Reynolds based on Collar Diameter (D_c)
-            Re = self._calculate_reynolds_number(
-                            density               = density_avg, 
-                            velocity              = velocity, 
-                            characteristic_length = D_c, 
-                            dyn_viscosity         = dyn_viscosity_avg
-                        )
+            Re = (density_avg * velocity * D_c) / dyn_viscosity_avg
 
             h_conv =  self._calculate_h_conv_wang(
                             Re_Dc             = Re,
-                            N                 = self.params.tube_layers,
-                            F_p               = self.params.fin_pitch,
                             D_c               = D_c,
                             D_h               = D_h,
-                            P_t               = self.params.transverse_tube_pitch,
-                            P_l               = self.params.longitudinal_tube_pitch,
                             density_avg       = density_avg,
                             velocity          = velocity,
                             heat_capacity_avg = heat_capacity_avg,
                             prandtl_avg       = prandtl_avg
                         )
             
-        elif choice == "Jonas Diss":
-            # Jonas Diss uses Reynolds based on Hydraulic Diameter (D_h)
-            Re = self._calculate_reynolds_number(
-                            density               = density_avg, 
-                            velocity              = velocity, 
-                            characteristic_length = D_h, 
-                            dyn_viscosity         = dyn_viscosity_avg
-                        )
-            
-            nu = self._calculate_nusselt_jonas(
-                            Re_Dh=Re, 
-                            Pr=prandtl_avg, 
-                            D_h=D_h
-                        )
-            
-            h_conv = self._calculate_h_conv_from_nusselt(
-                            nusselt               = nu, 
-                            thermal_conductivity  = thermal_conductivity_avg, 
-                            characteristic_length = D_h
-                        )
-            
         elif choice == "VDI":
             # VDI uses Reynolds based on Hydraulic Diameter (D_h) and Flow Length (L)
-            Re = self._calculate_reynolds_number(
-                            density               = density_avg, 
-                            velocity              = velocity, 
-                            characteristic_length = D_h, 
-                            dyn_viscosity         = dyn_viscosity_avg
-                        )
+            Re = (density_avg * velocity * D_h) / dyn_viscosity_avg
 
             # Assuming Flow Length L is the depth of the tube bank
             L = self.params.tube_layers * self.params.fin_segment_length
@@ -382,48 +346,28 @@ class AirModel:
             nu = self._calculate_nusselt_vdi(
                             Re_Dh=Re, 
                             Pr=prandtl_avg, 
-                            Dh=D_h, L=L
+                            Dh=D_h, 
+                            L=L
                         )
 
-            h_conv =  self._calculate_h_conv_from_nusselt(
-                            nusselt               = nu, 
-                            thermal_conductivity  = thermal_conductivity_avg, 
-                            characteristic_length = D_h
-            )
+            # Calculate the h_conv from Nusselt Number
+            h_conv = (nu * thermal_conductivity_avg) / D_h
 
         else:
-            raise ValueError(f"Unknown h_conv correlation choice: '{choice}'. Valid options: 'Wang', 'Jonas Diss', 'VDI'.")
+            raise ValueError(f"Unknown h_conv correlation choice: '{choice}'. Valid options: 'Wang', 'VDI'.")
         
         return h_conv, Re
 
-    def _calculate_reynolds_number(self, density: float, velocity: float, characteristic_length: float, dyn_viscosity: float) -> float:
-        """
-        Calculates the Reynolds number (Re = rho * v * L / mu).
 
-        Args:
-            density: The fluid density [kg/m^3].
-            velocity: The fluid velocity [m/s].
-            characteristic_length: The characteristic length [m].
-            dyn_viscosity: The dynamic viscosity [Pa*s].
-        Returns:
-            The Reynolds number [dimensionless].
-        """
-        return (density * velocity * characteristic_length) / dyn_viscosity
-
-
-    def _calculate_h_conv_wang(self, Re_Dc: float, N: int, F_p: float, D_c: float, D_h: float,  P_t: float, P_l: float, 
-                               density_avg: float, velocity: float,  heat_capacity_avg: float, prandtl_avg: float ) -> float:
+    def _calculate_h_conv_wang(self, Re_Dc: float, D_c: float, D_h: float, density_avg: float, velocity: float, 
+                               heat_capacity_avg: float, prandtl_avg: float ) -> float:
         """
         Calculates Colburn j-factor using Wang et al. (2000) correlations.
 
         Args:
             Re_Dc: Reynolds number based on Collar Diameter [dimensionless].
-            N: Number of tube rows (tube_layers) [count].
-            F_p: Fin Pitch (center-to-center) [m].
             D_c: Collar diameter (Tube OD + 2*fin_thickness + 2*frost_thickness) [m].
             D_h: Hydraulic diameter [m].
-            P_t: Transverse tube pitch [m].
-            P_l: Longitudinal tube pitch [m].
             density_avg: Average air density [kg/m^3].
             velocity: Air velocity [m/s].
             heat_capacity_avg: Average air specific heat capacity [J/(kg*K)].
@@ -436,6 +380,11 @@ class AirModel:
         Re_Dc = max(Re_Dc, 10.0)
         ln_Re = np.log(Re_Dc)
 
+        N   = self.params.tube_layers
+        F_p = self.params.fin_pitch
+        P_t = self.params.transverse_tube_pitch
+        P_l = self.params.longitudinal_tube_pitch
+
         # --- Heat Transfer (j-factor) ---
         if N == 1:
             P1 = 1.9 - 0.23 * ln_Re
@@ -443,23 +392,20 @@ class AirModel:
             
             j = (0.108 * (Re_Dc**-0.29) * ((P_t / P_l)**P1) * ((F_p / D_c)**-1.084) * ((F_p / D_h)**-0.786) * ((F_p / P_t)**P2))
         else:
-            # P3 = -0.361 - (0.042 * N / ln_Re) + 0.158 * np.log(N * (F_p / D_c)**0.41)
-            # P4 = -1.224 - (0.076 * ((P_l / D_h)**1.42) / ln_Re)
-            # P5 = -0.083 + (0.058 * N / ln_Re)
-            # P6 = -5.735 + 1.21 * np.log(Re_Dc / N)
+            # Equations for N >= 2 from Wang et al. (2000)
+            P3 = -0.361 - (0.042 * N / ln_Re) + 0.158 * np.log(N * (F_p / D_c)**0.41)
+            P4 = -1.224 - (0.076 * (P_l / D_h)**1.42) / ln_Re
+            P5 = -0.083 + (0.058 * N / ln_Re)
+            P6 = -5.735 + 1.21 * np.log(Re_Dc / N)
+            
+            j = 0.086 * (Re_Dc**P3) * (N**P4) * ((F_p / D_c)**P5) * ((F_p / D_h)**P6) * ((F_p / P_t)**-0.93)
 
-            # j = (0.086 * (Re_Dc**P3) * (N**P4) * ((F_p / D_c)**P5) * ((F_p / D_h)**P6) * ((F_p / P_t)**-0.93))
-            raise NotImplementedError("Wang et al. (2000) j-factor for N>1 is not implemented yet.")
-
+        # Convert j-factor back to convective heat transfer coefficient
         h_conv = (j * density_avg * velocity * heat_capacity_avg) / (prandtl_avg ** (2/3))
         h_conv = max(1.0, h_conv) # Prevent unphysical low values
+        
         return h_conv
     
-
-    def _calculate_nusselt_jonas(self, Re_Dh: float, Pr: float, D_h:float) -> float:
-        # Jonas Diss (4.1)
-        return 0.31 * (Re_Dh**(5/8)) * (Pr**(1/3)) * ((D_h / self.params.longitudinal_tube_pitch)**(1/3))
-
     def _calculate_nusselt_vdi(self, Re_Dh: float, Pr: float, Dh: float, L: float) -> float:
         """
         Calculates the mean Nusselt number (Nu_m) for flow in a flat gap (ebener Spalt).
@@ -529,20 +475,6 @@ class AirModel:
         return (numerator / denominator) * (1 + (Dh / L)**(2/3))
 
 
-    def _calculate_h_conv_from_nusselt(self, nusselt: float, thermal_conductivity: float, characteristic_length: float) -> float:
-        """
-        Calculates the convective heat transfer coefficient (h = Nu * k / L).
-        
-        Args:
-            nusselt: The Nusselt number [-].
-            thermal_conductivity: Thermal conductivity of the fluid [W/(m*K)].
-            characteristic_length: Characteristic length (usually D_h) [m].
-        Returns:
-            The heat transfer coefficient [W/(m^2*K)].
-        """
-        if characteristic_length <= 0:
-            return 0.0
-        return (nusselt * thermal_conductivity) / characteristic_length
 
     def _calculate_mass_transfer_coefficient(self, h_conv: float, density: float, heat_capacity: float, lewis_number: float) -> float:
         """

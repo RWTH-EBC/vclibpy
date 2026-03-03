@@ -4,35 +4,70 @@ general:
   alpha_0: 4200.0
   refrigerant: "R134a"
 
+# OptiAbt Optimum neu:
 correlations:
-  frost_density_choice: "D8"
-  frost_thickness_choice: "jonas_diss"
+  frost_density_choice: "da_silva_paper"
   frost_conductivity_choice: "da_silva_paper"
   pressure_drop_choice: "Wang"
-  h_conv_air_choice: "VDI"
+  h_conv_air_choice: "VDI" # "Jonas Diss"
   fan_choice: "OptiAbt"
-
-
-
-# OptiAbt Optimum:
 correction_factors:
-  h_conv_air: 1.40
-  h_conv_ref_2ph: 0.90
-  betta_air: 1.40
-  surface_density: 1.40
-  k_frost: 0.90
-  pressure_loss: 0.90
+  h_conv_air: 0.85
+  h_conv_ref_2ph: 1.25
+  betta_air: 1.00
+  surface_density: 0.70
+  k_frost: 1.30
+  frost_diffusion: 0.50
+  pressure_loss: 1.00
 
 
-# Previous Global Optimum
+# Combined Optimum:
+# correlations:
+#   frost_density_choice: "wang_2012" # "D8"
+#   frost_conductivity_choice: "A"
+#   pressure_drop_choice: "Wang"
+#   h_conv_air_choice: "Wang" # "Jonas Diss"
+#   fan_choice: "OptiAbt"
 # correction_factors:
 #   h_conv_air: 1.30
-#   h_conv_ref_2ph: 0.90
-#   betta_air: 0.65
-#   surface_density: 1.30
-#   k_frost: 1.40
-#   pressure_loss: 0.80
+#   h_conv_ref_2ph: 0.70
+#   betta_air: 0.50
+#   surface_density: 0.70
+#   k_frost: 1.30
+#   frost_diffusion: 2.00
+#   pressure_loss: 0.7
 
+# Combined Optimum: 2.0
+# correlations:
+#   frost_density_choice: "D8" # "D8"
+#   frost_conductivity_choice: "lee_1997"
+#   pressure_drop_choice: "Wang"
+#   h_conv_air_choice: "Wang" # "Jonas Diss"
+#   fan_choice: "OptiAbt"
+# correction_factors:
+#   h_conv_air: 1.30
+#   h_conv_ref_2ph: 0.95
+#   betta_air: 0.50
+#   surface_density: 0.70
+#   k_frost: 0.85
+#   frost_diffusion: 1.30
+#   pressure_loss: 0.7
+
+  # Abt Optimization
+correlations:
+  frost_density_choice: "da_silva_paper"
+  frost_conductivity_choice: "lee_1997"
+  pressure_drop_choice: "Wang"
+  h_conv_air_choice: "VDI" # "Jonas Diss"
+  fan_choice: "OptiAbt"
+correction_factors:
+  h_conv_air: 0.85
+  h_conv_ref_2ph: 1.20
+  betta_air: 1.30
+  surface_density: 0.70
+  k_frost: 1.30
+  frost_diffusion: 0.70
+  pressure_loss: 0.7
 
 
 geometry:

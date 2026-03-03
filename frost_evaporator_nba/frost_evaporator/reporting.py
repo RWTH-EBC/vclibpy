@@ -145,23 +145,33 @@ class SimulationVisualizer:
             
             # Calculate Scalar Error
             val_sim = np.interp(t_marker, t_sim, sim_data_arr)
-            err_val = (val_sim - val_exp) / val_exp * 100.0 if val_exp != 0 else 0.0
-            
-            # Return: Avg Err, Time (for plot), Value (for plot), Absolute Value (for marker height)
-            return err_val, np.array([t_marker]), np.array([err_val]), val_exp
+            err_val_signed = (val_sim - val_exp) / val_exp * 100.0 if val_exp != 0 else 0.0
+            err_val_abs = abs(err_val_signed)
+
+            # Return the absolute error for the optimizer, but the signed array for plots
+            return err_val_abs, np.array([t_marker]), np.array([err_val_signed]), val_exp
 
         else:
             # --- Continuous Error Calculation ---
             sim_interp = np.interp(exp['time'], t_sim, sim_data_arr)
-            abs_err = sim_interp - exp['data'][key]
-            
-            with np.errstate(divide='ignore', invalid='ignore'):
-                rel_err = np.nan_to_num((abs_err / exp['data'][key]) * 100.0, nan=0.0, posinf=0.0, neginf=0.0)
+            residual = sim_interp - exp['data'][key] # renamed from abs_err
             
             mask_err = (exp['time'] >= t_cut_start) & (exp['time'] <= t_cut_end)
-            avg_rel = np.mean(np.abs(rel_err[mask_err])) if np.sum(mask_err) > 0 else 0.0
             
-            # For continuous plots, we don't need a single scalar absolute value for markers
+            # Normalize by the MAX (or MEAN) of the experimental data in the valid window
+            # This prevents division-by-near-zero at the start of the experiment
+            if np.sum(mask_err) > 0:
+                norm_factor = np.max(np.abs(exp['data'][key][mask_err]))
+                if norm_factor == 0:
+                    norm_factor = 1.0 # Fallback to prevent div by zero
+                    
+                # Calculate percentage error relative to the peak value of this run
+                rel_err = (residual / norm_factor) * 100.0 
+                avg_rel = np.mean(np.abs(rel_err[mask_err]))
+            else:
+                rel_err = np.zeros_like(residual)
+                avg_rel = 0.0
+
             return avg_rel, exp['time'], rel_err, None
 
     def get_relative_error_table(self, states_history, inputs_history, experiment_ids, path_exp, 

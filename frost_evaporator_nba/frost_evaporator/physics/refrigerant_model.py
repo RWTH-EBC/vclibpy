@@ -6,7 +6,6 @@ from ..datamodels_nba import (
 from vclibpy.media import RefProp
 import math
 import os
-from functools import lru_cache
 
 # Get path from environment variable, fall back to a default if not set
 REFPROP_DIR = os.environ.get("REFPROP_PATH", r"C:\Program Files (x86)\REFPROP")
@@ -32,11 +31,12 @@ R134a_RP = RefProp(
         dll_path=REFPROP_DLL,
         ref_prop_path=REFPROP_DIR
 )
-
 R410a_RP = RefProp(
-        fluid_name="R410A",
-        dll_path=REFPROP_DLL,
-        ref_prop_path=REFPROP_DIR
+    fluid_name="R32.FLD|R125.FLD",       
+    z=[0.697615, 0.302385],         # Exact molar composition for R410A
+    dll_path=REFPROP_DLL, 
+    ref_prop_path=REFPROP_DIR,
+    copy_dll=False
 )
 
 
@@ -70,10 +70,13 @@ class RefrigerantModel:
         
         # --- Extract Inputs ---
         h_in  = inputs.refrigerant.h_in
-        h_out = state.refrigerant.h_out
+        h_out_current = state.refrigerant.h_out
         p_eva = inputs.refrigerant.p_eva
         m_dot = inputs.refrigerant.m_dot
 
+        # Ensure h_out is at least the inlet enthalpy (prevent errors later on)
+        h_out = max(h_out_current, h_in + 1e-3)
+            
         # --- Update State Object ---
         # Global Inputs/Outputs
         props_global = self.calculate_refrigerant_props(h_in, h_out, p_eva)
@@ -94,16 +97,18 @@ class RefrigerantModel:
         T_in_sh  = props_global['temperature_in']
         T_in_2ph = props_global['temperature_in']
 
-        
+        # Get area split from HMT state
+        f_2ph = state.hmt.area_split_2phase
+
         # Case A: Entirely Superheated (h_in > h'')
         if h_in >= h_sat_vap:
             portion_sh = 1.0
-            h_conv_sh, cp_avg_sh = self._compute_zone_htc(h_in, h_out, p_eva, m_dot)
+            h_conv_sh, cp_avg_sh = self._compute_zone_htc(h_in, h_out, p_eva, m_dot, area_fraction=1.0)
 
         # Case B: Entirely Two-Phase (h_out <= h'')
         elif h_out <= h_sat_vap:
             portion_2ph = 1.0
-            h_conv_2ph, _ = self._compute_zone_htc(h_in, h_out, p_eva, m_dot)
+            h_conv_2ph, _ = self._compute_zone_htc(h_in, h_out, p_eva, m_dot, area_fraction=1.0)
 
         # Case C: Mixed / Transition (h_in < h'' < h_out)
         else:
@@ -117,10 +122,10 @@ class RefrigerantModel:
             portion_sh = delta_h_sh / total_enthalpy_diff
             
             # --- Two-Phase Zone (h_in -> h'') ---
-            h_conv_2ph, _ = self._compute_zone_htc(h_in, h_sat_vap, p_eva, m_dot)
+            h_conv_2ph, _ = self._compute_zone_htc(h_in, h_sat_vap, p_eva, m_dot, area_fraction=f_2ph)
             
             # --- Superheated Zone (h'' -> h_out) ---
-            h_conv_sh, cp_avg_sh = self._compute_zone_htc(h_sat_vap, h_out, p_eva, m_dot)
+            h_conv_sh, cp_avg_sh = self._compute_zone_htc(h_sat_vap, h_out, p_eva, m_dot, area_fraction=(1.0 - f_2ph))
             T_in_sh = T_sat
 
 
@@ -152,7 +157,7 @@ class RefrigerantModel:
     ####################################################################################
 
 
-    def _compute_zone_htc(self, h_start: float, h_end: float, p_sys: float, m_dot: float) -> tuple[float, float]:
+    def _compute_zone_htc(self, h_start: float, h_end: float, p_sys: float, m_dot: float, area_fraction: float = 1.0) -> tuple[float, float]:
         """
         Helper method to calculate HTC for a specific enthalpy range (zone).
         """
@@ -168,7 +173,8 @@ class RefrigerantModel:
             refrigerant_props=zone_props,
             m_dot=m_dot,
             h_in=h_start,
-            h_out=h_end
+            h_out=h_end,
+            area_fraction=area_fraction
         )
     
         return h_conv, zone_props['heat_capacity_avg']
@@ -195,14 +201,14 @@ class RefrigerantModel:
         Returns:
             A dictionary containing all calculated properties.
         """
+
+        if h_out < 0 :
+            h_out = h_in + 20_000
+            print("Warning: h_out was negative in calculate_refrigerant_prop, setting h_out = h_in + 20kj/kg to avoid invalid calculation.")
         
         # --- Define Average State ---
         p_avg = p_eva
         h_avg = (h_in + h_out) / 2
-
-        # --- ROUNDING INPUTS FOR CACHE HIT RATE ---
-        p_avg = round(p_avg, 0) # Pressure to nearest Pa
-        h_avg = round(h_avg, 1) # Enthalpy to nearest 0.1 J/kg
 
 
         refrigerant_props = {'pressure_avg': p_avg, 
@@ -259,7 +265,7 @@ class RefrigerantModel:
         return refrigerant_props
     
 
-    def calculate_heat_transfer_coefficient(self, refrigerant_props: dict, m_dot: float, h_in: float, h_out: float) -> float:
+    def calculate_heat_transfer_coefficient(self, refrigerant_props: dict, m_dot: float, h_in: float, h_out: float, area_fraction: float = 1.0) -> float:
         """
         Calculates the refrigerant-side heat transfer coefficient.
 
@@ -286,7 +292,7 @@ class RefrigerantModel:
             
         # Two-Phase Evaporation
         else:
-            h_conv_2ph_raw = self._calculate_two_phase_htc(refrigerant_props, G, d_h, m_dot, h_in, h_out)
+            h_conv_2ph_raw = self._calculate_two_phase_htc(refrigerant_props, G, d_h, m_dot, h_in, h_out, area_fraction)
             
             # Smooth Dryout Transition
             x_dryout_start = 0.85
@@ -370,7 +376,7 @@ class RefrigerantModel:
     
 
 
-    def _calculate_two_phase_htc(self, props: dict, G: float, d_h: float, m_dot: float, h_in: float, h_out: float) -> float:
+    def _calculate_two_phase_htc(self, props: dict, G: float, d_h: float, m_dot: float, h_in: float, h_out: float, area_fraction: float = 1.0) -> float:
         """
         Dispatches to the correct evaporation correlation based on Froude number.
         """
@@ -389,9 +395,11 @@ class RefrigerantModel:
             # Use Chen (1966) correlation
             L_tube = self.params.tube_length
 
-            A_surface = math.pi * d_h * L_tube  # Wetted surface area [m^2]
+            # Multiply total area by the zone's area fraction
+            A_surface = math.pi * d_h * L_tube * max(1e-5, area_fraction)  
+            
             Q_dot = m_dot * (h_out - h_in)   # Total heat transfer [W]
-            q_dot = Q_dot / A_surface         # Heat flux [W/m^2]
+            q_dot = Q_dot / A_surface        # Heat flux [W/m^2]
 
             return self._calculate_chen_htc(props, G, d_h, q_dot)
 
