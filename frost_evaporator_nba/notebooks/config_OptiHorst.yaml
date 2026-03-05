@@ -125,7 +125,8 @@ correlations:
 correction_factors:
   h_conv_air: 1.30
   h_conv_ref_2ph: 0.95
-  betta_air: 0.50
+  betta_intercept_air: 0.5
+  betta_slope_air: 0.00
   surface_density: 0.70
   k_frost: 0.85
   frost_diffusion: 1.30

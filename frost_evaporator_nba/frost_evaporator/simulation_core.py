@@ -81,9 +81,9 @@ class FrostEvaporatorSimulation:
 
         # Set correction factors
         self.params.set("correction_factor_h_conv_air", new_factors["h_conv_air"])
-        self.params.set("correction_factor_h_conv_ref_2ph", new_factors["h_conv_ref_2ph"])
         self.params.set("correction_factor_surface_density", new_factors["surface_density"])
-        self.params.set("correction_factor_betta_air", new_factors["betta_air"])
+        self.params.set("correction_factor_betta_intercept_air", new_factors["betta_intercept_air"])
+        self.params.set("correction_factor_betta_slope_air", new_factors["betta_slope_air"])
         self.params.set("correction_factor_k_frost", new_factors["k_frost"])
         self.params.set("correction_factor_frost_diffusion", new_factors["frost_diffusion"])
         self.params.set("correction_factor_pressure_loss", new_factors["pressure_loss"])
@@ -108,8 +108,8 @@ class FrostEvaporatorSimulation:
     def reset_simulation(self):
         """Resets the internal state to a clean, initial condition."""
         # Init state objects
-        self.states = [FrostEvaporatorState() for _ in range(self.params.layer_amount)]
-        self.layer_inputs = [None] * self.params.layer_amount 
+        self.states = [FrostEvaporatorState() for _ in range(self.params.global_layer_amount)]
+        self.layer_inputs = [None] * self.params.global_layer_amount 
 
         # Reset Frost Thickness to starting epsilon (1e-8)
         initial_thickness = 1e-8
@@ -128,7 +128,7 @@ class FrostEvaporatorSimulation:
         p_air   = 101325.0
 
         # Refrigerant Massflow per Register
-        m_dot_ref_per_register = m_dot_ref / self.params.register_amount
+        m_dot_ref_per_register = m_dot_ref / self.params.global_register_amount
         
         # Calculate Humidity Ratio (W) dynamically
         W_air = CP.HAPropsSI('W', 'T', T_air_K, 'P', p_air, 'R', RH_pct / 100.0)
@@ -146,7 +146,7 @@ class FrostEvaporatorSimulation:
         """
         Advances the physical frost growth by one time step.
         """
-        for k in range(self.params.layer_amount):
+        for k in range(self.params.global_layer_amount):
             self.frost_model.step_forward(self.states[k], self.layer_inputs[k])
 
     # -------------------------------------------------------------------------
@@ -164,7 +164,7 @@ class FrostEvaporatorSimulation:
         self.reset_simulation()
 
         # 1. Set the initial inputs
-        self.layer_inputs = [copy.deepcopy(initial_inputs) for _ in range(self.params.layer_amount)]
+        self.layer_inputs = [copy.deepcopy(initial_inputs) for _ in range(self.params.global_layer_amount)]
 
         # 2. Initialization Sequence
         self._step_frost_growth() # First blind step
@@ -200,7 +200,7 @@ class FrostEvaporatorSimulation:
         """Forward pass (0 -> N): Solves Air side"""
         current_air = copy.deepcopy(global_air_input)
         
-        for k in range(self.params.layer_amount):
+        for k in range(self.params.global_layer_amount):
             state = states[k]
 
             # Update Layer Inputs
@@ -223,7 +223,7 @@ class FrostEvaporatorSimulation:
         """Reverse pass (N -> 0): Solves Refrigerant side"""
         current_ref = copy.deepcopy(global_ref_input)
         
-        for k in reversed(range(self.params.layer_amount)):
+        for k in reversed(range(self.params.global_layer_amount)):
             state = states[k]
 
             # Update Layer Inputs
@@ -328,7 +328,9 @@ class FrostEvaporatorSimulation:
         self.params.set("time_step", duration_mins * 60 / simulation_steps)
 
         try:
-            for j in tqdm(range(simulation_steps), desc=f"Sim {case_name}"):
+            # Assign tqdm to a variable so we can update its postfix text
+            pbar = tqdm(range(simulation_steps), desc=f"Sim {case_name}")
+            for j in pbar:
                 current_t_min = (j * self.params.time_step) / 60.0
 
                 # A. Update Boundary Conditions
@@ -346,9 +348,16 @@ class FrostEvaporatorSimulation:
                     inputs_history.append([inp.copy() for inp in self.layer_inputs])
                     break 
 
-                for s in self.states:
-                    if s.hmt.T_frost_surface > self.params.water_freezing_point:
-                        print(f"Warning: Frost Surface Temperature > 0°C at step {j} in L{self.states.index(s)+1}")
+                # Collect affected layers and update the progress bar postfix
+                affected_layers = [
+                    str(i + 1) for i, s in enumerate(self.states) 
+                    if s.hmt.T_frost_surface > self.params.water_freezing_point
+                ]
+                
+                if affected_layers:
+                    pbar.set_postfix_str(f"Frost Surface Temp > 0°C in Layers {', '.join(affected_layers)}")
+                else:
+                    pbar.set_postfix_str("") # Clears the message if the condition is no longer met
 
                 # D. Store History
                 states_history.append([s.copy() for s in self.states])

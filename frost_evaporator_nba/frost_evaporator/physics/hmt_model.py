@@ -498,13 +498,13 @@ class HeatMassTransferModel:
         Raises:
             ValueError: If tube dimensions or conductivity are invalid.
         """
-        if np.isclose(self.params.tube_inner_diameter, 0) or np.isclose(self.params.total_tube_length, 0):
+        if np.isclose(self.params.tube_inner_diameter, 0) or np.isclose(self.params.fvm_total_tube_length, 0):
             raise ValueError("Tube dimensions cannot be zero.")
         if np.isclose(self.params.tube_thermal_conductivity, 0):
             raise ValueError("Tube conductivity cannot be zero.")
         
         return ( np.log(self.params.tube_outer_diameter / self.params.tube_inner_diameter) / 
-                 (2 * np.pi * self.params.total_tube_length * self.params.tube_thermal_conductivity) )
+                 (2 * np.pi * self.params.fvm_total_tube_length * self.params.tube_thermal_conductivity) )
 
     def _calculate_resistance_refrigerant(self, h_conv_refrigerant: float) -> float:
         """
@@ -517,10 +517,10 @@ class HeatMassTransferModel:
         """
         if np.isclose(h_conv_refrigerant, 0):
             raise ValueError("h_conv_refrigerant cannot be zero.")
-        if np.isclose(self.params.tube_inner_diameter, 0) or np.isclose(self.params.total_tube_length, 0):
+        if np.isclose(self.params.tube_inner_diameter, 0) or np.isclose(self.params.fvm_total_tube_length, 0):
             raise ValueError("Tube dimensions cannot be zero.")
         
-        return 1 / (h_conv_refrigerant * np.pi * self.params.tube_inner_diameter * self.params.total_tube_length)
+        return 1 / (h_conv_refrigerant * np.pi * self.params.tube_inner_diameter * self.params.fvm_total_tube_length)
 
     def _get_rho_w_sat(self, T: float, p: float) -> float:
         """

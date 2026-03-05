@@ -57,7 +57,7 @@ class AirModel:
 
         # --- Geometry Definition ---
         # Hydraulic Diameter (for VDI)
-        D_h = 4 * state.frost.flow_area_air * self.params.fin_length / state.frost.A_frost_surface
+        D_h = 4 * state.frost.flow_area_air * self.params.fvm_fin_length / state.frost.A_frost_surface
         
         # Collar Diameter (Effective diameter for Wang)
         D_c_eff = self.params.tube_outer_diameter + 2 * self.params.fin_thickness + 2 * state.frost.thickness
@@ -88,7 +88,9 @@ class AirModel:
 
         # Multiply with manual correction factor
         h_conv = h_conv_physical * self.params.correction_factor_h_conv_air
-        betta = betta_raw * self.params.correction_factor_betta_air
+
+        correction_factor_betta_air = self.params.correction_factor_betta_intercept_air + self.params.correction_factor_betta_slope_air * state.frost.space_between_frost
+        betta = betta_raw * correction_factor_betta_air
 
         # --- Mass Flows ---
         m_dot_humid, m_dot_dry = self._calculate_mass_flows(
@@ -341,7 +343,7 @@ class AirModel:
             Re = (density_avg * velocity * D_h) / dyn_viscosity_avg
 
             # Assuming Flow Length L is the depth of the tube bank
-            L = self.params.tube_layers * self.params.fin_segment_length
+            L = self.params.fvm_tube_layers * self.params.fin_segment_length
             
             nu = self._calculate_nusselt_vdi(
                             Re_Dh=Re, 
@@ -380,7 +382,8 @@ class AirModel:
         Re_Dc = max(Re_Dc, 10.0)
         ln_Re = np.log(Re_Dc)
 
-        N   = self.params.tube_layers
+        # The global tube layers has to be used, because of the influence of the entry region on the heat transfer.
+        N   = self.params.global_tube_layers
         F_p = self.params.fin_pitch
         P_t = self.params.transverse_tube_pitch
         P_l = self.params.longitudinal_tube_pitch

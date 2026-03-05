@@ -17,10 +17,6 @@ class FrostEvaporatorParameters(VariableContainer):
         time_step: float,
         gravity: float,
         alpha_0: float,
-
-        register_amount: int,
-        layer_amount: int,
-        fan_amount: int,
         refrigerant: str,
 
         # Correlations Choices
@@ -32,24 +28,35 @@ class FrostEvaporatorParameters(VariableContainer):
 
         # Correction Factors
         correction_factor_h_conv_air: float,
-        correction_factor_h_conv_ref_2ph: float,
-        correction_factor_betta_air: float,
+        correction_factor_betta_intercept_air: float,
+        correction_factor_betta_slope_air: float,
         correction_factor_surface_density: float,
         correction_factor_k_frost: float,
         correction_factor_pressure_loss: float,
         correction_factor_frost_diffusion: float,
 
-        # Geometry Parameters
+        # Geometry Parameters (Global / Whole Evaporator)
+        global_register_amount: float,
+        global_layer_amount: int,
+        global_fan_amount: int,
+        global_fin_height: float,
+        global_fin_length: float,
+        global_tube_layers: int,
+        global_tubes_per_layer: int,
+
+        # Geometry Parameters (FVM Domain / Cut Down)
+        fvm_fin_height: float,
+        fvm_fin_length: float,
+        fvm_tube_layers: int,
+        fvm_tubes_per_layer: int,
+
+        # Geometry Parameters (Invariant / Uncut)
         fin_pitch: float,
-        fin_height: float,
-        fin_length: float,
         fin_thickness: float,
         fin_amount: int,
         fin_thermal_conductivity: float,
         tube_outer_diameter: float,
         tube_inner_diameter: float,
-        tube_layers: int,
-        tubes_per_layer: int,
         tube_thermal_conductivity: float,
     ):
         super().__init__()
@@ -64,11 +71,6 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("alpha_0", alpha_0, "W/(m^2*K)", "Coefficient for two-phase htc (VDI Wärmeatlas H2 Tab.1)")
         self.set("q_dot_0", 20000, "W/m^2", "Normalized heat flux for propane two-phase htc (VDI Wärmeatlas H2 Tab.1)")
         self.set("refrigerant", refrigerant, "-", "Type of refrigerant used in the evaporator")
-        
-        # Structure
-        self.set("register_amount", register_amount, "-", "Number of registers in the evaporator")
-        self.set("layer_amount", layer_amount, "-", "Number of layers in the evaporator")
-        self.set("fan_amount", fan_amount, "-", "Number of fans in the evaporator")
 
         # Correlations
         self.set("frost_density_correlation_choice", frost_density_correlation_choice, "-", "Choice of correlation for frost density")
@@ -79,25 +81,35 @@ class FrostEvaporatorParameters(VariableContainer):
 
         # Correction Factors
         self.set("correction_factor_h_conv_air", correction_factor_h_conv_air, "-", "Correction factor to scale h_conv of air")
-        self.set("correction_factor_h_conv_ref_2ph", correction_factor_h_conv_ref_2ph, "-", "Scales HTC in the boiling zone")
-        self.set("correction_factor_betta_air", correction_factor_betta_air, "-", "Correction factor to scale betta of air")
+        self.set("correction_factor_betta_intercept_air", correction_factor_betta_intercept_air, "-", "Correction factor to scale betta of air - this is the intercept of the linear scaling")
+        self.set("correction_factor_betta_slope_air", correction_factor_betta_slope_air, "-", "Correction factor to scale betta of air - this is the slope of the linear scaling")
         self.set("correction_factor_surface_density", correction_factor_surface_density, "-", "Correction factor to scale the frost surface density")
         self.set("correction_factor_k_frost", correction_factor_k_frost, "-", "Correction factor to scale the frost heat transfer")
         self.set("correction_factor_pressure_loss", correction_factor_pressure_loss, "-", "Correction factor to scale the air-side pressure loss")
         self.set("correction_factor_frost_diffusion", correction_factor_frost_diffusion, "-", "Correction factor to scale the diffusivity (split of thickenig vs densifying)")
 
-        # Geometry Inputs (Basiswerte, die sich ändern können)
-        self.set("fin_pitch", fin_pitch, "m", "Spacing between fins (center to center)")
-        self.set("fin_height", fin_height, "m", "Height of each fin")
-        self.set("fin_length", fin_length, "m", "Length of each fin")
-        self.set("fin_thickness", fin_thickness, "m", "Thickness of each fin")
-        self.set("fin_amount", fin_amount, "-", "Total number of fins")
-        self.set("fin_thermal_conductivity", fin_thermal_conductivity, "W/m/K", "Thermal conductivity of fin")
+        # Structure & Geometry (Global / Whole Evaporator)
+        self.set("global_register_amount", global_register_amount, "-", "Total number of registers in the evaporator")
+        self.set("global_layer_amount", global_layer_amount, "-", "Total number of layers in the evaporator")
+        self.set("global_fan_amount", global_fan_amount, "-", "Total number of fans in the evaporator")
+        self.set("global_fin_height", global_fin_height, "m", "Total height of the fins (global scale)")
+        self.set("global_fin_length", global_fin_length, "m", "Total length of the fins (global scale)")
+        self.set("global_tube_layers", global_tube_layers, "-", "Total number of tube layers in the evaporator")
+        self.set("global_tubes_per_layer", global_tubes_per_layer, "-", "Total number of tubes per layer in the evaporator")
 
+        # Geometry Inputs (FVM Domain / Cut Down)
+        self.set("fvm_fin_height", fvm_fin_height, "m", "Height of the simulated fin section (FVM domain)")
+        self.set("fvm_fin_length", fvm_fin_length, "m", "Length of the simulated fin section (FVM domain)")
+        self.set("fvm_tube_layers", fvm_tube_layers, "-", "Number of tube layers in ONE FVM domain")
+        self.set("fvm_tubes_per_layer", fvm_tubes_per_layer, "-", "Number of tubes per layer in ONE FVM domain")
+
+        # Geometry Inputs (Invariant / Basiswerte)
+        self.set("fin_pitch", fin_pitch, "m", "Spacing between fins (center to center)")
+        self.set("fin_thickness", fin_thickness, "m", "Thickness of each fin")
+        self.set("fin_amount", fin_amount, "-", "Total number of fins (uncut dimension)")
+        self.set("fin_thermal_conductivity", fin_thermal_conductivity, "W/m/K", "Thermal conductivity of fin")
         self.set("tube_outer_diameter", tube_outer_diameter, "m", "Outer diameter of tubes")
         self.set("tube_inner_diameter", tube_inner_diameter, "m", "Inner diameter of tubes")
-        self.set("tube_layers", tube_layers, "-", "Number of tube layers")
-        self.set("tubes_per_layer", tubes_per_layer, "-", "Number of tubes per layer")
         self.set("tube_thermal_conductivity", tube_thermal_conductivity, "W/m/K", "Thermal conductivity of tube")
 
         # Initial geometry calculation
@@ -105,40 +117,39 @@ class FrostEvaporatorParameters(VariableContainer):
 
     def recalculate_geometry(self):
         """
-        Calculates the geometric parameters based on new evaporator Setups. Has to be calle
+        Calculates the geometric parameters based on new evaporator Setups. Has to be called
         if for example the pitch is changed.
         """
         # Read Input Parameters
         fin_pitch = self.fin_pitch
         fin_thickness = self.fin_thickness
         fin_amount = self.fin_amount
-        fin_height = self.fin_height
-        fin_length = self.fin_length
-        tube_layers = self.tube_layers
-        tubes_per_layer = self.tubes_per_layer
+        fvm_fin_height = self.fvm_fin_height
+        fvm_fin_length = self.fvm_fin_length
+        fvm_tube_layers = self.fvm_tube_layers
+        fvm_tubes_per_layer = self.fvm_tubes_per_layer
         
         # Calculate dependent Parameters
         fin_spacing = fin_pitch - fin_thickness
         tube_length = fin_pitch * (fin_amount - 1)
-        tube_amount = tube_layers * tubes_per_layer
-        total_tube_length = tube_length * tube_layers * tubes_per_layer
+        fvm_tube_amount = fvm_tube_layers * fvm_tubes_per_layer
+        fvm_total_tube_length = tube_length * fvm_tube_amount
         
-        fin_segment_amount = fin_amount * tube_amount
+        fin_segment_amount = fin_amount * fvm_tube_amount
         
-        fin_segment_height = fin_height / tubes_per_layer
-        fin_segment_length = fin_length / tube_layers
+        fin_segment_height = fvm_fin_height / fvm_tubes_per_layer
+        fin_segment_length = fvm_fin_length / fvm_tube_layers
 
-        transverse_tube_pitch = fin_height / tubes_per_layer
-        longitudinal_tube_pitch = fin_length / tube_layers
-
+        transverse_tube_pitch = fvm_fin_height / fvm_tubes_per_layer
+        longitudinal_tube_pitch = fvm_fin_length / fvm_tube_layers
 
         # Write dependend Parameters to dict
         self.set("fin_spacing", fin_spacing, "m", "Distance between fin surfaces")
         self.set("tube_length", tube_length, "m", "Length of each tube")
-        self.set("tube_amount", tube_amount, "-", "Total number of tubes")
-        self.set("total_tube_length", total_tube_length, "m", "Total length of all tubes")
+        self.set("fvm_tube_amount", fvm_tube_amount, "-", "Total number of tubes in ONE FVM domain")
+        self.set("fvm_total_tube_length", fvm_total_tube_length, "m", "Total length of all tubes in ONE FVM domain")
         
-        self.set("fin_segment_amount", fin_segment_amount, "-", "Total number of fin-tube segments")
+        self.set("fin_segment_amount", fin_segment_amount, "-", "Total number of fin-tube segments in ONE FVM domain")
         self.set("fin_segment_height", fin_segment_height, "m", "Height of each fin segment")
         self.set("fin_segment_length", fin_segment_length, "m", "Length of each fin segment")
         
@@ -165,19 +176,27 @@ class FrostEvaporatorParameters(VariableContainer):
         geo  = cfg.get('geometry', {})
 
         # --- Geometric Transformation ---
-        # Convert Global Physical Dimensions -> Simulation Model Dimensions
-        register_amount = float(geo.get('register_amount', 1.0))
-        layer_amount    = int(geo.get('layer_amount', 1))
-        fan_amount      = int(geo.get('fan_amount', 1))
+        # Convert Global Physical Dimensions -> FVM Domain Dimensions
+        global_register_amount = float(geo.get('register_amount', 1.0))
+        global_layer_amount    = int(geo.get('layer_amount', 1))
+        global_fan_amount      = int(geo.get('fan_amount', 1))
 
-        # 1. Fin Dimensions (Global -> Model)
-        fin_height_model = geo['total_fin_height'] / register_amount
-        fin_length_model = geo['total_fin_length'] / layer_amount
+        # 1. Fin Dimensions
+        global_fin_height = geo['total_fin_height']
+        global_fin_length = geo['total_fin_length']
+        fvm_fin_height = global_fin_height / global_register_amount
+        fvm_fin_length = global_fin_length / global_layer_amount
 
-        # 2. Tube Counts (Global -> Model)
+        # 2. Tube Counts
         # Using int() to ensure we pass integers to __init__
-        tube_layers_model     = int(geo['total_tube_layers'] / layer_amount)
-        tubes_per_layer_model = int(geo['total_tubes_per_layer'] / register_amount)
+        global_tube_layers = geo['total_tube_layers']
+        global_tubes_per_layer = geo['total_tubes_per_layer']
+
+        if global_tube_layers % global_layer_amount != 0:
+            raise ValueError("Global tube layers must be evenly divisible by layer amount.")
+        
+        fvm_tube_layers     = int(global_tube_layers / global_layer_amount)
+        fvm_tubes_per_layer = int(global_tubes_per_layer / global_register_amount)
 
         return cls(
             # General
@@ -185,10 +204,6 @@ class FrostEvaporatorParameters(VariableContainer):
             gravity     = gen['gravity'],
             alpha_0     = gen['alpha_0'],
             refrigerant = gen['refrigerant'],
-
-            register_amount = register_amount,
-            layer_amount    = layer_amount,
-            fan_amount      = fan_amount,
 
             # Correlations
             frost_density_correlation_choice      = corr['frost_density_choice'],
@@ -198,21 +213,30 @@ class FrostEvaporatorParameters(VariableContainer):
             fan_selection                         = corr['fan_choice'],
 
             # Correction Factors
-            correction_factor_h_conv_air         = fact['h_conv_air'],
-            correction_factor_h_conv_ref_2ph     = fact['h_conv_ref_2ph'],
-            correction_factor_betta_air          = fact['betta_air'],
-            correction_factor_surface_density    = fact['surface_density'],
-            correction_factor_k_frost            = fact['k_frost'],
-            correction_factor_pressure_loss      = fact['pressure_loss'],
-            correction_factor_frost_diffusion    = fact['frost_diffusion'],
+            correction_factor_h_conv_air          = fact['h_conv_air'],
+            correction_factor_betta_intercept_air = fact['betta_intercept_air'],
+            correction_factor_betta_slope_air     = fact['betta_slope_air'],
+            correction_factor_surface_density     = fact['surface_density'],
+            correction_factor_k_frost             = fact['k_frost'],
+            correction_factor_pressure_loss       = fact['pressure_loss'],
+            correction_factor_frost_diffusion     = fact['frost_diffusion'],
 
-            # Geometry (Calculated Model Segments)
-            fin_height      = fin_height_model,
-            fin_length      = fin_length_model,
-            tube_layers     = tube_layers_model,
-            tubes_per_layer = tubes_per_layer_model,
+            # Geometry (Global / Whole Evaporator)
+            global_register_amount = global_register_amount,
+            global_layer_amount    = global_layer_amount,
+            global_fan_amount      = global_fan_amount,
+            global_fin_height      = global_fin_height,
+            global_fin_length      = global_fin_length,
+            global_tube_layers     = global_tube_layers,
+            global_tubes_per_layer = global_tubes_per_layer,
 
-            # Geometry (Direct Pass-through)
+            # Geometry (Calculated FVM Segments)
+            fvm_fin_height      = fvm_fin_height,
+            fvm_fin_length      = fvm_fin_length,
+            fvm_tube_layers     = fvm_tube_layers,
+            fvm_tubes_per_layer = fvm_tubes_per_layer,
+
+            # Geometry (Invariant / Direct Pass-through)
             fin_pitch                 = geo['fin_pitch'],
             fin_thickness             = geo['fin_thickness'],
             fin_amount                = geo['fin_amount'],
@@ -221,8 +245,6 @@ class FrostEvaporatorParameters(VariableContainer):
             tube_inner_diameter       = geo['tube_inner_diameter'],
             tube_thermal_conductivity = geo['tube_thermal_conductivity'],
         )
-
-
 
 
 ###################################################################################

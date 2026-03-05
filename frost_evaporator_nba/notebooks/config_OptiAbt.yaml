@@ -4,21 +4,21 @@ general:
   alpha_0: 4200.0
   refrigerant: "R134a"
 
-# OptiAbt Optimum neu:
-correlations:
-  frost_density_choice: "da_silva_paper"
-  frost_conductivity_choice: "da_silva_paper"
-  pressure_drop_choice: "Wang"
-  h_conv_air_choice: "VDI" # "Jonas Diss"
-  fan_choice: "OptiAbt"
-correction_factors:
-  h_conv_air: 0.85
-  h_conv_ref_2ph: 1.25
-  betta_air: 1.00
-  surface_density: 0.70
-  k_frost: 1.30
-  frost_diffusion: 0.50
-  pressure_loss: 1.00
+# # OptiAbt Optimum neu:
+# correlations:
+#   frost_density_choice: "da_silva_paper"
+#   frost_conductivity_choice: "da_silva_paper"
+#   pressure_drop_choice: "Wang"
+#   h_conv_air_choice: "VDI" # "Jonas Diss"
+#   fan_choice: "OptiAbt"
+# correction_factors:
+#   h_conv_air: 0.85
+#   h_conv_ref_2ph: 1.25
+#   betta_air: 1.00
+#   surface_density: 0.70
+#   k_frost: 1.30
+#   frost_diffusion: 0.50
+#   pressure_loss: 1.00
 
 
 # Combined Optimum:
@@ -63,7 +63,8 @@ correlations:
 correction_factors:
   h_conv_air: 0.85
   h_conv_ref_2ph: 1.20
-  betta_air: 1.30
+  betta_intercept_air: 1.30
+  betta_slope_air: 0.00
   surface_density: 0.70
   k_frost: 1.30
   frost_diffusion: 0.70

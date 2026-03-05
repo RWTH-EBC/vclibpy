@@ -88,10 +88,10 @@ class FanSystemModel:
         power_norm = self.raw_fan_df['P']    * (ratio**3)
 
         # Scale volume flow for specific register/fan count
-        q_scaled = q_norm * (self.params.fan_amount / self.params.register_amount)
+        q_scaled = q_norm * (self.params.global_fan_amount / self.params.global_register_amount)
 
         # Scale total power for all fans in the system
-        p_power_total_scaled = power_norm * self.params.fan_amount
+        p_power_total_scaled = power_norm * self.params.global_fan_amount
 
         try:
             # ================= Pressure Fit =================
@@ -210,8 +210,8 @@ class FanSystemModel:
 
             state.air.set("total_fan_power", total_power_watts)
             state.air.set("total_system_pressure_drop", total_pressure_drop_fan)
-            state.air.set("total_m_dot_humid", m_dot_solved * self.params.register_amount)
-            state.air.set("total_v_dot_fan_m3h", v_dot_fan_m3h * self.params.register_amount)
+            state.air.set("total_m_dot_humid", m_dot_solved * self.params.global_register_amount)
+            state.air.set("total_v_dot_fan_m3h", v_dot_fan_m3h * self.params.global_register_amount)
 
             # Decrement pressure for the next layer (Outlet of n is Inlet of n+1)
             current_static_pressure -= dp_layer
@@ -240,7 +240,7 @@ class FanSystemModel:
         m_to_mm = 1000.0
 
         # Extract and convert parameters to mm for comparison
-        tube_rows = self.params.tube_layers
+        tube_rows = self.params.global_tube_layers
         tube_outer_diameter_mm = self.params.tube_outer_diameter * m_to_mm
         fin_pitch_mm = self.params.fin_pitch * m_to_mm
         transverse_pitch_mm = self.params.transverse_tube_pitch * m_to_mm
@@ -322,7 +322,7 @@ class FanSystemModel:
         # Calculate Local Velocity
         v_loc = m_dot / (density_local * state.frost.flow_area_air)
 
-        hydraulic_diameter = 4 * (state.frost.flow_area_air * self.params.fin_length) / state.frost.A_frost_surface
+        hydraulic_diameter = 4 * (state.frost.flow_area_air * self.params.fvm_fin_length) / state.frost.A_frost_surface
         Re_Dh = (density_local * v_loc * hydraulic_diameter) / state.air.dyn_viscosity_avg
 
         # Pressure Drop Calculation 
@@ -461,7 +461,7 @@ class FanSystemModel:
         Pt = self.params.transverse_tube_pitch
         Fp = self.params.fin_pitch
         Dc = collar_diameter_w_frost
-        N = float(self.params.tube_layers)
+        N = float(self.params.fvm_tube_layers)
         
         # 1. Reynolds (based on Collar Diameter Dc, NOT Hydraulic Diameter)
         reynolds_dc = (density * velocity * Dc) / dyn_viscosity
@@ -481,6 +481,6 @@ class FanSystemModel:
         dynamic_pressure = 0.5 * density * (velocity ** 2)
         
         # The factor 4 converts Fanning f to Darcy-Weisbach context
-        friction_term = 4.0 * f * (self.params.fin_length / hydraulic_diameter)
+        friction_term = 4.0 * f * (self.params.fvm_fin_length / hydraulic_diameter)
         
         return friction_term * dynamic_pressure

@@ -63,7 +63,7 @@ class SimulationVisualizer:
 
         return {k: np.array(v) for k, v in data.items()}
 
-    def _prepare_comparison_data(self, states_history, inputs_history, experiment_ids, path_exp, cutoff_pct, experiment_name):
+    def _prepare_comparison_data(self, states_history, inputs_history, experiment_ids, path_exp, cutoff_pct, experiment_name, use_melted_mass=False):
         """
         Refactored Helper: Loads Simulation and Experiment data common to both plotting and table generation.
         """
@@ -77,10 +77,11 @@ class SimulationVisualizer:
         mask_sim_stable = (t_sim >= t_cut_start) & (t_sim <= t_cut_end)
 
         # Extract Data
-        sim_data = self._extract_sim_data(states_history, inputs_history, steps, self.params.register_amount)
+        sim_data = self._extract_sim_data(states_history, inputs_history, steps, self.params.global_register_amount)
         
         analyzer = MultiExperimentAnalyzer(experiment_type=experiment_name)
-        clean_data_list = analyzer.get_comparison_data(experiment_ids, path_exp, sim_duration=t_total)
+        # Pass the flag to the analyzer
+        clean_data_list = analyzer.get_comparison_data(experiment_ids, path_exp, sim_duration=t_total, use_melted_mass=use_melted_mass)
         data_map = {d.id: d for d in clean_data_list}
 
         # Prepare Experiments & Scaling
@@ -131,9 +132,10 @@ class SimulationVisualizer:
         """
         t_cut_start, t_cut_end, t_total = t_cuts
         
-        is_optihorst_frost = (experiment_name == "OptiHorst" and key == 'm_frost' and 'm_frost_full' in exp['data'])
+        # Generalize the check: if 'm_frost_full' is populated, it's a melted mass measurement
+        is_melted_frost = (key == 'm_frost' and 'm_frost_full' in exp['data'])
 
-        if is_optihorst_frost:
+        if is_melted_frost:
             # --- Plateau Error Calculation ---
             t_full, m_full = exp['data']['time_full'], exp['data']['m_frost_full']
             t_marker = exp['time'][-1]
@@ -175,11 +177,11 @@ class SimulationVisualizer:
             return avg_rel, exp['time'], rel_err, None
 
     def get_relative_error_table(self, states_history, inputs_history, experiment_ids, path_exp, 
-                                 cutoff_pct=0.02, experiment_name="OptiAbt"):
+                                 cutoff_pct=0.02, experiment_name="OptiAbt", use_melted_mass=False):
         """
         Returns a Pandas DataFrame containing the averaged relative errors [%].
         """
-        ctx = self._prepare_comparison_data(states_history, inputs_history, experiment_ids, path_exp, cutoff_pct, experiment_name)
+        ctx = self._prepare_comparison_data(states_history, inputs_history, experiment_ids, path_exp, cutoff_pct, experiment_name, use_melted_mass=use_melted_mass)
         
         output_keys = ['dp', 'h_ref_out', 'Q', 'm_frost']
         results = {}
@@ -238,7 +240,7 @@ class SimulationVisualizer:
             ax.text(t_start/2, ax.get_ylim()[1], "Start", ha='center', va='bottom', fontsize=8, color='gray', fontstyle='italic')
 
     def plot_comparison(self, states_history, inputs_history, experiment_ids, path_exp, 
-                        cutoff_pct=0.02, save_fig=False, group_name=None, experiment_name="OptiAbt"):
+                        cutoff_pct=0.02, save_fig=False, group_name=None, experiment_name="OptiAbt", use_melted_mass=False):
         """
         Master Dashboard: Comparison of N Experiments vs 1 Simulation.
         """
@@ -255,7 +257,7 @@ class SimulationVisualizer:
         # =========================================================================
         # 2. DATA PROCESSING
         # =========================================================================
-        ctx = self._prepare_comparison_data(states_history, inputs_history, experiment_ids, path_exp, cutoff_pct, experiment_name)
+        ctx = self._prepare_comparison_data(states_history, inputs_history, experiment_ids, path_exp, cutoff_pct, experiment_name, use_melted_mass=use_melted_mass)
 
         sim_data = ctx['sim_data']
         experiments = ctx['experiments']
@@ -334,34 +336,37 @@ class SimulationVisualizer:
                 if not (exp['avail'] and key in exp['data']): continue
                 
                 c_exp = RED_GRADIENT[idx]
-                is_optihorst_frost = (experiment_name == "OptiHorst" and key == 'm_frost' and 'm_frost_full' in exp['data'])
-
+                
                 # 1. Calculate Error (using shared helper)
-                # Unpack the 4th value: val_abs_marker
                 err_val, t_err, y_err, val_abs_marker = self._calculate_single_error(
                     key, sim_data[key], t_sim, exp, ctx['t_cuts'], experiment_name
                 )
                 
+                # Check if this requires the plateau visualization
+                is_melted_frost = (key == 'm_frost' and 'm_frost_full' in exp['data'])
+
                 # Add to error scaling list
-                if not is_optihorst_frost and len(y_err) > 0:
+                if not is_melted_frost and len(y_err) > 0:
                      mask_valid = (t_err >= t_cut_start) & (t_err <= t_cut_end)
                      all_err_values.extend(y_err[mask_valid])
-                elif is_optihorst_frost:
-                     all_err_values.append(err_val)
+                elif is_melted_frost:
+                     # 1. CHANGE: Append the signed error so the Y-axis scales correctly below 0
+                     all_err_values.append(y_err[0])
 
                 # 2. Plotting Logic
-                if is_optihorst_frost:
-                    # OptiHorst Special Visualization
+                if is_melted_frost:
+                    # Plateau Special Visualization
                     t_full, m_full = exp['data']['time_full'], exp['data']['m_frost_full']
-                    t_marker = t_err[0] # The helper returns [t_marker] as t_err array
+                    t_marker = t_err[0]
                     t_extended = t_total * 1.5
 
                     ax_main.plot(t_full, m_full, color=c_exp, lw=1.5, alpha=0.7)
                     
-                    # Error Markers (Standard Error Plot)
-                    lbl = f"Exp {exp['id']} ({err_val:+.1f}%)"
-                    ax_err.scatter(t_marker, err_val, color=c_exp, marker='X', s=80, edgecolor='black', lw=0.5, zorder=10, label=lbl)
-                    ax_err.vlines(t_marker, 0, err_val, color=c_exp, linestyle=':', alpha=0.5)
+                    # 2. CHANGE: Extract and use the signed error for the markers and lines
+                    signed_err = y_err[0]
+                    lbl = f"Exp {exp['id']} ({signed_err:+.1f}%)"
+                    ax_err.scatter(t_marker, signed_err, color=c_exp, marker='X', s=80, edgecolor='black', lw=0.5, zorder=10, label=lbl)
+                    ax_err.vlines(t_marker, 0, signed_err, color=c_exp, linestyle=':', alpha=0.5)
 
                     # Extended Axis Vis (Main Plot)
                     ax_main.set_xlim(0, t_extended)
@@ -549,12 +554,12 @@ class SimulationVisualizer:
                 # Frost / Heat
                 T_f_surf.append(s.hmt.T_frost_surface - 273.15)
                 rho_f.append(s.frost.density)
-                m_f.append(s.frost.mass * 1000.0 * self.params.register_amount)
+                m_f.append(s.frost.mass * 1000.0 * self.params.global_register_amount)
                 th_f.append(s.frost.thickness * 1000.0)
 
-                q_t.append(s.hmt.Q_dot_total * self.params.register_amount)
-                q_s.append(s.hmt.Q_dot_sens * self.params.register_amount)
-                q_l.append((s.hmt.Q_dot_total - s.hmt.Q_dot_sens) * self.params.register_amount)
+                q_t.append(s.hmt.Q_dot_total * self.params.global_register_amount)
+                q_s.append(s.hmt.Q_dot_sens * self.params.global_register_amount)
+                q_l.append((s.hmt.Q_dot_total - s.hmt.Q_dot_sens) * self.params.global_register_amount)
 
             data['air_dp_layer'].append(dp)
             data['air_T_in'].append(T_a_in)
@@ -581,10 +586,10 @@ class SimulationVisualizer:
         air_vol_flow = []
         for t in range(time_steps):
             s0 = states_history[t][0]
-            vol = s0.air.v_dot_fan_m3h_segment* self.params.register_amount / self.params.fan_amount
+            vol = s0.air.v_dot_fan_m3h_segment* self.params.global_register_amount / self.params.global_fan_amount
             air_vol_flow.append(vol)
 
-        km_m_dot = inputs_history[0][0].refrigerant.m_dot * self.params.register_amount
+        km_m_dot = inputs_history[0][0].refrigerant.m_dot * self.params.global_register_amount
         frost_mass_sum = np.sum(data['frost_mass'], axis=0)
         Q_sens_sum = np.sum(data['Q_sens_layer'], axis=0)
         Q_lat_sum = np.sum(data['Q_lat_layer'], axis=0)
@@ -742,7 +747,7 @@ class SimulationVisualizer:
 
         # Dimensions from params
         layer_count = len(current_states)
-        layer_depth = self.params.fin_length * mm
+        layer_depth = self.params.fvm_fin_length * mm
         tube_width = self.params.tube_outer_diameter * mm
         fin_pitch = self.params.fin_pitch * mm
         fin_thickness_mm = self.params.fin_thickness * mm
@@ -874,12 +879,12 @@ class SimulationVisualizer:
         Goal: Identify nonsensical values or instabilities.
         """
         time_steps = len(states_history)
-        self.params.layer_amount = len(states_history[0])
+        self.params.global_layer_amount = len(states_history[0])
 
         t_axis = np.array([i * self.params.time_step / 60.0 for i in range(time_steps)])
 
         cmap = plt.get_cmap('jet')
-        colors = [cmap(i) for i in np.linspace(0, 1, self.params.layer_amount)]
+        colors = [cmap(i) for i in np.linspace(0, 1, self.params.global_layer_amount)]
 
         d = {
             # AIR
@@ -901,16 +906,16 @@ class SimulationVisualizer:
 
         # Pre-allocate lists per layer
         for key in d:
-            d[key] = [[] for _ in range(self.params.layer_amount)]
+            d[key] = [[] for _ in range(self.params.global_layer_amount)]
 
         sys_vol_flow = []
         sys_m_dot_ref = []
 
         for t in range(time_steps):
-            sys_vol_flow.append(states_history[t][0].air.v_dot_fan_m3h_segment * self.params.register_amount)
-            sys_m_dot_ref.append(inputs_history[t][0].refrigerant.m_dot * self.params.register_amount)
+            sys_vol_flow.append(states_history[t][0].air.v_dot_fan_m3h_segment * self.params.global_register_amount)
+            sys_m_dot_ref.append(inputs_history[t][0].refrigerant.m_dot * self.params.global_register_amount)
 
-            for k in range(self.params.layer_amount):
+            for k in range(self.params.global_layer_amount):
                 s = states_history[t][k]
                 inp = inputs_history[t][k]
 
@@ -941,15 +946,15 @@ class SimulationVisualizer:
                 # Frost
                 d['fr_thick'][k].append(s.frost.thickness * 1000)
                 d['fr_dens'][k].append(s.frost.density)
-                d['fr_mass'][k].append(s.frost.mass * 1000 * self.params.register_amount)
+                d['fr_mass'][k].append(s.frost.mass * 1000 * self.params.global_register_amount)
                 d['fr_T_surf'][k].append(s.hmt.T_frost_surface - 273.15)
                 d['fr_T_base'][k].append(s.hmt.T_frost_base - 273.15)
                 d['fr_k'][k].append(s.frost.k_frost)
 
                 # HMT
-                d['Q_tot'][k].append(s.hmt.Q_dot_total * self.params.register_amount)
-                d['Q_sens'][k].append(s.hmt.Q_dot_sens * self.params.register_amount)
-                d['Q_lat'][k].append((s.hmt.Q_dot_total - s.hmt.Q_dot_sens) * self.params.register_amount)
+                d['Q_tot'][k].append(s.hmt.Q_dot_total * self.params.global_register_amount)
+                d['Q_sens'][k].append(s.hmt.Q_dot_sens * self.params.global_register_amount)
+                d['Q_lat'][k].append((s.hmt.Q_dot_total - s.hmt.Q_dot_sens) * self.params.global_register_amount)
                 d['m_flux_thick'][k].append(s.hmt.m_dot_thickening_flux * 3600)
                 d['m_flux_dens'][k].append(s.hmt.m_dot_densification * 1000)
                 d['eta_fin'][k].append(0)
@@ -964,13 +969,13 @@ class SimulationVisualizer:
 
         def plot_layer(ax, data_key, title, ylabel, multiplier=1.0):
             """Helper to plot all layers in one subplot"""
-            for k in range(self.params.layer_amount):
+            for k in range(self.params.global_layer_amount):
                 ax.plot(t_axis, np.array(d[data_key][k]) * multiplier,
                         label=f'L{k+1}', color=colors[k], linewidth=1.0)
             ax.set_title(title, fontsize=10, weight='bold')
             ax.set_ylabel(ylabel, fontsize=9)
             ax.grid(True, linestyle=':', alpha=0.7)
-            if self.params.layer_amount < 8:
+            if self.params.global_layer_amount < 8:
                 ax.legend(fontsize=6, loc='best')
 
         # ROW 0: SYSTEM GLOBALS
@@ -1035,7 +1040,7 @@ class SimulationVisualizer:
         plot_layer(axs[6,1], 'fr_T_base', "Frost Base (Wall) Temp", "T [°C]")
 
         axs[6,2].set_title("Delta T Frost (Surf - Base)", fontsize=10, weight='bold')
-        for k in range(self.params.layer_amount):
+        for k in range(self.params.global_layer_amount):
             dt = np.array(d['fr_T_surf'][k]) - np.array(d['fr_T_base'][k])
             axs[6,2].plot(t_axis, dt, color=colors[k])
         axs[6,2].set_ylabel("dT [K]"); axs[6,2].grid(True)

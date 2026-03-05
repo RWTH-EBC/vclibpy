@@ -117,6 +117,11 @@ class FrostModel:
             # T_surface >= freezing point (Condensation phase)
             # Assumption: Condensate immediately drops off. 
             # Existing frost state and geometry remain unchanged.
+
+            new_frost_mass = prev_frost_mass + (state.hmt.m_dot_thickening + state.hmt.m_dot_densification) * self.params.time_step
+
+            state.frost.set("mass", new_frost_mass)
+
             pass
 
             
@@ -302,7 +307,7 @@ class FrostModel:
         Returns:
             The total air flow area [m^2].
         """
-        return (self.params.fin_amount - 1) * (self.params.fin_height - tube_diameter_w_frost * self.params.tubes_per_layer) * space_between_frost
+        return (self.params.fin_amount - 1) * (self.params.fvm_fin_height - tube_diameter_w_frost * self.params.fvm_tubes_per_layer) * space_between_frost
     
     def _calculate_frost_surface_area(self, tube_diameter_w_frost:float, space_between_frost:float)-> float:
         """

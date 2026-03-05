@@ -5,6 +5,9 @@ from pathlib import Path
 from typing import Callable, Dict, List, Optional, Any, Tuple
 from scipy.interpolate import interp1d
 from scipy.stats import binned_statistic, linregress
+import numpy as np
+from scipy.optimize import curve_fit
+from typing import Tuple
 
 # ==============================================================================
 #  CONFIGURATION & CONSTANTS
@@ -21,30 +24,31 @@ TREND_DEGREES = {
 # --- Column Mappings ---
 COLUMN_MAPPINGS = {
     'OptiAbt': {
-        'time':    ['time'],
-        'modus':   ['modus_val', 'modus'],
-        'fan':     ['VD_n2'],
-        'mass':    ['MSS_rMassenstrom'],
-        'p_in':    ['VD_p_out'],
-        'h_in':    ['VD_h_in_korr', 'VD_isenthalp_h_in'],
-        'temp_kk': ['TempKK'],
-        'rh_kk':   ['KK_rlFeuchteKK', 'rlFeuchteKK'],
-        'h_out':   ['VD_h_out'],
-        'dp':      ['Delta_P_VD'],
-        'mass_raw':['WAAGEN_Waage1_Masse_smooth', 'WAAGEN_Waage2_Masse']
+        'time':        ['time'],
+        'modus':       ['modus_val', 'modus'],
+        'fan':         ['VD_n2'],
+        'mass':        ['MSS_rMassenstrom'],
+        'p_in':        ['VD_p_out'],
+        'h_in':        ['VD_h_in_korr', 'VD_isenthalp_h_in'],
+        'temp_kk':     ['TempKK'],
+        'rh_kk':       ['KK_rlFeuchteKK', 'rlFeuchteKK'],
+        'h_out':       ['VD_h_out'],
+        'dp':          ['Delta_P_VD'],
+        'mass_raw':    ['WAAGEN_Waage1_Masse_smooth'],
+        'mass_melted': ['WAAGEN_Waage1_Masse']
     },
     'OptiHorst': {
-        'time':    ['time'],
-        'modus':   ['modus_val'],
-        'fan':     ['StateMachine_rps_EvapFan'],
-        'mass':    ['StateMachine_m_CompOut'],
-        'p_in':    ['StateMachine_p_EvapOut'],
-        'h_in':    ['StateMachine_h_EvapIn'],
-        'temp_kk': ['KK_Temp_KK'],
-        'rh_kk':   ['KK_rlFeuchte_KK'],
-        'h_out':   ['StateMachine_h_EvapOut'],
-        'dp':      ['StateMachine_p_PresLos'],
-        'mass_raw':['WAAGEN_Waage2_Masse']
+        'time':        ['time'],
+        'modus':       ['modus_val'],
+        'fan':         ['StateMachine_rps_EvapFan'],
+        'mass':        ['StateMachine_m_CompOut'],
+        'p_in':        ['StateMachine_p_EvapOut'],
+        'h_in':        ['StateMachine_h_EvapIn'],
+        'temp_kk':     ['KK_Temp_KK'],
+        'rh_kk':       ['KK_rlFeuchte_KK'],
+        'h_out':       ['StateMachine_h_EvapOut'],
+        'dp':          ['StateMachine_p_PresLos'],
+        'mass_raw':    ['WAAGEN_Waage2_Masse']
     }
 }
 
@@ -320,7 +324,7 @@ class MultiExperimentAnalyzer:
     #  REPORTING DATA EXTRACTION
     # ===========================================================================
 
-    def get_comparison_data(self, exp_ids: List[int], data_path: Path, sim_duration: Optional[float] = None) -> List[ComparisonData]:
+    def get_comparison_data(self, exp_ids: List[int], data_path: Path, sim_duration: Optional[float] = None, use_melted_mass: bool = False) -> List[ComparisonData]:
         """
         Loads clean data for plotting, applying robust unit conversion heuristics and 
         simulation-time-based regression for frost mass.
@@ -350,7 +354,10 @@ class MultiExperimentAnalyzer:
             m_ref       = extract(df_cut, df_kk_cut, 'mass')
             h_in        = extract(df_cut, df_kk_cut, 'h_in')
             h_out       = extract(df_cut, df_kk_cut, 'h_out')
-            m_frost_raw = extract(df_cut, df_kk_cut, 'mass_raw')
+            
+            # Select column mapping dynamically based on the passed flag
+            mass_key = 'mass_melted' if (use_melted_mass and 'mass_melted' in self.cols) else 'mass_raw'
+            m_frost_raw = extract(df_cut, df_kk_cut, mass_key)
 
             # --- Unit Conversions ---
             if (self.exp_type == "OptiHorst" or self.exp_type == "OptiAbt"):
@@ -372,13 +379,19 @@ class MultiExperimentAnalyzer:
             # Calculate zeroed mass and the offset used
             m_frost_zeroed, m_frost_offset = self._calculate_frost_mass(t_minutes, m_frost_raw, t_basis)
 
-            # 6. OptiHorst Specific: Full Data Extraction (Defrost Plateau)
+            # 6. Full Data Extraction (Defrost Plateau for melted mass methods)
             time_full = None
             m_frost_full = None
             
-            if self.exp_type == "OptiHorst" and df_raw is not None:
+            # Trigger this for OptiHorst OR if we explicitly flagged it as a melted mass experiment
+            is_melted_method = (self.exp_type == "OptiHorst" or use_melted_mass)
+            
+            if is_melted_method and df_raw is not None:
                 t_raw_full = extract(df_raw, df_kk_raw, 'time')
-                m_raw_full = extract(df_raw, df_kk_raw, 'mass_raw')
+                
+                # Ensure we pull from the correct raw mass column here as well!
+                mass_raw_key = 'mass_melted' if (use_melted_mass and 'mass_melted' in self.cols) else 'mass_raw'
+                m_raw_full = extract(df_raw, df_kk_raw, mass_raw_key)
                 
                 if len(t_raw_full) > 0:
                     # Align full time axis to the start of the cut data (t=0)
@@ -407,21 +420,20 @@ class MultiExperimentAnalyzer:
 
         return results
 
-    def _calculate_frost_mass(self, t_minutes: np.ndarray, m_raw: np.ndarray, t_max_ref: float) -> Tuple[np.ndarray, float]:
+    def _calculate_frost_mass(self, t_minutes: np.ndarray, m_raw: np.ndarray, t_max_ref: float) -> Tuple[np.ndarray, float]:    
         """
-        Calculates frost mass zeroing offset based on a 15-25% window of REFERENCE time (Simulation time).
-        Uses Linear Regression to find the intercept.
+        Calculates frost mass zeroing offset by fitting a Linear + Sqrt function 
+        to the entire dataset to bypass early noise and account for slight curvature.
         """
         if len(t_minutes) == 0: return m_raw, 0.0
 
-        # Window based on REFERENCE time
-        mask_reg = (t_minutes >= t_max_ref * 0.15) & (t_minutes <= t_max_ref * 0.25)
+        # Lambda function for: m(t) = a*t + b*sqrt(t) + offset
+        # np.clip ensures no negative values get passed to sqrt
+        fit_func = lambda t, a, b, offset: a * t + b * np.sqrt(np.clip(t, 0, None)) + offset
 
-        offset = 0.0
-        
-        # Linear regression on the window
-        res = linregress(t_minutes[mask_reg], m_raw[mask_reg])
-        offset = res.intercept 
+        # popt contains the optimized parameters: [a, b, offset]
+        popt, _ = curve_fit(fit_func, t_minutes, m_raw, p0=[0.0, 0.0, m_raw[0]])
+        offset = popt[2]
 
         m_grams = (m_raw - offset) * 1000.0
         return m_grams, offset

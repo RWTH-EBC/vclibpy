@@ -6,6 +6,14 @@ from ..datamodels_nba import (
 from vclibpy.media import RefProp
 import math
 import os
+import warnings
+
+# --- Suppress REFPROP out-of-bounds solver warnings ---
+warnings.filterwarnings(
+    action="ignore",
+    category=UserWarning,
+    message=".*Error number -1 was given in function 'calc_state'.*"
+)
 
 # Get path from environment variable, fall back to a default if not set
 REFPROP_DIR = os.environ.get("REFPROP_PATH", r"C:\Program Files (x86)\REFPROP")
