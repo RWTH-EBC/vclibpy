@@ -98,23 +98,14 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
             p_outlet=p_2, inputs=inputs, fs_state=fs_state
         )
 
-        # Force mass conservation: calculate high stage mass flow based on low stage
+        # Force mass conservation: calculate high stage mass flow based on low stage mass flow and the injected vapor amount.
+        # The actual scroll compressor swept volume dictates the low stage flow. The high stage flow is simply the sum.
         m_flow_high_required = m_flow_low / (1 - x_vapor_injection)
         
-        # Override the mass flow calculated by the high-pressure compressor model
+        # Set the mass flow of the high-pressure compressor model directly
         self.high_pressure_compressor.m_flow = m_flow_high_required
 
-        # Back-calculate the required volumetric efficiency
-        rho_in_high = self.high_pressure_compressor.state_inlet.d
-        V_flow_ref_high_max = (
-            self.high_pressure_compressor.V_h * 
-            self.high_pressure_compressor.get_n_absolute(inputs.control.n)
-        )
-        lambda_h_required = m_flow_high_required / (rho_in_high * V_flow_ref_high_max)
-        
-        logger.debug("Forced mass conservation. HP Compressor required lambda_h is %s", lambda_h_required)
-
-        # Log these new specific variables to the FlowsheetState so they appear in the result CSV
+        # Log these variables to the FlowsheetState so they appear in the result CSV
         m_flow_injection = m_flow_high_required - m_flow_low
         
         fs_state.set(
@@ -185,16 +176,9 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
             value=self.high_pressure_compressor.get_eta_isentropic(p_outlet=p_2, inputs=inputs),
             unit="-",
             description="Isentropic efficiency of the high-pressure compressor stage"
-        )
-        fs_state.set(
-            name="lambda_h_hp", 
-            value=lambda_h_required, 
-            unit="-", 
-            description="Required volumetric efficiency of HP compressor for mass conservation(calculated)"
-        )
-        
+        )        
 
-        # Remove the ambiguous variables logged by the primary compressor
+        # Remove the variables logged by the primary compressor from the single stage cycle
         if "m_flow_ref" in fs_state.get_variables():
             del fs_state.get_variables()["m_flow_ref"]
         if "V_flow_ref" in fs_state.get_variables():

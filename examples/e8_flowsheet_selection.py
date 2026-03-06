@@ -42,21 +42,6 @@ def create_heat_exchanger(model: str, hx_type: str, **kwargs):
     else:
         raise ValueError(f"Unknown heat exchanger model: {model}")
 
-def calculate_compressor_volumes(V_h, V_h_ratio):
-    """
-    Calculates the high- and low-pressure compressor volumes based on the total volume and the volume ratio.
-
-    Args:
-        V_h (float): Total compressor volume.
-        V_h_ratio (float): Ratio between high- and low-pressure compressor volume (V_h_high / V_h_low).
-
-    Returns:
-        tuple: A tuple containing the low-pressure volume (V_h_low) and the high-pressure volume (V_h_high).
-    """
-    V_h_low = (V_h / (1 + V_h_ratio))
-    V_h_high = V_h_low * V_h_ratio
-    return V_h_low, V_h_high
-
 def create_compressor(compressor_type, compressor_params):
     """
     Creates a compressor object based on the specified type and parameters.
@@ -127,18 +112,16 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
         object: instance of flowsheet-object.
     """
     A_valve = common_params['A_valve']
-    V_h_ratio = common_params.get('V_h_ratio', 1)  # default, if not specified
 
     if flowsheet_type in ["VaporInjectionPhaseSeparator", "VaporInjectionEconomizer"]:
         V_h = common_params['compressor_params']['V_h']
-        V_h_low, V_h_high = calculate_compressor_volumes(V_h, V_h_ratio)
 
         compressor_params_low = common_params["compressor_params"].copy()
-        compressor_params_low["V_h"] = V_h_low
+        compressor_params_low["V_h"] = V_h
         low_pressure_compressor = create_compressor(common_params["compressor_type"], compressor_params_low)
 
         compressor_params_high = common_params["compressor_params"].copy()
-        compressor_params_high["V_h"] = V_h_high
+        compressor_params_high["V_h"] = V_h # Doesn't dictate mass flow, just used as dummy (see vapor_injection.py for details)
         high_pressure_compressor = create_compressor(common_params["compressor_type"], compressor_params_high)
 
         high_pressure_valve = Bernoulli(A=A_valve)
@@ -280,7 +263,6 @@ def main():
         'two_ev_ihx': True,  # True means two valves, auf False just one valve
         'A_valve_ihx': 0.1,  # Separate Größe für das zweite Ventil (optional)
         # ---- parameters for compressor ----
-        'V_h_ratio': 1,  # Ratio between high-and low-pressure compressor volume (V_h_ratio = V_h_high / V_h_low) TODO: May be a parameter to adjust when design from Crispy does not fit.<1?
         # Compressor Type selection between:
             # ConstantEffectivenessCompressor
             # RotaryCompressor
