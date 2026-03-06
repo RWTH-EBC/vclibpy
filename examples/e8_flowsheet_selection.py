@@ -212,7 +212,7 @@ def main():
     condenser = create_heat_exchanger(
         model=hx_model,
         hx_type="condenser",
-        A=18,
+        A=3,
         secondary_medium="water",
         flow_type="counter",
         ratio_outer_to_inner_area=1,
@@ -226,10 +226,10 @@ def main():
     evaporator = create_heat_exchanger(
         model=hx_model,
         hx_type="evaporator",
-        A=120,
+        A=80,
         secondary_medium="air",
         flow_type="counter",
-        ratio_outer_to_inner_area=1,
+        ratio_outer_to_inner_area=40,
         gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=150),
         two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=3000),
         liquid_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=1500),
@@ -240,7 +240,7 @@ def main():
     economizer = create_heat_exchanger(
         model=hx_model,
         hx_type="economizer",
-        A=1.2,
+        A=0.5,
         flow_type="counter",
         ratio_outer_to_inner_area=1,
         gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=200),
@@ -280,7 +280,7 @@ def main():
         'two_ev_ihx': True,  # True means two valves, auf False just one valve
         'A_valve_ihx': 0.1,  # Separate Größe für das zweite Ventil (optional)
         # ---- parameters for compressor ----
-        'V_h_ratio': 1,  # Ratio between high-and low-pressure compressor volume (V_h_ratio = V_h_high / V_h_low)
+        'V_h_ratio': 1,  # Ratio between high-and low-pressure compressor volume (V_h_ratio = V_h_high / V_h_low) TODO: May be a parameter to adjust when design from Crispy does not fit.<1?
         # Compressor Type selection between:
             # ConstantEffectivenessCompressor
             # RotaryCompressor
@@ -288,7 +288,7 @@ def main():
             # ScrollCompressorWinandy
             # PiCorrelationCompressor
             # MolinaroliCorrelationCompressor
-        'compressor_type': "MolinaroliCorrelationCompressor",
+        'compressor_type': "ConstantEffectivenessCompressor",
         'compressor_params': {
             # General parameters
             'N_max': 120, # Maximal rotations per second of the compressor.

@@ -98,14 +98,120 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
             p_outlet=p_2, inputs=inputs, fs_state=fs_state
         )
 
-        # Check m_flow of both compressor stages to check if
-        # there would be an asymmetry of how much refrigerant is transported
-        m_flow_high = self.high_pressure_compressor.calc_m_flow(
-            inputs=inputs, fs_state=fs_state
+        # Force mass conservation: calculate high stage mass flow based on low stage
+        m_flow_high_required = m_flow_low / (1 - x_vapor_injection)
+        
+        # Override the mass flow calculated by the high-pressure compressor model
+        self.high_pressure_compressor.m_flow = m_flow_high_required
+
+        # Back-calculate the required volumetric efficiency
+        rho_in_high = self.high_pressure_compressor.state_inlet.d
+        V_flow_ref_high_max = (
+            self.high_pressure_compressor.V_h * 
+            self.high_pressure_compressor.get_n_absolute(inputs.control.n)
         )
-        m_flow_low_should = m_flow_high * (1-x_vapor_injection)
-        percent_deviation = (m_flow_low - m_flow_low_should) / m_flow_low_should * 100
-        logger.debug("Deviation of mass flow rates is %s percent", percent_deviation)
+        lambda_h_required = m_flow_high_required / (rho_in_high * V_flow_ref_high_max)
+        
+        logger.debug("Forced mass conservation. HP Compressor required lambda_h is %s", lambda_h_required)
+
+        # Log these new specific variables to the FlowsheetState so they appear in the result CSV
+        m_flow_injection = m_flow_high_required - m_flow_low
+        
+        fs_state.set(
+            name="m_flow_ref_injection", 
+            value=m_flow_injection, 
+            unit="kg/s", 
+            description="Refrigerant mass flow rate injected between stages"
+        )
+        fs_state.set(
+            name="m_flow_ref_eva", 
+            value=m_flow_low, 
+            unit="kg/s", 
+            description="Refrigerant mass flow rate through the evaporator"
+        )
+        fs_state.set(
+            name="m_flow_ref_con", 
+            value=m_flow_high_required, 
+            unit="kg/s", 
+            description="Refrigerant mass flow rate through the condenser"
+        )
+
+        # Calculate volume flow rates
+        rho_in_low = self.low_pressure_compressor.state_inlet.d
+        V_flow_ref_eva = m_flow_low / rho_in_low
+        
+        # Calculate injection vapor state to get its density
+        state_injection = self.med_prop.calc_state("PH", p_vapor_injection, h_vapor_injection)
+        V_flow_ref_injection = m_flow_injection / state_injection.d
+        
+        rho_out_high = self.high_pressure_compressor.state_outlet.d
+        V_flow_ref_hot_gas = m_flow_high_required / rho_out_high
+
+        # Log Volume Flow Rates to FlowsheetState
+        fs_state.set(
+            name="V_flow_ref_suction",
+            value=V_flow_ref_eva,
+            unit="m^3/s",
+            description="Refrigerant suction volume flow rate from evaporator"
+        )
+        fs_state.set(
+            name="V_flow_ref_injection",
+            value=V_flow_ref_injection,
+            unit="m^3/s",
+            description="Refrigerant injection volume flow rate"
+        )
+        fs_state.set(
+            name="V_flow_ref_hot_gas",
+            value=V_flow_ref_hot_gas,
+            unit="m^3/s",
+            description="Refrigerant hot gas volume flow rate to condenser"
+        )
+
+        # Log stage-specific efficiencies
+        fs_state.set(
+            name="eta_is_lp",
+            value=self.low_pressure_compressor.get_eta_isentropic(p_outlet=p_vapor_injection, inputs=inputs),
+            unit="-",
+            description="Isentropic efficiency of the low-pressure compressor stage"
+        )
+        fs_state.set(
+            name="lambda_h_lp",
+            value=self.low_pressure_compressor.get_lambda_h(inputs=inputs),
+            unit="-",
+            description="Volumetric efficiency of the low-pressure compressor stage"
+        )
+        fs_state.set(
+            name="eta_is_hp",
+            value=self.high_pressure_compressor.get_eta_isentropic(p_outlet=p_2, inputs=inputs),
+            unit="-",
+            description="Isentropic efficiency of the high-pressure compressor stage"
+        )
+        fs_state.set(
+            name="lambda_h_hp", 
+            value=lambda_h_required, 
+            unit="-", 
+            description="Required volumetric efficiency of HP compressor for mass conservation(calculated)"
+        )
+        
+
+        # Remove the ambiguous variables logged by the primary compressor
+        if "m_flow_ref" in fs_state.get_variables():
+            del fs_state.get_variables()["m_flow_ref"]
+        if "V_flow_ref" in fs_state.get_variables():
+            del fs_state.get_variables()["V_flow_ref"]
+        if "eta_is" in fs_state.get_variables():
+            del fs_state.get_variables()["eta_is"]
+        if "lambda_h" in fs_state.get_variables():
+            del fs_state.get_variables()["lambda_h"]
+
+        ## Check m_flow of both compressor stages to check if
+        ## there would be an asymmetry of how much refrigerant is transported
+        #m_flow_high = self.high_pressure_compressor.calc_m_flow(
+        #    inputs=inputs, fs_state=fs_state
+        #)
+        #m_flow_low_should = m_flow_high * (1-x_vapor_injection)
+        #percent_deviation = (m_flow_low - m_flow_low_should) / m_flow_low_should * 100
+        #logger.debug("Deviation of mass flow rates is %s percent", percent_deviation)
 
         # Set states
         self.condenser.m_flow = self.high_pressure_compressor.m_flow
@@ -154,9 +260,34 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
         P_el_low = self.low_pressure_compressor.calc_electrical_power(
             inputs=inputs, fs_state=fs_state
         )
+        # Capture LP mechanical efficiency
+        eta_mech_lp = fs_state.get("eta_mech").value
+        fs_state.set(name="eta_mech_lp", value=eta_mech_lp, unit="-", description="Mechanical efficiency of low stage")
+
         P_el_high = self.high_pressure_compressor.calc_electrical_power(
             inputs=inputs, fs_state=fs_state
         )
+        # Capture HP mechanical efficiency
+        eta_mech_hp = fs_state.get("eta_mech").value
+        fs_state.set(name="eta_mech_hp", value=eta_mech_hp, unit="-", description="Mechanical efficiency of high stage")
+        
+        # Remove ambiguous mechanical efficiency from context
+        if "eta_mech" in fs_state.get_variables():
+            del fs_state.get_variables()["eta_mech"]
+            
+        # Calculate stage-specific global efficiencies
+        eta_is_lp = fs_state.get("eta_is_lp")
+        eta_is_hp = fs_state.get("eta_is_hp")
+        if eta_is_lp is not None and eta_is_hp is not None:
+            fs_state.set(
+                name="eta_glob_lp", value=eta_is_lp.value * eta_mech_lp,
+                unit="-", description="Global efficiency of low stage"
+            )
+            fs_state.set(
+                name="eta_glob_hp", value=eta_is_hp.value * eta_mech_hp,
+                unit="-", description="Global efficiency of high stage"
+            )
+            
         fs_state.set(
             name="P_el_low",
             value=P_el_low,

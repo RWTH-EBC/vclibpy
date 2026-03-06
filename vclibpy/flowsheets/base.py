@@ -190,10 +190,15 @@ class BaseCycle:
             name="COP_outer", value=COP_outer,
             unit="-", description="Outer COP, including heat losses"
         )
-        fs_state.set(
-            name="eta_glob", value=fs_state.get("eta_is").value * fs_state.get("eta_mech").value,
-            unit="-", description="Global compressor efficiency"
-        )
+
+        # Check if the single-stage efficiencies exist before calculating global efficiency
+        eta_is_var = fs_state.get("eta_is")
+        eta_mech_var = fs_state.get("eta_mech")
+        if eta_is_var is not None and eta_mech_var is not None:
+            fs_state.set(
+                name="eta_glob", value=eta_is_var.value * eta_mech_var.value,
+                unit="-", description="Global compressor efficiency"
+            )
 
     def calculate_outputs_for_valid_pressures(
             self,
