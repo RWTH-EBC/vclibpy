@@ -9,7 +9,7 @@ from vclibpy.media import ThermodynamicState, LubricantFitting
 ENABLE_TIMING = True
 
 
-class Molinaroli_2017_Compressor(Compressor):
+class Molinaroli_2017_Compressor_Modified(Compressor):
     """
     Semi-empirical rolling-piston compressor model after Molinaroli et al. (2017),
     extended by a viscosity-dependent friction-loss formulation.
