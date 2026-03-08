@@ -8,7 +8,7 @@ import numpy as np
 ENABLE_TIMING = True
 
 
-class Molinaroli_2017_Compressor(Compressor):
+class Molinaroli_2017_Compressor_Modified(Compressor):
     """
     Model from:
     Molinaroli et. al. (2017), A semi-empirical model for hermetic rolling piston compressors

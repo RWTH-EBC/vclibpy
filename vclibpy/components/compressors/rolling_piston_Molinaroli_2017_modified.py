@@ -81,6 +81,7 @@ class Molinaroli_2017_Compressor(Compressor):
         self._cache_hits = 0
         self._cache_misses = 0
         self._cached_discharge_valve = {}
+        self._oil_viscosity_cache = {}
 
         # debug info
         self.debug_enabled = False
@@ -122,9 +123,14 @@ class Molinaroli_2017_Compressor(Compressor):
         """
         Calculate dynamic viscosity of the oil/refrigerant mixture.
 
-        The existing lubricant fitting expects a ThermodynamicState and computes the
-        refrigerant mass fraction internally from p and T.
+        To reduce the cost inside the residual loop, the viscosity is cached with a
+        rounded (T, p) key. That avoids repeated root-finding in LubricantFitting
+        for nearly identical solver states.
         """
+        cache_key = (round(T_oil_K, 3), round(p_oil, 1))
+        if cache_key in self._oil_viscosity_cache:
+            return self._oil_viscosity_cache[cache_key]
+
         oil_state = ThermodynamicState(p=p_oil, T=T_oil_K)
 
         try:
@@ -140,11 +146,16 @@ class Molinaroli_2017_Compressor(Compressor):
         mu_ref = float(self.parameters.get("mu_ref", 1.0))
 
         if transport is None or transport.dyn_vis is None:
-            return mu_ref
+            mu = mu_ref
+        else:
+            mu = float(transport.dyn_vis)
+            if not np.isfinite(mu) or mu <= 0.0:
+                mu = mu_ref
 
-        mu = float(transport.dyn_vis)
-        if not np.isfinite(mu) or mu <= 0.0:
-            return mu_ref
+        self._oil_viscosity_cache[cache_key] = mu
+        if len(self._oil_viscosity_cache) > 1000:
+            first_key = next(iter(self._oil_viscosity_cache))
+            del self._oil_viscosity_cache[first_key]
 
         return mu
 
@@ -156,6 +167,7 @@ class Molinaroli_2017_Compressor(Compressor):
         h3: float,
         p_dis: float,
         inputs,
+        use_exact_discharge_state: bool = True,
     ):
         """
         Common helper used in the residual equation and in the final post-processing.
@@ -164,18 +176,34 @@ class Molinaroli_2017_Compressor(Compressor):
         -------
         dict with:
             W_dot_int, W_dot_loss, h_dis, epsilon_dis, state_dis, T_oil_sump, mu_oil
+
+        Notes
+        -----
+        This helper can be used in the residual loop and in the final post-processing.
+        In this version, the exact discharge state is also used inside the residual
+        loop, so T_dis for the Zhang correlation is always obtained from a PH-state
+        call at (p_dis, h_dis).
         """
         n_abs = self.get_n_absolute(inputs.control.n)
         rho3 = self.state_c_3.d
         m_dot_3 = rho3 * self.parameters["V_IC"] * n_abs
         W_dot_int = m_dot_3 * (h4 - h3)
 
-        h_dis, epsilon_dis = self._calculate_discharge_heat_transfer(m_dot_suc, T_w, h4, p_dis)
-        state_dis = self.med_prop.calc_state("PH", p_dis, h_dis)
+        h_dis, epsilon_dis, T_dis_approx = self._calculate_discharge_heat_transfer(m_dot_suc, T_w, h4, p_dis)
+
+        state_dis = None
+        T_dis_for_viscosity = T_dis_approx
+        if use_exact_discharge_state:
+            state_dis = self.med_prop.calc_state("PH", p_dis, h_dis)
+            T_dis_for_viscosity = state_dis.T
+        else:
+            # Kept for completeness, but the current model version uses the exact
+            # discharge state in the residual loop as well.
+            T_dis_for_viscosity = T_dis_approx
 
         T_amb = self._get_ambient_temperature(inputs)
         T_oil_sump = self._calculate_oil_sump_temperature(
-            T_dis_K=state_dis.T,
+            T_dis_K=T_dis_for_viscosity,
             T_in_K=self.state_inlet.T,
             T_amb_K=T_amb,
         )
@@ -199,6 +227,7 @@ class Molinaroli_2017_Compressor(Compressor):
             "h_dis": h_dis,
             "epsilon_dis": epsilon_dis,
             "state_dis": state_dis,
+            "T_dis_for_viscosity": T_dis_for_viscosity,
             "T_oil_sump": T_oil_sump,
             "mu_oil": mu_oil,
         }
@@ -230,6 +259,7 @@ class Molinaroli_2017_Compressor(Compressor):
 
     def _clear_cache(self):
         self._state_cache.clear()
+        self._oil_viscosity_cache.clear()
         self._last_x = None
         self._cache_hits = 0
         self._cache_misses = 0
@@ -307,7 +337,7 @@ class Molinaroli_2017_Compressor(Compressor):
         residuals[1] = self._residual_discharge_valve_flow(m_dot_suc, p4, h4, s3, p_dis, gamma4)
         residuals[2] = self._residual_compressor_flow(m_dot_suc, rho3, m_dot_tot, inputs)
         residuals[3] = self._residual_mixing_energy(m_dot_suc, h1, h3, h4, rho3, m_dot_tot, inputs)
-        residuals[4] = self._residual_overall_energy(m_dot_suc, T_w, h4, h3, inputs, p_dis)
+        residuals[4] = self._residual_overall_energy(m_dot_suc, T_w, h1, h4, h3, inputs, p_dis)
         return residuals
 
     def _calculate_leakage_flow(self, p4, h4, s3, p_suc, gamma4):
@@ -396,7 +426,7 @@ class Molinaroli_2017_Compressor(Compressor):
             residual = residual / m_dot_3
         return residual
 
-    def _residual_overall_energy(self, m_dot_suc, T_w, h4, h3, inputs, p_dis):
+    def _residual_overall_energy(self, m_dot_suc, T_w, h1, h4, h3, inputs, p_dis):
         h_suc = self.state_inlet.h
         T_amb = self._get_ambient_temperature(inputs)
 
@@ -407,13 +437,14 @@ class Molinaroli_2017_Compressor(Compressor):
             h3=h3,
             p_dis=p_dis,
             inputs=inputs,
+            use_exact_discharge_state=True,
         )
 
         W_dot_int = loss_data["W_dot_int"]
         W_dot_loss = loss_data["W_dot_loss"]
         h_dis = loss_data["h_dis"]
 
-        Q_dot_suc = m_dot_suc * (self.state_c_1.h - h_suc)
+        Q_dot_suc = m_dot_suc * (h1 - h_suc)
         Q_dot_dis = m_dot_suc * (h4 - h_dis)
         Q_dot_amb = np.sign(T_w - T_amb) * self.parameters["Ua_amb"] * abs(T_w - T_amb) ** 1.25
 
@@ -436,11 +467,12 @@ class Molinaroli_2017_Compressor(Compressor):
                 self.parameters["m_dot_ref"],
             )
             h_dis = h4 - epsilon_dis * cp5 * (T_before_cooling - T_w)
-            return h_dis, epsilon_dis
+            T_dis_approx = T_before_cooling - epsilon_dis * (T_before_cooling - T_w)
+            return h_dis, epsilon_dis, T_dis_approx
         except Exception as err:
             if ENABLE_TIMING:
                 print(f"Warning in discharge heat transfer calculation: {err}")
-            return h4, 0.0
+            return h4, 0.0, T_w
 
     def simulate_operating_point(self, inputs, p_outlet, fs_state):
         self._clear_cache()
@@ -494,6 +526,7 @@ class Molinaroli_2017_Compressor(Compressor):
             h3=h3,
             p_dis=p_dis,
             inputs=inputs,
+            use_exact_discharge_state=True,
         )
 
         self.state_c_5 = loss_data["state_dis"]
