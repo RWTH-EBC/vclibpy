@@ -30,12 +30,14 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
             low_pressure_compressor: Compressor,
             high_pressure_valve: ExpansionValve,
             low_pressure_valve: ExpansionValve,
+            global_compressor_model: Compressor = None,
             **kwargs):
         super().__init__(**kwargs)
         self.high_pressure_compressor = high_pressure_compressor
         self.low_pressure_compressor = low_pressure_compressor
         self.high_pressure_valve = high_pressure_valve
         self.low_pressure_valve = low_pressure_valve
+        self.global_compressor_model = global_compressor_model
         # Avoid nasty bugs for setting states
         if id(high_pressure_compressor) == id(low_pressure_compressor):
             self.high_pressure_compressor = deepcopy(low_pressure_compressor)
@@ -43,12 +45,15 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
             self.high_pressure_valve = deepcopy(low_pressure_valve)
 
     def get_all_components(self):
-        return super().get_all_components() + [
+        components = super().get_all_components() + [
             self.high_pressure_compressor,
             self.low_pressure_compressor,
             self.high_pressure_valve,
             self.low_pressure_valve,
         ]
+        if self.global_compressor_model is not None:
+            components.append(self.global_compressor_model)
+        return components
 
     def calc_states(self, p_1, p_2, inputs: Inputs, fs_state: FlowsheetState):
         k_vapor_injection_var = inputs.control.get("k_vapor_injection")
@@ -70,10 +75,42 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
 
         # Calculate low compressor stage to already have access to the mass flow rates.
         self.set_evaporator_outlet_based_on_superheating(p_eva=p_1, inputs=inputs)
+        
+        # INTERCEPT TO APPLY GLOBAL EFFICIENCIES
+        if self.global_compressor_model is not None:
+             # Point the global model at the total compression (from evaporator to condenser)
+            self.global_compressor_model.state_inlet = self.evaporator.state_outlet
+            
+            # Create a hollow state purely to unblock empirical equations that check `p_outlet`
+            self.global_compressor_model.state_outlet = ThermodynamicState(p=p_2)
+            
+            # Retrieve the correct efficiencies based on global pressure lift
+            global_eta_is = self.global_compressor_model.get_eta_isentropic(p_outlet=p_2, inputs=inputs)
+            global_eta_mech = self.global_compressor_model.get_eta_mech(inputs=inputs)
+            global_lambda_h = self.global_compressor_model.get_lambda_h(inputs=inputs)
+            
+            # Overwrite the dummy constants on the ConstantEffectiveness models
+            self.low_pressure_compressor.eta_isentropic = global_eta_is
+            self.high_pressure_compressor.eta_isentropic = global_eta_is
+            
+            self.low_pressure_compressor.lambda_h = global_lambda_h
+            self.high_pressure_compressor.lambda_h = global_lambda_h # does not do anything but for consistency and to avoid confusion
+            
+            self.low_pressure_compressor.eta_mech = global_eta_mech # only if the global model has a mechanical efficiency defined, otherwise it will be 1 as set in the constructor of the PiCorrelationCompressor
+            self.high_pressure_compressor.eta_mech = global_eta_mech
+            
+            # Align physical traits just in case
+            self.low_pressure_compressor.V_h = self.global_compressor_model.V_h
+            self.high_pressure_compressor.V_h = self.global_compressor_model.V_h # does not do anything but for consistency and to avoid confusion
+            self.low_pressure_compressor.N_max = self.global_compressor_model.N_max
+            self.high_pressure_compressor.N_max = self.global_compressor_model.N_max
+            
         self.low_pressure_compressor.state_inlet = self.evaporator.state_outlet
         self.low_pressure_compressor.calc_state_outlet(
             p_outlet=p_vapor_injection, inputs=inputs, fs_state=fs_state
         )
+
+        # Calculate mass flow rate of lower stage based on the inlet state of the low pressure compressor
         m_flow_low = self.low_pressure_compressor.calc_m_flow(inputs=inputs, fs_state=fs_state)
         self.evaporator.m_flow = self.low_pressure_compressor.m_flow
 
@@ -97,6 +134,10 @@ class BaseVaporInjection(BaseCycle, abc.ABC):
         self.high_pressure_compressor.calc_state_outlet(
             p_outlet=p_2, inputs=inputs, fs_state=fs_state
         )
+
+        # Data continuity: apply the real physical outlet state to the global compressor
+        if self.global_compressor_model is not None:
+            self.global_compressor_model.state_outlet = self.high_pressure_compressor.state_outlet
 
         # Force mass conservation: calculate high stage mass flow based on low stage mass flow and the injected vapor amount.
         # The actual scroll compressor swept volume dictates the low stage flow. The high stage flow is simply the sum.

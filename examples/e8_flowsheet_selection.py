@@ -115,14 +115,20 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
 
     if flowsheet_type in ["VaporInjectionPhaseSeparator", "VaporInjectionEconomizer"]:
         V_h = common_params['compressor_params']['V_h']
+        N_max = common_params['compressor_params'].get('N_max', 100)
 
-        compressor_params_low = common_params["compressor_params"].copy()
-        compressor_params_low["V_h"] = V_h
-        low_pressure_compressor = create_compressor(common_params["compressor_type"], compressor_params_low)
+        global_compressor = create_compressor(common_params["compressor_type"], common_params["compressor_params"])
 
-        compressor_params_high = common_params["compressor_params"].copy()
-        compressor_params_high["V_h"] = V_h # Doesn't dictate mass flow, just used as dummy (see vapor_injection.py for details)
-        high_pressure_compressor = create_compressor(common_params["compressor_type"], compressor_params_high)
+        dummy_params = {
+            "N_max": N_max,
+            "V_h": V_h,
+            "eta_isentropic": 1.0,
+            "eta_mech": 1.0,
+            "lambda_h": 1.0
+        }
+
+        low_pressure_compressor = create_compressor("ConstantEffectivenessCompressor", dummy_params)
+        high_pressure_compressor = create_compressor("ConstantEffectivenessCompressor", dummy_params)
 
         high_pressure_valve = Bernoulli(A=A_valve)
         low_pressure_valve = Bernoulli(A=A_valve)
@@ -169,7 +175,8 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
             high_pressure_compressor=high_pressure_compressor,
             low_pressure_compressor=low_pressure_compressor,
             high_pressure_valve=high_pressure_valve,
-            low_pressure_valve=low_pressure_valve
+            low_pressure_valve=low_pressure_valve,
+            global_compressor_model=global_compressor
         )
     elif flowsheet_type == "VaporInjectionEconomizer":
         return VaporInjectionEconomizer(
@@ -180,7 +187,8 @@ def create_flowsheet(flowsheet_type, common_params, vip_params=None, vie_params=
             high_pressure_compressor=high_pressure_compressor,
             low_pressure_compressor=low_pressure_compressor,
             high_pressure_valve=high_pressure_valve,
-            low_pressure_valve=low_pressure_valve
+            low_pressure_valve=low_pressure_valve,
+            global_compressor_model=global_compressor
         )
     else:
         raise ValueError("ERROR when selecting flowsheet. Unsupported flowsheet selected.")

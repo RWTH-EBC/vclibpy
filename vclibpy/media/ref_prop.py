@@ -146,6 +146,7 @@ class RefProp(MedProp):
                  copy_dll: bool = True,
                  copy_dll_directory: str = None
                  ):
+        import os
         if ref_prop_path is None:
             # Get environment variable for path to dll
             ref_prop_path = os.environ["RPPREFIX"]
@@ -160,7 +161,7 @@ class RefProp(MedProp):
             try:
                 self._delete_dll_path = os.path.join(
                     copy_dll_directory,
-                    f"med_prop_{fluid_name}_REFPRP64.dll"
+                    f"med_prop_{fluid_name}_{os.getpid()}_REFPRP64.dll"
                 )
                 shutil.copyfile(path_to_dll, self._delete_dll_path)
                 atexit.register(self.terminate)
@@ -209,9 +210,14 @@ class RefProp(MedProp):
             # Taken from here: https://stackoverflow.com/questions/21770419/free-the-opened-ctypes-library-in-python
             import _ctypes
             import sys
+            import time
             _handle = self.rp.dll._handle
             if sys.platform.startswith('win'):
-                _ctypes.FreeLibrary(_handle)
+                for _ in range(5):
+                    try:
+                        _ctypes.FreeLibrary(_handle)
+                    except OSError:
+                        break
             else:
                 _ctypes.dlclose(_handle)
             os.remove(self._delete_dll_path)

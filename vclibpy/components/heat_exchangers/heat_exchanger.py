@@ -155,18 +155,24 @@ class ExternalHeatExchanger(HeatExchanger, TwoPortComponent, abc.ABC):
         Set up the wrapper for the secondary medium's media properties.
         """
         if self.secondary_medium is None:
-            return # no secondary medium (eg. internal heat exchanger), do nothing in this case
-        # Set up the secondary_medium wrapper:
-        med_prop_class, med_prop_kwargs = media.get_global_med_prop_and_kwargs()
-        if self.secondary_medium == "air" and med_prop_class == media.RefProp:
-            fluid_name = "air.ppf"
-        else:
-            fluid_name = self.secondary_medium
+            return  # no secondary medium (eg. internal heat exchanger), do nothing in this case
+            
+        fluid_name = self.secondary_medium
+        med_prop_class = media.CoolProp # TODO: This is not the final solution. When implementing a cascade heat exchanger the code would fail here, when using two mixtures only available in REFPROP. Then a new Multiprocessing architecture needs to be developed deep into the media of VCLibPy.
+        med_prop_kwargs = {"use_high_level_api": True}
+        
+        # In CoolProp, air is just 'Air' or exactly what's given. 
+        if fluid_name.lower() == "air":
+            fluid_name = "Air"
+        elif fluid_name.lower() == "water":
+            fluid_name = "Water"
+
         if self.med_prop_sec is not None:
             if self.med_prop_sec.fluid_name == fluid_name:
                 return
             self.med_prop_sec.terminate()
-        self.med_prop_sec = med_prop_class(fluid_name=self.secondary_medium, **med_prop_kwargs)
+            
+        self.med_prop_sec = med_prop_class(fluid_name=fluid_name, **med_prop_kwargs)
 
     def terminate_secondary_med_prop(self):
         if self.med_prop_sec is not None:
