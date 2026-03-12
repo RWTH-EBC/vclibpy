@@ -50,7 +50,7 @@ class LubricantFitting(OilProp):
             lub_name (str): The name of the lubricant.
         """
         # Check if better internal names exist (e.g. air is modelled as air.ppf)
-        super(OilProp, self).__init__(fluid_name)
+        super().__init__(fluid_name, lub_name)
         self.fluid_name = self._fluid_mapper.get(fluid_name, fluid_name)
         self.lub_name = self._oil_mapper.get(lub_name, lub_name)
         #self.lub_frac = lub_frac
@@ -308,3 +308,18 @@ class LubricantFitting(OilProp):
                 state = state)
 
         return props
+
+    def get_critical_point(self):
+        """
+        Minimal compatibility implementation required by the abstract base class.
+        For the current use in the compressor model, the refrigerant critical point
+        is sufficient.
+        """
+        return self.refrigerant_prop.get_critical_point()
+
+    def get_molar_mass(self):
+        """
+        Minimal compatibility implementation required by the abstract base class.
+        For the current use in the compressor model, return the refrigerant molar mass.
+        """
+        return self.refrigerant_prop.get_molar_mass()
