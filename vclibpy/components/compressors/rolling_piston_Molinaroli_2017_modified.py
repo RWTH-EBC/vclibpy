@@ -9,19 +9,42 @@ from vclibpy.media import ThermodynamicState, LubricantFitting
 ENABLE_TIMING = True
 
 
+class _ConcreteLubricantFitting(LubricantFitting):
+    """
+    Workaround for the current abstract LubricantFitting base class.
+    Can be removed once LubricantFitting implements these methods in vclibpy.
+    """
+    def get_molar_mass(self):
+        return None
+
+    def get_critical_point(self):
+        return None
+
+
 class Molinaroli_2017_Compressor_Modified(Compressor):
     """
     Semi-empirical rolling-piston compressor model after Molinaroli et al. (2017),
-    extended by a viscosity-dependent friction-loss formulation.
+    extended by a Giuffrida-like viscosity-dependent friction-loss formulation.
 
     Extension:
         W_loss = alpha_loss * W_int
-               + W_loss_ref * (f / f_ref)^2 * (mu / mu_ref)^n_fric
+               + W_dot_loss_ref * (f / f_ref)^2
+               + alpha_fric_tot * mu_mix_eff * V_h * (2*pi*f)^2
 
-    The oil/refrigerant viscosity mu is obtained from the lubricant-fitting correlation,
-    using:
-        - oil sump temperature from the Zhang correlation
-        - discharge pressure as approximation for the oil-sump pressure
+    with:
+        - mu_mix_eff from the lubricant-fitting correlation
+        - T_oil_sump from the Zhang correlation
+        - p_dis as approximation for oil-sump pressure
+        - V_h as geometric displacement volume
+        - f as absolute rotational frequency
+
+    Notes
+    -----
+    - The lubricant fitting currently returns viscosity values numerically consistent
+      with mPa*s, therefore a conversion to Pa*s is applied before using mu_mix_eff
+      in the power equation.
+    - If the viscosity calculation fails or returns a non-physical value, mu_fallback
+      is used as a numerical fallback value.
     """
 
     def __init__(
@@ -44,17 +67,19 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
                 "V_IC": 16.11e-6,
                 "alpha_loss": 0.16,
                 "W_dot_loss_ref": 83.0,
+                "alpha_fric_tot": 0.0,
                 "m_dot_ref": 0.0083,
                 "f_ref": 50.0,
-                # new parameters for viscosity-dependent friction losses
-                "mu_ref": 3.0,   # same unit returned by LubricantFitting (currently documented/commented as mPa*s)
-                "n_fric": 1.0,
+                "mu_fallback": 5.0,
             }
 
-        self.parameters = parameters
+        self.parameters = dict(parameters)
         self.fluid_name = fluid_name
         self.lub_name = lub_name
-        self.lubricant_model = LubricantFitting(fluid_name=fluid_name, lub_name=lub_name)
+        self.lubricant_model = _ConcreteLubricantFitting(
+            fluid_name=fluid_name,
+            lub_name=lub_name,
+        )
 
         # Thermodynamic states
         self.state_c_suc: ThermodynamicState = None
@@ -72,7 +97,15 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
 
         # additional oil-related outputs
         self.T_oil_sump = None
-        self.mu_oil = None
+        self.mu_oil = None         # raw value from lubricant fitting, typically mPa*s
+        self.mu_mix_eff = None     # converted value used in loss equation, Pa*s
+
+        # additional loss-term outputs
+        self.W_dot_int = None
+        self.W_dot_loss = None
+        self.W_dot_loss_load = None
+        self.W_dot_loss_ref_term = None
+        self.W_dot_loss_fric = None
 
         # caching for solver calls
         self._cached_m_dot_tot = None
@@ -100,6 +133,13 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
     def _celsius_to_kelvin(T_C: float) -> float:
         return T_C + 273.15
 
+    @staticmethod
+    def _milli_pas_to_pas(mu_mpas: float) -> float:
+        """
+        Convert mPa*s to Pa*s.
+        """
+        return float(mu_mpas) * 1e-3
+
     def _get_ambient_temperature(self, inputs) -> float:
         return float(getattr(inputs, "T_amb", 25.0 + 273.15))
 
@@ -110,7 +150,7 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         Important:
             The regression is formulated in °C, so conversion is done explicitly here.
 
-        Toil ≈ 0.914227*Tdis + 0.008136*Tin + 0.006144*Tamb
+        T_oil ≈ 0.914227*T_dis + 0.008136*T_in + 0.006144*T_amb
         """
         T_dis_C = self._kelvin_to_celsius(T_dis_K)
         T_in_C = self._kelvin_to_celsius(T_in_K)
@@ -123,9 +163,8 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         """
         Calculate dynamic viscosity of the oil/refrigerant mixture.
 
-        To reduce the cost inside the residual loop, the viscosity is cached with a
-        rounded (T, p) key. That avoids repeated root-finding in LubricantFitting
-        for nearly identical solver states.
+        The raw value returned by LubricantFitting is cached. In the current workflow,
+        these values are numerically consistent with mPa*s.
         """
         cache_key = (round(T_oil_K, 3), round(p_oil, 1))
         if cache_key in self._oil_viscosity_cache:
@@ -143,14 +182,14 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
                 print(f"Warning in oil viscosity calculation: {err}")
             transport = None
 
-        mu_ref = float(self.parameters.get("mu_ref", 1.0))
+        mu_fallback = float(self.parameters.get("mu_fallback", 5.0))
 
         if transport is None or transport.dyn_vis is None:
-            mu = mu_ref
+            mu = mu_fallback
         else:
             mu = float(transport.dyn_vis)
             if not np.isfinite(mu) or mu <= 0.0:
-                mu = mu_ref
+                mu = mu_fallback
 
         self._oil_viscosity_cache[cache_key] = mu
         if len(self._oil_viscosity_cache) > 1000:
@@ -159,7 +198,7 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
 
         return mu
 
-    def _calculate_viscosity_corrected_loss_power(
+    def _calculate_extended_loss_power(
         self,
         m_dot_suc: float,
         T_w: float,
@@ -170,26 +209,33 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         use_exact_discharge_state: bool = True,
     ):
         """
-        Common helper used in the residual equation and in the final post-processing.
+        Helper used in the residual equation and in the final post-processing.
 
         Returns
         -------
         dict with:
-            W_dot_int, W_dot_loss, h_dis, epsilon_dis, state_dis, T_oil_sump, mu_oil
-
-        Notes
-        -----
-        This helper can be used in the residual loop and in the final post-processing.
-        In this version, the exact discharge state is also used inside the residual
-        loop, so T_dis for the Zhang correlation is always obtained from a PH-state
-        call at (p_dis, h_dis).
+            W_dot_int
+            W_dot_loss
+            W_dot_loss_load
+            W_dot_loss_ref_term
+            W_dot_loss_fric
+            h_dis
+            epsilon_dis
+            state_dis
+            T_dis_for_viscosity
+            T_oil_sump
+            mu_oil
+            mu_mix_eff
         """
-        n_abs = self.get_n_absolute(inputs.control.n)
+        f = self.get_n_absolute(inputs.control.n)   # Hz
+
         rho3 = self.state_c_3.d
-        m_dot_3 = rho3 * self.parameters["V_IC"] * n_abs
+        m_dot_3 = rho3 * self.parameters["V_IC"] * f
         W_dot_int = m_dot_3 * (h4 - h3)
 
-        h_dis, epsilon_dis, T_dis_approx = self._calculate_discharge_heat_transfer(m_dot_suc, T_w, h4, p_dis)
+        h_dis, epsilon_dis, T_dis_approx = self._calculate_discharge_heat_transfer(
+            m_dot_suc, T_w, h4, p_dis
+        )
 
         state_dis = None
         T_dis_for_viscosity = T_dis_approx
@@ -197,8 +243,6 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
             state_dis = self.med_prop.calc_state("PH", p_dis, h_dis)
             T_dis_for_viscosity = state_dis.T
         else:
-            # Kept for completeness, but the current model version uses the exact
-            # discharge state in the residual loop as well.
             T_dis_for_viscosity = T_dis_approx
 
         T_amb = self._get_ambient_temperature(inputs)
@@ -207,29 +251,34 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
             T_in_K=self.state_inlet.T,
             T_amb_K=T_amb,
         )
+
         mu_oil = self._calculate_oil_viscosity(T_oil_K=T_oil_sump, p_oil=p_dis)
+        mu_mix_eff = self._milli_pas_to_pas(mu_oil)
 
-        alpha_loss = self.parameters["alpha_loss"]
-        W_dot_loss_ref = self.parameters["W_dot_loss_ref"]
-        f_ref = self.parameters["f_ref"]
-        mu_ref = float(self.parameters.get("mu_ref", 1.0))
-        n_fric = float(self.parameters.get("n_fric", 1.0))
+        alpha_loss = float(self.parameters["alpha_loss"])
+        W_dot_loss_ref = float(self.parameters.get("W_dot_loss_ref", 0.0))
+        alpha_fric_tot = float(self.parameters.get("alpha_fric_tot", 0.0))
+        f_ref = float(self.parameters["f_ref"])
 
-        mu_ratio = max(mu_oil / mu_ref, 1e-12)
-        W_dot_loss = (
-            alpha_loss * W_dot_int
-            + W_dot_loss_ref * (n_abs / f_ref) ** 2 * mu_ratio ** n_fric
-        )
+        W_dot_loss_load = alpha_loss * W_dot_int
+        W_dot_loss_ref_term = W_dot_loss_ref * (f / f_ref) ** 2
+        W_dot_loss_fric = alpha_fric_tot * mu_mix_eff * self.V_h * (2.0 * np.pi * f) ** 2
+
+        W_dot_loss = W_dot_loss_load + W_dot_loss_ref_term + W_dot_loss_fric
 
         return {
             "W_dot_int": W_dot_int,
             "W_dot_loss": W_dot_loss,
+            "W_dot_loss_load": W_dot_loss_load,
+            "W_dot_loss_ref_term": W_dot_loss_ref_term,
+            "W_dot_loss_fric": W_dot_loss_fric,
             "h_dis": h_dis,
             "epsilon_dis": epsilon_dis,
             "state_dis": state_dis,
             "T_dis_for_viscosity": T_dis_for_viscosity,
             "T_oil_sump": T_oil_sump,
             "mu_oil": mu_oil,
+            "mu_mix_eff": mu_mix_eff,
         }
 
     # ---------------------------------------------------------------------
@@ -239,14 +288,14 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         h_suc = self.state_inlet.h
         s_suc = self.state_inlet.s
 
-        n_abs = self.get_n_absolute(inputs.control.n)
+        f = self.get_n_absolute(inputs.control.n)
         p_dis = p_outlet
 
         state_dis_is = self.med_prop.calc_state("PS", p_dis, s_suc)
         T_dis_is = state_dis_is.T
 
         rho_suc = self.state_inlet.d
-        m_dot_suc_0 = rho_suc * self.parameters["V_IC"] * n_abs
+        m_dot_suc_0 = rho_suc * self.parameters["V_IC"] * f
         T_w_0 = 0.5 * (self.state_inlet.T + T_dis_is)
 
         transport_suc = self.med_prop.calc_transport_properties(self.state_inlet)
@@ -410,13 +459,13 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         return m_dot_suc - m_dot_valve
 
     def _residual_compressor_flow(self, m_dot_suc, rho3, m_dot_tot, inputs):
-        n_abs = self.get_n_absolute(inputs.control.n)
-        m_dot_3 = rho3 * self.parameters["V_IC"] * n_abs
+        f = self.get_n_absolute(inputs.control.n)
+        m_dot_3 = rho3 * self.parameters["V_IC"] * f
         return m_dot_3 - (m_dot_suc + m_dot_tot)
 
     def _residual_mixing_energy(self, m_dot_suc, h1, h3, h4, rho3, m_dot_tot, inputs):
-        n_abs = self.get_n_absolute(inputs.control.n)
-        m_dot_3 = rho3 * self.parameters["V_IC"] * n_abs
+        f = self.get_n_absolute(inputs.control.n)
+        m_dot_3 = rho3 * self.parameters["V_IC"] * f
 
         energy_in = m_dot_suc * h1 + m_dot_tot * h4
         energy_out = m_dot_3 * h3
@@ -430,7 +479,7 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         h_suc = self.state_inlet.h
         T_amb = self._get_ambient_temperature(inputs)
 
-        loss_data = self._calculate_viscosity_corrected_loss_power(
+        loss_data = self._calculate_extended_loss_power(
             m_dot_suc=m_dot_suc,
             T_w=T_w,
             h4=h4,
@@ -519,7 +568,7 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         self.state_c_4 = self.med_prop.calc_state("PS", p4, s3)
         h4 = self.state_c_4.h
 
-        loss_data = self._calculate_viscosity_corrected_loss_power(
+        loss_data = self._calculate_extended_loss_power(
             m_dot_suc=m_dot_suc,
             T_w=T_w,
             h4=h4,
@@ -533,22 +582,31 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         self.state_outlet = self.state_c_5
         self.T_oil_sump = loss_data["T_oil_sump"]
         self.mu_oil = loss_data["mu_oil"]
+        self.mu_mix_eff = loss_data["mu_mix_eff"]
 
-        W_dot_int = loss_data["W_dot_int"]
-        W_dot_loss = loss_data["W_dot_loss"]
-        self.P_el = W_dot_int + W_dot_loss
+        self.W_dot_int = loss_data["W_dot_int"]
+        self.W_dot_loss = loss_data["W_dot_loss"]
+        self.W_dot_loss_load = loss_data["W_dot_loss_load"]
+        self.W_dot_loss_ref_term = loss_data["W_dot_loss_ref_term"]
+        self.W_dot_loss_fric = loss_data["W_dot_loss_fric"]
+
+        self.P_el = self.W_dot_int + self.W_dot_loss
         self.W_dot_comp = self.P_el
         self.m_flow = m_dot_suc
         self.T_w = T_w
 
         fs_state.set("m_flow", self.m_flow, "kg/s", "Refrigerant mass flow rate")
         fs_state.set("P_el", self.P_el, "W", "Electrical power input")
-        fs_state.set("W_dot_int", W_dot_int, "W", "Internal compression power")
-        fs_state.set("W_dot_loss", W_dot_loss, "W", "Compressor loss power")
+        fs_state.set("W_dot_int", self.W_dot_int, "W", "Internal compression power")
+        fs_state.set("W_dot_loss", self.W_dot_loss, "W", "Compressor loss power")
+        fs_state.set("W_dot_loss_load", self.W_dot_loss_load, "W", "Load-dependent loss term")
+        fs_state.set("W_dot_loss_ref_term", self.W_dot_loss_ref_term, "W", "Reference speed-dependent loss term")
+        fs_state.set("W_dot_loss_fric", self.W_dot_loss_fric, "W", "Viscous friction loss term")
         fs_state.set("T_wall", T_w, "K", "Wall temperature")
         fs_state.set("T_dis", self.state_c_5.T, "K", "Discharge temperature")
         fs_state.set("T_oil_sump", self.T_oil_sump, "K", "Oil sump temperature")
-        fs_state.set("mu_oil", self.mu_oil, "same-as-lubricant-fitting", "Dynamic oil viscosity")
+        fs_state.set("mu_oil", self.mu_oil, "mPa*s (assumed from lubricant fitting)", "Raw dynamic viscosity from lubricant fitting")
+        fs_state.set("mu_mix_eff", self.mu_mix_eff, "Pa*s", "Effective mixture viscosity used in loss equation")
         fs_state.set("pc4", p4, "Pa", "Internal discharge pressure")
         fs_state.set("hc1", h1, "J/kg", "Enthalpy after suction heat transfer")
         fs_state.set("hc3", h3, "J/kg", "Enthalpy after mixing")
@@ -569,9 +627,9 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         ):
             return 0.0
 
-        n_abs = self.get_n_absolute(inputs.control.n)
+        f = self.get_n_absolute(inputs.control.n)
         rho3 = self.state_c_3.d
-        m_dot_3 = rho3 * self.parameters["V_IC"] * n_abs
+        m_dot_3 = rho3 * self.parameters["V_IC"] * f
         W_dot_int = m_dot_3 * (self.state_c_4.h - self.state_c_3.h)
 
         if W_dot_int <= 0.0:
@@ -590,8 +648,8 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
             return 0.0
 
         rho_suc = self.state_inlet.d
-        n_abs = self.get_n_absolute(inputs.control.n)
-        m_dot_theoretical = rho_suc * self.V_h * n_abs
+        f = self.get_n_absolute(inputs.control.n)
+        m_dot_theoretical = rho_suc * self.V_h * f
 
         if m_dot_theoretical <= 0.0:
             return 0.0
@@ -659,8 +717,9 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         if not self.debug_enabled or self._gamma4_n == 0:
             return "Debug disabled (or no solver calls recorded)."
         return (
-            f"Molinaroli2017 Debug Report\n"
+            f"Molinaroli2017 Modified Debug Report\n"
             f"  gamma4 range: {self._gamma4_min:.6f} .. {self._gamma4_max:.6f}  (N={self._gamma4_n})\n"
             f"  state_cache: hits={self._cache_hits}, misses={self._cache_misses}, size={len(self._state_cache)}\n"
-            f"  discharge_valve_cache size={len(self._cached_discharge_valve)}"
+            f"  discharge_valve_cache size={len(self._cached_discharge_valve)}\n"
+            f"  oil_viscosity_cache size={len(self._oil_viscosity_cache)}"
         )
