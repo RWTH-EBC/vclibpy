@@ -1,4 +1,5 @@
 from scipy.optimize import least_squares
+import os
 import numpy as np
 
 from vclibpy.components.compressors.compressor import Compressor
@@ -46,6 +47,23 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
     - If the viscosity calculation fails or returns a non-physical value, mu_fallback
       is used as a numerical fallback value.
     """
+    _LUBRICANT_MODEL_CACHE = {}
+
+    @classmethod
+    def _get_cached_lubricant_model(cls, fluid_name: str, lub_name: str):
+        key = (
+            os.getpid(),
+            str(fluid_name).strip().lower(),
+            str(lub_name).strip().lower(),
+        )
+
+        if key not in cls._LUBRICANT_MODEL_CACHE:
+            cls._LUBRICANT_MODEL_CACHE[key] = _ConcreteLubricantFitting(
+                fluid_name=fluid_name,
+                lub_name=lub_name,
+            )
+
+        return cls._LUBRICANT_MODEL_CACHE[key]
 
     def __init__(
         self,
@@ -76,7 +94,7 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         self.parameters = dict(parameters)
         self.fluid_name = fluid_name
         self.lub_name = lub_name
-        self.lubricant_model = _ConcreteLubricantFitting(
+        self.lubricant_model = self._get_cached_lubricant_model(
             fluid_name=fluid_name,
             lub_name=lub_name,
         )
