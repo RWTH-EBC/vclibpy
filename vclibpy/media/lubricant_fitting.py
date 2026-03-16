@@ -237,12 +237,12 @@ class LubricantFitting(OilProp):
 
             def calc_pressure(w, T):
                 """
-                Mixture pressure fitting equation (bar), using saturation pressure from CoolProp if available.
+                Mixture pressure fitting equation (Pa), using saturation pressure from CoolProp if available.
                 """
                 Tr = T / self.T_crit
                 # mass fraction -> mole fraction (refrigerant basis)
                 x = w / (w + (1 - w) * (self.M_rfg / self.M_oil))
-                psat = self.refrigerant_prop.calc_state("TQ", T, 1).p  # bar
+                psat = self.refrigerant_prop.calc_state("TQ", T, 1).p  # Pa
                 if not np.isfinite(psat):
                     # Psat unavailable (e.g., no CoolProp or supercritical) → return NaN so solver will fail gracefully
                     return float('nan')
