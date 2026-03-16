@@ -4,22 +4,13 @@ import numpy as np
 
 from vclibpy.components.compressors.compressor import Compressor
 from vclibpy.datamodels import Inputs, FlowsheetState
-from vclibpy.media import ThermodynamicState, LubricantFitting
+from vclibpy.media import ThermodynamicState
+
+from vclibpy.media.lubricant_fitting_shared_refprop import LubricantFitting as SharedLubricantFitting
+
 
 
 ENABLE_TIMING = True
-
-
-class _ConcreteLubricantFitting(LubricantFitting):
-    """
-    Workaround for the current abstract LubricantFitting base class.
-    Can be removed once LubricantFitting implements these methods in vclibpy.
-    """
-    def get_molar_mass(self):
-        return None
-
-    def get_critical_point(self):
-        return None
 
 
 class Molinaroli_2017_Compressor_Modified(Compressor):
@@ -39,6 +30,12 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         - V_h as geometric displacement volume
         - f as absolute rotational frequency
 
+    Important change
+    ----------------
+    The lubricant fitting is now synchronized with the compressor's shared RefProp
+    instance (self.med_prop). This avoids creating a separate RefProp copy inside
+    the lubricant model and is intended to prevent DLL copy/lock issues.
+
     Notes
     -----
     - The lubricant fitting currently returns viscosity values numerically consistent
@@ -50,20 +47,74 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
     _LUBRICANT_MODEL_CACHE = {}
 
     @classmethod
-    def _get_cached_lubricant_model(cls, fluid_name: str, lub_name: str):
-        key = (
-            os.getpid(),
-            str(fluid_name).strip().lower(),
-            str(lub_name).strip().lower(),
-        )
-
-        if key not in cls._LUBRICANT_MODEL_CACHE:
-            cls._LUBRICANT_MODEL_CACHE[key] = _ConcreteLubricantFitting(
+    def _build_lubricant_model(cls, fluid_name: str, lub_name: str, shared_refprop=None):
+        """
+        Build one lubricant model instance. Prefer passing the shared RefProp object
+        directly if the class supports it. Otherwise, build normally and overwrite
+        refrigerant_prop afterwards.
+        """
+        if shared_refprop is not None:
+            try:
+                model = SharedLubricantFitting(
+                    fluid_name=fluid_name,
+                    lub_name=lub_name,
+                    shared_refprop=shared_refprop,
+                )
+            except TypeError:
+                model = SharedLubricantFitting(
+                    fluid_name=fluid_name,
+                    lub_name=lub_name,
+                )
+                if hasattr(model, "refrigerant_prop"):
+                    model.refrigerant_prop = shared_refprop
+        else:
+            model = SharedLubricantFitting(
                 fluid_name=fluid_name,
                 lub_name=lub_name,
             )
 
+        if shared_refprop is not None and hasattr(model, "refrigerant_prop"):
+            model.refrigerant_prop = shared_refprop
+
+        return model
+
+    @classmethod
+    def _get_cached_lubricant_model(cls, fluid_name: str, lub_name: str, shared_refprop=None):
+        key = (
+            os.getpid(),
+            str(fluid_name).strip().lower(),
+            str(lub_name).strip().lower(),
+            id(shared_refprop) if shared_refprop is not None else None,
+        )
+
+        if key not in cls._LUBRICANT_MODEL_CACHE:
+            cls._LUBRICANT_MODEL_CACHE[key] = cls._build_lubricant_model(
+                fluid_name=fluid_name,
+                lub_name=lub_name,
+                shared_refprop=shared_refprop,
+            )
+
         return cls._LUBRICANT_MODEL_CACHE[key]
+
+    def _get_lubricant_model(self):
+        """
+        Return a lubricant model that is synchronized with the compressor's RefProp
+        object. This is done lazily because self.med_prop is usually assigned after
+        compressor construction.
+        """
+        shared_refprop = getattr(self, "med_prop", None)
+
+        model = self._get_cached_lubricant_model(
+            fluid_name=self.fluid_name,
+            lub_name=self.lub_name,
+            shared_refprop=shared_refprop,
+        )
+
+        if shared_refprop is not None and hasattr(model, "refrigerant_prop"):
+            model.refrigerant_prop = shared_refprop
+
+        self.lubricant_model = model
+        return model
 
     def __init__(
         self,
@@ -94,10 +145,9 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         self.parameters = dict(parameters)
         self.fluid_name = fluid_name
         self.lub_name = lub_name
-        self.lubricant_model = self._get_cached_lubricant_model(
-            fluid_name=fluid_name,
-            lub_name=lub_name,
-        )
+
+        # Will be created lazily once self.med_prop is available
+        self.lubricant_model = None
 
         # Thermodynamic states
         self.state_c_suc: ThermodynamicState = None
@@ -181,17 +231,18 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
         """
         Calculate dynamic viscosity of the oil/refrigerant mixture.
 
-        The raw value returned by LubricantFitting is cached. In the current workflow,
-        these values are numerically consistent with mPa*s.
+        The raw value returned by the lubricant fitting is cached. In the current
+        workflow these values are numerically consistent with mPa*s.
         """
         cache_key = (round(T_oil_K, 3), round(p_oil, 1))
         if cache_key in self._oil_viscosity_cache:
             return self._oil_viscosity_cache[cache_key]
 
+        lubricant_model = self._get_lubricant_model()
         oil_state = ThermodynamicState(p=p_oil, T=T_oil_K)
 
         try:
-            transport = self.lubricant_model.calc_transport_properties(
+            transport = lubricant_model.calc_transport_properties(
                 state=oil_state,
                 phase="liquid",
             )
@@ -739,5 +790,6 @@ class Molinaroli_2017_Compressor_Modified(Compressor):
             f"  gamma4 range: {self._gamma4_min:.6f} .. {self._gamma4_max:.6f}  (N={self._gamma4_n})\n"
             f"  state_cache: hits={self._cache_hits}, misses={self._cache_misses}, size={len(self._state_cache)}\n"
             f"  discharge_valve_cache size={len(self._cached_discharge_valve)}\n"
-            f"  oil_viscosity_cache size={len(self._oil_viscosity_cache)}"
+            f"  oil_viscosity_cache size={len(self._oil_viscosity_cache)}\n"
+            f"  lubricant_model_cache size={len(self._LUBRICANT_MODEL_CACHE)}"
         )
