@@ -5,7 +5,7 @@ from .ref_prop import RefProp
 from .lubricant_media import OilProp
 #from .oil_mix_prop import OilMixProp
 from .lubricant_fitting import LubricantFitting
-
+from .lubricant_fitting_shared_refprop import LubricantFitting as LubricantFittingSharedRefProp
 
 
 __all__ = ['ThermodynamicState',
@@ -15,7 +15,8 @@ __all__ = ['ThermodynamicState',
            'RefProp',
            'OilProp',
 #           'OilMixProp',
-           'LubricantFitting']
+           'LubricantFitting'
+           'LubricantFittingSharedRefProp']
 
 #USED_MED_PROP = (CoolProp, {})
 
