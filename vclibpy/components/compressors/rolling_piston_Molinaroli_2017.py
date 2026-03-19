@@ -1,9 +1,7 @@
 from vclibpy.components.compressors.compressor import Compressor
 from vclibpy.media import ThermodynamicState
-#from vclibpy.media.cool_prop import CoolProp
 from vclibpy.datamodels import Inputs, FlowsheetState
 import numpy as np
-#import time
 
 ENABLE_TIMING = True
 
@@ -27,12 +25,8 @@ class Molinaroli_2017_Compressor(Compressor):
                                                                "f_ref": 50.0}):
         super().__init__(N_max=N_max, V_h=V_h)
 
-        #self.refrigerant = refrigerant
-        #self.med_prop = CoolProp(fluid_name=refrigerant)
-
         # Parameters for compressor 'B' from Molinaroli et. al(2017)
         self.parameters = parameters
-
 
         ##INITIALIZE VARIABLES##
         # Thermodynamic states
@@ -49,10 +43,15 @@ class Molinaroli_2017_Compressor(Compressor):
         # Results storage
         self.state_outlet = None
         self.W_dot_comp = None
+        self.P_el = None
+
+        # Loss term attributes (consistent with Modified model API)
+        self.W_dot_int = None
+        self.W_dot_loss = None
+        self.W_dot_loss_load = None
+        self.W_dot_loss_ref_term = None
 
         # Cache for expensive calculations
-      ###  self._cached_transport4 = None
-      ###  self._cached_gamma4 = None
         self._cached_m_dot_tot = None
 
         # State caching for repeated solver calls
@@ -486,7 +485,8 @@ class Molinaroli_2017_Compressor(Compressor):
 
     def _calculate_final_states(self, solution, inputs, p_outlet, fs_state):
         """
-        Calculate all final states and outputs after solution
+        Calculate all final states and outputs after solution.
+        Stores loss term attributes for consistent API with Modified model.
         """
         m_dot_suc, T_w, h1, p4, h3 = solution
         p_suc = self.state_inlet.p
@@ -508,14 +508,15 @@ class Molinaroli_2017_Compressor(Compressor):
         rho3 = self.state_c_3.d
         m_dot_3 = rho3 * self.parameters["V_IC"] * f
 
-        # Calculate internal work
-        W_dot_int = m_dot_3 * (h4 - h3)
+        # Calculate internal work and loss terms
+        self.W_dot_int = m_dot_3 * (h4 - h3)
 
-        # Calculate powers and efficiencies
-        n_abs = self.get_n_absolute(inputs.control.n)
-        W_dot_loss = (W_dot_int * self.parameters["alpha_loss"] +
-                      self.parameters["W_dot_loss_ref"] * (n_abs / self.parameters["f_ref"]) ** 2)
-        self.P_el = W_dot_int + W_dot_loss
+        self.W_dot_loss_load = self.W_dot_int * self.parameters["alpha_loss"]
+        self.W_dot_loss_ref_term = self.parameters["W_dot_loss_ref"] * (n_abs / self.parameters["f_ref"]) ** 2
+        self.W_dot_loss = self.W_dot_loss_load + self.W_dot_loss_ref_term
+
+        self.P_el = self.W_dot_int + self.W_dot_loss
+        self.W_dot_comp = self.P_el
 
         # Store results
         self.m_flow = m_dot_suc
@@ -524,17 +525,19 @@ class Molinaroli_2017_Compressor(Compressor):
         # Populate flowsheet state
         fs_state.set("m_flow", self.m_flow, "kg/s", "Refrigerant mass flow rate")
         fs_state.set("P_el", self.P_el, "W", "Electrical power input")
+        fs_state.set("W_dot_int", self.W_dot_int, "W", "Internal compression power")
+        fs_state.set("W_dot_loss", self.W_dot_loss, "W", "Compressor loss power")
+        fs_state.set("W_dot_loss_load", self.W_dot_loss_load, "W", "Load-dependent loss term")
+        fs_state.set("W_dot_loss_ref_term", self.W_dot_loss_ref_term, "W", "Reference speed-dependent loss term")
         fs_state.set("T_wall", T_w, "K", "Wall temperature")
+        fs_state.set("T_dis", self.state_c_5.T, "K", "Discharge temperature")
         fs_state.set("pc4", p4, "Pa", "Internal discharge pressure")
         fs_state.set("hc1", h1, "J/kg", "Enthalpy after suction heat transfer")
         fs_state.set("hc3", h3, "J/kg", "Enthalpy after mixing")
         fs_state.set("hc4", h4, "J/kg", "Enthalpy after compression")
-        fs_state.set("T_dis", self.state_c_5.T, "K", "Discharge temperature")
         fs_state.set("p_2", self.state_outlet.p, "Pa", "Outlet pressure")
         fs_state.set("p_1", self.state_inlet.p, "Pa", "Inlet Pressure")
         fs_state.set("T_1", self.state_inlet.T, "K", "Inlet Temperature")
-
-#
 
     def get_eta_mech(self, inputs: Inputs) -> float:
         """
