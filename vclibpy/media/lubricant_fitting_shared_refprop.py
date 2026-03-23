@@ -122,6 +122,13 @@ class LubricantFitting(OilProp):
                 self.kin_visc_h = -1.2629E-01
                 self.kin_visc_i = 2.0426E-01
 
+                # Heat capacities
+                self.T_cp = [
+                    -20, -10, 0, 10, 20, 30, 40, 50, 60,
+                    70, 80, 90, 100]
+                self.cp = [1.63, 1.66, 1.68, 1.71, 1.73, 1.77, 1.80,
+                      1.84, 1.88, 1.91, 1.95, 1.99, 2.03]
+
             elif lub_name == "LPG 100":  # Parameters for LPG 100
                 self.T_crit = 369.89  # K (for reduced temperature)
                 self.M_rfg = 43.01
@@ -167,6 +174,14 @@ class LubricantFitting(OilProp):
                 self.kin_visc_g = -1.7803E+00
                 self.kin_visc_h = -2.3293E+00
                 self.kin_visc_i = 1.6092E+00
+
+                # Heat capacities
+                self.T_cp = [
+                    -20, -10, 0, 10, 20, 30, 40, 50, 60,
+                    70, 80, 90, 100]
+                self.cp = [1.64, 1.66, 1.68, 1.71, 1.74,
+                           1.77, 1.81, 1.84, 1.88, 1.92,
+                           1.96, 2.00, 2.04]
 
     def set_refrigerant_prop(self, refrigerant_prop: RefProp):
         """
@@ -336,12 +351,14 @@ class LubricantFitting(OilProp):
             state.d = rho
             state.v = 1 / rho
 
+            c_oil = np.interp(state.T-273.15,self.T_cp,self.cp) * 1E3
+
             props = TransportProperties(
                 lam=float("nan"),
                 dyn_vis=dyn_vis,   # mPa*s
                 kin_vis=kin_vis,
                 pr=float("nan"),
-                cp=float("nan"),
+                cp = c_oil,         # in J/(kg*K)
                 cv=float("nan"),
                 beta=float("nan"),
                 sur_ten=float("nan"),
