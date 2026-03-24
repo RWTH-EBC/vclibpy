@@ -122,12 +122,11 @@ class LubricantFitting(OilProp):
                 self.kin_visc_h = -1.2629E-01
                 self.kin_visc_i = 2.0426E-01
 
-                # Heat capacities
-                self.T_cp = [
-                    -20, -10, 0, 10, 20, 30, 40, 50, 60,
-                    70, 80, 90, 100]
-                self.cp = [1.63, 1.66, 1.68, 1.71, 1.73, 1.77, 1.80,
-                      1.84, 1.88, 1.91, 1.95, 1.99, 2.03]
+                # Pure oil specific heat capacity: cp_oil [kJ/(kg*K)] = _cp_a + _cp_b * T [K]
+                # Linear regression from Fuchs manufacturer data (VP.FLG.4.2022/276)
+                # R² = 0.9929, max. relative error = 1.06 %, valid -20 °C to 100 °C
+                self._cp_a = 0.764277
+                self._cp_b = 0.00335165
 
             elif lub_name == "LPG 100":  # Parameters for LPG 100
                 self.T_crit = 369.89  # K (for reduced temperature)
@@ -175,13 +174,11 @@ class LubricantFitting(OilProp):
                 self.kin_visc_h = -2.3293E+00
                 self.kin_visc_i = 1.6092E+00
 
-                # Heat capacities
-                self.T_cp = [
-                    -20, -10, 0, 10, 20, 30, 40, 50, 60,
-                    70, 80, 90, 100]
-                self.cp = [1.64, 1.66, 1.68, 1.71, 1.74,
-                           1.77, 1.81, 1.84, 1.88, 1.92,
-                           1.96, 2.00, 2.04]
+                # Pure oil specific heat capacity: cp_oil [kJ/(kg*K)] = _cp_a + _cp_b * T [K]
+                # Linear regression from Fuchs manufacturer data (VP.FLG.4.2022/250)
+                # R² = 0.9912, max. relative error = 1.53 %, valid -20 °C to 100 °C
+                self._cp_a = 0.752456
+                self._cp_b = 0.00340659
 
     def set_refrigerant_prop(self, refrigerant_prop: RefProp):
         """
@@ -346,19 +343,20 @@ class LubricantFitting(OilProp):
                 + w * (self.kin_visc_d + self.kin_visc_e * logT + self.kin_visc_f * logT ** 2)
                 + w ** 2 * (self.kin_visc_g + self.kin_visc_h * logT + self.kin_visc_i * logT ** 2)
             )
-            kin_vis = math.pow(10, math.pow(10, y)) - 0.7
+            kin_vis = math.pow(10.0, math.pow(10.0, y)) - 0.7
 
             state.d = rho
-            state.v = 1 / rho
+            state.v = 1.0 / rho
 
-            c_oil = np.interp(state.T-273.15,self.T_cp,self.cp) * 1E3
+            # Pure oil cp from linear regression: cp [kJ/(kg*K)] = _cp_a + _cp_b * T [K]
+            c_oil = (self._cp_a + self._cp_b * T) * 1e3  # convert to J/(kg*K)
 
             props = TransportProperties(
                 lam=float("nan"),
                 dyn_vis=dyn_vis,   # mPa*s
                 kin_vis=kin_vis,
                 pr=float("nan"),
-                cp = c_oil,         # in J/(kg*K)
+                cp=c_oil,          # J/(kg*K)
                 cv=float("nan"),
                 beta=float("nan"),
                 sur_ten=float("nan"),
