@@ -10,12 +10,15 @@ The oil is pumped from the high-pressure sump (p_dis, T_oil_sump) through
 the crankshaft into the suction chamber at p_suc.
 
 Suction side:
-    - Throttling from p_dis to p_suc causes partial degassing at T_oil_sump.
-    - The liquid stream exchanges heat with the fictitious wall (Q_suc_oil,
-      computed via enthalpy balance). Back-dissolution is permitted.
+    - ISENTHALPIC throttling from p_dis to p_suc causes partial degassing
+      and cooling (T_throttle < T_oil_sump due to evaporation enthalpy).
+    - The COMBINED liquid + gas stream exchanges heat with the fictitious
+      wall via NTU-epsilon. Both liquid and degassed gas participate in the
+      heat transfer. Back-dissolution is permitted.
     - Additional degassing/dissolution at T_oil_after is tracked separately.
-    - Residuum 4 uses SPLIT degassing: throttle part at T_oil_sump,
-      HT part at T_oil_after, each with its own enthalpy.
+    - Residuum 4 uses a UNIFIED degassing enthalpy: all degassed gas enters
+      the cylinder at T_oil_after (after participating in suction HT).
+    - Q_suc_oil is computed via full enthalpy balance across the HT zone.
 
 Discharge side (James Eq. 17-18 approach):
     - The total gas mass flow through the discharge valve and discharge HT
@@ -26,6 +29,11 @@ Discharge side (James Eq. 17-18 approach):
     - The combined stream undergoes discharge heat transfer with the wall using
       a single NTU-epsilon calculation with the total mass flow.
     - Oil cp uses calc_cp_mix (oil-KM mixture), not pure oil cp.
+
+Oil sump energy balance:
+    - The oil returns from the discharge line at T_dis and must cool to
+      T_oil_sump (Zhang correlation) in steady state. The rejected heat
+      Q_oil_sump is included in the wall energy balance (R5).
 
 Residuum 3 follows the James/Molinaroli convention: the oil does NOT reduce
 the effective gas volume in the cylinder.
@@ -40,6 +48,7 @@ A predictor-corrector scheme is used for T_dis: first a gas-only discharge
 HT provides T_dis_est, then the oil path is computed, then a combined
 discharge HT gives T_dis_final, and the oil path is recomputed with this
 corrected T_dis. This closes the coupling without a full inner iteration.
+A warning is issued if the predictor-corrector gap exceeds 5 K.
 
 m_flow is the EXTERNAL suction refrigerant mass flow rate (catalogue value).
 m_dot_gas_discharge = m_suc + m_KM_degas_total is the gas flow through the
@@ -57,7 +66,7 @@ References:
     Molinaroli et al. (2017), doi:10.1016/j.ijrefrig.2017.04.015
     James et al. (2016), doi:10.1016/j.ijrefrig.2015.12.011
 """
-from scipy.optimize import least_squares
+from scipy.optimize import least_squares, brentq
 import os
 import numpy as np
 
@@ -172,6 +181,7 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self.m_dot_oil = None
         self.Q_dot_suc_oil = None
         self.W_dot_oil_recirc = None
+        self.Q_oil_sump = None
         self.m_dot_KM_degas_thr = None
         self.m_dot_KM_degas_ht = None
         self.m_dot_KM_degas_total = None
@@ -179,15 +189,16 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self.w_KM_sump = None
         self.w_KM_after = None
         self.T_oil_after = None
+        self.T_throttle = None
         # Diagnostic
         self.m_dot_KM_gas = None
         self.T_KM_gas = None
-        self.m_dot_gas_discharge = None  # Gas through discharge valve (m_suc + m_degas)
-        self.m_dot_KM_degas_ht_raw = None  # Raw HT degassing before limiting
-        self.w_KM_after_raw = None  # Raw solubility after HT (before cap)
-        self.Q_dis_total = None  # Total discharge HT (gas + oil combined)
-        self.T_dis_est = None    # Predictor T_dis (gas-only)
-        self.T_dis_corr = None   # Corrector T_dis (combined)
+        self.m_dot_gas_discharge = None
+        self.m_dot_KM_degas_ht_raw = None
+        self.w_KM_after_raw = None
+        self.Q_dis_total = None
+        self.T_dis_est = None
+        self.T_dis_corr = None
 
         # Per-residual-call storage
         self._current_oil_path = None
@@ -210,6 +221,8 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self._gamma4_n = 0
         self._corrector_fallback_count = 0
         self._solver_fallback_count = 0
+        self._w_KM_after_fallback_count = 0
+        self._throttle_fallback_count = 0
 
     # -----------------------------------------------------------------
     # Helpers
@@ -327,11 +340,9 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
             return h_dis, T_dis, Q_dis
 
         # --- Adiabatic mixing of gas and oil in discharge plenum (after valve) ---
-        # Gas mass flow includes degassed KM (mass-consistent with R2, R3)
         m_dot_gas = m_dot_suc + oil_path["m_dot_KM_degas_total"]
         m_dot_fl = oil_path["m_dot_fl"]
         T_oil = oil_path["T_oil_after"]
-        # Oil-KM mixture cp (still at p_suc composition during Ansatz 1)
         p_suc = self.state_inlet.p
         cp_fl = lubricant.calc_cp_mix(T_oil, p_suc, oil_path["w_KM_after"])
         m_dot_total = m_dot_gas + m_dot_fl
@@ -367,52 +378,121 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
     # =================================================================
     def _calculate_oil_path(self, T_w, T_dis_exact, inputs, p_suc, p_dis):
         """
-        Oil path with split degassing and enthalpy-balance Q_suc_oil.
+        Oil path with isenthalpic throttle, combined liquid+gas suction HT,
+        and oil sump energy balance.
 
-        Returns dict with separate throttle and HT degassing, or None.
+        Process steps:
+            1. Pure oil mass flow (frequency-scaled)
+            2. Oil sump temperature (Zhang correlation)
+            3. Isenthalpic throttle (p_dis -> p_suc): find T_throttle via
+               brentq such that total enthalpy is conserved. Produces
+               T_throttle < T_oil_sump due to evaporation enthalpy.
+            4. Throttle degassing at T_throttle
+            5. Combined (liquid + gas) NTU-epsilon heat transfer with wall
+            6. Solubility after HT (back-dissolution allowed, fallback warned)
+            7. Q_suc_oil via full enthalpy balance across HT zone
+            8. Hydraulic oil recirculation loss
+            9. Oil sump energy balance (Q_oil_sump for R5)
+
+        Returns dict with all oil path quantities, or None on failure.
         """
         lubricant = self._get_lubricant_model()
         f = self.get_n_absolute(inputs.control.n)
         f_ref = self.parameters["f_ref"]
 
-        # Step 1: Pure oil mass flow
+        # ----- Step 1: Pure oil mass flow -----
         m_dot_oil = self.parameters["m_dot_oil_ref"] * (f / f_ref) ** 2
 
-        # Step 2: Oil sump temperature
+        # ----- Step 2: Oil sump temperature -----
         T_amb = self._get_ambient_temperature(inputs)
         T_oil_sump = self._calculate_oil_sump_temperature(
             T_dis_exact, self.state_inlet.T, T_amb)
 
-        # Step 3: Solubility at sump and after throttle
+        # ----- Step 3: Solubility at sump & isenthalpic throttle -----
         w_KM_sump = lubricant.solve_w_KM(T_oil_sump, p_dis)
         if w_KM_sump is None:
             return None
-        w_KM_suc = lubricant.solve_w_KM(T_oil_sump, p_suc)
+
+        # Total mixture entering throttle at sump conditions
+        m_dot_KM_in_oil = m_dot_oil * w_KM_sump / (1.0 - w_KM_sump)
+        m_dot_fl_sump = m_dot_oil + m_dot_KM_in_oil  # = m_dot_oil / (1 - w_KM_sump)
+
+        # Enthalpy before throttle (entire mixture at T_sump, p_dis, w_KM_sump)
+        h_before_throttle = m_dot_fl_sump * lubricant.calc_h_mix(
+            T_oil_sump, p_dis, w_KM_sump)
+
+        # Isenthalpic throttle: find T_throttle such that h_after = h_before
+        # The self-limiting effect (cooler -> higher solubility -> less degassing
+        # -> less cooling) ensures good convergence.
+        T_throttle = T_oil_sump  # isothermal default / fallback
+        try:
+            def _throttle_residual(T_trial):
+                w_trial = lubricant.solve_w_KM(T_trial, p_suc)
+                if w_trial is None:
+                    return 1e6  # push solver away from this region
+                m_KM_trial = m_dot_oil * w_trial / (1.0 - w_trial)
+                m_fl_trial = m_dot_oil + m_KM_trial
+                m_degas_trial = max(0.0, m_dot_KM_in_oil - m_KM_trial)
+                h_gas_trial = self.med_prop.calc_state("PT", p_suc, T_trial).h
+                h_after = (m_fl_trial * lubricant.calc_h_mix(T_trial, p_suc, w_trial)
+                           + m_degas_trial * h_gas_trial)
+                return h_after - h_before_throttle
+
+            T_throttle = brentq(_throttle_residual,
+                                T_oil_sump - 30.0, T_oil_sump + 1.0,
+                                xtol=0.01, maxiter=50)
+        except Exception:
+            # Isothermal fallback if brentq fails
+            self._throttle_fallback_count += 1
+            T_throttle = T_oil_sump
+
+        # Solubility after throttle at T_throttle (not T_sump)
+        w_KM_suc = lubricant.solve_w_KM(T_throttle, p_suc)
         if w_KM_suc is None:
             return None
 
-        # Step 4: Throttle degassing
-        m_dot_KM_in_oil = m_dot_oil * w_KM_sump / (1.0 - w_KM_sump)
+        # ----- Step 4: Throttle degassing -----
         m_dot_KM_suc = m_dot_oil * w_KM_suc / (1.0 - w_KM_suc)
         m_dot_KM_degas_thr = max(0.0, m_dot_KM_in_oil - m_dot_KM_suc)
         m_dot_fl_in = m_dot_oil / (1.0 - w_KM_suc)
 
-        # h_degas_thr: superheated gas at p_suc, T_oil_sump
+        # Gas enthalpy at throttle conditions (for Q_suc_oil enthalpy balance)
         try:
-            h_degas_thr = self.med_prop.calc_state("PT", p_suc, T_oil_sump).h
+            h_degas_thr = self.med_prop.calc_state("PT", p_suc, T_throttle).h
         except Exception:
             h_degas_thr = self.med_prop.calc_state("PQ", p_suc, 1).h
 
-        # Step 5: NTU-epsilon for T_oil_after
-        cp_fl_in = lubricant.calc_cp_mix(T_oil_sump, p_suc, w_KM_suc)
-        _, eps_oil = self._calculate_ntu_effectiveness(
-            self.parameters["Ua_suc_oil_ref"], m_dot_fl_in, cp_fl_in,
-            self.parameters["m_dot_oil_ref"])
-        T_oil_after = T_oil_sump + eps_oil * (T_w - T_oil_sump)
+        # ----- Step 5: NTU-epsilon with COMBINED liquid + gas stream -----
+        # Both the liquid and the degassed gas participate in heat transfer
+        # with the fictitious wall, analogous to the discharge-side approach.
+        cp_fl_in = lubricant.calc_cp_mix(T_throttle, p_suc, w_KM_suc)
 
-        # Step 6: Solubility after HT (back-dissolution allowed)
+        m_dot_total_suc = m_dot_fl_in + m_dot_KM_degas_thr
+        if m_dot_KM_degas_thr > 1e-12 and m_dot_total_suc > 1e-12:
+            try:
+                cp_gas_thr = self.med_prop.calc_transport_properties(
+                    self.med_prop.calc_state("PT", p_suc, T_throttle)).cp
+            except Exception:
+                cp_gas_thr = 0.0
+            cp_combined = (m_dot_fl_in * cp_fl_in
+                           + m_dot_KM_degas_thr * cp_gas_thr) / m_dot_total_suc
+        else:
+            m_dot_total_suc = m_dot_fl_in
+            cp_combined = cp_fl_in
+
+        _, eps_oil = self._calculate_ntu_effectiveness(
+            self.parameters["Ua_suc_oil_ref"], m_dot_total_suc, cp_combined,
+            self.parameters["m_dot_oil_ref"])
+        T_oil_after = T_throttle + eps_oil * (T_w - T_throttle)
+
+        # ----- Step 6: Solubility after HT (back-dissolution allowed) -----
         w_KM_after = lubricant.solve_w_KM(T_oil_after, p_suc)
         if w_KM_after is None:
+            # Warn instead of silent fallback (consistent with error philosophy)
+            if ENABLE_TIMING:
+                print(f"  Warning: solve_w_KM failed at T_oil_after={T_oil_after:.1f} K, "
+                      f"p_suc={p_suc:.0f} Pa, using w_KM_suc={w_KM_suc:.6f} as fallback")
+            self._w_KM_after_fallback_count += 1
             w_KM_after = w_KM_suc
 
         m_dot_KM_after = m_dot_oil * w_KM_after / (1.0 - w_KM_after)
@@ -426,33 +506,45 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
 
         # Effective liquid composition: if the cap limits back-dissolution,
         # the liquid state must be consistent with the capped gas exchange.
-        # m_KM_after_eff = what's actually dissolved after the capped exchange.
         m_dot_KM_after_eff = m_dot_KM_suc - m_dot_KM_degas_ht_eff
         if m_dot_KM_after_eff + m_dot_oil > 0:
             w_KM_after_eff = m_dot_KM_after_eff / (m_dot_oil + m_dot_KM_after_eff)
         else:
             w_KM_after_eff = 0.0
 
-        # Use w_KM_after_eff for all liquid properties (consistent with capped gas)
-        m_dot_fl_after = m_dot_oil / (1.0 - w_KM_after_eff) if w_KM_after_eff < 1.0 else m_dot_oil
+        m_dot_fl_after = (m_dot_oil / (1.0 - w_KM_after_eff)
+                          if w_KM_after_eff < 1.0 else m_dot_oil)
 
-        # h_degas_ht: gas at p_suc, T_oil_after
-        try:
-            h_degas_ht = self.med_prop.calc_state("PT", p_suc, T_oil_after).h
-        except Exception:
-            h_degas_ht = self.med_prop.calc_state("PQ", p_suc, 1).h
-
-        # Step 7: Q_suc_oil via enthalpy balance (uses effective values throughout)
-        h_fl_in = lubricant.calc_h_mix(T_oil_sump, p_suc, w_KM_suc)
+        # ----- Step 7: Q_suc_oil via enthalpy balance across HT zone -----
+        # With combined HT, all gas exits the HT zone at T_oil_after.
+        # In:  liquid at (T_throttle, w_KM_suc) + throttle gas at T_throttle
+        # Out: liquid at (T_oil_after, w_KM_after_eff) + all degassed gas at T_oil_after
+        h_fl_in = lubricant.calc_h_mix(T_throttle, p_suc, w_KM_suc)
         h_fl_after = lubricant.calc_h_mix(T_oil_after, p_suc, w_KM_after_eff)
 
-        Q_suc_oil = (m_dot_fl_after * h_fl_after
-                     + m_dot_KM_degas_ht_eff * h_degas_ht
-                     - m_dot_fl_in * h_fl_in)
+        try:
+            h_degas_out = self.med_prop.calc_state("PT", p_suc, T_oil_after).h
+        except Exception:
+            h_degas_out = self.med_prop.calc_state("PQ", p_suc, 1).h
 
-        # Step 8: Hydraulic oil recirculation loss
+        Q_suc_oil = (m_dot_fl_after * h_fl_after
+                     + m_dot_KM_degas_total * h_degas_out
+                     - m_dot_fl_in * h_fl_in
+                     - m_dot_KM_degas_thr * h_degas_thr)
+
+        # ----- Step 8: Hydraulic oil recirculation loss -----
         rho_fl = lubricant.calc_rho_mix(T_oil_after, w_KM_after_eff)
-        W_dot_oil_recirc = m_dot_fl_after * (p_dis - p_suc) / rho_fl if rho_fl > 0 else 0.0
+        W_dot_oil_recirc = (m_dot_fl_after * (p_dis - p_suc) / rho_fl
+                            if rho_fl > 0 else 0.0)
+
+        # ----- Step 9: Oil sump energy balance (steady-state) -----
+        # The oil returns from the discharge line at T_dis and must cool
+        # to T_oil_sump. The rejected heat Q_oil_sump goes to the wall.
+        # Composition: w_KM_sump (sump equilibrium, consistent with the
+        # oil path starting condition — outlet separation is diagnostic only).
+        h_oil_return = lubricant.calc_h_mix(T_dis_exact, p_dis, w_KM_sump)
+        h_oil_leave = lubricant.calc_h_mix(T_oil_sump, p_dis, w_KM_sump)
+        Q_oil_sump = m_dot_fl_sump * (h_oil_return - h_oil_leave)
 
         return {
             "m_dot_oil": m_dot_oil,
@@ -463,12 +555,14 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
             "m_dot_KM_degas_ht_raw": m_dot_KM_degas_ht_raw,
             "m_dot_KM_degas_total": m_dot_KM_degas_total,
             "h_degas_thr": h_degas_thr,
-            "h_degas_ht": h_degas_ht,
+            "h_degas_out": h_degas_out,
             "h_fl_after": h_fl_after,
             "rho_fl": rho_fl,
             "Q_suc_oil": Q_suc_oil,
             "W_dot_oil_recirc": W_dot_oil_recirc,
+            "Q_oil_sump": Q_oil_sump,
             "T_oil_sump": T_oil_sump,
+            "T_throttle": T_throttle,
             "T_oil_after": T_oil_after,
             "w_KM_sump": w_KM_sump,
             "w_KM_suc": w_KM_suc,
@@ -568,6 +662,8 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self._cache_misses = 0
         self._corrector_fallback_count = 0
         self._solver_fallback_count = 0
+        self._w_KM_after_fallback_count = 0
+        self._throttle_fallback_count = 0
         self._gamma4_min = None
         self._gamma4_max = None
         self._gamma4_n = 0
@@ -649,6 +745,8 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         h_dis_final, T_dis_final, Q_dis_total = self._calculate_discharge_heat_transfer(
             m_dot_suc, T_w, h4, p_dis, oil_path=oil)
         self._dis_ht_result = (h_dis_final, T_dis_final, Q_dis_total)
+        self._T_dis_est = T_dis_est
+        self._T_dis_corr = T_dis_final
 
         # --- Loss power ---
         self._loss = self._calculate_loss_power(h4, h3, T_dis_final, p_dis, inputs)
@@ -705,19 +803,17 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         oil = self._current_oil_path
         return m_dot_3 - (m_dot_suc + m_dot_tot + oil["m_dot_KM_degas_total"])
 
-    # R4: Mixing energy with SPLIT degassing
-    # m_degas_ht is the effective value (back-dissolution limited to throttle
-    # release), so thr + ht >= 0 by construction — no conditional needed.
+    # R4: Mixing energy — UNIFIED degassing enthalpy
+    # All degassed gas (throttle + HT) enters the cylinder at T_oil_after,
+    # because the gas participates in the suction-side heat transfer.
     def _residual_mixing_energy(self, m_dot_suc, h1, h3, h4, m_dot_tot):
         oil = self._current_oil_path
 
-        m_degas_thr = oil["m_dot_KM_degas_thr"]
-        m_degas_ht = oil["m_dot_KM_degas_ht"]
         m_degas_total = oil["m_dot_KM_degas_total"]
-
         m_3_gas = m_dot_suc + m_dot_tot + m_degas_total
 
-        e_degas = m_degas_thr * oil["h_degas_thr"] + m_degas_ht * oil["h_degas_ht"]
+        # All degassed gas at T_oil_after (unified after combined HT)
+        e_degas = m_degas_total * oil["h_degas_out"]
 
         e_in = m_dot_suc * h1 + m_dot_tot * h4 + e_degas
         residual = m_3_gas * h3 - e_in
@@ -725,7 +821,7 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
             residual /= m_3_gas
         return residual
 
-    # R5: Wall energy balance
+    # R5: Wall energy balance — includes Q_oil_sump
     def _residual_wall_energy(self, m_dot_suc, T_w, h1, h4, inputs):
         h_suc = self.state_inlet.h
         T_amb = self._get_ambient_temperature(inputs)
@@ -738,8 +834,12 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         Q_amb = np.sign(T_w - T_amb) * self.parameters["Ua_amb"] * abs(T_w - T_amb) ** 1.25
         Q_suc_oil = oil["Q_suc_oil"]
         W_recirc = oil["W_dot_oil_recirc"]
+        Q_oil_sump = oil["Q_oil_sump"]
 
-        residual = (loss["W_dot_loss"] + W_recirc) + Q_dis_total - Q_amb - Q_suc - Q_suc_oil
+        # Q_oil_sump is a heat source for the wall (oil cools from T_dis to T_sump)
+        residual = ((loss["W_dot_loss"] + W_recirc)
+                    + Q_dis_total + Q_oil_sump
+                    - Q_amb - Q_suc - Q_suc_oil)
         if abs(loss["W_dot_int"]) > 1e-10:
             residual /= loss["W_dot_int"]
         return residual
@@ -827,6 +927,12 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self._T_dis_est = T_dis_est
         self._T_dis_corr = T_dis_corr
 
+        # Predictor-corrector convergence warning
+        pc_gap = abs(T_dis_corr - T_dis_est)
+        if pc_gap > 5.0:
+            print(f"  Warning: predictor-corrector T_dis gap = {pc_gap:.1f} K "
+                  f"(est={T_dis_est:.1f} K, corr={T_dis_corr:.1f} K)")
+
         # Final James-style combined discharge HT
         h_dis_final, T_dis, Q_dis_total = self._calculate_discharge_heat_transfer(
             m_dot_suc, T_w, h4, p_dis, oil_path=oil)
@@ -857,10 +963,6 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         W_recirc = oil["W_dot_oil_recirc"]
         self.P_el = self.W_dot_int + self.W_dot_loss + W_recirc
         self.W_dot_comp = self.P_el
-        # m_flow is the EXTERNAL suction refrigerant mass flow rate — the quantity
-        # reported in manufacturer catalogues and relevant for cycle simulation.
-        # It does NOT include the degassed KM from the oil path, which is an
-        # internal recirculation stream that returns to the oil after separation.
         self.m_flow = m_dot_suc
         self.T_w = T_w
 
@@ -868,6 +970,7 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self.m_dot_oil = oil["m_dot_oil"]
         self.Q_dot_suc_oil = oil["Q_suc_oil"]
         self.W_dot_oil_recirc = W_recirc
+        self.Q_oil_sump = oil["Q_oil_sump"]
         self.m_dot_KM_degas_thr = oil["m_dot_KM_degas_thr"]
         self.m_dot_KM_degas_ht = oil["m_dot_KM_degas_ht"]
         self.m_dot_KM_degas_total = oil["m_dot_KM_degas_total"]
@@ -875,6 +978,7 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self.w_KM_sump = oil["w_KM_sump"]
         self.w_KM_after = oil["w_KM_after"]
         self.T_oil_after = oil["T_oil_after"]
+        self.T_throttle = oil["T_throttle"]
 
         # Diagnostic quantities
         self.m_dot_KM_degas_ht_raw = oil["m_dot_KM_degas_ht_raw"]
@@ -884,10 +988,9 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self.T_dis_corr = self._T_dis_corr
 
         # Gas mass flow through discharge valve and discharge HT
-        # = m_suc + m_KM_degas_total (without internal leakage recirculation m_tot)
         self.m_dot_gas_discharge = m_dot_suc + self.m_dot_KM_degas_total
 
-        # Diagnostic outlet separation (approximate — see class docstring)
+        # Diagnostic outlet separation
         sep = self._calculate_outlet_separation(T_dis, p_dis, oil, m_dot_suc)
         self.m_dot_KM_gas = sep["m_dot_KM_gas"] if sep else m_dot_suc
         self.T_KM_gas = sep["T_KM_gas"] if sep else T_dis
@@ -902,9 +1005,11 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         fs_state.set("W_dot_loss_ref_term", self.W_dot_loss_ref_term, "W", "Speed-dependent loss")
         fs_state.set("W_dot_loss_fric", self.W_dot_loss_fric, "W", "Viscous friction loss")
         fs_state.set("W_dot_oil_recirc", self.W_dot_oil_recirc, "W", "Hydraulic oil recirc. loss")
+        fs_state.set("Q_oil_sump", self.Q_oil_sump, "W", "Oil sump heat rejection (T_dis -> T_sump)")
         fs_state.set("T_wall", T_w, "K", "Wall temperature")
         fs_state.set("T_dis", T_dis, "K", "Discharge temperature")
         fs_state.set("T_oil_sump", self.T_oil_sump, "K", "Oil sump temperature")
+        fs_state.set("T_throttle", self.T_throttle, "K", "Oil temperature after isenthalpic throttle")
         fs_state.set("mu_oil", self.mu_oil, "mPa*s", "Dynamic viscosity")
         fs_state.set("mu_mix_eff", self.mu_mix_eff, "Pa*s", "Effective mixture viscosity")
         fs_state.set("pc4", p4, "Pa", "Internal discharge pressure")
@@ -925,7 +1030,7 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         fs_state.set("T_oil_after", self.T_oil_after, "K", "Oil T after suction HT")
         fs_state.set("m_dot_KM_gas", self.m_dot_KM_gas, "kg/s", "Gaseous KM at outlet (diag.)")
         fs_state.set("T_KM_gas", self.T_KM_gas, "K", "Gaseous KM T at outlet (diag.)")
-        # Diagnostic: predictor-corrector and back-dissolution details
+        # Diagnostic: predictor-corrector, throttle, and back-dissolution details
         fs_state.set("w_KM_after_raw", self.w_KM_after_raw, "-", "KM fraction after HT raw (diag.)")
         fs_state.set("m_dot_KM_degas_ht_raw", self.m_dot_KM_degas_ht_raw, "kg/s", "Raw HT degassing before limiting (diag.)")
         fs_state.set("Q_dis_total", self.Q_dis_total, "W", "Total discharge HT gas+oil (diag.)")
@@ -1000,10 +1105,12 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         if not self.debug_enabled or self._gamma4_n == 0:
             return "Debug disabled."
         return (
-            f"Oil Path v5 Debug Report\n"
+            f"Oil Path v6 Debug Report\n"
             f"  gamma4: {self._gamma4_min:.6f}..{self._gamma4_max:.6f} (N={self._gamma4_n})\n"
             f"  state_cache: hits={self._cache_hits}, misses={self._cache_misses}\n"
             f"  dis_valve_cache: {len(self._cached_discharge_valve)}\n"
             f"  visc_cache: {len(self._oil_viscosity_cache)}\n"
             f"  corrector_fallbacks: {self._corrector_fallback_count}\n"
-            f"  solver_fallbacks: {self._solver_fallback_count}")
+            f"  solver_fallbacks: {self._solver_fallback_count}\n"
+            f"  w_KM_after_fallbacks: {self._w_KM_after_fallback_count}\n"
+            f"  throttle_fallbacks: {self._throttle_fallback_count}")
