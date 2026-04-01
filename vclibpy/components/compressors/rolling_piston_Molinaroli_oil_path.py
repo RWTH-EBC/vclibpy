@@ -199,12 +199,14 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self.Q_dis_total = None
         self.T_dis_est = None
         self.T_dis_corr = None
+        self.pc_convergence_gap = None  # |T_dis_final - T_dis_corr|
 
         # Per-residual-call storage
         self._current_oil_path = None
         self._dis_ht_result = None
         self._T_dis_est = None
         self._T_dis_corr = None
+        self._T_dis_final = None
 
         # Solver caches
         self._state_cache = {}
@@ -657,6 +659,7 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self._dis_ht_result = None
         self._T_dis_est = None
         self._T_dis_corr = None
+        self._T_dis_final = None
         self._last_x = None
         self._cache_hits = 0
         self._cache_misses = 0
@@ -729,12 +732,12 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
             return np.full(5, 1e6)
 
         # --- James-style combined discharge HT (with predictor oil path) ---
-        _, T_dis_final, _ = self._calculate_discharge_heat_transfer(
+        _, T_dis_corr, _ = self._calculate_discharge_heat_transfer(
             m_dot_suc, T_w, h4, p_dis, oil_path=oil_pred)
 
-        # --- Oil path (corrector: uses combined T_dis_final) ---
+        # --- Oil path (corrector: uses combined T_dis_corr) ---
         self._current_oil_path = self._calculate_oil_path(
-            T_w, T_dis_final, inputs, p_suc, p_dis)
+            T_w, T_dis_corr, inputs, p_suc, p_dis)
 
         if self._current_oil_path is None:
             return np.full(5, 1e6)
@@ -746,7 +749,8 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
             m_dot_suc, T_w, h4, p_dis, oil_path=oil)
         self._dis_ht_result = (h_dis_final, T_dis_final, Q_dis_total)
         self._T_dis_est = T_dis_est
-        self._T_dis_corr = T_dis_final
+        self._T_dis_corr = T_dis_corr
+        self._T_dis_final = T_dis_final
 
         # --- Loss power ---
         self._loss = self._calculate_loss_power(h4, h3, T_dis_final, p_dis, inputs)
@@ -927,15 +931,18 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self._T_dis_est = T_dis_est
         self._T_dis_corr = T_dis_corr
 
-        # Predictor-corrector convergence warning
-        pc_gap = abs(T_dis_corr - T_dis_est)
-        if pc_gap > 5.0:
-            print(f"  Warning: predictor-corrector T_dis gap = {pc_gap:.1f} K "
-                  f"(est={T_dis_est:.1f} K, corr={T_dis_corr:.1f} K)")
-
         # Final James-style combined discharge HT
         h_dis_final, T_dis, Q_dis_total = self._calculate_discharge_heat_transfer(
             m_dot_suc, T_w, h4, p_dis, oil_path=oil)
+        self._T_dis_final = T_dis
+
+        # Predictor-corrector convergence measure:
+        # |T_dis_final - T_dis_corr| shows how much another iteration would change.
+        # |T_dis_corr - T_dis_est| is the oil effect magnitude (not convergence).
+        pc_convergence_gap = abs(T_dis - T_dis_corr)
+        if pc_convergence_gap > 1.0 and self.debug_enabled:
+            print(f"  Warning: predictor-corrector convergence gap = {pc_convergence_gap:.2f} K "
+                  f"(est={T_dis_est:.1f} K, corr={T_dis_corr:.1f} K, final={T_dis:.1f} K)")
 
         self.state_c_5 = self.med_prop.calc_state("PH", p_dis, h_dis_final)
         # state_outlet is a PURE REFRIGERANT equivalent state at (p_dis, T_dis).
@@ -986,6 +993,7 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         self.Q_dis_total = Q_dis_total
         self.T_dis_est = self._T_dis_est
         self.T_dis_corr = self._T_dis_corr
+        self.pc_convergence_gap = pc_convergence_gap
 
         # Gas mass flow through discharge valve and discharge HT
         self.m_dot_gas_discharge = m_dot_suc + self.m_dot_KM_degas_total
@@ -1035,7 +1043,8 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         fs_state.set("m_dot_KM_degas_ht_raw", self.m_dot_KM_degas_ht_raw, "kg/s", "Raw HT degassing before limiting (diag.)")
         fs_state.set("Q_dis_total", self.Q_dis_total, "W", "Total discharge HT gas+oil (diag.)")
         fs_state.set("T_dis_est", self.T_dis_est, "K", "Predictor T_dis gas-only (diag.)")
-        fs_state.set("T_dis_corr", self.T_dis_corr, "K", "Corrector T_dis combined (diag.)")
+        fs_state.set("T_dis_corr", self.T_dis_corr, "K", "Corrector T_dis 1st combined (diag.)")
+        fs_state.set("pc_convergence_gap", self.pc_convergence_gap, "K", "|T_dis_final - T_dis_corr| convergence measure (diag.)")
 
     # =================================================================
     # INTERFACE (no clamps, NaN on errors)
@@ -1110,6 +1119,8 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
             f"  state_cache: hits={self._cache_hits}, misses={self._cache_misses}\n"
             f"  dis_valve_cache: {len(self._cached_discharge_valve)}\n"
             f"  visc_cache: {len(self._oil_viscosity_cache)}\n"
+            f"  pc_convergence_gap: {self.pc_convergence_gap:.3f} K (|T_final-T_corr|)\n"
+            f"  oil_effect_magnitude: {abs(self.T_dis_corr - self.T_dis_est):.1f} K (|T_corr-T_est|)\n"
             f"  corrector_fallbacks: {self._corrector_fallback_count}\n"
             f"  solver_fallbacks: {self._solver_fallback_count}\n"
             f"  w_KM_after_fallbacks: {self._w_KM_after_fallback_count}\n"
