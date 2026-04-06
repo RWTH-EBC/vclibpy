@@ -86,9 +86,6 @@ from vclibpy.media import ThermodynamicState
 from vclibpy.media.lubricant_fitting_shared_refprop import LubricantFitting as SharedLubricantFitting
 
 
-ENABLE_TIMING = True
-
-
 class Molinaroli_2017_Compressor_Oil_Path(Compressor):
 
     _LUBRICANT_MODEL_CACHE = {}
@@ -458,7 +455,7 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         # Solubility after HT
         w_KM_after = lubricant.solve_w_KM(T_oil_after, p_suc)
         if w_KM_after is None:
-            if ENABLE_TIMING:
+            if self.debug_enabled:
                 print(f"  Warning: solve_w_KM failed at T_oil_after={T_oil_after:.1f} K, "
                       f"p_suc={p_suc:.0f} Pa, using w_KM_suc={w_KM_suc:.6f} as fallback")
             self._w_KM_after_fallback_count += 1
@@ -694,14 +691,16 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
             T_dis_corr = self._calculate_discharge_heat_transfer(m_dot_suc, T_w, h4, p_dis, oil_pred)["T_dis"]
             oil = self._calculate_oil_path(T_w, T_dis_corr, inputs, p_suc, p_dis)
             if oil is None:
-                if ENABLE_TIMING: print("  Warning: corrector oil path failed, using predictor result")
+                if self.debug_enabled:
+                    print("  Warning: corrector oil path failed, using predictor result")
                 self._corrector_fallback_count += 1; oil = oil_pred
         else:
             oil = None
 
         if oil is None:
             if self._current_oil_path is not None:
-                print("  Warning: final-state oil path failed, using last solver result")
+                if self.debug_enabled:
+                    print("  Warning: final-state oil path failed, using last solver result")
                 self._solver_fallback_count += 1; oil = self._current_oil_path
             else:
                 raise RuntimeError("Oil path failed in _calculate_final_states and no valid solver result available.")
