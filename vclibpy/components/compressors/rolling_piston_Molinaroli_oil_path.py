@@ -254,21 +254,41 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         H_in = m_dot_gas_in * h4 + m_dot_fl_after * lubricant.calc_h_mix(T_oil, p_dis, w_KM_after)
 
         stage1_ok = False
+
+        def _s1_res(T_trial):
+            w_t = lubricant.solve_w_KM(T_trial, p_dis)
+            if w_t is None:
+                return 1e6
+            m_KM_t = m_dot_oil * w_t / (1.0 - w_t)
+            m_dis = max(0.0, m_KM_t - m_dot_KM_in_oil)
+            m_g = m_dot_gas_in - m_dis
+            if m_g < 0:
+                return -1e6
+            return (m_g * self.med_prop.calc_state("PT", p_dis, T_trial).h
+                    + (m_dot_oil + m_KM_t) * lubricant.calc_h_mix(T_trial, p_dis, w_t)
+                    - H_in)
+
+        # Find valid brentq lower bound by skipping the None zone.
+        # At low T and high p, solve_w_KM returns None (p_sat < p_dis)
+        # and _s1_res returns +1e6. We scan upward to find where
+        # solve_w_KM first becomes valid. At that boundary, w_KM may be
+        # very high (excessive dissolution → _s1_res = -1e6), but brentq
+        # can handle this: it provides a negative residual, and T_hi
+        # gives a positive residual, so the sign change exists.
+        T_hi_s1 = max(T_oil, T_gas) + 5.0
+        T_lo_s1 = min(T_oil, T_gas) - 5.0
+
+        # Scan to skip the None zone (where _s1_res returns +1e6)
+        for k in range(80):
+            T_test = T_lo_s1 + k
+            if T_test > T_hi_s1:
+                break
+            if lubricant.solve_w_KM(T_test, p_dis) is not None:
+                T_lo_s1 = T_test
+                break
+
         try:
-            def _s1_res(T_trial):
-                w_t = lubricant.solve_w_KM(T_trial, p_dis)
-                if w_t is None:
-                    return 1e6
-                m_KM_t = m_dot_oil * w_t / (1.0 - w_t)
-                m_dis = max(0.0, m_KM_t - m_dot_KM_in_oil)
-                m_g = m_dot_gas_in - m_dis
-                if m_g < 0:
-                    return -1e6
-                return (m_g * self.med_prop.calc_state("PT", p_dis, T_trial).h
-                        + (m_dot_oil + m_KM_t) * lubricant.calc_h_mix(T_trial, p_dis, w_t)
-                        - H_in)
-            T_mix = brentq(_s1_res, min(T_oil, T_gas) - 5.0, max(T_oil, T_gas) + 5.0,
-                           xtol=0.01, maxiter=50)
+            T_mix = brentq(_s1_res, T_lo_s1, T_hi_s1, xtol=0.01, maxiter=50)
             w_KM_mix = lubricant.solve_w_KM(T_mix, p_dis)
             if w_KM_mix is not None:
                 stage1_ok = True
