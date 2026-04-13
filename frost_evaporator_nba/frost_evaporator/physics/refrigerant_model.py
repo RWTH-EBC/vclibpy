@@ -9,11 +9,8 @@ import os
 import warnings
 
 # --- Suppress REFPROP out-of-bounds solver warnings ---
-warnings.filterwarnings(
-    action="ignore",
-    category=UserWarning,
-    message=".*Error number -1 was given in function 'calc_state'.*"
-)
+warnings.filterwarnings(action="ignore", category=UserWarning, message=".*Error number -1 was given in function 'calc_state'.*")
+warnings.filterwarnings(action="ignore", category=UserWarning, message=".*Error number 17.*")
 
 # Get path from environment variable, fall back to a default if not set
 REFPROP_DIR = os.environ.get("REFPROP_PATH", r"C:\Program Files (x86)\REFPROP")
@@ -63,7 +60,7 @@ class RefrigerantModel:
         """
         self.params = parameters
         self.RP     = refprop_instance  
-        print(f"Model initialized with fluid: {self.RP.fluid_name}")
+        # print(f"Model initialized with fluid: {self.RP.fluid_name}")
 
     def update_properties(self, state: FrostEvaporatorState, inputs: FrostEvaporatorInputs):
         """
@@ -356,11 +353,9 @@ class RefrigerantModel:
             return Nu_lam
 
         # Calculate Turbulent Nu (Eq 4.24, 4.25)
-        # Check Prandtl range validity
-        if Pr < 0.5 or Pr > 2000:
-            # raise ValueError(f"Prandtl number ({Pr}) out of range [0.5, 2000] for Gnielinski correlation.")
-            print("Warning: Prandtl number out of range for Gnielinski correlation. Returning laminar Nusselt number as fallback.")
-            return Nu_lam # Fallback to laminar value if Pr is out of range
+
+        # Cap Prandlt Number to avoid numerical issues in the Gnielinski correlation
+        Pr = max(0.5, min(Pr, 2000.0))
 
         zeta = (0.79 * math.log(Re) - 1.64)**(-2.0)
         numerator = (zeta / 8.0) * (Re - 1000) * Pr

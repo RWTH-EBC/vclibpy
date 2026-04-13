@@ -16,7 +16,7 @@ class FrostEvaporatorParameters(VariableContainer):
         # General Parameters
         time_step: float,
         gravity: float,
-        alpha_0: float,
+        h_conv_0: float,
         refrigerant: str,
 
         # Correlations Choices
@@ -33,6 +33,8 @@ class FrostEvaporatorParameters(VariableContainer):
         correction_factor_surface_density: float,
         correction_factor_k_frost: float,
         correction_factor_pressure_loss: float,
+        correction_factor_roughness_C: float,
+        correction_factor_roughness_n: float,
         correction_factor_frost_diffusion: float,
 
         # Geometry Parameters (Global / Whole Evaporator)
@@ -68,7 +70,7 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("ambient_pressure", 101325.0, "Pa", "Ambient pressure for air-side calculations")
         self.set("ice_density", 918, "kg/m^3", "Density of solid ice (for porosity calculation)")
         self.set("diffusivity_w_vapor_in_air", 2.12e-5, "m^2/s", "diffusivity of water vapor in air")
-        self.set("alpha_0", alpha_0, "W/(m^2*K)", "Coefficient for two-phase htc (VDI Wärmeatlas H2 Tab.1)")
+        self.set("h_conv_0", h_conv_0, "W/(m^2*K)", "Coefficient for two-phase htc (VDI Wärmeatlas H2 Tab.1)")
         self.set("q_dot_0", 20000, "W/m^2", "Normalized heat flux for propane two-phase htc (VDI Wärmeatlas H2 Tab.1)")
         self.set("refrigerant", refrigerant, "-", "Type of refrigerant used in the evaporator")
 
@@ -86,6 +88,8 @@ class FrostEvaporatorParameters(VariableContainer):
         self.set("correction_factor_surface_density", correction_factor_surface_density, "-", "Correction factor to scale the frost surface density")
         self.set("correction_factor_k_frost", correction_factor_k_frost, "-", "Correction factor to scale the frost heat transfer")
         self.set("correction_factor_pressure_loss", correction_factor_pressure_loss, "-", "Correction factor to scale the air-side pressure loss")
+        self.set("correction_factor_roughness_C", correction_factor_roughness_C, "-", "TODO") #! TODO
+        self.set("correction_factor_roughness_n", correction_factor_roughness_n, "-", "TODO") #! TODO
         self.set("correction_factor_frost_diffusion", correction_factor_frost_diffusion, "-", "Correction factor to scale the diffusivity (split of thickenig vs densifying)")
 
         # Structure & Geometry (Global / Whole Evaporator)
@@ -202,7 +206,7 @@ class FrostEvaporatorParameters(VariableContainer):
             # General
             time_step   = gen['time_step'],
             gravity     = gen['gravity'],
-            alpha_0     = gen['alpha_0'],
+            h_conv_0     = gen['h_conv_0'],
             refrigerant = gen['refrigerant'],
 
             # Correlations
@@ -219,6 +223,8 @@ class FrostEvaporatorParameters(VariableContainer):
             correction_factor_surface_density     = fact['surface_density'],
             correction_factor_k_frost             = fact['k_frost'],
             correction_factor_pressure_loss       = fact['pressure_loss'],
+            correction_factor_roughness_C         = fact['roughness_C'],
+            correction_factor_roughness_n         = fact['roughness_n'],
             correction_factor_frost_diffusion     = fact['frost_diffusion'],
 
             # Geometry (Global / Whole Evaporator)
@@ -393,8 +399,6 @@ class AirState(VariableContainer):
         self.set("lewis_avg", 0.85, "-", "Average Lewis number")
         self.set("rho_w_in", 0.0 , "kg/m^3", "Water vapor density at inlet")
         self.set("rho_w_out", 0.0 , "kg/m^3", "Water vapor density at inlet")
-
-        self.set("roughness_multiplier", 1.0, "-", "Multiplier to account for increased roughness due to frost")
     
         self.set("rho_w_frost_surface_sat", 0.0 , "kg/m^3", "Saturation water vapor density at frost surface temperature")
         self.set("W_frost_surface_sat", 0.0, "kg/kg, Frost Surface saturated air absolute humidity")

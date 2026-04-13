@@ -74,22 +74,21 @@ class AirModel:
             D_h                      = D_h
         )
 
-        # Roughness Correction for the Convective Heat Transfer Coefficient
-        # h_conv_physical = h_conv_raw * (state.air.roughness_multiplier ** 0.7) #! CHECK
-        h_conv_physical = h_conv_raw
-
         # --- Mass Transfer Coefficient ---
         betta_raw = self._calculate_mass_transfer_coefficient(
-            h_conv        = h_conv_physical,
+            h_conv        = h_conv_raw,
             density       = density_avg,
             heat_capacity = heat_capacity_avg,
             lewis_number  = lewis_avg
         )
 
         # Multiply with manual correction factor
-        h_conv = h_conv_physical * self.params.correction_factor_h_conv_air
+        h_conv = h_conv_raw * self.params.correction_factor_h_conv_air
 
-        correction_factor_betta_air = self.params.correction_factor_betta_intercept_air + self.params.correction_factor_betta_slope_air * state.frost.space_between_frost
+        # Bound Fin Spacing (Bounded by Experimental data at 1.75 and 7 mm):
+        bound_spacing = np.clip(self.params.fin_pitch, 0.00175, 0.007)
+
+        correction_factor_betta_air = self.params.correction_factor_betta_intercept_air + self.params.correction_factor_betta_slope_air * bound_spacing
         betta = betta_raw * correction_factor_betta_air
 
         # --- Mass Flows ---
@@ -249,16 +248,20 @@ class AirModel:
         density = (1.0 + W) / props['Vha']
         water_vapor_density, _ = self._get_water_vapor_density(T=T, p=p, W=W_gas)
 
-
         # Handle Fog Corrections
         if W_liquid > 0.0:           
-            # Get Liquid Water Properties at T (Sat liquid approximation)
-            h_liq = CP_HumidAir.PropsSI('H', 'T', T, 'Q', 0, 'Water')  # J/kg_water
-            cp_liq = CP_HumidAir.PropsSI('C', 'T', T, 'Q', 0, 'Water') # J/kg_water*K
+            if T >= 273.15:
+                # Get Liquid Water Properties at T
+                h_condensed = CP_HumidAir.PropsSI('H', 'T', T, 'Q', 0, 'Water')  
+                cp_condensed = CP_HumidAir.PropsSI('C', 'T', T, 'Q', 0, 'Water') 
+            else:
+                # Get Ice Properties at T
+                h_condensed = self._get_ice_enthalpy(T)
+                cp_condensed = 2060.0  # Approx specific heat capacity of ice [J/kg*K]
 
             # Correct the air enthalpy and specific heat capacity
-            props['Enthalpy'] += (W_liquid * h_liq)
-            props['cp_ha'] += (W_liquid * cp_liq)
+            props['Enthalpy'] += (W_liquid * h_condensed)
+            props['cp_ha'] += (W_liquid * cp_condensed)
 
             # Set the air relative humidity (saturation)
             rel_humidity = 1.0

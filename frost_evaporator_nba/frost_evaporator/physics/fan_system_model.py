@@ -172,8 +172,9 @@ class FanSystemModel:
                 xtol = 1e-6
             )
         except ValueError:
-            # If choked or out of range, default to 0 or min
-            m_dot_solved = 0.0
+            # The system is choked. Clamp to the minimum valid fan flow.
+            m_dot_solved = min_m_dot
+            print("[Fan System] Warning: No valid mass flow found within fan curve limits. Clamping to minimum flow.")
 
 
         # ================= Update States =================
@@ -195,7 +196,7 @@ class FanSystemModel:
             density_local = state.air.density_avg
 
             # Re-calculate exact dP and Velocity for this layer using solved mass flow
-            dp_layer, v_local, roughness_multiplier = self._calculate_layer_dp(
+            dp_layer, v_local = self._calculate_layer_dp(
                 state         = state, 
                 m_dot         = m_dot_solved, 
                 density_local = density_local
@@ -206,7 +207,6 @@ class FanSystemModel:
             state.air.set("p_out", current_static_pressure - dp_layer)
             state.air.set("pressure_drop", dp_layer)
             state.air.set("v_dot_fan_m3h_segment", v_dot_fan_m3h)
-            state.air.set("roughness_multiplier", roughness_multiplier)
 
             state.air.set("total_fan_power", total_power_watts)
             state.air.set("total_system_pressure_drop", total_pressure_drop_fan)
@@ -255,12 +255,12 @@ class FanSystemModel:
             "Longitudinal Pitch (Pl)": (longitudinal_pitch_mm, 12.4, 27.5),
         }
 
-        for name, (val, min_v, max_v) in checks.items():
-            if not (min_v <= val <= max_v):
-                warnings.warn(
-                    f"[Wang Correlation Validity] {name} value {val:.2f} is outside "
-                    f"the valid range [{min_v} - {max_v}]. Results may be inaccurate."
-                )
+        # for name, (val, min_v, max_v) in checks.items():
+        #     if not (min_v <= val <= max_v):
+        #         warnings.warn(
+        #             f"[Wang Correlation Validity] {name} value {val:.2f} is outside "
+        #             f"the valid range [{min_v} - {max_v}]. Results may be inaccurate."
+        #         )
 
     def _calculate_hydraulic_residual(self, m_dot_guess: float, states: list[FrostEvaporatorState], density_inlet: float) -> float:
         """
@@ -282,7 +282,7 @@ class FanSystemModel:
         dp_system_total = 0.0
         
         for state in states:                
-            dp_layer, _, _ = self._calculate_layer_dp(
+            dp_layer, _= self._calculate_layer_dp(
                 state         = state, 
                 m_dot         = m_dot_guess,
                 density_local = state.air.density_avg
@@ -327,120 +327,34 @@ class FanSystemModel:
 
         # Pressure Drop Calculation 
         if self.params.pressure_drop_correlation_choice == "Wang":
-            dp_raw = self._calculate_system_resistance_wang(
+            # Get the clean pressure drop
+            dp_clean = self._calculate_system_resistance_wang(
                 velocity                = v_loc, 
                 density                 = density_local, 
                 dyn_viscosity           = state.air.dyn_viscosity_avg, 
                 hydraulic_diameter      = hydraulic_diameter,
-                collar_diameter_w_frost = state.frost.collar_diameter_w_frost
+                collar_diameter_w_frost = state.frost.collar_diameter_w_frost,
+                space_between_frost     = state.frost.space_between_frost,
             )
+            
+            # Get the frost blockage multiplier
+            frost_penalty = self._calculate_frost_blockage_scaling(
+                space_between_frost = state.frost.space_between_frost
+            )
+            
+            # Apply the scaling
+            dp_raw = dp_clean * frost_penalty
 
         else:
             raise ValueError(f"Unknown pressure drop correlation choice: {self.params.pressure_drop_correlation_choice}")
-        
-        # --- Roughness Multiplier ---
-        frost_sand_grain_roughness = self._calculate_frost_sand_grain_roughness(
-            thickness = state.frost.thickness,
-            absolute_humidity = state.air.W_avg,
-            Re_Dh = Re_Dh,
-            T_frost_surface = state.hmt.T_frost_surface,
-            T_frost_base = state.hmt.T_frost_base,
-            T_air = state.air.T_avg,
-        )
-
-        f_rough  = self._calculate_friction_from_roughness(
-            Re_Dh = Re_Dh,
-            Dh = hydraulic_diameter,
-            ks = frost_sand_grain_roughness,
-        )
-
-        f_smooth = self._calculate_friction_from_roughness(
-            Re_Dh = Re_Dh,
-            Dh = hydraulic_diameter,
-            ks = 1e-9,  # Smooth surface approximation
-        )
-
-        # avoid division by zero
-        if f_smooth <= 1e-12:
-            roughness_multiplier = 1.0
-        else:
-            roughness_multiplier = f_rough / f_smooth
 
         # --- Combine ---
-        dp_final = dp_raw * roughness_multiplier * self.params.correction_factor_pressure_loss
+        dp_final = dp_raw * self.params.correction_factor_pressure_loss 
 
-        return dp_final, v_loc, roughness_multiplier
+        return dp_final, v_loc
+    
 
-
-    def _calculate_frost_sand_grain_roughness(self, thickness: float, absolute_humidity: float, Re_Dh: float, T_frost_surface: float, T_frost_base: float, T_air: float) -> float:
-        """
-        Calculates equivalent sand-grain roughness using Zhang et al. (2021). Eq. 13
-        DOI: 10.2514/1.C036066
-
-        Args:
-            thickness: Frost thickness [m].
-            absolute_humidity: Air humidity ratio [kg/kg].
-            Re_Dh: Reynolds number based on hydraulic diameter [-].
-            T_frost_surface: Frost surface temperature [K].
-            T_frost_base: Wall/Base temperature [K].
-            T_air: Bulk air temperature [K].
-        Returns:
-            The calculated equivalent sand-grain roughness [m].
-        """
-        import numpy as np
-
-        # Physical Constant: Triple point of water [K]
-        T_o = 273.15
-
-        # Safety checks for negligible frost or invalid temp gradients
-        delta_T_total = T_air - T_frost_base
-        if thickness <= 1e-9 or delta_T_total <= 1e-5:
-            return 0.0
-
-        # Temperature terms
-        raw_ratio = (T_air - T_frost_surface) / delta_T_total
-        temp_ratio = max(0.0, min(1.0, raw_ratio))
-
-        delta_T_frost = max(0.0, T_frost_surface - T_frost_base)
-
-        # Calculate dimensionless roughness (ks / hf) using Zhang et al. Eq 13
-        ks_dimensionless = (
-            0.029 
-            * (absolute_humidity**0.367) 
-            * (Re_Dh**0.150) 
-            * ((delta_T_frost / T_o)**0.342) 
-            * np.exp(6.716 * temp_ratio)
-        )
-
-        return thickness * ks_dimensionless
-        
-
-    def _calculate_friction_from_roughness(self, Re_Dh: float, Dh: float, ks: float) -> float:
-        """
-        Calculates the Darcy friction factor using the Churchill (1977) correlation,
-        spanning all flow regimes continuously. Includes a theoretical laminar 
-        constriction penalty for macro-roughness (frost).
-        
-        Citation (Base Friction):
-            Churchill, S. W. (1977). Friction-factor equation spans all fluid-flow regimes. 
-            Chemical engineering, 84(24), 91-92.
-        """
-        
-        if Re_Dh <= 1e-5 or Dh <= 1e-9:
-            return 0.0
-            
-        # Cap relative roughness to prevent math domain errors
-        rel_roughness = min(ks / Dh, 0.99)  
-        
-        # Churchill (1977) Equation
-        A = (-2.457 * math.log((7.0 / Re_Dh)**0.9 + 0.27 * rel_roughness))**16
-        B = (37_530.0 / Re_Dh)**16
-        
-        return 8.0 * ((8.0 / Re_Dh)**12 + 1.0 / (A + B)**1.5)**(1.0 / 12.0)
-
-
-
-    def _calculate_system_resistance_wang(self, velocity: float, density: float, dyn_viscosity: float, hydraulic_diameter: float, collar_diameter_w_frost: float) -> float:
+    def _calculate_system_resistance_wang(self, velocity: float, density: float, dyn_viscosity: float, hydraulic_diameter: float, collar_diameter_w_frost: float, space_between_frost: float) -> float:
         """
         Calculates Pressure Drop using Wang et al. (2000) Friction Factor.
         
@@ -459,9 +373,9 @@ class FanSystemModel:
         # Map to Wang variables for readability
         Pl = self.params.longitudinal_tube_pitch
         Pt = self.params.transverse_tube_pitch
-        Fp = self.params.fin_pitch
+        Fp = space_between_frost
         Dc = collar_diameter_w_frost
-        N = float(self.params.fvm_tube_layers)
+        N = float(self.params.global_tube_layers)
         
         # 1. Reynolds (based on Collar Diameter Dc, NOT Hydraulic Diameter)
         reynolds_dc = (density * velocity * Dc) / dyn_viscosity
@@ -484,3 +398,34 @@ class FanSystemModel:
         friction_term = 4.0 * f * (self.params.fvm_fin_length / hydraulic_diameter)
         
         return friction_term * dynamic_pressure
+
+
+    def _calculate_frost_blockage_scaling(self, space_between_frost: float) -> float:
+        """
+        Calculates a non-linear empirical blockage penalty multiplier to apply 
+        to a clean pressure drop correlation.
+        
+        Args:
+            space_between_frost: Space between frost layers [m].
+            
+        Returns:
+            total_penalty: The pressure drop multiplier (> 1.0 when frosted).
+        """
+        Fp_clean = self.params.fin_spacing
+        frost_thickness = max(0.0, (Fp_clean - space_between_frost) / 2.0)
+        
+        # Calculate the blocked ratio
+        blocking_ratio = (2.0 * frost_thickness) / Fp_clean
+
+        # Cap to prevent the model from diverging at extreme blockage levels
+        max_allowed_blockage = 0.8
+        blocking_ratio = min(blocking_ratio, max_allowed_blockage)
+
+        # Tuning Parameters
+        roughness_C = self.params.correction_factor_roughness_C 
+        blocking_n  = self.params.correction_factor_roughness_n
+        
+        # Calculate penalty multiplier
+        total_penalty = 1.0 + roughness_C * (blocking_ratio ** blocking_n)
+        
+        return total_penalty

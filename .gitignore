@@ -3,6 +3,8 @@
 *.bak
 .project
 .pydevproject
+*.pkl
+*.db
 
 # pip install #
 #####################

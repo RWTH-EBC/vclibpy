@@ -21,7 +21,7 @@ from .physics import (
 from .exp_data_processing import MultiExperimentAnalyzer
 from .simulation_core import FrostEvaporatorSimulation
 from .reporting import SimulationVisualizer
-
+from .heat_pump_sim_core import HeatPumpSimulation
 
 # Defines what `from frost_evaporator import *` will import
 __all__ = [
@@ -43,5 +43,6 @@ __all__ = [
     # Workflow / Simulation
     "MultiExperimentAnalyzer",
     "FrostEvaporatorSimulation",
-    "SimulationVisualizer"
+    "SimulationVisualizer",
+    "HeatPumpSimulation"
 ]

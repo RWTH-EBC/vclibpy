@@ -243,8 +243,8 @@ class HeatMassTransferModel:
         """
         # Solver Constants
         MAX_STEP_SIZE = 2.0  
-        MAX_ITER = 25
-        TOLERANCE = 0.05
+        MAX_ITER = 40
+        TOLERANCE = 0.001
         SMALL_DENOMINATOR = 1e-9
 
         # If Refrigerant is hotter than Air (impossible for evaporator), set T_surf = T_air
@@ -538,7 +538,7 @@ class HeatMassTransferModel:
 
     def _calculate_enthalpy_sublimation(self, T_frost_surface: float) -> float:
         """
-        Calculates the latent heat of phase change.
+        Calculates the latent heat of phase change using a smooth sigmoid blend.
         Sublimation (Ice -> Vapor) if below freezing.
         Vaporization (Liquid -> Vapor) if above freezing.
         
@@ -546,16 +546,31 @@ class HeatMassTransferModel:
             T_frost_surface: Surface temperature in Kelvin.
             
         Returns:
-            Enthalpy of sublimation [J/kg]
+            Enthalpy of sublimation/vaporization [J/kg]
         """
+        import numpy as np
+        
         T_celsius = T_frost_surface - 273.15
         
-        if T_celsius <= 0.0:
-            # Sublimation: approx 2834 kJ/kg at 0°C
-            return (2834.3 - 0.29 * T_celsius) * 1000.0
-        else:
-            # Vaporization: approx 2501 kJ/kg at 0°C
-            return (2501.0 - 2.36 * T_celsius) * 1000.0
+        # 1. Calculate both pure states
+        h_sublimation = (2834.3 - 0.29 * T_celsius) * 1000.0
+        h_vaporization = (2501.0 - 2.36 * T_celsius) * 1000.0
+        
+        # 2. Sigmoid blending function centered at 0°C
+        # k controls the steepness. k=10 means the transition 
+        # happens smoothly across a ~1°C window (-0.5 to +0.5)
+        k = 10.0 
+        
+        # Prevent math overflow for extreme temperatures
+        # np.clip keeps the exponent in a safe range for np.exp()
+        safe_exponent = np.clip(-k * T_celsius, -500, 500)
+        blend = 1.0 / (1.0 + np.exp(safe_exponent))
+        
+        # 3. Smoothly interpolate
+        # When T << 0: blend -> 0 (100% Sublimation)
+        # When T == 0: blend -> 0.5 (50/50 Mix)
+        # When T >> 0: blend -> 1 (100% Vaporization)
+        return (1.0 - blend) * h_sublimation + blend * h_vaporization
 
     def _calculate_mass_flow_split_Fick(self, frost_thickness: float, frost_density: float, m_dot_total: float, 
                                         rho_w_surf: float, rho_w_base: float, A_frost_surface: float, T_frost_surface: float) -> tuple[float, float, float, float]:

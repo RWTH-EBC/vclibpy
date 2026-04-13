@@ -84,6 +84,7 @@ class ComparisonData:
     # Special fields for OptiHorst defrost/plateau detection
     time_full: Optional[np.ndarray] = None
     m_frost_full: Optional[np.ndarray] = None
+    m_frost_melted_max: Optional[float] = None
 
 # ==============================================================================
 #  ANALYZER CLASS
@@ -373,33 +374,28 @@ class MultiExperimentAnalyzer:
             # Q [W] = m [kg/s] * delta_h [kJ/kg] * 1000 [W/kW]
             q_watts = m_ref * (h_out - h_in) * 1000
 
-            # Use simulation duration for the regression window if provided
-            t_basis = sim_duration if sim_duration is not None else np.max(t_minutes)
-            
-            # Calculate zeroed mass and the offset used
-            m_frost_zeroed, m_frost_offset = self._calculate_frost_mass(t_minutes, m_frost_raw, t_basis)
-
-            # 6. Full Data Extraction (Defrost Plateau for melted mass methods)
-            time_full = None
-            m_frost_full = None
-            
-            # Trigger this for OptiHorst OR if we explicitly flagged it as a melted mass experiment
+            # =================================================================
+            # MASS EXTRACTION LOGIC
+            # =================================================================
             is_melted_method = (self.exp_type == "OptiHorst" or use_melted_mass)
-            
+
             if is_melted_method and df_raw is not None:
                 t_raw_full = extract(df_raw, df_kk_raw, 'time')
+                m_raw_full = extract(df_raw, df_kk_raw, mass_key)
                 
-                # Ensure we pull from the correct raw mass column here as well!
-                mass_raw_key = 'mass_melted' if (use_melted_mass and 'mass_melted' in self.cols) else 'mass_raw'
-                m_raw_full = extract(df_raw, df_kk_raw, mass_raw_key)
-                
-                if len(t_raw_full) > 0:
-                    # Align full time axis to the start of the cut data (t=0)
-                    t_start = t_raw[0] if len(t_raw) > 0 else t_raw_full[0]
-                    time_full = (t_raw_full - t_start) / 60.0
-                    
-                    # Apply the SAME offset from the stable region to the full data
-                    m_frost_full = (m_raw_full - m_frost_offset) * 1000.0
+                m_frost_zeroed, time_full, m_frost_full, m_frost_melted_max = self._calculate_melted_frost_mass(
+                    t_minutes, m_frost_raw, t_raw, t_raw_full, m_raw_full
+                )
+            else:
+                time_full = None
+                m_frost_full = None
+                m_frost_melted_max = None
+                m_frost_zeroed, _ = self._calculate_live_frost_mass(t_minutes, m_frost_raw)
+
+            
+            # =================================================================
+            # Store Results
+            # =================================================================
 
             results.append(ComparisonData(
                 id=exp_id,
@@ -415,25 +411,65 @@ class MultiExperimentAnalyzer:
                 Q=q_watts,
                 m_frost=m_frost_zeroed,
                 time_full=time_full,
-                m_frost_full=m_frost_full
+                m_frost_full=m_frost_full,
+                m_frost_melted_max=m_frost_melted_max
             ))
 
         return results
 
-    def _calculate_frost_mass(self, t_minutes: np.ndarray, m_raw: np.ndarray, t_max_ref: float) -> Tuple[np.ndarray, float]:    
+    def _calculate_melted_frost_mass(self, t_minutes: np.ndarray, m_frost_raw: np.ndarray, t_raw: np.ndarray, t_raw_full: np.ndarray, m_raw_full: np.ndarray) -> Tuple[np.ndarray, Optional[np.ndarray], Optional[np.ndarray], Optional[float]]:
         """
-        Calculates frost mass zeroing offset by fitting a Linear + Sqrt function 
-        to the entire dataset to bypass early noise and account for slight curvature.
+        Calculates frost mass for the melted measurement setup.
+        Averages active time for zero offset and scans post-active time for the maximum weight.
+        """
+        # 1. Average active time for zero offset
+        zero_offset = np.mean(m_frost_raw) if len(m_frost_raw) > 0 else 0.0
+        m_frost_zeroed = (m_frost_raw - zero_offset) * 1000.0
+
+        time_full = None
+        m_frost_full = None
+        m_frost_melted_max = None
+
+        # 2. Extract full timeline
+        if len(t_raw_full) > 0:
+            t_start = t_raw[0] if len(t_raw) > 0 else t_raw_full[0]
+            time_full = (t_raw_full - t_start) / 60.0
+            m_frost_full = (m_raw_full - zero_offset) * 1000.0
+            
+            # 3. Look *behind* active time to find the maximum
+            if len(t_minutes) > 0:
+                active_end_time = t_minutes[-1]
+                post_active_mask = time_full > active_end_time
+                
+                if np.any(post_active_mask):
+                    # Using np.max. For smoothing against single-drop spikes, a rolling average could be applied here in the future
+                    m_frost_melted_max = np.max(m_frost_full[post_active_mask])
+                else:
+                    m_frost_melted_max = 0.0
+
+        return m_frost_zeroed, time_full, m_frost_full, m_frost_melted_max
+
+    def _calculate_live_frost_mass(self, t_minutes: np.ndarray, m_raw: np.ndarray, ignore_first_mins: float = 3.0) -> Tuple[np.ndarray, float]:    
+        """
+        Calculates frost mass for live measurements. 
+        Bypasses initial scale oscillations by fitting a linear regression to the 
+        stable data (after ignore_first_mins) and back-extrapolating to t=0 for the offset.
         """
         if len(t_minutes) == 0: return m_raw, 0.0
 
-        # Lambda function for: m(t) = a*t + b*sqrt(t) + offset
-        # np.clip ensures no negative values get passed to sqrt
-        fit_func = lambda t, a, b, offset: a * t + b * np.sqrt(np.clip(t, 0, None)) + offset
+        # Create a mask to ignore the noisy start
+        stable_mask = t_minutes > ignore_first_mins
+        
+        # If the experiment is too short, just fall back to the median of the first minute
+        if not np.any(stable_mask) or len(t_minutes[stable_mask]) < 10:
+            offset = np.median(m_raw[:10])
+            return (m_raw - offset) * 1000.0, offset
 
-        # popt contains the optimized parameters: [a, b, offset]
-        popt, _ = curve_fit(fit_func, t_minutes, m_raw, p0=[0.0, 0.0, m_raw[0]])
-        offset = popt[2]
+        # Fit a simple line to the stable part of the curve
+        slope, intercept, _, _, _ = linregress(t_minutes[stable_mask], m_raw[stable_mask])
+        
+        # The intercept of this line is our theoretical, oscillation-free weight at t=0
+        offset = intercept
 
         m_grams = (m_raw - offset) * 1000.0
         return m_grams, offset

@@ -117,11 +117,6 @@ class FrostModel:
             # T_surface >= freezing point (Condensation phase)
             # Assumption: Condensate immediately drops off. 
             # Existing frost state and geometry remain unchanged.
-
-            new_frost_mass = prev_frost_mass + (state.hmt.m_dot_thickening + state.hmt.m_dot_densification) * self.params.time_step
-
-            state.frost.set("mass", new_frost_mass)
-
             pass
 
             
@@ -151,21 +146,20 @@ class FrostModel:
 
         rho_calc = 100.0 # Default fallback
 
-        if correlation_choice in ["D2", "jonas_diss", "hayashi_1977"]:        
+        if correlation_choice in ["hayashi_1977"]:        
             # Hayashi et al. (1977): A classic correlation based solely on the frost surface temperature.
             rho_calc = 650.0 * np.exp(0.277 * T_surface_C)
             
-        elif correlation_choice in ["D8", "nascimento_2013"]:
+        elif correlation_choice in ["nascimento_2013"]:
             # Nascimento et al. (2013) / Hermes: Empirically fitted for wall temps between -15°C and -5°C.
             rho_calc = 207.0 * np.exp(0.266 * T_surface_C - 0.0615 * T_base_C)
 
-        elif correlation_choice in ["da_silva_paper", "da_silva_2011"]:  
+        elif correlation_choice in ["da_silva_2011"]:  
             # da Silva et al. (2011): Section 4 "Results", Eq. 9
             rho_calc = 494.0 * np.exp(0.11 * T_surface_C - 0.06 * T_dew_C)
 
         elif correlation_choice == "wang_2012":
             # Wang et al. (2012): Modifies Hayashi's correlation by adding a base temperature correction factor.
-            # Validated specifically for base temperatures from -15°C to -5°C, making it ideal for this application.
             c1 = 0.70132 - 0.11346 * T_base_C - 0.00203 * (T_base_C ** 2)
             rho_calc = c1 * 650.0 * np.exp(0.277 * T_surface_C)
 
@@ -233,11 +227,11 @@ class FrostModel:
         # Safety clamp to avoid math domain errors or non-physical densities 
         rho = max(20.0, min(900.0, average_density))
 
-        if correlation_choice in ["A", "oneal_tree_1984"]:
+        if correlation_choice in ["oneal_tree_1984"]:
             # O'Neal & Tree (1984) / Sanders (1974)
             return 1.202e-3 * rho ** 0.963
             
-        elif correlation_choice in ["da_silva_paper", "lee_1997"]:  
+        elif correlation_choice in ["lee_1997"]:  
             # Lee et al. (1997)
             return 0.132 + (3.13e-4 * rho) + (1.6e-7 * rho**2)
 

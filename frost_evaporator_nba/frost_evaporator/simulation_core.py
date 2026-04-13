@@ -30,7 +30,7 @@ class FrostEvaporatorSimulation:
 
         
         if external_refprop is not None:
-            print(" [Evap] Attaching to external RefProp instance.")
+            # print(" [Evap] Attaching to external RefProp instance.")
             refprop = external_refprop
         else:
             if self.params.refrigerant == 'R134a':
@@ -71,6 +71,21 @@ class FrostEvaporatorSimulation:
         self.fan_system_model  = FanSystemModel(self.params)
         self.hmt_model         = HeatMassTransferModel(self.params)
         self.thermo_model      = ThermoModel(self.params)
+    
+    def update_time_step(self, new_time_step: float):
+        """
+        Updates the simulation time step.
+        """
+        self.params.set("time_step", new_time_step)
+
+        # Pass the updated params to the models
+        self.frost_model       = FrostModel(self.params)
+        self.air_model         = AirModel(self.params)
+        self.refrigerant_model = RefrigerantModel(self.params, self.refprop)
+        self.fan_system_model  = FanSystemModel(self.params)
+        self.hmt_model         = HeatMassTransferModel(self.params)
+        self.thermo_model      = ThermoModel(self.params)
+
 
 
     
@@ -87,6 +102,8 @@ class FrostEvaporatorSimulation:
         self.params.set("correction_factor_k_frost", new_factors["k_frost"])
         self.params.set("correction_factor_frost_diffusion", new_factors["frost_diffusion"])
         self.params.set("correction_factor_pressure_loss", new_factors["pressure_loss"])
+        self.params.set("correction_factor_roughness_C", new_factors["roughness_C"])
+        self.params.set("correction_factor_roughness_n", new_factors["roughness_n"])
 
         # Set correlations choices
         self.params.set("frost_density_correlation_choice", new_model_choices["frost_density_choice"])
@@ -159,7 +176,7 @@ class FrostEvaporatorSimulation:
         It runs the stabilization routine (Initial blind step -> Equilibrium loops -> Reset Thickness)
         to ensure the numerical model starts on the same footing as the validation cases.
         """
-        print("--- Priming Evaporator Model ---")
+        # print("--- Priming Evaporator Model ---")
 
         self.reset_simulation()
 
@@ -168,11 +185,6 @@ class FrostEvaporatorSimulation:
 
         # 2. Initialization Sequence
         self._step_frost_growth() # First blind step
-
-        # Stabilize
-        # for i in range(2):
-        # self.solve_equilibrium(self.states, self.layer_inputs, initial_inputs, max_iter=200)
-        # self._step_frost_growth()
 
         # Reset Frost Thickness
         initial_thickness = 1e-8
@@ -279,7 +291,12 @@ class FrostEvaporatorSimulation:
                 t_air = T_surf_after_air[k]
                 t_ref = T_surf_after_ref[k]
 
-                ALPHA = 0.5
+                # =========================================================
+                # Dynamically shift ALPHA to take larger steps as we get closer
+                if max_drift < 0.05:
+                    ALPHA = 0.5  # Take a 50/50 split when very close to avoid stalling
+                else:
+                    ALPHA = 0.2  # Keep conservative step when far awa
                 
                 # Weighted Average
                 t_mixed = (ALPHA * t_ref) + ((1.0 - ALPHA) * t_air)
@@ -322,10 +339,11 @@ class FrostEvaporatorSimulation:
         m_flow_at_t0 = self.states[0].air.m_dot_humid
         
         duration_mins = exp_data.duration
-        # simulation_steps = int(duration_mins * 60 / self.params.time_step + 1)
+        simulation_steps = int(duration_mins * 60 / self.params.time_step + 1)
 
-        simulation_steps = 20 #! Später Ändern
-        self.params.set("time_step", duration_mins * 60 / simulation_steps)
+        # Time Step Override for Testing
+        # simulation_steps = 20
+        # self.params.set("time_step", duration_mins * 60 / simulation_steps)
 
         try:
             # Assign tqdm to a variable so we can update its postfix text
@@ -393,11 +411,11 @@ class FrostEvaporatorSimulation:
 
         # 3. Solve Equilibrium (Air/Ref balance)
         # We use the existing self.states as the starting guess (hot start) for speed.
-        is_converged = self.solve_equilibrium(self.states, self.layer_inputs, global_inputs, max_iter=50)
+        is_converged = self.solve_equilibrium(self.states, self.layer_inputs, global_inputs, max_iter=100, tolerance=1e-2)
 
         if not is_converged:
-            # You might want to log this or raise a warning, depending on how robust the HP solver is
-            pass
+            # Raise an error so the Level 3 solver knows this state is invalid
+            raise RuntimeError(f"Equilibrium not reached at P={p_ref_Pa/1e5:.2f} bar")
 
         # 4. Return Outlet Enthalpy
         # Based on reverse sweep (N->0), the outlet of the evaporator is the outlet of Layer 0.
