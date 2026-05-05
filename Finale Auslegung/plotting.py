@@ -53,7 +53,7 @@ def load_and_map_data(filepath):
         'dT_eva_superheating in K (None)': 'SH',
         'm_flow_ref in kg/s (Refrigerant mass flow rate)': 'm_flow_kg_s',
         'opening in - (Opening High-Side EV)': 'y_EV',
-        'phi in - (None)': 'phi',
+
 
         # Zustände 1-7 (T, p, h, rho)
         'T_1 in K (Temperature in state 1)': 'T_1_K', 'H_1 in J/kg (Enthalpy in state 1)': 'h_1_Jkg',
@@ -86,7 +86,7 @@ def load_and_map_data(filepath):
     # Einheiten & Basiswerte
     if 'P_el_W' in df.columns: df['P_el_kW'] = df['P_el_W'] / 1000
     if 'Q_con_W' in df.columns: df['Q_con_kW'] = df['Q_con_W'] / 1000
-    if 'n_Hz' in df.columns: df['n_rpm'] = df['n_Hz'] * 60
+    if 'n_Hz' in df.columns: df['n_rpm'] = df['n_Hz'] * 110
     if 'm_flow_kg_s' in df.columns: df['m_flow_ref'] = df['m_flow_kg_s']
 
     # Scatter Achsen
@@ -358,7 +358,7 @@ def create_logph_diagrams(df, output_folder):
 
         t_str = (
             f"BP {idx:03d} | Src: {row.get('Source_C', 0):.1f}°C | Flow: {row.get('Flow_C', 0):.1f}°C | n: {row.get('n_rpm', 0):.0f}\n"
-            f"SH: {row.get('SH', 0):.1f}K | phi: {row.get('phi', 0):.2f} | EV: {row.get('y_EV', 0):.2f} | Status: {row.get('Status_Code', '')}")
+            f"SH: {row.get('SH', 0):.1f}K | EV: {row.get('y_EV', 0):.2f} | Status: {row.get('Status_Code', '')}")
         ax.set_title(t_str, color='black' if row['Limit_OK'] else 'red', fontweight='bold', fontsize=9)
         ax.grid(True, which='major', alpha=0.3)
 

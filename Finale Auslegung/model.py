@@ -35,8 +35,8 @@ def create_heat_pump(A_cond, A_ihx):
     # IHX (Variable Fläche!)
     ihx_component = ihx_ntu.IHX_NTU(
         A=A_ihx,  # <--- HIER VARIABLE
-        alpha_low_side=500,
-        alpha_high_side=2000,
+        alpha_low_side=525,
+        alpha_high_side=818,
         dT_pinch_min=0.5,
         wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=400, thickness=1e-3)
     )

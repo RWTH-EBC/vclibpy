@@ -4,6 +4,8 @@ import pathlib
 import os
 import logging
 
+from vclibpy.algorithms import Iteration
+
 logging.basicConfig(level=logging.INFO)
 
 from vclibpy.flowsheets import StandardCycle
@@ -23,7 +25,7 @@ from vclibpy.utils.automation import calc_multiple_states
 
 # WICHTIG: Stelle sicher, dass dies die NEUE Excel-Datei aus dem Generator ist,
 # die die Spalte "phi" enthält!
-excel_filename = 'betriebspunkte_final_bivalent_seriell.xlsx'
+excel_filename = 'betriebspunkte_final.xlsx'
 if not os.path.exists(excel_filename):
     raise FileNotFoundError(f"Datei {excel_filename} nicht gefunden!")
 
@@ -39,7 +41,7 @@ if 'phi' not in df_betriebspunkte.columns:
 
 # Kondensator
 condenser = moving_boundary_ntu.MovingBoundaryNTUCondenser(
-    A=5, secondary_medium="water", flow_type="counter", ratio_outer_to_inner_area=1,
+    A=2.88, secondary_medium="water", flow_type="counter", ratio_outer_to_inner_area=1,
     two_phase_heat_transfer=heat_transfer.constant.ConstantTwoPhaseHeatTransfer(alpha=5000),
     gas_heat_transfer=heat_transfer.constant.ConstantHeatTransfer(alpha=5000),
     wall_heat_transfer=heat_transfer.wall.WallTransfer(lambda_=236, thickness=2e-3),
@@ -72,7 +74,7 @@ heat_pump = StandardCycle(
     compressor=compressor, expansion_valve=expansion_valve,
 )
 
-algorithm = FSolve()
+algorithm = Iteration()
 
 # =============================================================================
 # 3. Iteration & Parameter-Definition
@@ -169,7 +171,7 @@ logging.info(f"Fertig. Insgesamt {len(inputs_list)} Simulationen vorbereitet")
 # =============================================================================
 
 save_directory = pathlib.Path(".")
-output_filename = "SC_Propane_Auslegung.xlsx"
+output_filename = "SC_Propane_Auslegung_con_2_88.xlsx"
 
 logging.info("Starte Simulation (calc_multiple_states)...")
 

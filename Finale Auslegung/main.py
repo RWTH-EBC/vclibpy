@@ -10,6 +10,7 @@ import model
 import inputs
 import optimization
 import plotting
+import eev_auslegung
 
 # import plotting (dein Plotting-Skript als Modul)
 
@@ -20,18 +21,21 @@ logging.basicConfig(level=logging.INFO)
 # =============================================================================
 
 # MANUELLE PARAMETER (Hier trägst du die Ergebnisse der Optimierung ein)
-CURRENT_A_COND = 2.2  # Startwert
-CURRENT_A_IHX = 0.0275  # Startwert
+CURRENT_A_COND = 2.88  # Startwert
+CURRENT_A_IHX = 0.01534  # Überschlagener Wert für Danfoss IHX HE1.5
 
 # Flags steuern, was passiert
 RUN_FULL_SIMULATION = False
-RUN_OPTIMIZER_COND = True  # Erst True setzen, wenn Full Sim fertig
+RUN_OPTIMIZER_COND = False
 RUN_OPTIMIZER_IHX = False
 RUN_PLOTTING = False
+RUN_EEV_SIZING = True
 
 EXCEL_BP = 'betriebspunkte_final.xlsx'
-OUTPUT_FILE = 'IHX_Propane_Auslegung_angepasste_IHX_Fläche_angepasst.xlsx'
+OUTPUT_FILE = 'IHX_Propane_Auslegung_IHX_1_5_con_2_88.xlsx'
 
+EXCEL_MIT_IHX = 'IHX_Propane_Auslegung_IHX_1_5_con_2_88.xlsx'
+EXCEL_OHNE_IHX = 'SC_Propane_Auslegung_con_2_88.xlsx'
 
 def run_simulation(A_cond, A_ihx, full_run=True):
     """Führt die Simulation aus."""
@@ -91,3 +95,9 @@ if __name__ == "__main__":
         print("Erstelle Plots...")
         plot_folder_name = f"Plots_Cond{CURRENT_A_COND:.2f}_IHX{CURRENT_A_IHX:.2f}"
         plotting.create_all_plots(OUTPUT_FILE, plot_folder_name)
+
+    if RUN_EEV_SIZING:
+        print("\n=============================================")
+        print("   SCHRITT 5: EEV AUSLEGUNG (Kv-Proxy)")
+        print("=============================================")
+        eev_auslegung.finde_eev_randpunkte(EXCEL_MIT_IHX, EXCEL_OHNE_IHX)
