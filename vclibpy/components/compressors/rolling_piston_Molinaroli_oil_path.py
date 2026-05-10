@@ -222,7 +222,9 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         lubricant = self._get_lubricant_model()
         _zero = {"h_dis_gas": h4, "T_dis": T_w, "Q_dis_total": 0.0,
                  "Q_dissolve_3": 0.0, "Q_oil_sump": 0.0,
-                 "w_KM_mix": None, "w_KM_dis": None, "m_dot_gas_exit": m_dot_suc}
+                 "w_KM_mix": None, "w_KM_dis": None, "m_dot_gas_exit": m_dot_suc,
+                 "T_mix": T_w, "cp_comb": float("nan"),
+                 "eps_dis": float("nan"), "m_dot_total": m_dot_suc}
         try:
             state_5 = self.med_prop.calc_state("PH", p_dis, h4)
             T_gas = state_5.T
@@ -238,7 +240,9 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
             return {"h_dis_gas": h_dis, "T_dis": T_dis,
                     "Q_dis_total": m_dot_suc * (h4 - h_dis),
                     "Q_dissolve_3": 0.0, "Q_oil_sump": 0.0,
-                    "w_KM_mix": None, "w_KM_dis": None, "m_dot_gas_exit": m_dot_suc}
+                    "w_KM_mix": None, "w_KM_dis": None, "m_dot_gas_exit": m_dot_suc,
+                    "T_mix": T_gas, "cp_comb": cp_gas,
+                    "eps_dis": eps, "m_dot_total": m_dot_suc}
 
         # ===== STAGE 1: Adiabatic mixing + back-dissolution =====
         m_dot_gas_in = m_dot_suc + oil_path["m_dot_KM_degas_total"]
@@ -382,7 +386,9 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         return {"h_dis_gas": h_dis_gas, "T_dis": T_dis, "Q_dis_total": Q_dis_total,
                 "Q_dissolve_3": Q_dissolve_3, "Q_oil_sump": Q_oil_sump,
                 "w_KM_mix": w_KM_mix, "w_KM_dis": w_KM_dis,
-                "m_dot_gas_exit": m_dot_gas_exit}
+                "m_dot_gas_exit": m_dot_gas_exit,
+                "T_mix": T_mix, "cp_comb": cp_comb,
+                "eps_dis": eps, "m_dot_total": m_dot_total}
 
     # =================================================================
     # OIL PATH (suction side) — Steps 1-8, no Q_oil_sump
@@ -786,6 +792,10 @@ class Molinaroli_2017_Compressor_Oil_Path(Compressor):
         fs_state.set("T_dis_est", self.T_dis_est, "K", "Predictor T_dis gas-only (diag.)")
         fs_state.set("T_dis_corr", self.T_dis_corr, "K", "Corrector T_dis (diag.)")
         fs_state.set("pc_convergence_gap", self.pc_convergence_gap, "K", "|T_final-T_corr| (diag.)")
+        fs_state.set("T_mix", dis_final["T_mix"], "K", "Mixture T after Stage 1 (diag.)")
+        fs_state.set("cp_comb", dis_final["cp_comb"], "J/(kg*K)", "Combined cp at discharge HT (diag.)")
+        fs_state.set("eps_dis", dis_final["eps_dis"], "-", "Discharge HT effectiveness (diag.)")
+        fs_state.set("m_dot_total", dis_final["m_dot_total"], "kg/s", "Combined mass flow at discharge HT (diag.)")
 
     # =================================================================
     # INTERFACE
