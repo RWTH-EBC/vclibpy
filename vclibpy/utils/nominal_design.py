@@ -46,8 +46,8 @@ def nominal_hp_design(
     m_flow_eva_start = kwargs.get("m_flow_eva_start", 1)
     accuracy = kwargs.get("accuracy", 0.001)
     calculate_m_flow = dT_eva is not None and dT_con is not None
-    if calculate_m_flow:
-        # Get nominal value:
+    if not calculate_m_flow:
+        # Mass flow rates are already given in inputs, just get the nominal value:
         fs_state = heat_pump.calc_steady_state(fluid=fluid, inputs=inputs)
         if fs_state is None:
             raise ValueError("Given configuration is infeasible at nominal point.")
@@ -68,8 +68,8 @@ def nominal_hp_design(
                 raise ValueError("Given configuration is infeasible at nominal point.")
             cp_eva = heat_pump.evaporator._secondary_cp
             cp_con = heat_pump.condenser._secondary_cp
-            m_flow_con_next = fs_state.get("Q_con") / (dT_con * cp_con)
-            m_flow_eva_next = (fs_state.get("Q_con") * (1 - 1 / fs_state.get("COP"))) / (dT_eva * cp_eva)
+            m_flow_con_next = fs_state.get("Q_con").value / (dT_con * cp_con)
+            m_flow_eva_next = (fs_state.get("Q_con").value * (1 - 1 / fs_state.get("COP").value)) / (dT_eva * cp_eva)
             # Check convergence:
             if abs(m_flow_eva_next - m_flow_eva) < accuracy and abs(m_flow_con-m_flow_con_next) < accuracy:
                 break

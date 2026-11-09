@@ -64,6 +64,7 @@ def full_factorial_map_generation(
         dT_con_subcooling=0,
         use_multiprocessing: bool = False,
         save_plots: bool = False,
+        filename_suffix: str = "",
         **kwargs
 ) -> (pathlib.Path, pathlib.Path):
     """
@@ -89,6 +90,10 @@ def full_factorial_map_generation(
             True to use multiprocessing. May speed up the calculation. Default is False
         save_plots:
             True to save plots of each steady state point. Default is False
+        filename_suffix:
+            Optional string appended to the output filenames before the
+            extension, e.g. "_heating", to distinguish multiple maps for the
+            same flowsheet/fluid combination. Default is "" (no suffix).
         **kwargs: Solver settings for the flowsheet
 
     Returns:
@@ -149,8 +154,8 @@ def full_factorial_map_generation(
         })
 
     # Save to excel
-    save_path_sdf = save_path.joinpath(f"{heat_pump.flowsheet_name}_{heat_pump.fluid}.sdf")
-    save_path_csv = save_path.joinpath(f"{heat_pump.flowsheet_name}_{heat_pump.fluid}.csv")
+    save_path_sdf = save_path.joinpath(f"{heat_pump.flowsheet_name}_{heat_pump.fluid}{filename_suffix}.sdf")
+    save_path_csv = save_path.joinpath(f"{heat_pump.flowsheet_name}_{heat_pump.fluid}{filename_suffix}.csv")
     pd.DataFrame(variables_to_excel).to_csv(
         save_path_csv
     )
